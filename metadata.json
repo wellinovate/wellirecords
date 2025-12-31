@@ -1,0 +1,8 @@
+{
+  "name": "WelliRecord™",
+  "description": "The foundational health data backbone of the WelliCare ecosystem, empowering patients with sovereign, secure, and interoperable health records enriched by Gemini AI.",
+  "requestFramePermissions": [
+    "microphone",
+    "geolocation"
+  ]
+}
