@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { 
   Shield, Activity, Lock, Globe, Check, 
   Smartphone, Building2, User, Mail, ArrowRight, 
@@ -111,6 +112,10 @@ export const Onboarding: React.FC<Props> = ({ onComplete }) => {
     password: false,
     nin: false
   });
+
+
+  // Ideally, store your base URL in an .env file
+const API_URL = "https://welli-record.vercel.app";
 
   // Sales Form State
   const [salesForm, setSalesForm] = useState({ name: '', email: '', company: '', message: '' });
@@ -227,7 +232,7 @@ export const Onboarding: React.FC<Props> = ({ onComplete }) => {
       setTouched({ name: true, email: true, phone: true, password: true, nin: false });
 
       if (formErrors.name || formErrors.email || formErrors.phone || formErrors.password) return;
-
+        console.log('stepone', formData)
       setWizardStep(2);
   };
 
@@ -252,6 +257,7 @@ export const Onboarding: React.FC<Props> = ({ onComplete }) => {
       // Simulate verifying code
       setTimeout(() => {
           setLoading(false);
+          console.log('step two', formData)
           setWizardStep(4);
       }, 1000);
   };
@@ -288,33 +294,56 @@ export const Onboarding: React.FC<Props> = ({ onComplete }) => {
       }, 1500);
   };
 
-  const handleFinalSubmit = () => {
+  const handleFinalSubmit = async() => {
     setLoading(true);
     // Simulate API call for Sign Up
-    setTimeout(() => {
+        const response = await axios.post(`${API_URL}/api/v1/user/users`, {
+            formData
+      });
+      if(response.status===201){
+        setLoading(false)
         onComplete(formData);
-    }, 2000);
+      }else{
+        alert('Registration failed, try again')
+        setLoading(false)
+      }
+
   };
 
   // --- Login Handlers ---
 
-  const handleLoginCredentialsSubmit = (e: React.FormEvent) => {
+  const handleLoginCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     // Simulate checking credentials
-    setTimeout(() => {
+    // Send the email to the backend to generate/send OTP
+      const response = await axios.post(`${API_URL}/api/v1/user/initiate`, {
+        email: formData.email,
+        password: formData.password
+      });
+      console.log('OTP response: ',response)
+      if(response.status === 200){
         setLoading(false);
-        setLoginStep(2); // Move to OTP
-    }, 1000);
+         setLoginStep(2); // Move to OTP
+      }
   };
 
-  const handleLoginVerifySubmit = (e: React.FormEvent) => {
+  const handleLoginVerifySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     // Simulate verifying OTP and logging in
-    setTimeout(() => {
-        onComplete({ ...formData, name: 'Returning User' });
-    }, 1500);
+        const response = await axios.post(`${API_URL}/api/v1/user/verify-otp`, {
+        email: formData.email,
+        otp: Number(otp)
+      });
+      if(response.status===200){
+         onComplete({ ...formData, name: 'Returning User' });
+      }else{
+        alert('Wrong OTP')
+      }
+    // setTimeout(() => {
+       
+    // }, 1500);
   };
 
   const handleConnectWallet = () => {
