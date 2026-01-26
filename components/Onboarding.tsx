@@ -40,7 +40,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useAccount } from 'wagmi'
+import { useAccount } from "wagmi";
 
 interface Props {
   onComplete: (userData: any) => void;
@@ -101,8 +101,8 @@ export const Onboarding: React.FC<Props> = ({ onComplete }) => {
   const [showDemo, setShowDemo] = useState(false);
   const [showSalesContact, setShowSalesContact] = useState(false);
   const [activeFeature, setActiveFeature] = useState<any>(null);
-  
-  const {  isConnected } = useAccount()
+
+  const { isConnected } = useAccount();
 
   // Security Feature States
   const [activeSecurityFeature, setActiveSecurityFeature] = useState<
@@ -368,11 +368,11 @@ export const Onboarding: React.FC<Props> = ({ onComplete }) => {
           // Generate Mock Credentials
           setGeneratedAddress(
             `0x${Array.from({ length: 40 }, () =>
-              Math.floor(Math.random() * 16).toString(16)
-            ).join("")}`
+              Math.floor(Math.random() * 16).toString(16),
+            ).join("")}`,
           );
           setRecoveryPhrase(
-            "witch collapse practice feed shame open despair creek road again ice least"
+            "witch collapse practice feed shame open despair creek road again ice least",
           );
         }, 2000);
       }, 2000);
@@ -406,11 +406,11 @@ export const Onboarding: React.FC<Props> = ({ onComplete }) => {
     setTimeout(() => {
       onComplete({ ...formData, name: "Returning User" });
     }, 1500);
-  }; 
+  };
 
   const handleManinConnectWallet = () => {
-    if(isConnected) handleConnectWallet();
-  }
+    if (isConnected) handleConnectWallet();
+  };
 
   const handleConnectWallet = () => {
     setWalletStatus("connecting");
@@ -924,15 +924,15 @@ export const Onboarding: React.FC<Props> = ({ onComplete }) => {
               {wizardStep === 0
                 ? "Select Setup Method"
                 : wizardStep >= 5
-                ? "Smart Contract Setup"
-                : "Create Secure ID"}
+                  ? "Smart Contract Setup"
+                  : "Create Secure ID"}
             </h3>
             <p className="text-sm text-slate-500">
               {wizardStep === 0
                 ? "Choose how you want to secure your data"
                 : wizardStep >= 5
-                ? `Phase ${wizardStep - 4} of 4`
-                : `Step ${wizardStep} of 4`}
+                  ? `Phase ${wizardStep - 4} of 4`
+                  : `Step ${wizardStep} of 4`}
             </p>
           </div>
           <button
@@ -2054,7 +2054,7 @@ export const Onboarding: React.FC<Props> = ({ onComplete }) => {
                 key={i}
                 onClick={() =>
                   alert(
-                    `Initiating secure connection request to ${name} Portal...`
+                    `Initiating secure connection request to ${name} Portal...`,
                   )
                 }
                 className="group flex items-center gap-2 p-4 rounded-xl border border-slate-200 bg-white hover:border-blue-200 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer"
