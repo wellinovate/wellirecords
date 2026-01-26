@@ -1,46 +1,15 @@
-import React, { useState, useEffect } from "react";
-import {
-  Shield,
-  Activity,
-  Lock,
-  Globe,
-  Check,
-  Smartphone,
-  Building2,
-  User,
-  Mail,
-  ArrowRight,
-  Play,
-  CheckCircle2,
-  ChevronRight,
-  X,
-  LogIn,
-  MessageSquare,
-  ShieldCheck,
-  Database,
-  Key,
-  ExternalLink,
-  FileText,
-  Server,
-  Video,
-  AlertCircle,
-  Send,
-  Award,
-  FileCode,
-  Cpu,
-  Hash,
-  Clock,
-  Download,
-  CheckCircle,
-  Fingerprint,
-  Blocks,
-  Binary,
-  FileKey,
-  Wallet,
-  Loader2,
-} from "lucide-react";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useAccount } from "wagmi";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { 
+  Shield, Activity, Lock, Globe, Check, 
+  Smartphone, Building2, User, Mail, ArrowRight, 
+  Play, CheckCircle2, ChevronRight, X, LogIn, MessageSquare,
+  ShieldCheck, Database, Key, ExternalLink, FileText, Server, Video, AlertCircle,
+  Send, Award, FileCode, Cpu, Hash, Clock, Download, CheckCircle, Fingerprint,
+  Blocks, Binary, FileKey, Wallet, Loader2
+} from 'lucide-react';
+import { useAccount } from 'wagmi';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 interface Props {
   onComplete: (userData: any) => void;
@@ -160,6 +129,10 @@ export const Onboarding: React.FC<Props> = ({ onComplete }) => {
     password: false,
     nin: false,
   });
+
+
+  // Ideally, store your base URL in an .env file
+const API_URL = "https://welli-record.vercel.app";
 
   // Sales Form State
   const [salesForm, setSalesForm] = useState({
@@ -296,24 +269,9 @@ export const Onboarding: React.FC<Props> = ({ onComplete }) => {
       nin: "",
     };
 
-    setErrors(formErrors);
-    setTouched({
-      name: true,
-      email: true,
-      phone: true,
-      password: true,
-      nin: false,
-    });
-
-    if (
-      formErrors.name ||
-      formErrors.email ||
-      formErrors.phone ||
-      formErrors.password
-    )
-      return;
-
-    setWizardStep(2);
+      if (formErrors.name || formErrors.email || formErrors.phone || formErrors.password) return;
+        console.log('stepone', formData)
+      setWizardStep(2);
   };
 
   const handleNinSubmit = () => {
@@ -333,12 +291,13 @@ export const Onboarding: React.FC<Props> = ({ onComplete }) => {
   };
 
   const handleSignupVerifyCode = () => {
-    setLoading(true);
-    // Simulate verifying code
-    setTimeout(() => {
-      setLoading(false);
-      setWizardStep(4);
-    }, 1000);
+      setLoading(true);
+      // Simulate verifying code
+      setTimeout(() => {
+          setLoading(false);
+          console.log('step two', formData)
+          setWizardStep(4);
+      }, 1000);
   };
 
   // --- Smart Contract Handlers ---
@@ -379,33 +338,56 @@ export const Onboarding: React.FC<Props> = ({ onComplete }) => {
     }, 1500);
   };
 
-  const handleFinalSubmit = () => {
+  const handleFinalSubmit = async() => {
     setLoading(true);
     // Simulate API call for Sign Up
-    setTimeout(() => {
-      onComplete(formData);
-    }, 2000);
+        const response = await axios.post(`${API_URL}/api/v1/user/users`, {
+            formData
+      });
+      if(response.status===201){
+        setLoading(false)
+        onComplete(formData);
+      }else{
+        alert('Registration failed, try again')
+        setLoading(false)
+      }
+
   };
 
   // --- Login Handlers ---
 
-  const handleLoginCredentialsSubmit = (e: React.FormEvent) => {
+  const handleLoginCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     // Simulate checking credentials
-    setTimeout(() => {
-      setLoading(false);
-      setLoginStep(2); // Move to OTP
-    }, 1000);
+    // Send the email to the backend to generate/send OTP
+      const response = await axios.post(`${API_URL}/api/v1/user/initiate`, {
+        email: formData.email,
+        password: formData.password
+      });
+      console.log('OTP response: ',response)
+      if(response.status === 200){
+        setLoading(false);
+         setLoginStep(2); // Move to OTP
+      }
   };
 
-  const handleLoginVerifySubmit = (e: React.FormEvent) => {
+  const handleLoginVerifySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     // Simulate verifying OTP and logging in
-    setTimeout(() => {
-      onComplete({ ...formData, name: "Returning User" });
-    }, 1500);
+        const response = await axios.post(`${API_URL}/api/v1/user/verify-otp`, {
+        email: formData.email,
+        otp: Number(otp)
+      });
+      if(response.status===200){
+         onComplete({ ...formData, name: 'Returning User' });
+      }else{
+        alert('Wrong OTP')
+      }
+    // setTimeout(() => {
+       
+    // }, 1500);
   };
 
   const handleManinConnectWallet = () => {
