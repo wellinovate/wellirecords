@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { AppView } from '../types';
 import { predictHealthTrends } from '../services/geminiService';
+import { useFetchUser } from '@/hooks/useFetchUser';
 
 interface Props {
   onChangeView: (view: AppView) => void;
@@ -74,6 +75,7 @@ const QuickStat = ({ icon: Icon, label, value, subtext, color }: any) => (
 // --- Main Component ---
 
 export const Dashboard: React.FC<Props> = ({ onChangeView, isPremium, onUpgrade, daysRemaining }) => {
+    const { user, loading, error, refetch } = useFetchUser();
   const [prediction, setPrediction] = useState<string | null>(null);
   const [loadingPrediction, setLoadingPrediction] = useState(true);
   const [showTrialBanner, setShowTrialBanner] = useState(true);
@@ -143,7 +145,7 @@ export const Dashboard: React.FC<Props> = ({ onChangeView, isPremium, onUpgrade,
       {/* 2. Header & Quick Stats */}
       <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center">
           <div>
-              <h1 className="text-2xl font-bold text-slate-100">Good Morning, Jane</h1>
+              <h1 className="text-2xl font-bold text-slate-100">Good Morning, {user?.name}</h1>
               <p className="text-slate-500 text-sm">You're on a 12-day data streak! Keep it up.</p>
           </div>
           <div className="grid grid-cols-3 gap-3 w-full lg:w-auto">

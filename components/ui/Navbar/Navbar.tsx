@@ -29,9 +29,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   daysRemaining,
   onChangeView,
 }) => {
-  const { user, loading, error, refetch } = useFetchUser({
-    backendUrl: "http://localhost:3000",
-  });
+  const { user, loading, error, refetch } = useFetchUser();
   const onboardStatus = localStorage.getItem("welli_onboarded");
   const { isConnected } = useAccount();
   // const [user, setUser] = useState<UserDTO>({ name: "Guest", id: "" });

@@ -31,6 +31,7 @@ import { FeaturesSection } from "./landing/FeaturesSection";
 import { SecuritySection } from "./landing/SecuritySection";
 import { AISection } from "./landing/AISection";
 import { CTASection } from "./landing/CTASection";
+import { backendApi } from "@/utils/data";
 
 interface Props {
   onComplete: (userData: any) => void;
@@ -396,7 +397,7 @@ export const Onboarding: React.FC<Props> = ({ onComplete }) => {
       <WizardModal
         open={showWizard}
         onClose={() => setShowWizard(false)}
-        apiUrl="http://localhost:3000"
+        apiUrl= {backendApi}
         onComplete={(user) => onComplete(user)}
       />
 
@@ -422,7 +423,7 @@ export const Onboarding: React.FC<Props> = ({ onComplete }) => {
         open={showLogin}
         onClose={() => setShowLogin(false)}
         // apiUrl="https://welli-record.vercel.app"
-        apiUrl="http://localhost:3000"
+        apiUrl= {backendApi}
         onComplete={(user) => onComplete(user)}
         onCreateAccount={() => {
           setShowLogin(false);

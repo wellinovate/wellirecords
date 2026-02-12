@@ -1,12 +1,14 @@
 import React, { useEffect } from 'react';
 import { Icons } from './layout/Icons';
 import { AppView } from '../types';
+import { useFetchUser } from '@/hooks/useFetchUser';
 
 interface LandingPageProps {
   onNavigate: (view: AppView) => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
+    const { user, loading, error, refetch } = useFetchUser();
   
   // Handle scrolling to hash when component mounts (e.g. coming from About Us page)
   useEffect(() => {
@@ -185,11 +187,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                    <div className="flex justify-between items-center mb-1">
                       <div className="flex gap-2 items-center">
                          <div className="w-8 h-8 rounded-full bg-stone-200 overflow-hidden">
-                           <img src="https://picsum.photos/100/100?random=1" className="w-full h-full object-cover" />
+                           <img src={user?.img} className="w-full h-full object-cover" />
                          </div>
                          <div>
                             <div className="text-[10px] text-stone-500 font-bold">Good Morning</div>
-                            <div className="text-sm font-bold text-stone-900">Chioma</div>
+                            <div className="text-sm font-bold text-stone-900">{user?.name}</div>
                          </div>
                       </div>
                    </div>

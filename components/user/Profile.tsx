@@ -31,9 +31,7 @@ interface Props {
 }
 
 export const Profile: React.FC<Props> = ({ onSignOut }) => {
-  const { user, loading, error, refetch } = useFetchUser({
-    backendUrl: "http://localhost:3000",
-  });
+  const { user, loading, error, refetch } = useFetchUser();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [profileImage, setProfileImage] = useState<string>(
     "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200&h=200",
@@ -123,7 +121,7 @@ export const Profile: React.FC<Props> = ({ onSignOut }) => {
             <div className="relative w-32 h-32 mb-4">
               <div className="w-full h-full rounded-full overflow-hidden border-4 border-slate-800 shadow-xl relative group-hover:border-blue-500/50 transition-colors">
                 <img
-                  src={profileImage}
+                  src={user?.img}
                   alt="Profile"
                   className="w-full h-full object-cover"
                 />
@@ -150,7 +148,7 @@ export const Profile: React.FC<Props> = ({ onSignOut }) => {
             </div>
 
             <h3 className="text-xl font-bold text-slate-100">
-              {formData.name}
+              {user?.name}
             </h3>
             <p className="text-sm text-slate-500 mb-4">Member since 2024</p>
 

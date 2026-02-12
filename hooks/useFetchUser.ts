@@ -72,7 +72,8 @@ function normalizeUser(resData: any, fallbackId: string): SimpleUser {
 
 export function useFetchUser(options: Options = {}) {
   const {
-    backendUrl = "http://localhost:3000",
+    // backendUrl = "http://localhost:3000",
+    backendUrl = "https://wellirecord.onrender.com",
     storageKey = "userData",
     enabled = true,
   } = options;
