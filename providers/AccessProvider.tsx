@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useMemo, useState } from "react";
 import { useAccess } from "../hooks/useAccess";
+import { useNavigate } from "react-router-dom";
 
 type AccessContextValue = {
   isPremium: boolean;
@@ -17,6 +18,7 @@ type AccessContextValue = {
 const AccessContext = createContext<AccessContextValue | null>(null);
 
 export function AccessProvider({ children }: { children: React.ReactNode }) {
+  const navigte = useNavigate();
   const { isPremium, setIsPremium, daysRemaining, hasAccess } = useAccess();
   const [showSubscription, setShowSubscription] = useState(false);
 
@@ -30,6 +32,8 @@ export function AccessProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = () => {
     localStorage.removeItem("welli_onboarded");
+    localStorage.removeItem("welli_trial_start");
+    navigte("/onboarding");
     // optionally: localStorage.removeItem("welli_trial_start");
   };
 
