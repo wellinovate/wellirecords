@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { sendChatMessage } from '../services/geminiService';
-import { ChatMessage } from '../types';
+import { sendChatMessage } from '../../services/geminiService';
+import { ChatMessage } from '../../types';
 import { Send, Bot, User, Globe, ExternalLink, Sparkles } from 'lucide-react';
 
 export const HealthChat: React.FC = () => {
