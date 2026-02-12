@@ -119,14 +119,14 @@ export function LoginModal({
         setWalletStatus("deploying");
         setTimeout(() => {
           setWalletStatus("connected");
-          setTimeout(() => {
-            onComplete({
-              name: "Wallet User",
-              email: "wallet@wellichain.eth",
-              memberId: "WR-SMART-99",
-            });
-            close();
-          }, 700);
+          // setTimeout(() => {
+          //   onComplete({
+          //     name: "Wallet User",
+          //     email: "wallet@wellichain.eth",
+          //     memberId: "WR-SMART-99",
+          //   });
+          //   close();
+          // }, 700);
         }, 1500);
       }, 1000);
     }, 700);

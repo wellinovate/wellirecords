@@ -199,7 +199,7 @@ export const Layout: React.FC<Props> = ({
           {/* Wallet logout only if wallet is connected */}
           {onboardStatus && isConnected && (
             <button
-              onClick={() => disconnect()}
+              onClick={() => {disconnect(), onSignOut()}}
               className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-red-400 text-sm font-medium transition-colors hover:bg-red-900/10 rounded-xl"
             >
               <LogOut size={20} /> Disconnect
