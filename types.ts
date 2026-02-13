@@ -44,6 +44,17 @@ export interface HealthMetric {
   data: MetricDataPoint[];
   status: 'stable' | 'improving' | 'attention';
 }
+export enum DashboardModule {
+  HOME = 'HOME',
+  AI_TRIAGE = 'AI_TRIAGE',
+  RECORDS = 'RECORDS',
+  WALLET = 'WALLET',
+  MARKET = 'MARKET',
+  WELLIBIT = 'WELLIBIT',
+  WELLIBIO = 'WELLIBIO',
+  WELLIROOT = 'WELLIROOT',
+  WELLITRACK = 'WELLITRACK'
+}
 
 export enum AppView {
   DASHBOARD = 'DASHBOARD',
@@ -58,4 +69,23 @@ export enum AppView {
   PROFILE = 'PROFILE',
   INTEGRATION = 'INTEGRATION',
   TELEMED = 'TELEMED',
+  LANDING = 'LANDING',
+  ABOUT_US = 'ABOUT_US'
 }
+
+export enum ViewState {
+  DASHBOARD = 'dashboard',
+  SYSTEMS = 'systems',
+  IDENTITY = 'identity',
+  ANALYTICS = 'analytics',
+  SETTINGS = 'settings',
+  CLINIC = 'clinic',
+  LAB = 'lab',
+  PHARMACY = 'pharmacy',
+  TELEMEDICINE = 'telemedicine',
+  DEVELOPER = 'developer'
+}
+
+export type Language = 'EN' | 'YOR' | 'IGB' | 'HAU';
+
+export type UserRole = 'admin' | 'clinician' | 'lab_tech' | 'pharmacist' | 'telemedicine' | 'regulator' | 'developer' | 'patient';
