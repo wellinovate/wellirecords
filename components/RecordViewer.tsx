@@ -7,10 +7,12 @@ import {
   Pill, Stethoscope, Syringe, Search, Filter, MoreHorizontal, Calendar, 
   AlertTriangle, Save, Edit3, ArrowLeft, Clock, MapPin
 } from 'lucide-react';
+import { Timeline } from './Timeline';
+import { useFetch } from '@/hooks/useFetchUser';
 
 interface Props {
   records: HealthRecord[];
-}
+} 
 
 // Visual configuration for different record types
 const RECORD_THEMES: Record<string, { color: string; bg: string; border: string; icon: React.ElementType; label: string }> = {
@@ -60,6 +62,9 @@ const DEFAULT_THEME = {
 };
 
 export const RecordViewer: React.FC<Props> = ({ records }) => {
+    const { data: record, loading, error } = useFetch({
+  endpoint: `/api/v1/health-record/records`,
+});
   const [selectedRecord, setSelectedRecord] = useState<HealthRecord | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -72,8 +77,10 @@ export const RecordViewer: React.FC<Props> = ({ records }) => {
   const [verifying, setVerifying] = useState(false);
   const [verifiedChain, setVerifiedChain] = useState(false);
 
+  const recordList = record ? record : records; // Use fetched data or fallback to props
+
   // Filtered Records
-  const filteredRecords = records.filter(r => 
+  const filteredRecords =  recordList.filter((r: any) => 
     r.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
     r.provider.toLowerCase().includes(searchTerm.toLowerCase()) ||
     r.date.includes(searchTerm)
@@ -113,6 +120,8 @@ export const RecordViewer: React.FC<Props> = ({ records }) => {
   };
 
   return (
+    <>
+    <Timeline />
     <div className="grid lg:grid-cols-12 gap-6 h-full animate-in fade-in duration-500">
       
       {/* --- LEFT COLUMN: RECORD LIST --- */}
@@ -143,7 +152,7 @@ export const RecordViewer: React.FC<Props> = ({ records }) => {
 
         {/* Scrollable List */}
         <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar">
-            {filteredRecords.map(rec => {
+            {filteredRecords.map((rec: any) => {
                 const theme = getTheme(rec.type);
                 const Icon = theme.icon;
                 const isSelected = selectedRecord?.id === rec.id;
@@ -507,5 +516,6 @@ export const RecordViewer: React.FC<Props> = ({ records }) => {
         )}
       </div>
     </div>
+    </>
   );
 };

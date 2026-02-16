@@ -9,15 +9,14 @@ export type SimpleUser = {
   phone: string;
 };
 
-type Options = {
-  backendUrl?: string; // default http://localhost:3000
-  storageKey?: string; // default "userData"
-  enabled?: boolean; // default true
-  /**
-   * Optional: pass token getter if your endpoint requires auth
-   * token?: () => string | null;
-   */
-};
+
+
+interface Options {
+  backendUrl?: string;
+  storageKey?: string;
+  endpoint?: string;         // ← dynamic URL path
+  enabled?: boolean;
+}
 
 function extractUserIdFromLocalStorage(raw: string | null): string | null {
   if (!raw) return null;
@@ -123,4 +122,63 @@ export function useFetchUser(options: Options = {}) {
   }, [enabled, fetchUser]);
 
   return { user, loading, error, refetch: fetchUser, setUser };
+}
+
+
+
+
+
+
+export function useFetch<T = any>(options: Options) {
+  const {
+    backendUrl = "https://wellirecord.onrender.com",
+    endpoint,
+    storageKey = "userData",
+    enabled = true,
+  } = options;
+
+  const mountedRef = useRef(true);
+
+  const [data, setData] = useState<T | null>(null);
+  const [loading, setLoading] = useState<boolean>(enabled);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    if (!enabled || !endpoint) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const raw = localStorage.getItem(storageKey);
+      const userId = extractUserIdFromLocalStorage(raw);
+      if (!userId) {
+        if (mountedRef.current) setData(null);
+        return;
+      }
+      const res = await axios.get(`${backendUrl}${endpoint}/${userId}`);
+
+      const result = res.data;
+
+      if (!mountedRef.current) return;
+      setData(result);
+    } catch (err: any) {
+      console.error("Fetch failed:", err);
+      if (!mountedRef.current) return;
+      setError(err?.response?.data?.message ?? err?.message ?? "Fetch failed");
+    } finally {
+      if (mountedRef.current) setLoading(false);
+    }
+  }, [backendUrl, endpoint, enabled]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    if (enabled) fetchData();
+
+    return () => {
+      mountedRef.current = false;
+    };
+  }, [enabled, fetchData]);
+
+  return { data, loading, error, refetch: fetchData, setData };
 }

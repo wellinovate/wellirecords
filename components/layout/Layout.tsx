@@ -62,10 +62,10 @@ export const Layout: React.FC<Props> = ({
   const sidebarItems: SidebarItem[] = [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, locked: false },
     { to: "/telemed", label: "Telehealth", icon: Video, locked: !hasAccess },
-    { to: "/integration", label: "Ecosystem", icon: Network, locked: !hasAccess },
-    { to: "/timeline", label: "Timeline", icon: Calendar, locked: false },
+    // { to: "/timeline", label: "Timeline", icon: Calendar, locked: false },
     { to: "/records", label: "My Records", icon: FileText, locked: false },
     { to: "/metrics", label: "Health Metrics", icon: Activity, locked: !hasAccess },
+    { to: "/integration", label: "Ecosystem", icon: Network, locked: !hasAccess },
     { to: "/upload", label: "Upload Data", icon: UploadCloud, locked: false },
     { to: "/live-assistant", label: "Welli Voice", icon: Mic, locked: !hasAccess },
     { to: "/chat", label: "AI Health Chat", icon: MessageSquareText, locked: !hasAccess },

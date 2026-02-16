@@ -68,7 +68,7 @@ export function AppRoutes() {
           }
         />
 
-        <Route path="timeline" element={<Timeline />} />
+        {/* <Route path="timeline" element={<Timeline />} /> */}
         <Route
           path="records"
           element={<RecordViewer records={MOCK_RECORDS} />}
