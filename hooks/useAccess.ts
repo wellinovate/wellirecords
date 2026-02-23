@@ -23,7 +23,9 @@ export function useAccess(): AccessState {
     if (!storedStart) {
       startDate = new Date();
       if (onboardStatus === "true") {
+        
         localStorage.setItem("welli_trial_start", startDate.toISOString());
+        console.log("🚀 ~ useAccess ~ localStorage:", localStorage)
       }
     } else {
       startDate = new Date(storedStart);

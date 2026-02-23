@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useMemo, useState } from "react";
 import { useAccess } from "../hooks/useAccess";
 import { useNavigate } from "react-router-dom";
+import { clearWalletSession, clearWalletStorage, clearWeb2Session } from "@/utils/utilityFunction";
 
 type AccessContextValue = {
   isPremium: boolean;
@@ -29,10 +30,23 @@ export function AccessProvider({ children }: { children: React.ReactNode }) {
     setIsPremium(true);
     setShowSubscription(false);
   };
+  // localStorage.removeItem("rk-recent");
+  // localStorage.removeItem("rk-recent");
+  // localStorage.removeItem("rk-version");
+  
+
+// aHR0cDovL2xvY2FsaG9zdDo1MTczWW91ciBBd2Vzb21lIGRBcHA
+// @appkit/active_caip_network_id	eip155:1
+// @appkit/active_namespace	eip155
+// base-acc-sdk.store	
+// wagmi.recentConnectorId
+// wagmi.store
+// rk-latest-id
 
   const signOut = () => {
-    localStorage.removeItem("welli_onboarded");
-    localStorage.removeItem("welli_trial_start");
+     clearWeb2Session();
+     clearWalletSession();
+    console.log("done")
     navigte("/onboarding");
     // optionally: localStorage.removeItem("welli_trial_start");
   };

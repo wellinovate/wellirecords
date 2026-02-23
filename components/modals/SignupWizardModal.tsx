@@ -276,6 +276,7 @@ export function WizardModal({ open, onClose, apiUrl, onComplete }: Props) {
         onComplete(formData);
         close();
         localStorage.setItem("welli_onboarded", "true");
+        console.log("🚀 ~ handleFinalSubmit ~ localStorage:", localStorage)
         localStorage.setItem("welli_trial_start", new Date().toISOString());
         navigate("/");
 

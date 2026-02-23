@@ -22,15 +22,14 @@ import { Profile } from "@/components/user/Profile";
 import { MOCK_RECORDS } from "@/constants";
 import DoctorDashboard from "@/pages/Doctor/DoctorDashboard";
 import { AppView } from "@/types";
-
 export function AppRoutes() {
   const { hasAccess, daysRemaining, openSubscription, signOut } =
     useAccessContext();
     // for testing purpose
 
   const handleOnboardingComplete = () => {
-    localStorage.setItem("welli_onboarded", "true");
-    localStorage.setItem("welli_trial_start", new Date().toISOString());
+    // localStorage.setItem("welli_onboarded", "true");
+    // localStorage.setItem("welli_trial_start", new Date().toISOString());
   };
 
   return (

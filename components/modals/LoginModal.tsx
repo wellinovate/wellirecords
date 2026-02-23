@@ -5,6 +5,7 @@ import { X, LogIn, Wallet, Loader2, Cpu, CheckCircle2 } from "lucide-react";
 import { useAccount } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useNavigate } from "react-router-dom";
+import { clearWalletSession, clearWeb2Session } from "@/utils/utilityFunction";
 
 type Props = {
   open: boolean;
@@ -48,19 +49,30 @@ export function LoginModal({
     onClose();
     resetAll();
   };
-  const onboardStatus = localStorage.getItem("welli_onboarded");
+
   useEffect(() => {
-    // if user connects wallet, you can move flow forward
-    if (onboardStatus) navigate("/");
-    if (!open) return;
-    if (!isConnected) localStorage.setItem("welli_onboarded", "false");
-    if (isConnected) {
-      localStorage.setItem("welli_onboarded", "true");
-      // localStorage.setItem("welli_trial_start", new Date().toISOString());
-      navigate("/");
+    // only run wallet session logic when user is on wallet method
+    if (loginMethod !== "wallet") return;
+
+    if (!isConnected) {
+      // FULL cleanup on disconnect
+      clearWalletSession();
+      return;
     }
-    // optionally auto-start wallet flow when connected
-  }, [isConnected, open]);
+
+    // ✅ connected wallet -> remove web2 flags so you don't see welli_onboarded
+    clearWeb2Session();
+
+    // set wallet session flags
+    localStorage.setItem("wallet_onboarded", "true");
+
+    const existing = localStorage.getItem("wallet_trial_start");
+    if (!existing) {
+      localStorage.setItem("wallet_trial_start", new Date().toISOString());
+    }
+
+    navigate("/");
+  }, [isConnected, loginMethod, navigate]);
 
   const handleLoginCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,12 +83,13 @@ export function LoginModal({
         password: formData.password,
       });
 
-      
       if (response.status === 200) {
         const data = await response.data;
         localStorage.setItem("welli_onboarded", "true");
         localStorage.setItem("userData", data?.user?._id);
-        setLoginStep(2);}
+        navigate("/");
+        // setLoginStep(2);
+      }
     } catch (err: any) {
       alert(err?.response?.data?.message ?? "Login failed");
     } finally {
@@ -100,7 +113,7 @@ export function LoginModal({
         close();
         localStorage.setItem("welli_onboarded", "true");
         // localStorage.setItem("welli_trial_start", new Date().toISOString());
-        navigate("/");
+        // navigate("/");
       } else {
         alert("Wrong OTP");
       }
@@ -119,6 +132,8 @@ export function LoginModal({
         setWalletStatus("deploying");
         setTimeout(() => {
           setWalletStatus("connected");
+          // navigate("/");
+
           // setTimeout(() => {
           //   onComplete({
           //     name: "Wallet User",

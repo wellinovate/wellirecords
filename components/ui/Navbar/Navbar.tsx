@@ -30,7 +30,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onChangeView,
 }) => {
   const { user, loading, error, refetch } = useFetchUser();
-  const onboardStatus = localStorage.getItem("welli_onboarded");
+  const onboardStatus = localStorage.getItem("wallet_onboarded");
   const { isConnected } = useAccount();
   // const [user, setUser] = useState<UserDTO>({ name: "Guest", id: "" });
   // const [loading, setLoading] = useState(true);

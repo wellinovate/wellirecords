@@ -1,9 +1,7 @@
 // src/components/layout/Layout.tsx
-import React, { useEffect } from "react";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { clearWalletSession } from "@/utils/utilityFunction";
 import {
   Activity,
-  Calendar,
   Clock,
   FileText,
   LayoutDashboard,
@@ -17,8 +15,10 @@ import {
   Settings,
   ShieldCheck,
   UploadCloud,
-  Video,
+  Video
 } from "lucide-react";
+import React, { useEffect } from "react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAccount, useDisconnect } from "wagmi";
 import { Navbar } from "../ui/Navbar/Navbar";
 
@@ -45,6 +45,11 @@ export const Layout: React.FC<Props> = ({
   onSignOut,
 }) => {
   const onboardStatus = localStorage.getItem("welli_onboarded");
+  const walletOnboardStatus = localStorage.getItem("wallet_onboarded");
+  console.log("🚀 ~ Layout ~ walletOnboardStatus:", walletOnboardStatus);
+  const isAuthorized = onboardStatus || walletOnboardStatus;
+  console.log("🚀 ~ Layout ~ isAuthorized:", isAuthorized);
+
   const { isConnected } = useAccount();
   const { disconnect } = useDisconnect();
 
@@ -52,25 +57,60 @@ export const Layout: React.FC<Props> = ({
   const location = useLocation();
 
   useEffect(() => {
-    if (!onboardStatus) {
+    if (!isAuthorized) {
       // if they aren't onboarded, sign them out / redirect
       onSignOut();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onboardStatus]);
+  }, [isAuthorized]);
+  useEffect(() => {
+    if (!isConnected) {
+      clearWalletSession();
+      return;
+    }
+  }, [isConnected]);
 
   const sidebarItems: SidebarItem[] = [
-    { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, locked: false },
+    {
+      to: "/dashboard",
+      label: "Dashboard",
+      icon: LayoutDashboard,
+      locked: false,
+    },
     { to: "/telemed", label: "Telehealth", icon: Video, locked: !hasAccess },
     // { to: "/timeline", label: "Timeline", icon: Calendar, locked: false },
     { to: "/records", label: "My Records", icon: FileText, locked: false },
-    { to: "/metrics", label: "Health Metrics", icon: Activity, locked: !hasAccess },
-    { to: "/integration", label: "Ecosystem", icon: Network, locked: !hasAccess },
+    {
+      to: "/metrics",
+      label: "Health Metrics",
+      icon: Activity,
+      locked: !hasAccess,
+    },
+    {
+      to: "/integration",
+      label: "Ecosystem",
+      icon: Network,
+      locked: !hasAccess,
+    },
     { to: "/upload", label: "Upload Data", icon: UploadCloud, locked: false },
-    { to: "/live-assistant", label: "Welli Voice", icon: Mic, locked: !hasAccess },
-    { to: "/chat", label: "AI Health Chat", icon: MessageSquareText, locked: !hasAccess },
+    {
+      to: "/live-assistant",
+      label: "Welli Voice",
+      icon: Mic,
+      locked: !hasAccess,
+    },
+    {
+      to: "/chat",
+      label: "AI Health Chat",
+      icon: MessageSquareText,
+      locked: !hasAccess,
+    },
     { to: "/find-care", label: "Find Care", icon: MapPin, locked: !hasAccess },
-    { to: "/portability", label: "Portability", icon: ShieldCheck, locked: !hasAccess },
+    {
+      to: "/portability",
+      label: "Portability",
+      icon: ShieldCheck,
+      locked: !hasAccess,
+    },
   ];
 
   const go = (item: SidebarItem) => {
@@ -88,11 +128,31 @@ export const Layout: React.FC<Props> = ({
         <div className="p-6 border-b border-slate-800">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 relative shrink-0 text-blue-500">
-              <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-lg">
-                <path d="M50 95C50 95 85 78.4 85 45V18L50 5L15 18V45C15 78.4 50 95 50 95Z" fill="url(#logo-gradient)" />
-                <path d="M50 25V65M30 45H70" stroke="white" strokeWidth="8" strokeLinecap="round" />
+              <svg
+                viewBox="0 0 100 100"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-full h-full drop-shadow-lg"
+              >
+                <path
+                  d="M50 95C50 95 85 78.4 85 45V18L50 5L15 18V45C15 78.4 50 95 50 95Z"
+                  fill="url(#logo-gradient)"
+                />
+                <path
+                  d="M50 25V65M30 45H70"
+                  stroke="white"
+                  strokeWidth="8"
+                  strokeLinecap="round"
+                />
                 <defs>
-                  <linearGradient id="logo-gradient" x1="15" y1="5" x2="85" y2="95" gradientUnits="userSpaceOnUse">
+                  <linearGradient
+                    id="logo-gradient"
+                    x1="15"
+                    y1="5"
+                    x2="85"
+                    y2="95"
+                    gradientUnits="userSpaceOnUse"
+                  >
                     <stop stopColor="#2563eb" />
                     <stop offset="1" stopColor="#0ea5e9" />
                   </linearGradient>
@@ -119,11 +179,17 @@ export const Layout: React.FC<Props> = ({
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <item.icon size={20} className={active ? "stroke-[2.5px]" : ""} />
+                  <item.icon
+                    size={20}
+                    className={active ? "stroke-[2.5px]" : ""}
+                  />
                   {item.label}
                 </div>
                 {item.locked && (
-                  <Lock size={14} className="text-slate-600 group-hover:text-amber-500 transition-colors" />
+                  <Lock
+                    size={14}
+                    className="text-slate-600 group-hover:text-amber-500 transition-colors"
+                  />
                 )}
               </button>
             );
@@ -166,7 +232,9 @@ export const Layout: React.FC<Props> = ({
               <button
                 onClick={onUpgrade}
                 className={`w-full py-2 text-white rounded-lg text-xs font-bold transition-colors ${
-                  daysRemaining <= 3 ? "bg-red-600 hover:bg-red-500" : "bg-indigo-600 hover:bg-indigo-500"
+                  daysRemaining <= 3
+                    ? "bg-red-600 hover:bg-red-500"
+                    : "bg-indigo-600 hover:bg-indigo-500"
                 }`}
               >
                 {hasAccess ? "Extend Access" : "Unlock Features"}
@@ -197,9 +265,11 @@ export const Layout: React.FC<Props> = ({
           </button>
 
           {/* Wallet logout only if wallet is connected */}
-          {onboardStatus && isConnected && (
+          {walletOnboardStatus && (
             <button
-              onClick={() => {disconnect(), onSignOut()}}
+              onClick={() => {
+                (disconnect(), onSignOut());
+              }}
               className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-red-400 text-sm font-medium transition-colors hover:bg-red-900/10 rounded-xl"
             >
               <LogOut size={20} /> Disconnect
@@ -207,7 +277,7 @@ export const Layout: React.FC<Props> = ({
           )}
 
           {/* Email logout only if wallet NOT connected */}
-          {onboardStatus && !isConnected && (
+          {onboardStatus && (
             <button
               onClick={onSignOut}
               className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-red-400 text-sm font-medium transition-colors hover:bg-red-900/10 rounded-xl"
@@ -224,7 +294,6 @@ export const Layout: React.FC<Props> = ({
           isPremium={isPremium}
           hasAccess={hasAccess}
           daysRemaining={daysRemaining}
-      
         />
 
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
