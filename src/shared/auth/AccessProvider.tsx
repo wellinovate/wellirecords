@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useMemo, useState } from "react";
 import { useAccess } from "../hooks/useAccess";
 import { useNavigate } from "react-router-dom";
-import { clearWalletSession, clearWalletStorage, clearWeb2Session } from "@/utils/utilityFunction";
+import { clearWalletSession, clearWalletStorage, clearWeb2Session } from "@/shared/utils/utilityFunction";
 
 type AccessContextValue = {
   isPremium: boolean;
@@ -33,19 +33,19 @@ export function AccessProvider({ children }: { children: React.ReactNode }) {
   // localStorage.removeItem("rk-recent");
   // localStorage.removeItem("rk-recent");
   // localStorage.removeItem("rk-version");
-  
 
-// aHR0cDovL2xvY2FsaG9zdDo1MTczWW91ciBBd2Vzb21lIGRBcHA
-// @appkit/active_caip_network_id	eip155:1
-// @appkit/active_namespace	eip155
-// base-acc-sdk.store	
-// wagmi.recentConnectorId
-// wagmi.store
-// rk-latest-id
+
+  // aHR0cDovL2xvY2FsaG9zdDo1MTczWW91ciBBd2Vzb21lIGRBcHA
+  // @appkit/active_caip_network_id	eip155:1
+  // @appkit/active_namespace	eip155
+  // base-acc-sdk.store	
+  // wagmi.recentConnectorId
+  // wagmi.store
+  // rk-latest-id
 
   const signOut = () => {
-     clearWeb2Session();
-     clearWalletSession();
+    clearWeb2Session();
+    clearWalletSession();
     console.log("done")
     navigte("/onboarding");
     // optionally: localStorage.removeItem("welli_trial_start");

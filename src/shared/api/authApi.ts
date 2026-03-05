@@ -81,10 +81,9 @@ const MOCK_USERS: AuthUser[] = [
         loginMethod: 'web2',
     },
     {
-        id: 'user_super_1',
+        userId: 'user_super_1',
         email: 'support@wellirecord.com',
         name: 'Super Admin',
-        password: 'Password@1',
         userType: 'ORG_USER',
         roles: ['super_admin'],
         orgId: 'org_welli_001',
@@ -103,6 +102,31 @@ export const PROVIDER_ROLES: UserRole[] = [
 
 export function isProviderRole(role: UserRole): boolean {
     return PROVIDER_ROLES.includes(role);
+}
+
+// ─── OTP Auth stubs (for useEmailAuth hook) ───────────────────────────────────
+export async function initiateLogin(email: string, _password: string): Promise<{ status: number }> {
+    // Simulate a network call – in production this triggers OTP dispatch
+    const user = MOCK_USERS.find(u => u.email?.toLowerCase() === email.toLowerCase());
+    return { status: user ? 200 : 401 };
+}
+
+export async function verifyOtp(_email: string, _otp: number): Promise<{ status: number; data: AuthUser | null }> {
+    // Simulate OTP verification – always passes in mock
+    return { status: 200, data: null };
+}
+
+export type SignupPayload = {
+    name: string;
+    email: string;
+    phone: string;
+    password: string;
+    nin: string;
+    agreeToTerms: boolean;
+};
+
+export async function signupUser(_payload: SignupPayload): Promise<{ status: number }> {
+    return { status: 201 };
 }
 
 export const authApi = {

@@ -123,7 +123,7 @@ export function CareJourneysPage() {
     const handleCreate = (title: string, description: string) => {
         const newJourney = {
             id: `j_${Date.now()}`,
-            userId: user?.userId ?? 'pat_001',
+            patientId: user?.userId ?? 'pat_001',
             title,
             description,
             status: 'active' as const,

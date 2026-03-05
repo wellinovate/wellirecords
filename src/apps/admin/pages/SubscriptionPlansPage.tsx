@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { billingApi } from '@/shared/api/billingApi';
-import { CheckCircle, Users, Database, CreditCard, Toggle } from 'lucide-react';
+import { CheckCircle, Users, Database, CreditCard } from 'lucide-react';
 
 function fmt(kobo: number) {
     return `₦${(kobo / 100).toLocaleString('en-NG')}`;

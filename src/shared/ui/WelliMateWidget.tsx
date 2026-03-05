@@ -206,7 +206,7 @@ export function WelliMateWidget() {
     const { user } = useAuth();
     const { isWelliMateEnabled } = useWelliMate();
 
-    const isProvider = user?.userType === 'PROVIDER';
+    const isProvider = user?.userType === 'ORG_USER';
     const firstName = user?.name?.split(' ')[0] ?? 'there';
     const langs = isProvider ? PROVIDER_LANGS : PATIENT_LANGS;
     const actions = isProvider ? PROVIDER_ACTIONS : PATIENT_ACTIONS;

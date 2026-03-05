@@ -1,5 +1,5 @@
 // src/hooks/useSignupWizard.ts
-import { SignupPayload, signupUser } from "@/services/authApi";
+import { SignupPayload, signupUser } from "@/shared/api/authApi";
 import { useCallback, useMemo, useState } from "react";
 
 type Errors = Record<"name" | "email" | "phone" | "password" | "nin", string>;

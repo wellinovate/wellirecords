@@ -71,7 +71,7 @@ export function ProviderLoginPage() {
         const user = signIn(email, password);
         setLoading(false);
         if (!user) { setError('Invalid credentials. Try: fatima@lagosgeneral.ng'); return; }
-        if (user.userType === 'patient') { setError('This is a patient account. Use the patient portal.'); return; }
+        if (user.userType === 'PATIENT') { setError('This is a patient account. Use the patient portal.'); return; }
         navigate('/provider/overview');
     };
 

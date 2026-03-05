@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type, Chat, GenerateContentResponse } from "@google/genai";
-import { ChatMessage, MapPlace } from "../types";
+import { ChatMessage, MapPlace } from "../types/types";
 
 const apiKey = process.env.API_KEY || '';
 
@@ -20,9 +20,9 @@ export const sendChatMessage = async (
   newMessage: string
 ): Promise<ChatMessage> => {
   if (!apiKey) throw new Error("API Key not found");
-  
+
   const ai = new GoogleGenAI({ apiKey });
-  
+
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
@@ -94,12 +94,12 @@ export const findMedicalPlaces = async (
     if (groundingChunks) {
       groundingChunks.forEach((chunk: any) => {
         if (chunk.maps) {
-           places.push({
-             title: chunk.maps.title,
-             uri: chunk.maps.uri,
-             snippet: chunk.maps.placeAnswerSources?.reviewSnippets?.[0]?.snippet,
-             location: chunk.maps.center
-           });
+          places.push({
+            title: chunk.maps.title,
+            uri: chunk.maps.uri,
+            snippet: chunk.maps.placeAnswerSources?.reviewSnippets?.[0]?.snippet,
+            location: chunk.maps.center
+          });
         }
       });
     }
@@ -117,92 +117,92 @@ export const findMedicalPlaces = async (
 
 // Analyze Record
 export const analyzeHealthRecord = async (recordText: string): Promise<string> => {
-    if (!apiKey) throw new Error("API Key not found");
-    const ai = new GoogleGenAI({ apiKey });
+  if (!apiKey) throw new Error("API Key not found");
+  const ai = new GoogleGenAI({ apiKey });
 
-    try {
-        const response = await ai.models.generateContent({
-            model: "gemini-3-pro-preview",
-            contents: `Analyze this medical record summary and explain it in simple terms for a patient. Identify any key actions they might need to take:\n\n${recordText}`,
-            config: {
-                thinkingConfig: { thinkingBudget: 1024 }
-            }
-        });
-        return response.text || "Analysis complete.";
-    } catch (error) {
-        console.error("Analysis Error:", error);
-        return "Unable to analyze record at this time.";
-    }
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-pro-preview",
+      contents: `Analyze this medical record summary and explain it in simple terms for a patient. Identify any key actions they might need to take:\n\n${recordText}`,
+      config: {
+        thinkingConfig: { thinkingBudget: 1024 }
+      }
+    });
+    return response.text || "Analysis complete.";
+  } catch (error) {
+    console.error("Analysis Error:", error);
+    return "Unable to analyze record at this time.";
+  }
 }
 
 // Predict Health Trends
 export const predictHealthTrends = async (metricsSummary: string): Promise<string> => {
-    if (!apiKey) throw new Error("API Key not found");
-    const ai = new GoogleGenAI({ apiKey });
+  if (!apiKey) throw new Error("API Key not found");
+  const ai = new GoogleGenAI({ apiKey });
 
-    try {
-        const response = await ai.models.generateContent({
-            model: "gemini-3-flash-preview",
-            contents: `You are a predictive health analytics engine. Based on the following recent health vitals, provide a concise, forward-looking health prediction and 1 actionable recommendation. Do not give medical advice, but wellness trends.\n\nVitals: ${metricsSummary}`,
-        });
-        return response.text || "Prediction currently unavailable.";
-    } catch (error) {
-        console.error("Prediction Error:", error);
-        return "AI prediction service unavailable offline.";
-    }
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: `You are a predictive health analytics engine. Based on the following recent health vitals, provide a concise, forward-looking health prediction and 1 actionable recommendation. Do not give medical advice, but wellness trends.\n\nVitals: ${metricsSummary}`,
+    });
+    return response.text || "Prediction currently unavailable.";
+  } catch (error) {
+    console.error("Prediction Error:", error);
+    return "AI prediction service unavailable offline.";
+  }
 }
 
 // Extract Data from Document Image
 export const extractDocumentData = async (base64Image: string, mimeType: string): Promise<any> => {
-    if (!apiKey) throw new Error("API Key not found");
-    const ai = new GoogleGenAI({ apiKey });
+  if (!apiKey) throw new Error("API Key not found");
+  const ai = new GoogleGenAI({ apiKey });
 
-    try {
-        const response = await ai.models.generateContent({
-            // Corrected model for Vision tasks. 'gemini-2.5-flash-image' is for generation.
-            model: "gemini-2.5-flash", 
-            contents: {
-                parts: [
-                    {
-                        inlineData: {
-                            data: base64Image,
-                            mimeType: mimeType
-                        }
-                    },
-                    {
-                        text: "Analyze this image of a medical document. Extract the following fields: 'title' (document title), 'date' (YYYY-MM-DD), 'provider' (doctor or facility), 'type' (e.g., Lab Result, Prescription), and 'summary' (a brief summary of findings). Return the response in JSON format."
-                    }
-                ]
-            },
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.OBJECT,
-                    properties: {
-                        title: { type: Type.STRING },
-                        date: { type: Type.STRING },
-                        provider: { type: Type.STRING },
-                        type: { type: Type.STRING },
-                        summary: { type: Type.STRING }
-                    }
-                }
+  try {
+    const response = await ai.models.generateContent({
+      // Corrected model for Vision tasks. 'gemini-2.5-flash-image' is for generation.
+      model: "gemini-2.5-flash",
+      contents: {
+        parts: [
+          {
+            inlineData: {
+              data: base64Image,
+              mimeType: mimeType
             }
-        });
+          },
+          {
+            text: "Analyze this image of a medical document. Extract the following fields: 'title' (document title), 'date' (YYYY-MM-DD), 'provider' (doctor or facility), 'type' (e.g., Lab Result, Prescription), and 'summary' (a brief summary of findings). Return the response in JSON format."
+          }
+        ]
+      },
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            title: { type: Type.STRING },
+            date: { type: Type.STRING },
+            provider: { type: Type.STRING },
+            type: { type: Type.STRING },
+            summary: { type: Type.STRING }
+          }
+        }
+      }
+    });
 
-        const text = response.text;
-        if (!text) throw new Error("No response text");
-        return JSON.parse(text);
+    const text = response.text;
+    if (!text) throw new Error("No response text");
+    return JSON.parse(text);
 
-    } catch (error) {
-        console.error("Document Extraction Error:", error);
-        throw error;
-    }
+  } catch (error) {
+    console.error("Document Extraction Error:", error);
+    throw error;
+  }
 }
 
 export const initializeChat = async () => {
   try {
     const ai = getAIClient();
-    
+
     // Using gemini-2.5-flash for fast, responsive triage chat
     chatSession = ai.chats.create({
       model: 'gemini-2.5-flash',
@@ -261,7 +261,7 @@ export const sendMessageToAI = async (message: string): Promise<AsyncIterable<st
 
   try {
     const result = await chatSession.sendMessageStream({ message });
-    
+
     // Return an async iterable that yields text chunks
     return {
       async *[Symbol.asyncIterator]() {

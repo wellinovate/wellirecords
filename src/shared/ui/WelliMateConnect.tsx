@@ -404,7 +404,7 @@ export function WelliMateConnect({ onClose }: Props) {
                             </button>
                         </div>
                         {/* Save */}
-                        {phase !== 'saved' && (
+                        {(
                             <button onClick={handleSave} disabled={isSaving || conv.length < 2}
                                 className="w-full py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-40"
                                 style={{ background: 'rgba(34,197,94,.12)', color: '#4ade80', border: '1px solid rgba(34,197,94,.25)' }}>

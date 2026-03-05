@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
     Settings, Mail, Shield, Link2, FileCheck,
     CreditCard, Check, X, Edit2, AlertTriangle,
-    Lock, Globe, Save
+    Lock, Globe, Save, Clock
 } from 'lucide-react';
 
 const TABS = [
@@ -17,7 +17,7 @@ const TABS = [
 export function SuperAdminPlatformSettings() {
     const [activeTab, setActiveTab] = useState('general');
     const [editingKey, setEditingKey] = useState<string | null>(null);
-    const [editValue, setEditValue] = useState<string | boolean>('');
+    const [editValue, setEditValue] = useState<string | boolean | number>('');
     const [confirmModal, setConfirmModal] = useState<{ key: string, label: string, value: any } | null>(null);
 
     // Mock global configuration state

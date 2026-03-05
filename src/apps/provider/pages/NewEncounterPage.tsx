@@ -45,7 +45,7 @@ const AI_SOAP = {
 // ─── Mic dictation button ───────────────────────────────────────────────────
 function DictateButton({ fieldKey, onDictate }: { fieldKey: string; onDictate: (key: string, text: string) => void }) {
     const [recording, setRecording] = useState(false);
-    const timerRef = useRef<ReturnType<typeof setTimeout>>();
+    const timerRef = useRef<any>(null);
 
     const toggle = () => {
         if (recording) {

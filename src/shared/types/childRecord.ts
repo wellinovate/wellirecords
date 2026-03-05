@@ -41,6 +41,7 @@ export interface VaccinationRecord {
     dateGiven?: string;
     batchNo?: string;
     facility?: string;
+    administeredBy?: string;
     nextDueDate?: string;
     status: VaccineStatus;
 }

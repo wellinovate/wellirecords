@@ -61,7 +61,7 @@ export function PatientLoginPage() {
         const user = signIn(email, password);
         setLoading(false);
         if (!user) { setError('Invalid email or password. Try: amara@patient.com'); return; }
-        if (user.role !== 'patient') { setError('This account is not a patient account.'); return; }
+        if (!user.roles?.includes('patient')) { setError('This account is not a patient account.'); return; }
 
         // Pass the profile type to state so we know what mode they logged in as
         localStorage.setItem('activeProfileType', profileType);
