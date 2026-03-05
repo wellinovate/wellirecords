@@ -1,0 +1,146 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ─── Helper Functions ─────────────────────────────────────────────────────
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Check if the user is a verified provider
+    function isProvider() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.userType == 'provider';
+    }
+    
+    // Check if the user has a specific provider role (admin, clinician, lab_tech, etc.)
+    function hasRole(role) {
+      return isProvider() && 
+             role in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles;
+    }
+    
+    // Check if user is a patient
+    function isPatient() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.userType == 'patient';
+    }
+    
+    // Validate if a provider has active consent from a patient
+    function hasActiveConsent(patientId, requiredScope) {
+      let providerOrgId = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.orgId;
+      
+      // Look up active grants for this patient and provider org
+      // Note: In real production, this requires a specific query or nested map structure.
+      // For a simplified ruleset, we check if the provider's org is in the patient's active grants list.
+      let patientGrants = get(/databases/$(database)/documents/patients/$(patientId)).data.activeGrants;
+      
+      return patientGrants != null && 
+             providerOrgId in patientGrants && 
+             (patientGrants[providerOrgId].scope == 'full' || patientGrants[providerOrgId].scope == requiredScope) &&
+             patientGrants[providerOrgId].expiresAt > request.time;
+    }
+
+    // ─── Rules ───────────────────────────────────────────────────────────────
+
+    // 1. Users Collection
+    // - Users can read/write their own profiles
+    // - Providers can read patient profiles ONLY IF they have consent or are creating a new record
+    // - Everyone can read provider public profiles (for finding care)
+    match /users/{userId} {
+      allow read: if request.auth.uid == userId || 
+                   (isProvider() && hasActiveConsent(userId, 'full')) ||
+                   resource.data.userType == 'provider'; 
+      allow write: if request.auth.uid == userId;
+    }
+    
+    // 2. Patients Collection (Extended details, health vault metadata, etc.)
+    match /patients/{patientId} {
+      // Patient can read their own data
+      allow read: if request.auth.uid == patientId ||
+      // Providers can read if they have any active consent
+                  (isProvider() && hasActiveConsent(patientId, 'full'));
+                  
+      allow write: if request.auth.uid == patientId;
+    }
+
+    // 3. Organizations / Clinics
+    match /organizations/{orgId} {
+      // Publicly readable for the Find Care page
+      allow read: if isAuthenticated();
+      // Only org admins can edit
+      allow write: if hasRole('provider_admin') && 
+                   get(/databases/$(database)/documents/users/$(request.auth.uid)).data.orgId == orgId;
+    }
+
+    // 4. Health Records (Encounters, Labs, Prescriptions)
+    match /patients/{patientId}/records/{recordId} {
+      // Patient can read all their own records
+      allow read: if request.auth.uid == patientId ||
+      // Providers can read based on specific consent scope
+                  (isProvider() && (
+                    hasActiveConsent(patientId, 'full') ||
+                    (resource.data.type == 'Lab Result' && hasActiveConsent(patientId, 'labs')) ||
+                    (resource.data.type == 'Prescription' && hasActiveConsent(patientId, 'medications')) ||
+                    (resource.data.type == 'Imaging' && hasActiveConsent(patientId, 'imaging')) ||
+                    (resource.data.type == 'Clinical Note' && hasActiveConsent(patientId, 'clinical_notes')) ||
+                    (resource.data.type == 'Encounter' && hasActiveConsent(patientId, 'encounters'))
+                  ));
+
+      // Providers write access based on RBAC role + active consent
+      allow create, update: if isProvider() && hasActiveConsent(patientId, 'full') && (
+        // Clinicians & Admins can write almost anything
+        hasRole('clinician') || hasRole('provider_admin') ||
+        // Lab Techs can only write Lab Results
+        (hasRole('lab_tech') && request.resource.data.type == 'Lab Result') ||
+        // Pharmacists can only write/update Prescriptions
+        (hasRole('pharmacist') && request.resource.data.type == 'Prescription') ||
+        // Telehealth can write Encounters and Prescriptions
+        (hasRole('telehealth') && (request.resource.data.type == 'Encounter' || request.resource.data.type == 'Prescription'))
+      );
+      
+      // Only patients can delete their own records (or perhaps nobody can for audit reasons)
+      allow delete: if false; 
+    }
+
+    // 5. Consent Grants
+    match /patients/{patientId}/grants/{grantId} {
+      // Patients manage their own consents
+      allow read, write: if request.auth.uid == patientId;
+      
+      // Providers can read consents directed at their organization
+      allow read: if isProvider() && 
+                  resource.data.orgId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.orgId;
+      
+      // Providers can CREATE a consent request (pending status)
+      allow create: if isProvider() && 
+                    request.resource.data.status == 'pending' &&
+                    request.resource.data.orgId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.orgId;
+    }
+
+    // 6. Audit Logs
+    match /auditLogs/{logId} {
+      // Audit logs are readable by patients (for their own data) and Provider Admins
+      allow read: if (isAuthenticated() && resource.data.patientId == request.auth.uid) ||
+                  (hasRole('provider_admin') && resource.data.orgId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.orgId);
+                  
+      // Anyone authenticated can create an audit log (system driven usually, but clients write them in this architecture)
+      // They can never be updated or deleted.
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+    
+    // 7. Appointments & Bookings
+    match /appointments/{appointmentId} {
+      // Patients read/write their own
+      allow read, write: if request.auth.uid == resource.data.patientId || 
+                            request.auth.uid == request.resource.data.patientId;
+                            
+      // Providers read/write appointments for their org
+      allow read, write: if isProvider() && 
+                            (resource.data.orgId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.orgId ||
+                             request.resource.data.orgId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.orgId);
+    }
+  }
+}

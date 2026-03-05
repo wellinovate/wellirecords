@@ -1,35 +1,14 @@
-import { useLocation } from "react-router-dom";
-import { SubscriptionModal } from "./components/ui/SubscriptionModal";
-import { AccessProvider, useAccessContext } from "./providers/AccessProvider";
-import { AppRoutes } from "./routes/AppRoutes";
+import { AuthProvider } from './src/shared/auth/AuthProvider';
+import { AppRoutes } from './src/AppRoutes';
+import { WelliMateProvider } from './src/shared/context/WelliMateContext';
 
-function AppShell() {
-  const location = useLocation();
-  const isOnboardingRoute = location.pathname.startsWith("/onboarding");
-
-  const { hasAccess, showSubscription, closeSubscription, upgrade } =
-    useAccessContext();
-
-  return (
-    <>
-      {/* ✅ AppRoutes will decide whether to show Layout */}
-      <AppRoutes />
-
-      {showSubscription && !isOnboardingRoute && (
-        <SubscriptionModal
-          onClose={closeSubscription}
-          onUpgrade={upgrade}
-          isTrialExpired={!hasAccess}
-        />
-      )}
-    </>
-  );
-}
-
+// Note: BrowserRouter and Web3Provider are provided by index.tsx
 export default function App() {
   return (
-    <AccessProvider>
-      <AppShell />
-    </AccessProvider>
+    <AuthProvider>
+      <WelliMateProvider>
+        <AppRoutes />
+      </WelliMateProvider>
+    </AuthProvider>
   );
 }
