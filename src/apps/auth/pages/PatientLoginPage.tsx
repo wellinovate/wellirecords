@@ -575,9 +575,9 @@ export function PatientLoginPage() {
       return;
     }
     localStorage.setItem("activeProfileType", profileType);
-    if (user.data?.account?.accountType === "user") {
+    if (user?.data?.account?.accountType === "user") {
       navigate("/patient/overview");
-    }{
+    } else {
       navigate("/provider/overview");
 
     }
