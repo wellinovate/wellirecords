@@ -677,6 +677,7 @@ export default function PatientSignupPage() {
                       // onChange={e => setProfileType(e.target.value)}
                       className="h-[40px] w-full rounded-[10px] border border-[#D4D4D4] bg-[#F4F4F4] px-[16px] text-[17px] text-[#4B5563] outline-none focus:border-[#AEB7C5] focus:bg-white"
                     >
+                      <option >--- select ---</option>
                       <option value="personal">Personal Profile</option>
                       <option value="Child">
                         Child (Dependants & Child Records)
