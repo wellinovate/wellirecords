@@ -4,8 +4,8 @@ import axios from 'axios';
 // Moved from authService
 const STORAGE_KEY = 'welli_auth_user';
 
-// const apiUrl: string = "https://wellirecord.onrender.com";
-const apiUrl: string = "http://localhost:3000";
+const apiUrl: string = "https://wellirecord.onrender.com";
+// const apiUrl: string = "http://localhost:3000";
 
 const MOCK_USERS: AuthUser[] = [
     {
