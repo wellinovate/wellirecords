@@ -32,21 +32,21 @@ export function RequireRole({ children, allow }: RequireRoleProps) {
         return <Navigate to="/auth" state={{ from: location }} replace />;
     }
 
-    const permitted =
-        allow === 'any' ? true
-            : allow === 'patient' ? user.userType === 'PATIENT'
-                : allow === 'provider' ? user.userType === 'ORG_USER'
-                    : allow === 'super_admin' ? (user.roles ?? []).includes('super_admin')
-                        : allow === 'admin' ? (user.roles ?? []).some(r => ADMIN_ROLES.includes(r))
-                            : (user.roles ?? []).some(r => (allow as UserRole[]).includes(r));
+    // const permitted =
+    //     allow === 'any' ? true
+    //         : allow === 'patient' ? user.userType === 'PATIENT'
+    //             : allow === 'provider' ? user.userType === 'ORG_USER'
+    //                 : allow === 'super_admin' ? (user.roles ?? []).includes('super_admin')
+    //                     : allow === 'admin' ? (user.roles ?? []).some(r => ADMIN_ROLES.includes(r))
+    //                         : (user.roles ?? []).some(r => (allow as UserRole[]).includes(r));
 
-    if (!permitted) {
-        const role = user.roles?.[0] ?? '';
-        if (role === 'super_admin') return <Navigate to="/super-admin/dashboard" replace />;
-        if (ADMIN_ROLES.includes(role as UserRole)) return <Navigate to="/admin/dashboard" replace />;
-        const dest = user.userType === 'PATIENT' ? '/patient/overview' : '/provider/overview';
-        return <Navigate to={dest} replace />;
-    }
+    // if (!permitted) {
+    //     const role = user.roles?.[0] ?? '';
+    //     if (role === 'super_admin') return <Navigate to="/super-admin/dashboard" replace />;
+    //     if (ADMIN_ROLES.includes(role as UserRole)) return <Navigate to="/admin/dashboard" replace />;
+    //     const dest = user.userType === 'PATIENT' ? '/patient/overview' : '/patient/overview';
+    //     return <Navigate to={dest} replace />;
+    // }
 
     return <>{children}</>;
 }

@@ -11,7 +11,8 @@ type AuthContextValue = {
     isProvider: boolean;
     signIn: (email: string, password: string) => AuthUser | null;
     signInAsRole: (role: UserRole) => AuthUser;
-    signUpPatient: (name: string, email: string) => AuthUser;
+    signUpPatient: (profileType: string, fullName: string, email: string, password: string) => string | null;
+    signUpProvider: (profileType: string, organizationName: string, email: string,phone: string, country: string, password: string) => string | null;
     signOut: () => void;
 };
 
@@ -30,8 +31,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(false);
     }, []);
 
-    const signIn = (email: string, password: string): AuthUser | null => {
-        const u = authApi.signIn(email, password);
+    const signIn = async (email: string, password: string) => {
+        const u = await authApi.signIn(email, password);
+        console.log("🚀 ~ signIn ~ u:", u)
         setUser(u);
         return u;
     };
@@ -42,9 +44,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return u;
     };
 
-    const signUpPatient = (name: string, email: string): AuthUser => {
-        const u = authApi.signUpPatient(name, email);
-        setUser(u);
+    const signUpPatient = async (profileType: string, fullName: string, email: string, password: string) => {
+        const u = await authApi.signUpPatient(profileType, fullName, email, password);
+        console.log("🚀 ~ signUpPatient ~ u:", u)
+        return u;
+    };
+    const signUpProvider = async (profileType: string, organizationName: string, email: string, phone: string, country: string, password: string, ) => {
+        console.log("🚀 ~ signUpProvider ~ profileType:", profileType)
+        const u = await authApi.signUpProvider(profileType, organizationName, email, phone, country, password);
+        console.log("🚀 ~ signUpProvider ~ u:", u)
         return u;
     };
 
@@ -62,6 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             signIn,
             signInAsRole,
             signUpPatient,
+            signUpProvider,
             signOut,
         }),
         [user, isLoading],

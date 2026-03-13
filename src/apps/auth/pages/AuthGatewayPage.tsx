@@ -1,11 +1,18 @@
 import { WelliRecordLogo } from '@/shared/ui/WelliRecordLogo';
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
-    HeartPulse, Building2, ArrowRight,
-    Shield, Lock, Activity, Zap,
-    CheckCircle, Users, FileText, Settings, Database, Eye,
+    ArrowRight,
+    Building2,
+    CheckCircle,
+    Database, Eye,
+    FileText,
+    HeartPulse,
+    Lock,
+    Settings,
+    Shield,
+    Users,
+    Zap
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const PATIENT_FEATURES = [
     { icon: Lock, text: 'AES-256 encrypted health vault — every record, every provider' },

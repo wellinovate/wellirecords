@@ -11,7 +11,6 @@ import { SecurityPage } from '@/apps/public/pages/SecurityPage';
 // ─── Auth Pages ───────────────────────────────────────────────────────────────
 import { AuthGatewayPage } from '@/apps/auth/pages/AuthGatewayPage';
 import { PatientLoginPage } from '@/apps/auth/pages/PatientLoginPage';
-import { PatientSignupPage } from '@/apps/auth/pages/PatientSignupPage';
 import { ProviderLoginPage } from '@/apps/auth/pages/ProviderLoginPage';
 import { ProviderSignupPage } from '@/apps/auth/pages/ProviderSignupPage';
 import { OrgVerificationPage } from '@/apps/auth/pages/OrgVerificationPage';
@@ -95,36 +94,44 @@ import { SessionControlsPage } from '@/apps/admin/pages/SessionControlsPage';
 import { IncidentLogPage } from '@/apps/admin/pages/IncidentLogPage';
 // IA Spec — Admin
 import { SystemHealthPage } from '@/apps/admin/pages/SystemHealthPage';
+import LandingPages from './apps/public/pages/LandingPages';
+import UserTypeSelection from './apps/auth/pages/UserTypeSelection';
+import PatientSignupPage from './apps/auth/pages/PatientSignupPage';
+import UserTypeSelectionLogin from './apps/auth/pages/UserTypeSelectionLogin';
 
 // ─── Root redirect ────────────────────────────────────────────────────────────
 const ADMIN_ROLES = ['verification_officer', 'support_agent', 'security_admin', 'finance_admin', 'data_governance'];
 
-function RootRedirect() {
-  const { user } = useAuth();
-  if (!user) return <Navigate to="/home" replace />;
-  const role = user.roles?.[0] ?? '';
-  if (role === 'super_admin') return <Navigate to="/super-admin/dashboard" replace />;
-  if (ADMIN_ROLES.includes(role)) return <Navigate to="/admin/dashboard" replace />;
-  if (user.userType === 'PATIENT') return <Navigate to="/patient/overview" replace />;
-  return <Navigate to="/provider/overview" replace />;
-}
+// function RootRedirect() {
+//   const { user } = useAuth();
+//   console.log("🚀 ~ RootRedirect ~ user:", user)
+//   if (!user) return <Navigate to="/home" replace />;
+//   const role = user.roles?.[0] ?? '';
+//   if (role === 'super_admin') return <Navigate to="/super-admin/dashboard" replace />;
+//   if (ADMIN_ROLES.includes(role)) return <Navigate to="/admin/dashboard" replace />;
+//   if (user.userType === 'PATIENT') return <Navigate to="/patient/overview" replace />;
+//   return <Navigate to="/patient/overview" replace />;
+// }
 
 // ─── Routes ──────────────────────────────────────────────────────────────────
 export function AppRoutes() {
   return (
     <Routes>
       {/* Root */}
-      <Route path="/" element={<RootRedirect />} />
+      {/* <Route path="/" element={<RootRedirect />} /> */}
+      <Route path="/" element={<LandingPages />} />
 
       {/* Public */}
-      <Route path="/home" element={<LandingPage />} />
+      <Route path="/home" element={<LandingPages />} />
       <Route path="/how-it-works" element={<HowItWorksPage />} />
       <Route path="/partners" element={<PartnersPage />} />
       <Route path="/security" element={<SecurityPage />} />
 
       {/* Auth */}
-      <Route path="/auth" element={<AuthGatewayPage />} />
+      {/* <Route path="/auth" element={<AuthGatewayPage />} /> */}
       <Route path="/auth/patient/login" element={<PatientLoginPage />} />
+      <Route path="/auth/pre-signup" element={<UserTypeSelection />} />
+      <Route path="/auth/pre-login" element={<UserTypeSelectionLogin />} />
       <Route path="/auth/patient/signup" element={<PatientSignupPage />} />
       <Route path="/auth/provider/login" element={<ProviderLoginPage />} />
       <Route path="/auth/provider/signup" element={<ProviderSignupPage />} />

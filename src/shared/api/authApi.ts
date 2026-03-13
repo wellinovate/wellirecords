@@ -1,7 +1,11 @@
 import { AuthUser, LoginMethod, UserRole } from '@/shared/types/types';
+import axios from 'axios';
 
 // Moved from authService
 const STORAGE_KEY = 'welli_auth_user';
+
+// const apiUrl: string = "https://wellirecord.onrender.com";
+const apiUrl: string = "http://localhost:3000";
 
 const MOCK_USERS: AuthUser[] = [
     {
@@ -130,43 +134,97 @@ export async function signupUser(_payload: SignupPayload): Promise<{ status: num
 }
 
 export const authApi = {
-    signIn(email: string, _password: string): AuthUser | null {
-        const user = MOCK_USERS.find(u => u.email?.toLowerCase() === email.toLowerCase());
-        if (!user) return null;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-        return user;
+    async signIn(email: string, password: string) {
+        try {
+      const response = await axios.post(`${apiUrl}/api/v1/auth/login`, {
+        email: email,
+        password: password,
+      });
+
+      if (response.status === 200) {
+        const data = await response.data;
+        return data
+      }
+    } catch (err: any) {
+      alert(err?.response?.data?.message ?? "Login failed");
+    }
+},
+/** Mock provider sign-in with role override */
+signInAsRole(role: UserRole): AuthUser {
+    const isPatient = role === 'patient';
+    const user = MOCK_USERS.find(u => u.roles?.includes(role)) ?? {
+        userId: `mock_${role}`,
+        name: isPatient ? 'Mock patient' : `Mock ${role.replace('_', ' ')}`,
+        email: `${role}@welli.ng`,
+        userType: isPatient ? 'PATIENT' : 'ORG_USER',
+        roles: [role],
+        ...(isPatient ? {} : {
+            orgId: 'org_hosp_001',
+            orgName: 'Lagos General Hospital',
+            orgType: 'hospital' as const,
+        }),
+        avatar: `https://api.dicebear.com/8.x/avataaars/svg?seed=${role}`,
+        loginMethod: 'web2' as const,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+    return user;
+},
+async signUpPatient(profileType: string, fullName: string, email: string, password: string) {
+    
+    try {
+    const response = await axios.post(`${apiUrl}/api/v1/auth/register`, {
+    profileType,
+    fullName,
+    email: email,
+    password: password,
+    });
+    console.log("🚀 ~ response:", response)
+    
+    if (response.status === 201) {
+    const data = await response.data.message;
+    console.log("🚀 ~ data:", data)
+    return data
+    }
+    } catch (err: any) {
+    alert(err?.response?.data?.message ?? "registration failed");
+    }
+    
     },
-    /** Mock provider sign-in with role override */
-    signInAsRole(role: UserRole): AuthUser {
-        const isPatient = role === 'patient';
-        const user = MOCK_USERS.find(u => u.roles?.includes(role)) ?? {
-            userId: `mock_${role}`,
-            name: isPatient ? 'Mock patient' : `Mock ${role.replace('_', ' ')}`,
-            email: `${role}@welli.ng`,
-            userType: isPatient ? 'PATIENT' : 'ORG_USER',
-            roles: [role],
-            ...(isPatient ? {} : {
-                orgId: 'org_hosp_001',
-                orgName: 'Lagos General Hospital',
-                orgType: 'hospital' as const,
-            }),
-            avatar: `https://api.dicebear.com/8.x/avataaars/svg?seed=${role}`,
-            loginMethod: 'web2' as const,
-        };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-        return user;
-    },
-    signUpPatient(name: string, email: string): AuthUser {
-        const user: AuthUser = {
-            userId: `pat_${Date.now()}`,
-            name,
-            email,
-            userType: 'PATIENT',
-            avatar: `https://api.dicebear.com/8.x/avataaars/svg?seed=${name}`,
-            loginMethod: 'web2',
-        };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-        return user;
+async signUpProvider(profileTypes: string, organisationName: string, email: string, phone: string, country: string, password: string) {
+    
+    try {
+    const response = await axios.post(`${apiUrl}/api/v1/auth/register`, {
+    profileType : "organization",
+    organizationName: organisationName,
+    organizationType: profileTypes,
+    email: email,
+    phone: phone,
+    country: country,
+    password: password,
+    });
+    console.log("🚀 ~ response:", response)
+    
+    if (response.status === 201) {
+    const data = await response.data.message;
+    console.log("🚀 ~ data:", data)
+    return data
+    }
+    } catch (err: any) {
+    alert(err?.response?.data?.message ?? "registration failed");
+    }
+    
+
+
+        // const user: AuthUser = {
+        //     userId: `pat_${Date.now()}`,
+        //     name,
+        //     email,
+        //     userType: 'PATIENT',
+        //     avatar: `https://api.dicebear.com/8.x/avataaars/svg?seed=${name}`,
+        //     loginMethod: 'web2',
+        // };
+        // localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+        // return user;
     },
     signOut(): void {
         localStorage.removeItem(STORAGE_KEY);
