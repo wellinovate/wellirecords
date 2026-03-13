@@ -608,9 +608,9 @@ export default function PatientSignupPage() {
         navigate("auth/patient/login");
       }
     } catch (error) {
-      console.log("🚀 ~ handleSubmit ~ error:", error)
+      console.log("🚀 ~ handleSubmit ~ error:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   };
 
@@ -621,8 +621,8 @@ export default function PatientSignupPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className=" h-screen min-h-[714px] max-w-full overflow-hidden border border-[#D9D9D9] bg-white">
-        <div className="grid h-full grid-cols-[45.4%_54.6%]">
+      <div className=" h-screen min-h-[714px] max-w-full overflow-x-hidden border border-[#D9D9D9] bg-white ">
+        <div className="grid h-full grid-cols-[45.4%_54.6%] ">
           {/* Left side */}
           <div className="relative overflow-hidden bg-[#E9EEF1]">
             <img
@@ -648,20 +648,20 @@ export default function PatientSignupPage() {
           </div>
 
           {/* Right side */}
-          <div className="relative bg-[#F3F3F3]">
-            <div className="mx-auto flex h-full w-full max-w-[650px] flex-col px-[78px] pt-[66px]">
+          <div className="relative bg-[#F3F3F3] pb-8">
+            <div className="mx-auto flex h-full w-full max-w-[650px] flex-col px-[78px] pt-[36px]">
               <div className="text-center">
                 <h1 className="text-[50px] font-extrabold leading-none tracking-[-0.03em] text-[#082E6A]">
                   Create Your Account
                 </h1>
-                <p className="mt-[10px] text-[18px] text-[#49576A]">
+                <p className="mt-[8px] text-[18px] text-[#49576A]">
                   Choose how you want to use WelliRecord.
                 </p>
               </div>
 
               <form
                 onSubmit={handleSubmit}
-                className="mt-[54px] space-y-[28px]"
+                className="mt-[34px] space-y-[20px]"
               >
                 <div>
                   <label
@@ -755,7 +755,9 @@ export default function PatientSignupPage() {
                     // onClick={handleSubmit}
                     className="h-[44px] min-w-[201px] rounded-[6px] bg-[#2F915C] px-[28px] text-[17px] font-semibold text-white shadow-sm transition hover:brightness-95"
                   >
-                   { loading ? "Creating Health Vault..." : "Create Health Vault" }
+                    {loading
+                      ? "Creating Health Vault..."
+                      : "Create Health Vault"}
                   </button>
                 </div>
 
@@ -802,28 +804,6 @@ export default function PatientSignupPage() {
                   </button>
                 </div>
               </form>
-            </div>
-
-            {/* bottom carousel indicator captured in screenshot */}
-            <div className="absolute bottom-[5px] left-[-18px] right-0 flex justify-center">
-              <div className="flex h-[40px] items-center rounded-[14px] bg-[#232323] px-[14px] text-white shadow-[0_10px_24px_rgba(0,0,0,0.25)]">
-                <button className="px-[10px] text-[24px] leading-none text-white/90">
-                  ‹
-                </button>
-                <div className="mx-[8px] h-[22px] w-px bg-white/20" />
-                <div className="min-w-[44px] text-center text-[15px] font-semibold">
-                  3 / 11
-                </div>
-                <div className="mx-[8px] h-[22px] w-px bg-white/20" />
-                <button className="px-[10px] text-[24px] leading-none text-white/90">
-                  ›
-                </button>
-              </div>
-            </div>
-
-            {/* lower right little corner icon */}
-            <div className="absolute bottom-[5px] right-[6px] flex h-[28px] w-[28px] items-center justify-center rounded-full bg-[#232323] text-[15px] text-white">
-              ↺
             </div>
           </div>
         </div>
