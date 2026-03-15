@@ -41,12 +41,15 @@ const FILTER_TYPES = [
 
 /* ─── Record-type showcase for the onboarding empty state ─────── */
 const SHOWCASE_TYPES = [
+    { label: 'Vitals', icon: FlaskConical, color: '#3b82f6', example: 'Blood work, urinalysis, HIV, HBA1C…' },
+    { label: 'Medications/prescriptions', icon: Pill, color: '#8b5cf6', example: 'Current meds, refills, dosages…' },
     { label: 'Lab Results', icon: FlaskConical, color: '#3b82f6', example: 'Blood work, urinalysis, HIV, HBA1C…' },
-    { label: 'Prescriptions', icon: Pill, color: '#8b5cf6', example: 'Current meds, refills, dosages…' },
-    { label: 'Imaging', icon: ScanLine, color: '#ec4899', example: 'X-ray, MRI, CT scan reports…' },
+    { label: 'Procedures / Surgeries', icon: ScanLine, color: '#ec4899', example: 'X-ray, MRI, CT scan reports…' },
+    { label: 'Allergies', icon: Stethoscope, color: '#1a6b42', example: 'Visit summaries, SOAP notes…' },
     { label: 'Clinical Notes', icon: Stethoscope, color: '#1a6b42', example: 'Visit summaries, SOAP notes…' },
     { label: 'Vaccinations', icon: Syringe, color: '#f59e0b', example: 'Yellow fever, COVID, travel shots…' },
-    { label: 'Conditions', icon: Activity, color: '#ef4444', example: 'Hypertension, diabetes, asthma…' },
+    { label: 'Diagnoses', icon: Activity, color: '#ef4444', example: 'Hypertension, diabetes, asthma…' },
+    { label: 'Immunizations', icon: Activity, color: '#ef4444', example: 'Hypertension, diabetes, asthma…' },
 ];
 
 /* ─── Main page component ─────────────────────────────────────── */

@@ -128,7 +128,6 @@ export function AppRoutes() {
       <Route path="/security" element={<SecurityPage />} />
 
       {/* Auth */}
-      {/* <Route path="/auth" element={<AuthGatewayPage />} /> */}
       <Route path="/auth/patient/login" element={<PatientLoginPage />} />
       <Route path="/auth/pre-signup" element={<UserTypeSelection />} />
       <Route path="/auth/pre-login" element={<UserTypeSelectionLogin />} />
@@ -152,6 +151,7 @@ export function AppRoutes() {
         <Route path="vault" element={<HealthVaultPage />} />
         <Route path="journeys" element={<CareJourneysPage />} />
         <Route path="consents" element={<DataSovereigntyCenterPage />} />
+        <Route path="medications" element={<MedicationsPage />} />
         <Route path="emergency-card" element={<EmergencyCardPage />} />
         <Route path="appointments" element={<AppointmentsPage />} />
         <Route path="messages" element={<MessagesPage />} />
@@ -161,7 +161,6 @@ export function AppRoutes() {
         <Route path="telemedicine" element={<TelemedicineHubPage />} />
         <Route path="telemedicine/intake" element={<SmartSymptomIntakePage />} />
         <Route path="telemedicine/room/:sessionId" element={<TeleconsultRoomPage />} />
-        <Route path="medications" element={<MedicationsPage />} />
         <Route path="billing" element={<BillingPatientPage />} />
         <Route path="support" element={<PatientSupportPage />} />
         <Route path="settings" element={<PatientSettingsPage />} />

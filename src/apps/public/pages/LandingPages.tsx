@@ -11,6 +11,9 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import WelliFooter from "../../../../components/ui/Footer";
 import { useAuth } from "@/shared/auth/AuthProvider";
+import logos from "../../../assets/logos.png";
+// import hero from "../../../assets/hero.png";
+import { hero } from "@/assets";
 
 const navItems = [
   { label: "About Us", href: "#about" },
@@ -158,7 +161,7 @@ function Navbar() {
       <div className="mx-auto flex max-w-full items-center justify-between gap-6 px-6 py-3 lg:px-20">
         <div className="flex items-center gap-3">
           <div className="flex h-14 w-72 overflow-hidden items-center justify-center rounded-md bg-[#0b3870] text-white shadow-sm">
-            <img src="/logos.png" alt="wellirecord" className=" w-full h- full object-cover" />
+            <img src={logos} alt="wellirecord" className=" w-full h- full object-cover" />
           </div>
           
         </div>
@@ -666,7 +669,7 @@ function Hero() {
  Trusted Health Vault 
             </div>
           <img
-            src="/hero.png"
+            src={hero}
             alt="WelliRecord Hero"
             className="h-full w-full object-cover"
           />
