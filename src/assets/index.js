@@ -18,6 +18,7 @@ import qr_card_image from './qr_card_image.png'
 import telehealth from './telehealth.png'
 import wellirecordimage from './wellirecordimage.png'
 import yourhealthrecord from './yourhealthrecord.png'
+import wearable from './wearable.png'
 
 
 
@@ -42,5 +43,6 @@ export {
     qr_card_image,
     telehealth,
     wellirecordimage,
-    yourhealthrecord
+    yourhealthrecord,
+    wearable
 }

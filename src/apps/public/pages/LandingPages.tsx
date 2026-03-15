@@ -11,7 +11,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import WelliFooter from "../../../../components/ui/Footer";
 import { useAuth } from "@/shared/auth/AuthProvider";
-import logos from "../../../assets/logos.png";
+import {control_access_image, diagonize, government, health_companion_image, HealthRecord, hopistal, insurance, logos, NGOs, pharmacies, qr_card_image, telehealth, wearable, wellirecordimage, yourhealthrecord} from "../../../assets";
 // import hero from "../../../assets/hero.png";
 import { hero } from "@/assets";
 
@@ -54,34 +54,34 @@ const featureCards = [
   {
     title: "AI Health Companion",
     description: "Understand your lab results with AI guidance.",
-    icon: "/health_companion_image.png",
+    icon: health_companion_image,
   },
   {
     title: "Own Your Health Record",
     description: "Your complete medical history in one secure vault.",
-    icon: "/yourhealthrecord.png",
+    icon: yourhealthrecord,
   },
   {
     title: "Control Access Instantly",
     description: "Grant or revoke provider access anytime.",
-    icon: "/control_access_image.png",
+    icon: control_access_image,
   },
   {
     title: "Emergency QR Card",
     description: "Share critical health data instantly in emergencies.",
-    icon: "/qr_card_image.png",
+    icon: qr_card_image,
   },
 ];
 
 const stakeholders = [
-  { label: "Hospitals", icon: "/hopistal.png" },
-  { label: "Diagnostic Labs", icon: "/diagonize.png" },
-  { label: "Pharmacies", icon: "/pharmacies.png" },
-  { label: "Telehealth", icon: "/telehealth.png" },
-  { label: "Insurance", icon: "/insurance.png" },
-  { label: "Wearables", icon: "/wearable.png" },
-  { label: "NGOs", icon: "/NGOs.png" },
-  { label: "Government", icon: "/government.png" },
+  { label: "Hospitals", icon: hopistal },
+  { label: "Diagnostic Labs", icon: diagonize },
+  { label: "Pharmacies", icon: pharmacies },
+  { label: "Telehealth", icon: telehealth },
+  { label: "Insurance", icon: insurance },
+  { label: "Wearables", icon: wearable },
+  { label: "NGOs", icon: NGOs },
+  { label: "Government", icon: government },
 ];
 
 const partners = [
@@ -351,7 +351,7 @@ function ProblemVisual() {
         <div className=" bg-slate-100 min-h-[360px] p-1 grid-cols-[1.2fr_1fr]">
         
 
-          <img src="/HealthRecord.png" alt="" className="w-full h-full object-cover" />
+          <img src={HealthRecord} alt="" className="w-full h-full object-cover" />
         </div>
       </div>
     </div>
@@ -424,7 +424,7 @@ function WorkflowVisual() {
       <div className="absolute -bottom-16 -left-16 h-[356px] w-[749px] rounded-none bg-[#1F4E79] zf10"  />
       <div className="p-1 bg-slate-300 h-[539px] w-[727px] relative overflow-hidden ">
       <img
-        src="/wellirecordimage.png"
+        src={wellirecordimage}
         alt="Workflow Illustration"
         className="  z-20 w-full h-full shadow-sm"
       />
