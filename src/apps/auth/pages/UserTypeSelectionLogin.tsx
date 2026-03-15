@@ -1,3 +1,4 @@
+import { prelogin } from "@/assets";
 import React from "react";
 import { Link } from "react-router-dom";
 
@@ -176,7 +177,7 @@ export default function UserTypeSelectionLogin() {
           style={{
             width: "100%",
             height: "100%",
-            backgroundImage: "url('/prelogin.png')",
+            backgroundImage: `url(${prelogin})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
             // backgroundRepeat: "no-repeat",

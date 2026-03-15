@@ -16,6 +16,7 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
+import { phone } from "@/assets";
 
 const BRAND_FEATURES = [
   {
@@ -607,7 +608,7 @@ export function PatientLoginPage() {
           {/* LEFT IMAGE PANEL */}
           <div className="relative w-full flex-1 overflow-hidden bg-[#E8EDF2]">
             <img
-              src="/phone.png"
+              src={phone}
               alt="Phone UI"
               className="  w-ful h-full object-cover"
             />
