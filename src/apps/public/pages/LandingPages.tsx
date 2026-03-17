@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { Menu, X } from "lucide-react";
+
 import {
   ArrowRight,
   BadgeCheck,
@@ -6,12 +9,28 @@ import {
   Microscope,
   Pill,
   Shield,
-  Stethoscope
+  Stethoscope,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import WelliFooter from "../../../../components/ui/Footer";
 import { useAuth } from "@/shared/auth/AuthProvider";
-import {control_access_image, diagonize, government, health_companion_image, HealthRecord, hopistal, insurance, logos, NGOs, pharmacies, qr_card_image, telehealth, wearable, wellirecordimage, yourhealthrecord} from "../../../assets";
+import {
+  control_access_image,
+  diagonize,
+  government,
+  health_companion_image,
+  HealthRecord,
+  hopistal,
+  insurance,
+  logos,
+  NGOs,
+  pharmacies,
+  qr_card_image,
+  telehealth,
+  wearable,
+  wellirecordimage,
+  yourhealthrecord,
+} from "../../../assets";
 // import hero from "../../../assets/hero.png";
 import { hero } from "@/assets";
 
@@ -149,72 +168,155 @@ function Logo() {
 
 function Navbar() {
   const { user, signOut } = useAuth();
-  console.log("🚀 ~ Navbar ~ user:", user?.data?.account?.accountType)
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSignOut = () => {
     signOut();
+    setMobileMenuOpen(false);
   };
 
-
   return (
-    <header className="sticky top-0  z-50 border-b border-slate-100/10 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex max-w-full items-center justify-between gap-6 px-6 py-3 lg:px-20">
-        <div className="flex items-center gap-3">
-          <div className="flex h-14 w-72 overflow-hidden items-center justify-center rounded-md bg-[#0b3870] text-white shadow-sm">
-            <img src={logos} alt="wellirecord" className=" w-full h- full object-cover" />
-          </div>
-          
+    <header className="sticky top-0 z-50 border-b border-slate-100 bg-white/95 backdrop-blur overflow-x-hidden">
+      <div className="mx-auto flex w-full sm:max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+        {/* Logo */}
+        <div className="flex min-w-0 items-center">
+          <Link to="/" className="block">
+            <div className="flex h-8 w-30 items-center justify-center overflow-hidden rounded-md bg-[#0b3870] shadow-sm sm:h-14 sm:w-52 lg:w-64">
+              <img
+                src={logos}
+                alt="wellirecord"
+                className="h-full w-full object-cover"
+              />
+            </div>
+          </Link>
         </div>
 
-        <nav className="hidden items-center gap-8 lg:flex">
+        {/* Desktop Nav */}
+        <nav className="hidden items-center gap-6 lg:flex">
           {navItems.map((item) => (
             <a
               key={item.label}
               href={item.href}
-              className="inline-flex items-center gap-1 text-lg font-semibold text-[#1F4E79] transition hover:text-slate-950"
+              className="inline-flex items-center gap-1 text-base font-semibold text-[#1F4E79] transition hover:text-slate-950 xl:text-lg"
             >
               {item.label}
               {item.hasChevron ? <ChevronDown className="h-4 w-4" /> : null}
             </a>
           ))}
         </nav>
-        
 
+        {/* Desktop Actions */}
         {!user ? (
-        <div className="hidden items-center gap-5 lg:flex">
-          <Link
-            to={"/auth/login"}
-            className="text-lg font-semibold text-[#1F4E79] transition hover:text-emerald-700"
-          >
-            Login
-        </Link>
-          <PrimaryButton href={"/auth/pre-signup"}>Create Health Vault</PrimaryButton>
-        </div>
-
-        ): (
-
-        <div className="hidden items-center gap-5 lg:flex">
-          <button
-            
-            onClick={handleSignOut}
-            className="text-lg font-semibold text-[#1F4E79] transition hover:text-emerald-700"
-          >
-            Log Out
-          </button>
-          <PrimaryButton href={user?.data?.account?.accountType === "user" ? `/patient/overview` : `/provider/overview`}>
-            My Dashboard
-          </PrimaryButton>
-        </div>
+          <div className="hidden items-center gap-4 lg:flex">
+            <Link
+              to="/auth/login"
+              className="text-base font-semibold text-[#1F4E79] transition hover:text-emerald-700 xl:text-lg"
+            >
+              Login
+            </Link>
+            <PrimaryButton href="/auth/pre-signup">
+              Create Health Vault
+            </PrimaryButton>
+          </div>
+        ) : (
+          <div className="hidden items-center gap-4 lg:flex">
+            <button
+              onClick={handleSignOut}
+              className="text-base font-semibold text-[#1F4E79] transition hover:text-emerald-700 xl:text-lg"
+            >
+              Log Out
+            </button>
+            <PrimaryButton
+              href={
+                user?.data?.account?.accountType === "user"
+                  ? "/patient/overview"
+                  : "/provider/overview"
+              }
+            >
+              My Dashboard
+            </PrimaryButton>
+          </div>
         )}
 
-        <a
-          href="#cta"
-          className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 lg:hidden"
+        {/* Mobile Toggle */}
+        <button
+          type="button"
+          onClick={() => setMobileMenuOpen((prev) => !prev)}
+          className="inline-flex items-center justify-center rounded-md p-2 text-[#1F4E79] transition hover:bg-slate-100 lg:hidden"
+          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
         >
-          Get Started
-        </a>
+          {mobileMenuOpen ? (
+            <X className="h-6 w-6" />
+          ) : (
+            <Menu className="h-6 w-6" />
+          )}
+        </button>
       </div>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="border-t border-slate-200 bg-white lg:hidden">
+          <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6">
+            <nav className="flex flex-col gap-3">
+              {navItems.map((item) => (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="inline-flex items-center justify-between rounded-lg px-2 py-2 text-base font-semibold text-[#1F4E79] transition hover:bg-slate-50"
+                >
+                  <span>{item.label}</span>
+                  {item.hasChevron ? <ChevronDown className="h-4 w-4" /> : null}
+                </a>
+              ))}
+            </nav>
+
+            <div className="flex flex-col gap-3 pt-2">
+              {!user ? (
+                <>
+                  <Link
+                    to="/auth/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="rounded-lg border border-slate-200 px-4 py-3 text-center text-base font-semibold text-[#1F4E79] transition hover:bg-slate-50"
+                  >
+                    Login
+                  </Link>
+
+                  <Link
+                    to="/auth/pre-signup"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="rounded-lg bg-emerald-600 px-4 py-3 text-center text-base font-semibold text-white transition hover:bg-emerald-700"
+                  >
+                    Create Health Vault
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to={
+                      user?.data?.account?.accountType === "user"
+                        ? "/patient/overview"
+                        : "/provider/overview"
+                    }
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="rounded-lg bg-emerald-600 px-4 py-3 text-center text-base font-semibold text-white transition hover:bg-emerald-700"
+                  >
+                    My Dashboard
+                  </Link>
+
+                  <button
+                    onClick={handleSignOut}
+                    className="rounded-lg border border-slate-200 px-4 py-3 text-base font-semibold text-[#1F4E79] transition hover:bg-slate-50"
+                  >
+                    Log Out
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
@@ -312,49 +414,17 @@ function HeroIllustration() {
   );
 }
 
-function Herort() {
-  return (
-    <section id="about" className="bg-slate-50">
-      <div className="mx-auto grid max-w-7xl gap-12 px-6 py-16 lg:grid-cols-2 lg:px-8 lg:py-20">
-        <div className="flex flex-col justify-center">
-          <h1 className="max-w-xl text-5xl font-bold tracking-tight text-slate-950 md:text-7xl">
-            Own Your Complete Medical History
-          </h1>
-
-          <p className="mt-8 max-w-xl text-lg leading-8 text-slate-600">
-            The first patient-owned health vault in Africa, WelliRecord securely
-            connects your hospitals, labs, and pharmacies into a single private
-            health vault, giving you full control over who can access your
-            medical history.
-          </p>
-
-          <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-            <PrimaryButton href="#cta">Create Health Vault</PrimaryButton>
-            <SecondaryButton href="#solutions">
-              For Healthcare Providers
-            </SecondaryButton>
-          </div>
-
-          <p className="mt-8 text-sm font-medium uppercase tracking-[0.28em] text-slate-500">
-            NDPR Compliant • NHR Interoperability • HIPAA Ready • ISO 27001
-          </p>
-        </div>
-
-        <HeroIllustration />
-      </div>
-    </section>
-  );
-}
-
 function ProblemVisual() {
   return (
     <div className="relative mt-16">
       <div className="absolute -bottom-16 left-10 h-[75%] w-[100%] rounded-sm bg-[#1F4E79]" />
       <div className="relative overflow-hidden rounded-sm border border-slate-200 bg-white shadow-sm">
         <div className=" bg-slate-100 min-h-[360px] p-1 grid-cols-[1.2fr_1fr]">
-        
-
-          <img src={HealthRecord} alt="" className="w-full h-full object-cover" />
+          <img
+            src={HealthRecord}
+            alt=""
+            className="w-full h-full object-cover"
+          />
         </div>
       </div>
     </div>
@@ -363,28 +433,33 @@ function ProblemVisual() {
 
 function ProblemSection() {
   return (
-    <section className="bg-white px-6 py-24 lg:px-8">
-      <div className="mx-auto max-w-[90rem]  ">
+    <section className="bg-white px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
+      <div className="mx-auto max-w-7xl">
         <SectionHeading
           title="Healthcare Records Should not Be This Hard"
           subtitle="Healthcare data across Nigeria is fragmented, siloed, and difficult to access when it matters most."
         />
 
-        <div className="mt-16 space-x-10  grid items-center gap-20 lg:grid-cols-[1.1fr_0.9fr]">
-          <ProblemVisual />
+        <div className="mt-12 grid items-center gap-10 sm:mt-16 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16 xl:gap-20">
+          <div className="order-1">
+            <ProblemVisual />
+          </div>
 
-          <div>
-            <h3 className="max-w-xs text-xl font-semibold text-slate-950">
-              Some of The Pain Points <br /> include:
+          <div className="order-2">
+            <h3 className="max-w-xl text-xl font-semibold text-slate-950 sm:text-2xl lg:max-w-sm">
+              Some of the pain points include:
             </h3>
 
-            <div className="mt-8 space-y-10">
+            <div className="mt-6 space-y-6 sm:mt-8 sm:space-y-8">
               {painPoints.map((item) => (
-                <div key={item} className="flex items-start gap-4">
+                <div key={item} className="flex items-start gap-3 sm:gap-4">
                   <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#1d4f82] text-white">
-                    <ArrowRight className="h-3 w-4 font-bold" />
+                    <ArrowRight className="h-3.5 w-3.5" />
                   </div>
-                  <p className="text-lg text-[#002353] font-semibold">{item}</p>
+
+                  <p className="text-base font-semibold leading-7 text-[#002353] sm:text-lg">
+                    {item}
+                  </p>
                 </div>
               ))}
             </div>
@@ -397,20 +472,24 @@ function ProblemSection() {
 
 function Timeline() {
   return (
-    <div className="relative">
-      <div className="absolute left-[15px] top-4 h-[calc(100%-100px)] w-px bg-slate-300" />
-      <div className="space-y-12  w-[346px]">
+    <div className="relative w-full max-w-md">
+      <div className="absolute left-4 top-4 bottom-4 w-px bg-slate-300" />
+
+      <div className="space-y-8 sm:space-y-10">
         {timelineSteps.map((step) => (
-          <div key={step.title} className="relative flex gap-6">
+          <div
+            key={step.title}
+            className="relative flex items-start gap-4 sm:gap-6"
+          >
             <div className="relative z-10 mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-[#1d4f82] bg-white">
               <div className="h-3.5 w-3.5 rounded-full bg-[#1d4f82]" />
             </div>
 
-            <div>
-              <h3 className="text-lg font-bold text-slate-950">
+            <div className="min-w-0 flex-1">
+              <h3 className="text-base font-bold text-slate-950 sm:text-lg">
                 {step.title}
               </h3>
-              <p className="mt-2 max-w-[15rem]  text-base leading-6 text-slate-600">
+              <p className="mt-2 text-sm leading-6 text-slate-600 sm:text-base">
                 {step.description}
               </p>
             </div>
@@ -423,14 +502,15 @@ function Timeline() {
 
 function WorkflowVisual() {
   return (
-    <div className="relative mt-10 lg:mt-20">
-      <div className="absolute -bottom-16 -left-16 h-[356px] w-[749px] rounded-none bg-[#1F4E79] zf10"  />
-      <div className="p-1 bg-slate-300 h-[539px] w-[727px] relative overflow-hidden ">
-      <img
-        src={wellirecordimage}
-        alt="Workflow Illustration"
-        className="  z-20 w-full h-full shadow-sm"
-      />
+    <div className="relative mt-8 w-full sm:mt-10 lg:mt-16">
+      <div className="absolute -bottom-6 -left-4 hidden h-[55%] w-[92%] bg-[#1F4E79] sm:block lg:-bottom-10 lg:-left-8" />
+
+      <div className="relative z-10 w-full overflow-hidden rounded-xl bg-slate-300 p-1 shadow-sm">
+        <img
+          src={wellirecordimage}
+          alt="Workflow Illustration"
+          className="block h-auto w-full object-cover"
+        />
       </div>
     </div>
   );
@@ -438,19 +518,25 @@ function WorkflowVisual() {
 
 function HowItWorks() {
   return (
-    <section id="how-it-works" className="bg-slate-0 px-6 py-24 lg:px-8">
+    <section
+      id="how-it-works"
+      className="bg-slate-0 px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24"
+    >
       <div className="mx-auto max-w-7xl">
-        <div className="grid gap-30 lg:grid-cols-[0.82fr_1.18fr]">
+        <div className="grid items-center gap-12 lg:grid-cols-[0.82fr_1.18fr] lg:gap-16 xl:gap-20">
           <div>
-            <h2 className="max-w-sm text-4xl font-semibold tracking-tight text-[#1F4E79] md:text-4.5xl">
+            <h2 className="max-w-xl text-3xl font-semibold tracking-tight text-[#1F4E79] sm:text-4xl lg:max-w-sm">
               How WelliRecords Work
             </h2>
-            <div className="mt-10">
+
+            <div className="mt-8 sm:mt-10">
               <Timeline />
             </div>
           </div>
 
-          <WorkflowVisual />
+          <div className="w-full">
+            <WorkflowVisual />
+          </div>
         </div>
       </div>
     </section>
@@ -462,7 +548,7 @@ function FeatureVisual({ icon: Icon }) {
     <div className="relative h-52 overflow-hidden rounded-t-xl bg-[linear-gradient(135deg,#e7f0fb_0%,#ffffff_50%,#eef4f8_100%)]">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(148,163,184,0.18),transparent_35%)]" />
       <div className="absolute inset-0 h-full w-full rounded-t-2xl overflow-hidden">
-      <img src={Icon} alt="" className="h-full w-full object-cover" />
+        <img src={Icon} alt="" className="h-full w-full object-cover" />
       </div>
     </div>
   );
@@ -470,28 +556,30 @@ function FeatureVisual({ icon: Icon }) {
 
 function Features() {
   return (
-    <section className="bg-white px-6 py-24 lg:px-8">
+    <section className="bg-white px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
       <div className="mx-auto max-w-7xl">
         <SectionHeading
           title="Core Features"
           subtitle="What can you actually do with WelliRecord?"
         />
 
-        <div className="relative mt-16">
-          <div className="absolute inset-x-0 top-24 h-[326px] w-[1249px] rounded-none bg-[#8DB8E25C]" />
-          <div className="relative flex justify-center gap-12 lg:grid-cols-4">
+        <div className="relative mt-12 sm:mt-16">
+          {/* Decorative background */}
+          <div className="absolute inset-x-0 top-10 hidden h-64 rounded-3xl bg-[#8DB8E25C] sm:block lg:top-24 lg:h-[326px]" />
+
+          <div className="relative grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
             {featureCards.map((feature) => (
               <div
                 key={feature.title}
-                className="overflow-hidden w-[250px] rounded-xl bg-white shadow-lg ring-1 ring-slate-200 transition hover:-translate-y-1 hover:shadow-xl"
+                className="mx-auto w-full max-w-[320px] overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-slate-200 transition hover:-translate-y-1 hover:shadow-xl"
               >
                 <FeatureVisual icon={feature.icon} />
-                
-                <div className="px-6 pb-16 pt-6 text-center">
+
+                <div className="px-5 pb-10 pt-6 text-center sm:px-6 sm:pb-12">
                   <h3 className="text-base font-bold text-slate-950">
                     {feature.title}
                   </h3>
-                  <p className="mt-4 text-sm leading-8 text-slate-600">
+                  <p className="mt-3 text-sm leading-7 text-slate-600 sm:mt-4 sm:leading-8">
                     {feature.description}
                   </p>
                 </div>
@@ -522,23 +610,25 @@ function Solutions() {
         <SectionHeading title="One Platform, Every Healthcare Stakeholder." />
 
         <div className="mt-4 w-full  bg-gradient-to-b from-[#FAF8FB] to-[#D9D8E6] px-8 py-12">
-        <div className="bg-[#FAF8FB] py-10 max-w-7xl mx-auto rounded-2xl px-6">
+          <div className="bg-[#FAF8FB] py-10 max-w-7xl mx-auto rounded-2xl px-6">
+            <div className="mx-auto grid max-w-5xl gap-14 md:grid-cols-2 xl:grid-cols-4">
+              {stakeholders.map((item) => (
+                <StakeholderCard
+                  key={item.label}
+                  label={item.label}
+                  icon={item.icon}
+                />
+              ))}
+            </div>
 
-          <div className="mx-auto grid max-w-5xl gap-14 md:grid-cols-2 xl:grid-cols-4">
-            {stakeholders.map((item) => (
-              <StakeholderCard
-                key={item.label}
-                label={item.label}
-                icon={item.icon}
-              />
-            ))}
-          </div>
-
-          <div className="mt-14 text-center">
-            <Link to="#" className="font-semibold text-base bg-[#2E8B57] py-4 px-3 text-white shadow-sm transition hover:bg-[#2E8B57]/90 rounded-2xl">
-              Register Your Organisation
-            </Link>
-          </div>
+            <div className="mt-14 text-center">
+              <Link
+                to="#"
+                className="font-semibold text-base bg-[#2E8B57] py-4 px-3 text-white shadow-sm transition hover:bg-[#2E8B57]/90 rounded-2xl"
+              >
+                Register Your Organisation
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -615,10 +705,10 @@ export default function App() {
   return (
     <div
       id="top"
-      className="min-h-screen w-full scroll-smooth bg-white text-slate-900"
+      className="min-h-screen overflow-x-hidden w-full scroll-smooth bg-white text-slate-900"
     >
       <Navbar />
-      <main>
+      <main className="overflow-x-hidden">
         <Hero />
         <ProblemSection />
         <HowItWorks />
@@ -626,8 +716,6 @@ export default function App() {
         <Solutions />
         {/* <Partners /> */}
         <WelliFooter />
-       
-     
       </main>
     </div>
   );
@@ -635,42 +723,45 @@ export default function App() {
 
 function Hero() {
   return (
-    <div className="min-h-[] w-full pt-10 py-5  text-slate-900">
-      <main className=" flex w-full bg-white grid-cols-1  overflow-hidden ">
-        <section className="flex  flex-1 justify-center items-center bg-[#F4F9FD]/40 px-8 py-16 lg:min-h-[530px] lg:px-16 xl:px-24">
-          <div className="w-">
-            <h1 className="max-w-[560px] text-3xl font-semibold leading-[1.08] tracking-[-0.05em] text-[#002353] md:text-[60px]">
+    <div className="w-full bg-white py-6 pt-4 text-slate-900 sm:py-8 lg:py-10">
+      <main className="flex w-full flex-col overflow-hidden lg:min-h-[530px] lg:flex-row">
+        <section className="flex flex-1 items-center justify-center bg-[#F4F9FD]/40 px-4 py-12 sm:px-6 sm:py-14 lg:px-12 lg:py-16 xl:px-20">
+          <div className="w-full max-w-2xl">
+            <h1 className="max-w-[560px] text-4xl font-semibold leading-tight tracking-[-0.04em] text-[#002353] sm:text-5xl lg:text-[56px] lg:leading-[1.05]">
               Own Your Complete Medical History
             </h1>
 
-            <p className="mt-10 max-w-[680px] text-[19px] leading-[1.45] text-[#475569]">
+            <p className="mt-6 max-w-[680px] text-base leading-7 text-[#475569] sm:mt-8 sm:text-lg sm:leading-8 lg:mt-10 lg:text-[19px] lg:leading-[1.45]">
               The first patient-owned health vault in Africa, WelliRecord
               securely connects your hospitals, labs, and pharmacies into a
-              single private health vault , giving you full control over who can
+              single private health vault, giving you full control over who can
               access your medical history.
             </p>
 
-            <div className="mt-10 md:w-[85%] flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-              <button className="rounded-lg bg-[#2f8f53] px-8 py-4 text-[18px] font-semibold text-white shadow-sm transition hover:bg-[#2E8B57]">
+            <div className="mt-8 flex flex-col gap-4 sm:mt-10 sm:max-w-xl sm:flex-row sm:flex-wrap sm:items-center">
+              <button className="w-full rounded-lg bg-[#2f8f53] px-6 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-[#2E8B57] sm:w-auto sm:px-8 sm:py-4 sm:text-lg">
                 Create Health Vault
               </button>
-              <button className="rounded-lg border-4 border-[#173f73] bg-white px-8 py-[14px] text-[18px] font-semibold text-[#173f73] transition hover:bg-slate-50">
+
+              <button className="w-full rounded-lg border-2 border-[#173f73] bg-white px-6 py-3.5 text-base font-semibold text-[#173f73] transition hover:bg-slate-50 sm:w-auto sm:px-8 sm:py-4 sm:text-lg">
                 For Healthcare Providers
               </button>
             </div>
 
-            <div className="mt-8 text-[13px] uppercase tracking-[0.35em] text-[#5c6f85]">
-              • NDPR Compliant &nbsp;&nbsp;•&nbsp;&nbsp; NHR Interoperability
-              &nbsp;&nbsp;•&nbsp;&nbsp; <br /> HIPAA Ready
-              &nbsp;&nbsp;•&nbsp;&nbsp; ISO 27001
+            <div className="mt-8 flex flex-wrap gap-x-4 gap-y-2 text-[11px] uppercase tracking-[0.25em] text-[#5c6f85] sm:text-xs sm:tracking-[0.3em]">
+              <span>NDPR Compliant</span>
+              <span>NHR Interoperability</span>
+              <span>HIPAA Ready</span>
+              <span>ISO 27001</span>
             </div>
           </div>
         </section>
 
-        <section className="relative min-h-[518px] w-[45%] border-red-600 overflow-hidden bg-[radial-gradient(circle_at_center,_#f8fbfc_0%,_#e5eef2_60%,_#dfe8ee_100%)]">
-            <div className="bg-[#2E8B57] absolute  top-0 left-0 z-10 text-white pr-4 pl-2.5 pt-1.5 text-lg font-semibold rounded-br-lg shadow-sm">
- Trusted Health Vault 
-            </div>
+        <section className="relative min-h-[280px] w-full overflow-hidden bg-[radial-gradient(circle_at_center,_#f8fbfc_0%,_#e5eef2_60%,_#dfe8ee_100%)] sm:min-h-[360px] lg:min-h-[530px] lg:w-[45%]">
+          <div className="absolute left-0 top-0 z-10 rounded-br-lg bg-[#2E8B57] px-3 py-1.5 text-sm font-semibold text-white shadow-sm sm:px-4 sm:text-base lg:text-lg">
+            Trusted Health Vault
+          </div>
+
           <img
             src={hero}
             alt="WelliRecord Hero"
@@ -678,7 +769,6 @@ function Hero() {
           />
         </section>
       </main>
-      
     </div>
   );
 }

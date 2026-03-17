@@ -604,9 +604,9 @@ export function PatientLoginPage() {
   return (
     <div className="min-h-screen bg-white">
       <div className=" h-screen max-w-full border border-gray-200">
-        <div className="flex h-full ">
+        <div className="flex h-full px-1  ">
           {/* LEFT IMAGE PANEL */}
-          <div className="relative w-full flex-1 overflow-hidden bg-[#E8EDF2]">
+          <div className="hidden md:block relative w-full flex-1 overflow-hidden bg-[#E8EDF2]">
             <img
               src={phone}
               alt="Phone UI"
@@ -617,7 +617,9 @@ export function PatientLoginPage() {
           </div>
 
           {/* RIGHT LOGIN PANEL */}
-          <div className="bg-[#F3F4F5] flex w-full flex-1 items-start justify-center">
+          <div className="bg-[#F3F4F5] flex w-full flex-1 items-start justify-center px-3">
+
+            
             <div className="w-full max-w-[460px] mt-[70px]">
               <h1 className="text-[44px] font-extrabold text-center text-[#062B67]">
                 Welcome Back!
