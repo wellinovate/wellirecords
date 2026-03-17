@@ -96,3 +96,14 @@ export const FEATURES = [
     ],
   }, 
 ];
+
+
+export const CLINICAL_MODULES = {
+  VITALS: "vitals",
+  MEDICATIONS: "medications",
+  ALLERGIES: "allergies",
+  DIAGNOSES: "diagnoses",
+  LAB_RESULTS: "lab-results",
+  PROCEDURES: "procedures",
+  IMMUNIZATIONS: "immunizations",
+};

@@ -146,7 +146,7 @@ export const authApi = {
         return data
       }
     } catch (err: any) {
-      alert(err?.response?.data?.message ?? "Login failed");
+      console.log(err);
     }
 },
 /** Mock provider sign-in with role override */
@@ -192,11 +192,13 @@ async signUpPatient(profileType: string, fullName: string, email: string, passwo
     },
 async signUpProvider(profileTypes: string, organisationName: string, email: string, phone: string, country: string, password: string) {
     
+    const organisation = `organization(${profileTypes})`
     try {
     const response = await axios.post(`${apiUrl}/api/v1/auth/register`, {
     profileType : "organization",
     organizationName: organisationName,
-    organizationType: profileTypes,
+    organizationType: organisation, 
+    organizationMainType: profileTypes, 
     email: email,
     phone: phone,
     country: country,

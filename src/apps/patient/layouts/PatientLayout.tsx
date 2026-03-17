@@ -1,3 +1,4 @@
+import { logos } from "@/assets";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { useWelliMate } from "@/shared/context/WelliMateContext";
 import { useNetwork } from "@/shared/hooks/useNetwork";
@@ -242,7 +243,7 @@ export function PatientLayout() {
           {/* <WelliRecordLogo height={32} theme="dark" className="hidden lg:block" /> */}
           <Link to="/" className="flex h-14 w-72 overflow-hidden items-center justify-center rounded-md  text-white shadow-sm cursor-pointer">
             <img
-              src="/logos.png"
+              src={logos}
               alt="wellirecord"
               className=" w-full h- full object-cover"
             />

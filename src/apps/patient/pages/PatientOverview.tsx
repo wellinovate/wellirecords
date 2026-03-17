@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/shared/auth/AuthProvider';
 import { useNavigate } from 'react-router-dom';
 import { vaultApi } from '@/shared/api/vaultApi';
@@ -11,6 +11,7 @@ import {
     AlertTriangle, TrendingUp, Sparkles, Users, ChevronRight,
     TriangleAlert, Dna,
 } from 'lucide-react';
+import { patientDashboardApi } from '@/shared/api/patientDashboardApi';
 
 /* ── tiny inline SVG sparkline ───────────────────────────────────────────── */
 function Sparkline({ points, color }: { points: number[]; color: string }) {
@@ -208,10 +209,65 @@ function AIHealthBrief() {
 
 export function PatientOverview() {
     const { user } = useAuth();
+    // console.log("🚀 ~ PatientOverview ~ user:", user?.data?.account?._id)
     const navigate = useNavigate();
-    const records = vaultApi.getRecords(user?.userId ?? '');
-    const grants = consentApi.getGrants(user?.userId ?? '').filter(g => g.status === 'active');
-    const requests = consentApi.getRequests(user?.userId ?? '');
+    const [records, setRecords] = useState([]);
+    const [grants, setGrants] = useState([]);
+    const [requests, setRequests] = useState([]);
+    const [vitalRecords, setVitalRecords] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    
+  const patientId = user?.data?.account?._id;
+  console.log("🚀 ~ PatientOverview ~ patientId:", patientId)
+
+
+
+  useEffect(() => {
+    // if (!patientId) return;
+
+    // let isMounted = true;
+
+    const fetchDashboardData = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const [recordsRes, grantsRes ] = await Promise.all([
+          patientDashboardApi.getRecords(patientId, { page: 1, limit: 10 }),
+        //   patientDashboardApi.getGrants(patientId),
+        //   patientDashboardApi.getRequests(patientId),
+          patientDashboardApi.getVitals(patientId, { page: 1, limit: 10 }),
+        ]);
+        console.log("🚀 ~ fetchDashboardData ~ recordsRes:", recordsRes)
+
+        // if (!isMounted) return;
+
+        setRecords(recordsRes?.items || recordsRes?.data || []);
+        setGrants((grantsRes?.data || grantsRes || []).filter((g) => g.status === "active"));
+        // setRequests(requestsRes?.data || requestsRes || []);
+        // setVitalRecords(vitalsRes?.items || vitalsRes?.data || []);
+      } catch (err) {
+        // if (!isMounted) return;
+        setError(err.message || "Failed to load dashboard data");
+      } finally {
+        // if (isMounted) 
+            setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+
+    // return () => {
+    //   isMounted = false;
+    // };
+  }, [patientId]);
+
+
+    // const records = vaultApi.getRecords(user?.userId ?? '');
+    // const grants = consentApi.getGrants(user?.userId ?? '').filter(g => g.status === 'active');
+    // const requests = consentApi.getRequests(user?.userId ?? '');
 
     /* vitals — neutral border; color lives in icon + sparkline only */
     const vitals = [
@@ -244,7 +300,7 @@ export function PatientOverview() {
             <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="section-header font-display mb-1 text-[28px]" style={{ color: 'var(--pat-text)' }}>
-                        Welcome to your Dashboard
+                        Welcome to your Dashboard {user ? `, ${user?.data?.profile?.fullName}` : ''}!
                     </h1>
                     <p className="text-sm font-medium flex items-center gap-2" style={{ color: 'var(--pat-muted)' }}>
                         <Shield size={16} style={{ color: 'var(--pat-primary)' }} />
@@ -287,7 +343,7 @@ export function PatientOverview() {
 
             {/* ── Vital Stats — neutral top border, color in icon + sparkline only ── */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                {vitals.map(v => (
+                {records?.map(v => (
                     <div key={v.label} className="card-patient p-5 relative overflow-hidden">
                         {/* Neutral top border — NOT metric-colored so "red" doesn't imply alert */}
                         <div className="absolute top-0 left-0 right-0 h-0.5 rounded-t-[var(--radius-lg)]"

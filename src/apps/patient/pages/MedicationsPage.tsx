@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Pill, RefreshCw, AlertTriangle, CheckCircle, Clock, Plus } from 'lucide-react';
+import { AlertTriangle, Pill, RefreshCw } from 'lucide-react';
+import { useState } from 'react';
 
 interface Medication {
     id: string; name: string; dose: string; frequency: string;

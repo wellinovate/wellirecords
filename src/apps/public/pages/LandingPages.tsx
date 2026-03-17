@@ -149,6 +149,7 @@ function Logo() {
 
 function Navbar() {
   const { user, signOut } = useAuth();
+  console.log("🚀 ~ Navbar ~ user:", user?.data?.account?.accountType)
   const navigate = useNavigate();
 
   const handleSignOut = () => {
@@ -201,7 +202,9 @@ function Navbar() {
           >
             Log Out
           </button>
-          <PrimaryButton href={"/patient/overview"}>My Dashboard</PrimaryButton>
+          <PrimaryButton href={user?.data?.account?.accountType === "user" ? `/patient/overview` : `/provider/overview`}>
+            My Dashboard
+          </PrimaryButton>
         </div>
         )}
 

@@ -509,8 +509,8 @@ function GoogleIcon() {
 }
 
 export function ProviderSignupPage() {
-   const { signUpProvider } = useAuth();
-    const navigate = useNavigate();
+  const { signUpProvider } = useAuth();
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     organisationName: "",
     organisationType: "",
@@ -524,39 +524,30 @@ export function ProviderSignupPage() {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-      e.preventDefault();
-      setLoading(true);
-      console.log("🚀 ~ handleSubmit ~ form:", form)
-      try {
-        const resp = await signUpProvider(
-          form.organisationType,
-          form.organisationName,
-          form.email,
-          form.phone,
-          form.country,
-          form.password,
-        );
-        console.log("checkig....", resp);
-        if (resp === "Account created successfully") {
-          navigate("auth/provider/login");
-        }
-      } catch (error) {
-        console.log("🚀 ~ handleSubmit ~ error:", error)
-      } finally {
-        setLoading(false)
+    e.preventDefault();
+    setLoading(true);
+    console.log("🚀 ~ handleSubmit ~ form:", form);
+    try {
+      const resp = await signUpProvider(
+        form.organisationType,
+        form.organisationName,
+        form.email,
+        form.phone,
+        form.country,
+        form.password,
+      );
+      console.log("checkig....", resp);
+      if (resp === "Account created successfully") {
+        navigate("auth/provider/login");
       }
-    };
+    } catch (error) {
+      console.log("🚀 ~ handleSubmit ~ error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const ORG_TYPES = [
-    "Hospital / Clinic",
-    "Diagnostic Lab",
-    "Pharmacy",
-    "Telehealth Platform",
-    "Insurance Provider",
-    "NGO",
-    "Government Ministry",
-    "Wearable Vendor",
-  ];
+
 
   const update = (key) => (e) => {
     const value = key === "agree" ? e.target.checked : e.target.value;
@@ -569,8 +560,6 @@ export function ProviderSignupPage() {
         <div className="grid h-full grid-cols-[49%_51%]">
           {/* Left panel */}
           <div className="relative overflow-hidden bg-[#DDE5EE]">
-            
-
             <img
               src="/doctorsignup.png"
               alt="Healthcare professional"
@@ -585,8 +574,7 @@ export function ProviderSignupPage() {
             <div className="mx-auto flex w-full max-w-[720px] flex-col px-[82px] pb-14 pt-[24px]">
               <div className="text-center">
                 <h1 className="text-[46px] font-extrabold leading-[1.08] tracking-[-0.03em] text-[#062B67]">
-                  Register Your Healthcare {" "}
-                  {/* <br /> */}
+                  Register Your Healthcare {/* <br /> */}
                   Organisation
                 </h1>
               </div>
@@ -612,18 +600,23 @@ export function ProviderSignupPage() {
 
                   options={[
                     { value: "", label: "Select", disabled: true },
-                    { value: "hospital", label: "Hospital/Clinic" },
-                    { value: "diagnostic", label: "Diagnostic Lab" },
-                    { value: "ngo", label: "NGO" },
-                    { value: "pharmacy", label: "Pharmacy" },
-                    { value: "lab", label: "Laboratory" },
+
+                    {
+                      value: "healthcare_provider",
+                      label: "Healthcare Provider (Hospital, Lab, Pharmacy)",
+                    },
+
+                    {
+                      value: "diagnostic",
+                      label: "Diagnostic Only (Lab Center)",
+                    },
+                    { value: "pharmacy", label: "Pharmacy Only" },
+
                     { value: "telehealth", label: "Telehealth Platform" },
                     { value: "insurance", label: "Insurance Provider" },
-                    {
-                      value: "government_ministry",
-                      label: "Government Ministry",
-                    },
-                    { value: "wearable_vendor", label: "Wearable Vendor" },
+                    { value: "ngo", label: "NGO" },
+                    { value: "government", label: "Government / Ministry" },
+                    { value: "vendor", label: "Medical / Device Vendor" },
                   ]}
                 />
 
