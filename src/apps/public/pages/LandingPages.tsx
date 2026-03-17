@@ -184,11 +184,11 @@ function Navbar() {
         {!user ? (
         <div className="hidden items-center gap-5 lg:flex">
           <Link
-            to={"/auth/pre-login"}
+            to={"/auth/login"}
             className="text-lg font-semibold text-[#1F4E79] transition hover:text-emerald-700"
           >
             Login
-          </Link>
+        </Link>
           <PrimaryButton href={"/auth/pre-signup"}>Create Health Vault</PrimaryButton>
         </div>
 

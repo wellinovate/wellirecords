@@ -128,7 +128,7 @@ export function AppRoutes() {
       <Route path="/security" element={<SecurityPage />} />
 
       {/* Auth */}
-      <Route path="/auth/patient/login" element={<PatientLoginPage />} />
+      <Route path="/auth/login" element={<PatientLoginPage />} />
       <Route path="/auth/pre-signup" element={<UserTypeSelection />} />
       <Route path="/auth/pre-login" element={<UserTypeSelectionLogin />} />
       <Route path="/auth/patient/signup" element={<PatientSignupPage />} />
