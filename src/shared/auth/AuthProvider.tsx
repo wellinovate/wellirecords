@@ -6,7 +6,7 @@ import React, {
   useState,
 } from "react";
 import { AuthUser, UserRole } from "@/shared/types/types";
-import { authApi } from "@/shared/api/authApi";
+import { authApi, SearchPatientResponse } from "@/shared/api/authApi";
 import axios from "axios";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -16,6 +16,18 @@ type AuthContextValue = {
   isLoading: boolean;
   isPatient: boolean;
   isProvider: boolean;
+  searchPatientRequest: (
+    identifier: string,
+    identifierType: IdentifierType,
+    signal?: AbortSignal,
+  ) => Promise<SearchPatientResponse>;
+  linkPatientRequest: (
+    patientIdentityId: string,
+    id: string,
+  ) => Promise<SearchPatientResponse>;
+  registerNewPatient: (newPatientForm: any) => string;
+  createVitalRecord: (payload: any) => any;
+  createMedication: (payload: any) => any;
   signIn: (email: string, password: string) => AuthUser | null;
   signInAsRole: (role: UserRole) => AuthUser;
   signUpPatient: (
@@ -34,6 +46,8 @@ type AuthContextValue = {
   ) => string | null;
   signOut: () => void;
 };
+
+type IdentifierType = "wrId" | "email" | "phone" | "qr";
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -64,6 +78,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return res;
   };
 
+  const searchPatientRequest = async (
+    identifier: string,
+    identifierType: IdentifierType,
+    id: string,
+    signal?: AbortSignal,
+  ): Promise<SearchPatientResponse> => {
+    const res = await authApi.searchPatientRequest(
+      identifier,
+      identifierType,
+      id,
+      signal,
+    );
+    console.log("🚀 ~ signIn ~ u:", res);
+    return res;
+  };
+
+  const linkPatientRequest = async (
+    patientIdentityId: string,
+    id: string,
+  ): Promise<SearchPatientResponse> => {
+    const res = await authApi.linkPatientRequest(patientIdentityId, id);
+    console.log("🚀 ~ signIn ~ u:", res);
+    return res;
+  };
+
+  const registerNewPatient = async (
+    newPatientForm: any,
+    id: string,
+  ): Promise<SearchPatientResponse> => {
+    const res = await authApi.registerNewPatient(newPatientForm);
+    console.log("🚀 ~ signIn ~ u:", res);
+    return res;
+  };
+
+  const createVitalRecord = async (
+    payload: any,
+  ): Promise<SearchPatientResponse> => {
+    const res = await authApi.createVitalRecord(payload);
+    console.log("🚀 ~ signIn ~ u:", res);
+    return res;
+  };
+  const createMedication = async (
+    payload: any,
+  ): Promise<SearchPatientResponse> => {
+    const res = await authApi.createMedication(payload);
+    console.log("🚀 ~ signIn ~ u:", res);
+    return res;
+  };
+
   const signInAsRole = (role: UserRole): AuthUser => {
     const u = authApi.signInAsRole(role);
     setUser(u);
@@ -85,6 +148,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log("🚀 ~ signUpPatient ~ u:", u);
     return u;
   };
+
   const signUpProvider = async (
     profileType: string,
     organizationName: string,
@@ -118,6 +182,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isPatient: user?.userType === "PATIENT",
       isProvider: user?.userType === "ORG_USER",
       signIn,
+      searchPatientRequest,
+      createMedication,
+      createVitalRecord,
+      registerNewPatient,
+      linkPatientRequest,
       signInAsRole,
       signUpPatient,
       signUpProvider,

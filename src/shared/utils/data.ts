@@ -150,8 +150,125 @@ export const PROVIDER: Provider[] = [
   { id: 'derm', label: 'Dermatology', icon: Activity, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
 ];
 
+export const TAB_CONFIG = {
+  Overview: {
+    title: "Overview",
+    actionLabel: null,
+  },
+  Encounters: {
+    title: "Encounters",
+    actionLabel: "Add Encounter",
+  },
+  Vitals: {
+    title: "Vitals",
+    actionLabel: "Add Vital",
+  },
+  Medications: {
+    title: "Medications",
+    actionLabel: "Add Medication",
+  },
+  Allergies: {
+    title: "Allergies",
+    actionLabel: "Add Allergy",
+  },
+  Diagnoses: {
+    title: "Diagnoses",
+    actionLabel: "Add Diagnosis",
+  },
+  "Lab Results": {
+    title: "Lab Results",
+    actionLabel: "Add Lab Result",
+  },
+  Procedures: {
+    title: "Procedures",
+    actionLabel: "Add Procedure",
+  },
+  Documents: {
+    title: "Documents",
+    actionLabel: "Add Document",
+  },
+} as const;
 
 
+
+export const recordDataByTab: Record<string, any[]> = {
+  Encounters: [
+    {
+      id: "enc_1",
+      title: "Outpatient Visit",
+      subtitle: "General consultation",
+      meta: "Dr. Enoch • 20 Mar 2026",
+    },
+    {
+      id: "enc_2",
+      title: "Emergency Visit",
+      subtitle: "Fever and dehydration",
+      meta: "Dr. Musa • 18 Mar 2026",
+    },
+  ],
+  Vitals: [
+    {
+      id: "vit_1",
+      title: "Blood Pressure",
+      subtitle: "120/80 mmHg",
+      meta: "20 Mar 2026",
+    },
+    {
+      id: "vit_2",
+      title: "Heart Rate",
+      subtitle: "78 bpm",
+      meta: "20 Mar 2026",
+    },
+  ],
+  Medications: [
+    {
+      id: "med_1",
+      title: "Amoxicillin",
+      subtitle: "500mg twice daily",
+      meta: "Started 15 Mar 2026",
+    },
+  ],
+  Allergies: [
+    {
+      id: "alg_1",
+      title: "Penicillin",
+      subtitle: "Rash / hypersensitivity",
+      meta: "Recorded 10 Jan 2026",
+    },
+  ],
+  Diagnoses: [
+    {
+      id: "diag_1",
+      title: "Hypertension",
+      subtitle: "Primary diagnosis",
+      meta: "Dr. James • 12 Feb 2026",
+    },
+  ],
+  "Lab Results": [
+    {
+      id: "lab_1",
+      title: "Full Blood Count",
+      subtitle: "Normal range",
+      meta: "19 Mar 2026",
+    },
+  ],
+  Procedures: [
+    {
+      id: "proc_1",
+      title: "Appendectomy",
+      subtitle: "Surgical procedure",
+      meta: "02 Aug 2025",
+    },
+  ],
+  Documents: [
+    {
+      id: "doc_1",
+      title: "Referral Letter",
+      subtitle: "PDF document",
+      meta: "Uploaded 20 Mar 2026",
+    },
+  ],
+};
 
 
 

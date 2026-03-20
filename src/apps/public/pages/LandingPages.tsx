@@ -35,12 +35,12 @@ import {
 import { hero } from "@/assets";
 
 const navItems = [
-  { label: "About Us", href: "#about" },
-  { label: "How It Works", href: "#how-it-works" },
   { label: "Solutions", href: "#solutions", hasChevron: true },
-  { label: "Pricing", href: "#pricing" },
+  { label: "How It Works", href: "#how-it-works" },
+  // { label: "Pricing", href: "#pricing" },
   { label: "Partners", href: "#partners" },
-  { label: "Security", href: "#security" },
+  // { label: "Security", href: "#security" },
+  { label: "About Us", href: "#about" },
 ];
 
 const painPoints = [

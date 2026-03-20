@@ -1,47 +1,43 @@
-import { WelliRecordLogo } from "@/shared/ui/WelliRecordLogo";
-import React, { useState, useEffect } from "react";
-import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "@/shared/auth/AuthProvider";
+import { logos } from "@/assets";
 import { orgApi } from "@/shared/api/orgApi";
+import { useAuth } from "@/shared/auth/AuthProvider";
+import { useWelliMate } from "@/shared/context/WelliMateContext";
+import { useNetwork } from "@/shared/hooks/useNetwork";
+import { ROLE_METADATA } from "@/shared/rbac/permissions";
+import { useRBAC } from "@/shared/rbac/useRBAC";
+import { WelliMateWidget } from "@/shared/ui/WelliMateWidget";
+import { WelliRecordLogo } from "@/shared/ui/WelliRecordLogo";
 import {
-  LayoutDashboard,
-  Users,
-  FlaskConical,
-  Pill,
-  FileEdit,
-  GitBranch,
-  ClipboardList,
-  UserCog,
-  ScrollText,
-  Settings2,
-  LogOut,
-  HeartPulse,
+  Activity,
   Bell,
+  CalendarClock,
   ChevronDown,
   ChevronRight,
-  Shield,
-  WifiOff,
-  Activity,
-  Lock,
   Crown,
-  ExternalLink,
-  Sparkles,
-  Video,
-  Menu,
-  X,
-  Stethoscope,
-  CalendarClock,
-  MoreHorizontal,
-  MessageSquare,
+  FileEdit,
+  FlaskConical,
+  GitBranch,
+  HeartPulse,
+  LayoutDashboard,
   LifeBuoy,
+  Lock,
+  LogOut,
+  Menu,
+  MessageSquare,
+  MoreHorizontal,
+  Pill,
+  ScrollText,
+  Settings2,
+  Sparkles,
+  Stethoscope,
+  UserCog,
+  Users,
+  Video,
+  WifiOff,
+  X
 } from "lucide-react";
-import { useNetwork } from "@/shared/hooks/useNetwork";
-import { Organization } from "@/shared/types/types";
-import { useWelliMate } from "@/shared/context/WelliMateContext";
-import { WelliMateWidget } from "@/shared/ui/WelliMateWidget";
-import { useRBAC } from "@/shared/rbac/useRBAC";
-import { ROLE_METADATA } from "@/shared/rbac/permissions";
-import { logos } from "@/assets";
+import { useEffect, useState } from "react";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 const ALL_NAV = [
   {
@@ -56,31 +52,36 @@ const ALL_NAV = [
     to: "/provider/encounters/new",
     label: "New Encounter",
     icon: FileEdit,
-    roles: ["clinician", "provider_admin", "telehealth_provider"],
+    // roles: ["clinician", "provider_admin", "telehealth_provider"],
+    roles: ["*"],
   },
   {
     to: "/provider/orders/labs",
     label: "Lab Orders",
     icon: FlaskConical,
-    roles: ["clinician", "lab_tech", "provider_admin"],
+    // roles: ["clinician", "lab_tech", "provider_admin"],
+    roles: ["*"]
   },
   {
     to: "/provider/prescriptions",
     label: "Prescriptions",
     icon: Pill,
-    roles: ["clinician", "pharmacist", "provider_admin"],
+    // roles: ["clinician", "pharmacist", "provider_admin"],
+    roles: ["*"]
   },
   {
     to: "/provider/referrals",
     label: "Referrals",
     icon: GitBranch,
-    roles: ["clinician", "provider_admin"],
+    // roles: ["clinician", "provider_admin"],
+    roles: ["*"]
   },
   {
     to: "/provider/telemedicine",
     label: "Telemedicine",
     icon: Video,
-    roles: ["clinician", "provider_admin", "telehealth_provider"],
+    // roles: ["clinician", "provider_admin", "telehealth_provider"],
+    roles: ["*"]
   },
   {
     to: "/provider/nursing",

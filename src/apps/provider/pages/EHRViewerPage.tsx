@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   AlertTriangle,
@@ -14,6 +14,18 @@ import {
   Stethoscope,
   Syringe,
 } from "lucide-react";
+import {
+  getPatientDetail,
+  getPatientMedications,
+  getPatientVitals,
+  MedicationItem,
+  PatientDetailResponse,
+} from "@/shared/utils/utilityFunction";
+import { TabRecordPanel } from "@/apps/components/TabRecordPanel";
+import { recordDataByTab, TAB_CONFIG } from "@/shared/utils/data";
+import { VitalRecordForm } from "@/apps/components/VitalRecordForm";
+import { useAuth } from "@/shared/auth/AuthProvider";
+import { MedicationRecordForm } from "@/apps/components/MedicationRecordForm";
 
 const TABS = [
   "Overview",
@@ -97,30 +109,21 @@ const MINI_CARDS = [
   {
     title: "Last Vitals",
     tone: "blue",
-    items: [
-      "06S 1003 mcv",
-      "Leaching",
-    ],
+    items: ["06S 1003 mcv", "Leaching"],
     action: "View Snapshot",
     meta: "1 0 9 s x",
   },
   {
     title: "Active Medications",
     tone: "yellow",
-    items: [
-      "Enalapril two up 10 doses",
-      "Metformin ur line os caused",
-    ],
+    items: ["Enalapril two up 10 doses", "Metformin ur line os caused"],
     action: "Prescribe Medication",
     meta: "5 x",
   },
   {
     title: "Recent Diagnoses",
     tone: "cyan",
-    items: [
-      "Flater",
-      "Type 2 Diabetes",
-    ],
+    items: ["Flater", "Type 2 Diabetes"],
     action: "View Full List",
     meta: "1 x",
   },
@@ -193,15 +196,241 @@ function SmallActionButton({
 
 export function EHRViewerPage() {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
+  console.log("🚀 ~ EHRViewerPage ~ user:", user);
   const navigate = useNavigate();
-  const [tab, setTab] = useState("Overview");
 
-  const patient = useMemo(() => {
-    return {
-      ...MOCK_PATIENT,
-      id: id ?? MOCK_PATIENT.id,
+  const [patient, setPatient] = useState<PatientDetailResponse | null>(null);
+  console.log("🚀 ~ EHRViewerPage ~ patient:", patient);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [tab, setTab] = useState("Overview");
+  const [activeCreateTab, setActiveCreateTab] = useState<string | null>(null);
+  const [vitals, setVitals] = useState<any[]>([]);
+  const [loadingVitals, setLoadingVitals] = useState(false);
+  const [vitalsError, setVitalsError] = useState("");
+  const [medications, setMedications] = useState<MedicationItem[]>([]);
+  const [loadingMedications, setLoadingMedications] = useState(false);
+  const [medicationsError, setMedicationsError] = useState("");
+
+  const patientId = String(id);
+
+  const handleOpenCreateModal = (tabName: string) => {
+    setActiveCreateTab(tabName);
+  };
+
+  const loadMedications = async () => {
+    if (!patientId) return;
+
+    try {
+      setLoadingMedications(true);
+      setMedicationsError("");
+
+      const result = await getPatientMedications(patientId, 1, 10);
+      setMedications(result.items || []);
+    } catch (err: any) {
+      setMedicationsError(err.message || "Failed to load medications");
+    } finally {
+      setLoadingMedications(false);
+    }
+  };
+
+  useEffect(() => {
+    loadMedications();
+  }, [patientId]);
+
+  const loadVitals = async () => {
+    if (!patientId) return;
+
+    try {
+      setLoadingVitals(true);
+      setVitalsError("");
+
+      const result = await getPatientVitals(patientId, 1, 10);
+      setVitals(result.items || []);
+    } catch (err: any) {
+      setVitalsError(err.message || "Failed to load vitals");
+    } finally {
+      setLoadingVitals(false);
+    }
+  };
+
+  useEffect(() => {
+    loadVitals();
+  }, [patientId]);
+
+  const handleCloseCreateModal = () => {
+    setActiveCreateTab(null);
+  };
+  useEffect(() => {
+    let ignore = false;
+
+    const run = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const result = await getPatientDetail(String(id));
+
+        if (!ignore) {
+          setPatient(result);
+        }
+      } catch (err: any) {
+        if (!ignore) {
+          setError(err.message || "Failed to fetch patient");
+        }
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+        }
+      }
+    };
+
+    run();
+
+    return () => {
+      ignore = true;
     };
   }, [id]);
+
+  const vitalTabRecords = useMemo(() => {
+    return vitals.map((item) => {
+      const bp =
+        item.bloodPressure?.systolic && item.bloodPressure?.diastolic
+          ? `${item.bloodPressure.systolic}/${item.bloodPressure.diastolic} mmHg`
+          : null;
+
+      const temp = item.temperature?.value
+        ? `${item.temperature.value}°${item.temperature.unit || "C"}`
+        : null;
+
+      const hr = item.heartRate ? `${item.heartRate} bpm` : null;
+      const spo2 =
+        item.oxygenSaturation !== null && item.oxygenSaturation !== undefined
+          ? `${item.oxygenSaturation}% SpO₂`
+          : null;
+
+      const summary = [bp, hr, temp, spo2].filter(Boolean).join(" • ");
+
+      return {
+        id: item.id,
+        title: "Vital Record",
+        subtitle: summary || "Recorded vital observation",
+        meta: item.measuredAt
+          ? new Date(item.measuredAt).toLocaleString()
+          : "No measurement time",
+      };
+    });
+  }, [vitals]);
+
+  const medicationTabRecords = useMemo(() => {
+    return medications.map((item) => ({
+      id: item.id,
+      title: item.medicationName,
+      subtitle:
+        [
+          item.dosage?.value
+            ? `${item.dosage.value}${item.dosage.unit || ""}`
+            : null,
+          item.frequency,
+          item.route,
+        ]
+          .filter(Boolean)
+          .join(" • ") || "Medication record",
+      meta: item.prescribedAt
+        ? new Date(item.prescribedAt).toLocaleDateString()
+        : "No prescribed date",
+    }));
+  }, [medications]);
+
+  const resolvedRecordDataByTab = useMemo(() => {
+    return {
+      ...recordDataByTab,
+      Vitals: vitalTabRecords,
+      Medications: medicationTabRecords,
+    };
+  }, [vitalTabRecords, medicationTabRecords]);
+
+  const recentVitalCards = useMemo(() => {
+    return vitals.slice(0, 4).map((item) => {
+      if (item.bloodPressure?.systolic && item.bloodPressure?.diastolic) {
+        return {
+          label: "BP",
+          value: `${item.bloodPressure.systolic}/${item.bloodPressure.diastolic} mmHg`,
+          right: item.measuredAt
+            ? new Date(item.measuredAt).toLocaleDateString()
+            : "—",
+        };
+      }
+
+      if (item.heartRate) {
+        return {
+          label: "HR",
+          value: `${item.heartRate} bpm`,
+          right: item.measuredAt
+            ? new Date(item.measuredAt).toLocaleDateString()
+            : "—",
+        };
+      }
+
+      if (
+        item.oxygenSaturation !== null &&
+        item.oxygenSaturation !== undefined
+      ) {
+        return {
+          label: "O2",
+          value: `${item.oxygenSaturation}%`,
+          right: item.measuredAt
+            ? new Date(item.measuredAt).toLocaleDateString()
+            : "—",
+        };
+      }
+
+      if (item.temperature?.value) {
+        return {
+          label: "Temp",
+          value: `${item.temperature.value}°${item.temperature.unit || "C"}`,
+          right: item.measuredAt
+            ? new Date(item.measuredAt).toLocaleDateString()
+            : "—",
+        };
+      }
+
+      return {
+        label: "Vital",
+        value: "Recorded",
+        right: item.measuredAt
+          ? new Date(item.measuredAt).toLocaleDateString()
+          : "—",
+      };
+    });
+  }, [vitals]);
+
+  const getAgeFromDateOfBirth = (dateOfBirth?: string | null) => {
+    if (!dateOfBirth) return null;
+
+    const dob = new Date(dateOfBirth);
+    if (Number.isNaN(dob.getTime())) return null;
+
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const monthDiff = today.getMonth() - dob.getMonth();
+
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+      age -= 1;
+    }
+
+    return age;
+  };
+
+  const age = getAgeFromDateOfBirth(patient?.dateOfBirth);
+  const initials =
+    patient?.fullName
+      ?.split(" ")
+      .map((part) => part[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "PT";
 
   return (
     <div className="min-h-screen bg-[#06162d] px-5 py-5 text-white">
@@ -219,32 +448,46 @@ export function EHRViewerPage() {
           <div className="border-b border-[#173a63] px-5 py-4">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
               <div className="flex items-start gap-4">
-                <img
-                  src={patient.avatar}
-                  alt={patient.name}
-                  className="h-14 w-14 rounded-xl object-cover ring-1 ring-white/10"
-                />
+                {patient?.avatar ? (
+                  <img
+                    src={patient.avatar}
+                    alt={patient?.fullName || "Patient"}
+                    className="h-14 w-14 rounded-xl object-cover ring-1 ring-white/10"
+                  />
+                ) : (
+                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#14345c] text-sm font-semibold text-[#dcecff] ring-1 ring-white/10">
+                    {initials}
+                  </div>
+                )}
 
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <h1 className="text-[34px] font-semibold leading-none tracking-[-0.03em] text-[#eef5ff]">
-                      {patient.name}
+                      {patient?.fullName || "Unknown Patient"}
                     </h1>
-                    <span className="text-[18px] text-[#9eb9da]">
-                      {patient.code}
-                    </span>
+
+                    {patient?.wrId && (
+                      <span className="text-[18px] text-[#9eb9da]">
+                        {patient.wrId}
+                      </span>
+                    )}
+
+                    {patient?.relationship?.externalPatientId && (
+                      <span className="rounded bg-[#14345c] px-2 py-0.5 text-[12px] text-[#dbeafe]">
+                        Org ID: {patient.relationship.externalPatientId}
+                      </span>
+                    )}
                   </div>
 
-                  <div className="mt-2 flex flex-wrap items-center gap-3 text-[13px] text-[#8fb0d5]">
-                    <span>{patient.sex}</span>
-                    <span>{patient.age} years</span>
-                    <span className="rounded bg-[#14345c] px-2 py-0.5 text-[#dbeafe]">
-                      {patient.bloodGroup}
-                    </span>
-                    <span className="rounded bg-[#113a2d] px-2 py-0.5 text-[#70e2b1]">
-                      {patient.genotype}
-                    </span>
-                    <span>{patient.phone}</span>
+                  <div className="mt-2 flex flex-col items-start justify-start gap-3 text-[13px] text-[#8fb0d5]">
+                    <span>{patient?.email || "No email"}</span>
+                    <span>{patient?.phone || "No phone"}</span>
+                    <div className="space-x-4">
+                      <span>{patient?.gender || "—"}</span>
+                      <span>
+                        {age !== null ? `${age} years` : "Age unavailable"}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="mt-3">
@@ -260,14 +503,11 @@ export function EHRViewerPage() {
               </div>
 
               <div className="flex flex-wrap gap-2">
-                <SmallActionButton label="Meet Recurer" />
                 <SmallActionButton label="Add Record" />
-                <SmallActionButton label="Payment Access" active />
               </div>
             </div>
 
-            {/* Alert chips row */}
-            <div className="mt-4 flex flex-wrap gap-2">
+            {/* <div className="mt-4 flex flex-wrap gap-2">
               {ALERT_CHIPS.map((chip) => (
                 <TopChip
                   key={chip.label}
@@ -277,7 +517,7 @@ export function EHRViewerPage() {
                   dropdown={chip.dropdown}
                 />
               ))}
-            </div>
+            </div> */}
           </div>
 
           {/* Tabs */}
@@ -302,15 +542,9 @@ export function EHRViewerPage() {
 
           {/* Body */}
           <div className="px-5 py-4">
-            {tab !== "Overview" ? (
-              <div className="rounded-xl border border-[#173a63] bg-[#0a1d39] p-10 text-center">
-                <p className="text-lg font-medium text-[#e8f1ff]">{tab}</p>
-                <p className="mt-2 text-sm text-[#7fa0c7]">
-                  Dummy content for now. Keep Overview as the default chart landing page.
-                </p>
-              </div>
-            ) : (
+            {tab === "Overview" ? (
               <div className="grid grid-cols-1 gap-4 xl:grid-cols-[340px_minmax(0,1fr)]">
+                {/* keep your current Overview content exactly here */}
                 {/* Left Column */}
                 <div className="space-y-4">
                   <div className="rounded-xl border border-[#173a63] bg-[#0a1d39] p-4">
@@ -327,11 +561,20 @@ export function EHRViewerPage() {
                           <div className="flex gap-3">
                             <div className="mt-0.5">
                               {item.tone === "yellow" ? (
-                                <AlertTriangle size={16} className="text-amber-300" />
+                                <AlertTriangle
+                                  size={16}
+                                  className="text-amber-300"
+                                />
                               ) : item.tone === "red" ? (
-                                <HeartPulse size={16} className="text-rose-300" />
+                                <HeartPulse
+                                  size={16}
+                                  className="text-rose-300"
+                                />
                               ) : (
-                                <Stethoscope size={16} className="text-sky-300" />
+                                <Stethoscope
+                                  size={16}
+                                  className="text-sky-300"
+                                />
                               )}
                             </div>
                             <div>
@@ -361,28 +604,38 @@ export function EHRViewerPage() {
                     </div>
 
                     <div className="space-y-3">
-                      {RECENT_VITALS.map((item) => (
-                        <div
-                          key={item.label}
-                          className="flex items-center justify-between rounded-lg bg-[#0d2443] px-3 py-2.5"
-                        >
-                          <div className="flex items-center gap-2">
-                            <div className="rounded bg-[#12355f] px-1.5 py-0.5 text-[10px] font-semibold text-[#9ccfff]">
-                              {item.label}
+                      {loadingVitals ? (
+                        <div className="rounded-lg bg-[#0d2443] px-3 py-4 text-sm text-[#7b9ac0]">
+                          Loading vitals...
+                        </div>
+                      ) : vitalsError ? (
+                        <div className="rounded-lg bg-[#0d2443] px-3 py-4 text-sm text-red-300">
+                          {vitalsError}
+                        </div>
+                      ) : recentVitalCards.length > 0 ? (
+                        recentVitalCards.map((item) => (
+                          <div
+                            key={`${item.label}-${item.right}-${item.value}`}
+                            className="flex items-center justify-between rounded-lg bg-[#0d2443] px-3 py-2.5"
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className="rounded bg-[#12355f] px-1.5 py-0.5 text-[10px] font-semibold text-[#9ccfff]">
+                                {item.label}
+                              </div>
+                              <span className="text-[13px] text-[#e8f1ff]">
+                                {item.value}
+                              </span>
                             </div>
-                            <span className="text-[13px] text-[#e8f1ff]">
-                              {item.value}
+                            <span className="text-[11px] text-[#7b9ac0]">
+                              {item.right}
                             </span>
                           </div>
-                          <span className="text-[11px] text-[#7b9ac0]">
-                            {item.right}
-                          </span>
+                        ))
+                      ) : (
+                        <div className="rounded-lg bg-[#0d2443] px-3 py-4 text-sm text-[#7b9ac0]">
+                          No vitals recorded yet.
                         </div>
-                      ))}
-                    </div>
-
-                    <div className="mt-4 text-[12px] text-[#7b9ac0]">
-                      Polioutter →
+                      )}
                     </div>
                   </div>
                 </div>
@@ -403,8 +656,6 @@ export function EHRViewerPage() {
                         Start Chart
                       </button>
                     </div>
-
-                    <div className="mb-3 text-[11px] text-[#6d8eb6]">+ 0019</div>
 
                     <div className="space-y-3">
                       {RECENT_TIMELINE.map((item) => (
@@ -443,85 +694,64 @@ export function EHRViewerPage() {
                       ))}
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-                    {MINI_CARDS.map((card, idx) => (
-                      <div
-                        key={idx}
-                        className="rounded-xl border border-[#173a63] bg-[#0a1d39] p-4"
-                      >
-                        <div className="mb-3 flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div
-                              className={`rounded p-1 ${
-                                card.tone === "blue"
-                                  ? "bg-sky-400/10 text-sky-300"
-                                  : card.tone === "yellow"
-                                  ? "bg-amber-400/10 text-amber-300"
-                                  : "bg-cyan-400/10 text-cyan-300"
-                              }`}
-                            >
-                              {idx === 0 ? (
-                                <HeartPulse size={14} />
-                              ) : idx === 1 ? (
-                                <Pill size={14} />
-                              ) : (
-                                <Stethoscope size={14} />
-                              )}
-                            </div>
-
-                            <div className="text-[15px] font-semibold text-[#eef5ff]">
-                              {card.title}
-                            </div>
-                          </div>
-
-                          <span className="text-[11px] text-[#7b9ac0]">
-                            {card.meta}
-                          </span>
-                        </div>
-
-                        <div className="space-y-2">
-                          {card.items.map((item) => (
-                            <div
-                              key={item}
-                              className="text-[12px] text-[#c9daf0]"
-                            >
-                              {item}
-                            </div>
-                          ))}
-                        </div>
-
-                        <button
-                          type="button"
-                          className="mt-4 inline-flex h-9 w-full items-center justify-center rounded-md border border-[#345f92] bg-[#102845] px-3 text-[12px] font-medium text-[#7fd0ff]"
-                        >
-                          {card.action}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="flex justify-end gap-2">
-                    <button
-                      type="button"
-                      className="inline-flex h-10 items-center gap-2 rounded-md border border-[#345f92] bg-[#102845] px-4 text-sm font-medium text-[#dbeafe]"
-                    >
-                      <Plus size={14} />
-                      Add Diagnent
-                    </button>
-
-                    <button
-                      type="button"
-                      className="inline-flex h-10 items-center gap-2 rounded-md border border-[#345f92] bg-[#102845] px-4 text-sm font-medium text-[#dbeafe]"
-                    >
-                      <Eye size={14} />
-                      Good Reported
-                    </button>
-                  </div>
                 </div>
               </div>
+            ) : (
+              <TabRecordPanel
+                tab={tab}
+                records={resolvedRecordDataByTab[tab] || []}
+                onAddRecord={handleOpenCreateModal}
+              />
             )}
           </div>
+
+          {activeCreateTab && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4 py-10">
+              <div className="w-full py-10 h-[90vh] overflow-y-auto max-w-5xl rounded-2xl border border-[#1d3f69] bg-[#081b35] p-5 shadow-[0_20px_80px_rgba(0,0,0,0.55)]">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-[#edf5ff]">
+                    {
+                      TAB_CONFIG[activeCreateTab as keyof typeof TAB_CONFIG]
+                        ?.actionLabel
+                    }
+                  </h3>
+
+                  <button
+                    type="button"
+                    onClick={handleCloseCreateModal}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-[#0d2342] text-[#9ab7d8]"
+                  >
+                    ✕
+                  </button>
+                </div>
+                {activeCreateTab === "Vitals" && (
+                  <VitalRecordForm
+                    patientId={patientId}
+                    organizationId={user?.data?.account?.id}
+                    providerId={user?.data?.account?.id}
+                    encounterId={undefined}
+                    onClose={handleCloseCreateModal}
+                    onSuccess={(data) => {
+                      console.log("Created vital:", data);
+                      // refetch vitals here
+                    }}
+                  />
+                )}
+
+                {activeCreateTab === "Medications" && (
+                  <MedicationRecordForm
+                    patientId={patientId}
+                    onClose={handleCloseCreateModal}
+                    onSuccess={async () => {
+                      await loadMedications();
+                      setTab("Medications");
+                      handleCloseCreateModal();
+                    }}
+                  />
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
