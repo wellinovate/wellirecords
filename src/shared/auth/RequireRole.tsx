@@ -2,6 +2,7 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/shared/auth/AuthProvider';
 import { UserRole } from '@/shared/types/types';
+import { getCurrentUser } from '../utils/utilityFunction';
 
 const ADMIN_ROLES: UserRole[] = [
     'super_admin', 'support_agent', 'verification_officer',
@@ -14,6 +15,7 @@ interface RequireRoleProps {
 }
 
 export function RequireRole({ children, allow }: RequireRoleProps) {
+    const users = getCurrentUser();
     const { user, isLoading } = useAuth();
     const location = useLocation();
 
@@ -28,7 +30,7 @@ export function RequireRole({ children, allow }: RequireRoleProps) {
         );
     }
 
-    if (!user) {
+    if (!users) {
         return <Navigate to="/auth" state={{ from: location }} replace />;
     }
 

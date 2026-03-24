@@ -29,6 +29,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   daysRemaining,
   onChangeView,
 }) => {
+  const users = getCurrentUser();
   const { user, loading, error, refetch } = useFetchUser();
   const onboardStatus = localStorage.getItem("wallet_onboarded");
   const { isConnected } = useAccount();

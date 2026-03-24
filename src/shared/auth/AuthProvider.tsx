@@ -8,6 +8,7 @@ import React, {
 import { AuthUser, UserRole } from "@/shared/types/types";
 import { authApi, SearchPatientResponse } from "@/shared/api/authApi";
 import axios from "axios";
+import { getCurrentUser, logOut } from "../utils/utilityFunction";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -53,16 +54,15 @@ type IdentifierType = "wrId" | "email" | "phone" | "qr";
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
+  console.log("🚀 ~ AuthProvider ~ user:", user);
   const [isLoading, setIsLoading] = useState(true);
 
   // Rehydrate from localStorage on mount
   useEffect(() => {
-    const stored = authApi.getCurrentUser();
-    setUser(stored);
-    setIsLoading(false);
+    const users = getCurrentUser();
+    setUser(users);
   }, []);
 
   const signIn = async (email: string, password: string) => {
@@ -136,7 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log("🚀 ~ signIn ~ u:", res);
     return res;
   };
-  
+
   const createDiagnosis = async (
     payload: any,
   ): Promise<SearchPatientResponse> => {
@@ -190,6 +190,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = () => {
     authApi.signOut();
+    logOut();
     setUser(null);
   };
 

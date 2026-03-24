@@ -1,5 +1,71 @@
 import { apiUrl } from "../api/authApi";
 import Cookies from "js-cookie";
+import { jwtDecode } from "jwt-decode";
+
+
+type JwtPayload = {
+  sub: string;
+  email: string;
+  accountType: string;
+  role: string;
+  exp: number;
+};
+
+export function getAuthFromToken(token: string) {
+  try {
+    const decoded = jwtDecode<JwtPayload>(token);
+
+    const isExpired = decoded.exp * 1000 < Date.now();
+
+    return {
+      isValid: !isExpired,
+      isExpired,
+      user: {
+        sub: decoded.sub,
+        email: decoded.email,
+        accountType: decoded.accountType,
+        role: decoded.role,
+      },
+    };
+  } catch (error) {
+    return {
+      isValid: false,
+      isExpired: true,
+      user: null,
+    };
+  }
+}
+
+
+export function getCurrentUser() {
+  const token = Cookies.get("accessToken");
+
+  if (!token) return null;
+
+  const auth = getAuthFromToken(token);
+
+  if (!auth.isValid) {
+    Cookies.remove("accessToken");
+    return null;
+  }
+
+  return auth.user;
+}
+
+export function logOut() {
+  const token = Cookies.get("accessToken");
+
+  if (!token) return null;
+
+  const auth = getAuthFromToken(token);
+  
+  Cookies.remove("accessToken");
+  const check = getAuthFromToken(token);
+  console.log("🚀 ~ logOut ~ auth:", check)
+ 
+
+  return null;
+}
 export const clearWeb2Session = () => {
   localStorage.removeItem("welli_onboarded");
   localStorage.removeItem("welli_trial_start");

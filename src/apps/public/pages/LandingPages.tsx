@@ -33,6 +33,7 @@ import {
 } from "../../../assets";
 // import hero from "../../../assets/hero.png";
 import { hero } from "@/assets";
+import { getCurrentUser } from "@/shared/utils/utilityFunction";
 
 const navItems = [
   { label: "Solutions", href: "#solutions", hasChevron: true },
@@ -167,6 +168,7 @@ function Logo() {
 }
 
 function Navbar() {
+  const users = getCurrentUser();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
