@@ -1787,7 +1787,7 @@ export const Onboarding: React.FC<Props> = ({ onComplete }) => {
 
   // --- LANDING PAGE ---
   return (
-    <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-blue-100">
+    <div className="min-h-screen bg-white font-sans text-slate-900">
       {showWizard && renderWizard()}
       {showLogin && renderLogin()}
       {showDemo && renderDemo()}

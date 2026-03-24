@@ -547,3 +547,40 @@ export interface RemoteMonitoringReading {
   flag: 'normal' | 'warning' | 'critical';
   deviceName: string;
 }
+
+
+export interface VitalRecord {
+  id: string;
+  label: string;
+  value: string | number;
+  unit: string;
+  metricColor: string;
+  spark: number[];
+  status: string;
+  statusColor: string;
+  subtext: string;
+}
+
+export interface TimelineRecord {
+  id: string;
+  type: string;
+  status: "Verified" | "Pending";
+  title: string;
+  provider: string;
+  summary: string;
+  date: string;
+}
+
+export interface ConsentGrant {
+  grantId: string;
+  orgName: string;
+  scope: ConsentScope;
+  purpose: ConsentPurpose ;
+  status: "active" | "revoked";
+   expiresAt: string | null;
+}
+
+export interface DashboardResponse<T> {
+  items?: T[];
+  data?: T[];
+}

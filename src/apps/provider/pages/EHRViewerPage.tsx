@@ -15,9 +15,15 @@ import {
   Syringe,
 } from "lucide-react";
 import {
+  AllergyItem,
+  DiagnosisItem,
+  getPatientAllergies,
   getPatientDetail,
+  getPatientDiagnoses,
+  getPatientLabResults,
   getPatientMedications,
   getPatientVitals,
+  LabResultItem,
   MedicationItem,
   PatientDetailResponse,
 } from "@/shared/utils/utilityFunction";
@@ -26,6 +32,9 @@ import { recordDataByTab, TAB_CONFIG } from "@/shared/utils/data";
 import { VitalRecordForm } from "@/apps/components/VitalRecordForm";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { MedicationRecordForm } from "@/apps/components/MedicationRecordForm";
+import { AllergyRecordForm } from "@/apps/components/AllergyRecordForm";
+import { DiagnosisRecordForm } from "@/apps/components/DiagnosisRecordForm";
+import { LabResultRecordForm } from "@/apps/components/LabResultRecordForm";
 
 const TABS = [
   "Overview",
@@ -212,6 +221,15 @@ export function EHRViewerPage() {
   const [medications, setMedications] = useState<MedicationItem[]>([]);
   const [loadingMedications, setLoadingMedications] = useState(false);
   const [medicationsError, setMedicationsError] = useState("");
+  const [allergies, setAllergies] = useState<AllergyItem[]>([]);
+  const [loadingAllergies, setLoadingAllergies] = useState(false);
+  const [allergiesError, setAllergiesError] = useState("");
+  const [diagnoses, setDiagnoses] = useState<DiagnosisItem[]>([]);
+  const [loadingDiagnoses, setLoadingDiagnoses] = useState(false);
+  const [diagnosesError, setDiagnosesError] = useState("");
+  const [labResults, setLabResults] = useState<LabResultItem[]>([]);
+  const [loadingLabResults, setLoadingLabResults] = useState(false);
+  const [labResultsError, setLabResultsError] = useState("");
 
   const patientId = String(id);
 
@@ -235,8 +253,68 @@ export function EHRViewerPage() {
     }
   };
 
+  const loadAllergies = async () => {
+    if (!patientId) return;
+
+    try {
+      setLoadingAllergies(true);
+      setAllergiesError("");
+
+      const result = await getPatientAllergies(patientId, 1, 10);
+      setAllergies(result.items || []);
+    } catch (err: any) {
+      setAllergiesError(err.message || "Failed to load allergies");
+    } finally {
+      setLoadingAllergies(false);
+    }
+  };
+
+  const loadDiagnoses = async () => {
+    if (!patientId) return;
+
+    try {
+      setLoadingDiagnoses(true);
+      setDiagnosesError("");
+
+      const result = await getPatientDiagnoses(patientId, 1, 10);
+      setDiagnoses(result.items || []);
+    } catch (err: any) {
+      setDiagnosesError(err.message || "Failed to load diagnoses");
+    } finally {
+      setLoadingDiagnoses(false);
+    }
+  };
+
+  const loadLabResults = async () => {
+    if (!patientId) return;
+
+    try {
+      setLoadingLabResults(true);
+      setLabResultsError("");
+
+      const result = await getPatientLabResults(patientId, 1, 10);
+      setLabResults(result.items || []);
+    } catch (err: any) {
+      setLabResultsError(err.message || "Failed to load lab results");
+    } finally {
+      setLoadingLabResults(false);
+    }
+  };
+
+  useEffect(() => {
+    loadLabResults();
+  }, [patientId]);
+
+  useEffect(() => {
+    loadAllergies();
+  }, [patientId]);
+
   useEffect(() => {
     loadMedications();
+  }, [patientId]);
+
+  useEffect(() => {
+    loadDiagnoses();
   }, [patientId]);
 
   const loadVitals = async () => {
@@ -343,13 +421,62 @@ export function EHRViewerPage() {
     }));
   }, [medications]);
 
+  const allergyTabRecords = useMemo(() => {
+    return allergies.map((item) => ({
+      id: item.id,
+      title: item.allergen,
+      subtitle:
+        [item.allergyType, item.reaction, item.severity]
+          .filter(Boolean)
+          .join(" • ") || "Allergy record",
+      meta: item.confirmed ? "Confirmed" : "Unconfirmed",
+    }));
+  }, [allergies]);
+
+  const diagnosisTabRecords = useMemo(() => {
+    return diagnoses.map((item) => ({
+      id: item.id,
+      title: item.diagnosisName,
+      subtitle:
+        [item.diagnosisType, item.icd10Code, item.clinicalStatus]
+          .filter(Boolean)
+          .join(" • ") || "Diagnosis record",
+      meta: item.diagnosedAt
+        ? new Date(item.diagnosedAt).toLocaleDateString()
+        : "No diagnosis date",
+    }));
+  }, [diagnoses]);
+
+  const labResultTabRecords = useMemo(() => {
+    return labResults.map((item) => ({
+      id: item.id,
+      title: item.testName,
+      subtitle:
+        [item.resultValue, item.unit, item.interpretation]
+          .filter(Boolean)
+          .join(" • ") || "Lab result",
+      meta: item.resultedAt
+        ? new Date(item.resultedAt).toLocaleDateString()
+        : "No result date",
+    }));
+  }, [labResults]);
+
   const resolvedRecordDataByTab = useMemo(() => {
     return {
       ...recordDataByTab,
       Vitals: vitalTabRecords,
       Medications: medicationTabRecords,
+      Allergies: allergyTabRecords,
+      Diagnoses: diagnosisTabRecords,
+      "Lab Results": labResultTabRecords,
     };
-  }, [vitalTabRecords, medicationTabRecords]);
+  }, [
+    vitalTabRecords,
+    medicationTabRecords,
+    allergyTabRecords,
+    diagnosisTabRecords,
+    labResultTabRecords,
+  ]);
 
   const recentVitalCards = useMemo(() => {
     return vitals.slice(0, 4).map((item) => {
@@ -745,6 +872,42 @@ export function EHRViewerPage() {
                     onSuccess={async () => {
                       await loadMedications();
                       setTab("Medications");
+                      handleCloseCreateModal();
+                    }}
+                  />
+                )}
+
+                {activeCreateTab === "Allergies" && (
+                  <AllergyRecordForm
+                    patientId={patientId}
+                    onClose={handleCloseCreateModal}
+                    onSuccess={async () => {
+                      await loadAllergies();
+                      setTab("Allergies");
+                      handleCloseCreateModal();
+                    }}
+                  />
+                )}
+
+                {activeCreateTab === "Diagnoses" && (
+                  <DiagnosisRecordForm
+                    patientId={patientId}
+                    onClose={handleCloseCreateModal}
+                    onSuccess={async () => {
+                      await loadDiagnoses();
+                      setTab("Diagnoses");
+                      handleCloseCreateModal();
+                    }}
+                  />
+                )}
+
+                {activeCreateTab === "Lab Results" && (
+                  <LabResultRecordForm
+                    patientId={patientId}
+                    onClose={handleCloseCreateModal}
+                    onSuccess={async () => {
+                      await loadLabResults();
+                      setTab("Lab Results");
                       handleCloseCreateModal();
                     }}
                   />

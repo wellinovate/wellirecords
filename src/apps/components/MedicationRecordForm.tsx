@@ -145,21 +145,11 @@ export function MedicationRecordForm({
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="flex items-start justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-[#edf5ff]">
-            Add Medication
-          </h3>
+         
           <p className="mt-1 text-sm text-[#7fa3cb]">
             Record a medication prescribed or currently being used.
           </p>
         </div>
-
-        <button
-          type="button"
-          onClick={onClose}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-[#0d2342] text-[#9ab7d8]"
-        >
-          <X size={16} />
-        </button>
       </div>
 
       {error && (

@@ -255,9 +255,6 @@ export function VitalRecordForm({
     <form onSubmit={handleSubmit} className="space-y-5  bg-re w-full">
       <div className="flex items-start justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-[#edf5ff]">
-            Add Vital Record
-          </h3>
           <p className="mt-1 text-sm text-[#7fa3cb]">
             Record current clinical observations for this patient.
           </p>
@@ -327,7 +324,7 @@ export function VitalRecordForm({
                   }))
                 }
                 placeholder="e.g. 120"
-                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] placeholder:text-[#6e8eb4] focus:border-[#3793e0] focus:outline-none"
+                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] focus:border-[#3793e0] focus:outline-none"
               />
             </div>
 
@@ -349,7 +346,7 @@ export function VitalRecordForm({
                   }))
                 }
                 placeholder="e.g. 80"
-                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] placeholder:text-[#6e8eb4] focus:border-[#3793e0] focus:outline-none"
+                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] focus:border-[#3793e0] focus:outline-none"
               />
             </div>
 
@@ -363,7 +360,7 @@ export function VitalRecordForm({
                 value={form.heartRate}
                 onChange={(e) => updateField("heartRate", e.target.value)}
                 placeholder="bpm"
-                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] placeholder:text-[#6e8eb4] focus:border-[#3793e0] focus:outline-none"
+                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff]  focus:border-[#3793e0] focus:outline-none"
               />
             </div>
 
@@ -377,7 +374,7 @@ export function VitalRecordForm({
                 value={form.respiratoryRate}
                 onChange={(e) => updateField("respiratoryRate", e.target.value)}
                 placeholder="breaths/min"
-                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] placeholder:text-[#6e8eb4] focus:border-[#3793e0] focus:outline-none"
+                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] focus:border-[#3793e0] focus:outline-none"
               />
             </div>
 
@@ -394,7 +391,7 @@ export function VitalRecordForm({
                   updateField("oxygenSaturation", e.target.value)
                 }
                 placeholder="%"
-                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] placeholder:text-[#6e8eb4] focus:border-[#3793e0] focus:outline-none"
+                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] focus:border-[#3793e0] focus:outline-none"
               />
             </div>
           </div>
@@ -425,7 +422,7 @@ export function VitalRecordForm({
                   }))
                 }
                 placeholder="e.g. 36.8"
-                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] placeholder:text-[#6e8eb4] focus:border-[#3793e0] focus:outline-none"
+                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] focus:border-[#3793e0] focus:outline-none"
               />
             </div>
 
@@ -479,7 +476,7 @@ export function VitalRecordForm({
                   }))
                 }
                 placeholder="e.g. 72"
-                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] placeholder:text-[#6e8eb4] focus:border-[#3793e0] focus:outline-none"
+                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] focus:border-[#3793e0] focus:outline-none"
               />
             </div>
 
@@ -524,7 +521,7 @@ export function VitalRecordForm({
                   }))
                 }
                 placeholder="e.g. 170"
-                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] placeholder:text-[#6e8eb4] focus:border-[#3793e0] focus:outline-none"
+                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] focus:border-[#3793e0] focus:outline-none"
               />
             </div>
 
@@ -589,7 +586,7 @@ export function VitalRecordForm({
                   }))
                 }
                 placeholder="e.g. 98"
-                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] placeholder:text-[#6e8eb4] focus:border-[#3793e0] focus:outline-none"
+                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] focus:border-[#3793e0] focus:outline-none"
               />
             </div>
 
@@ -645,7 +642,7 @@ export function VitalRecordForm({
           value={form.notes}
           onChange={(e) => updateField("notes", e.target.value)}
           placeholder="Optional clinical note"
-          className="w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 py-3 text-sm text-[#dcecff] placeholder:text-[#6e8eb4] focus:border-[#3793e0] focus:outline-none"
+          className="w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 py-3 text-sm text-[#dcecff]  focus:border-[#3793e0] focus:outline-none"
         />
       </div>
 

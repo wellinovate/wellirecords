@@ -28,6 +28,8 @@ type AuthContextValue = {
   registerNewPatient: (newPatientForm: any) => string;
   createVitalRecord: (payload: any) => any;
   createMedication: (payload: any) => any;
+  createAllergy: (payload: any) => any;
+  createDiagnosis: (payload: any) => any;
   signIn: (email: string, password: string) => AuthUser | null;
   signInAsRole: (role: UserRole) => AuthUser;
   signUpPatient: (
@@ -51,7 +53,6 @@ type IdentifierType = "wrId" | "email" | "phone" | "qr";
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-// ─── Provider ────────────────────────────────────────────────────────────────
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -119,10 +120,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log("🚀 ~ signIn ~ u:", res);
     return res;
   };
+
   const createMedication = async (
     payload: any,
   ): Promise<SearchPatientResponse> => {
     const res = await authApi.createMedication(payload);
+    console.log("🚀 ~ signIn ~ u:", res);
+    return res;
+  };
+
+  const createAllergy = async (
+    payload: any,
+  ): Promise<SearchPatientResponse> => {
+    const res = await authApi.createAllergy(payload);
+    console.log("🚀 ~ signIn ~ u:", res);
+    return res;
+  };
+  
+  const createDiagnosis = async (
+    payload: any,
+  ): Promise<SearchPatientResponse> => {
+    const res = await authApi.createDiagnosis(payload);
     console.log("🚀 ~ signIn ~ u:", res);
     return res;
   };
@@ -184,6 +202,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signIn,
       searchPatientRequest,
       createMedication,
+      createAllergy,
+      createDiagnosis,
       createVitalRecord,
       registerNewPatient,
       linkPatientRequest,

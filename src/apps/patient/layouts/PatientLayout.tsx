@@ -40,9 +40,15 @@ const patientNav = [
     icon: LayoutDashboard,
     premium: false,
   },
+  // {
+  //   to: "/patient/vault",
+  //   label: "Health Vault",
+  //   icon: FolderHeart,
+  //   premium: false,
+  // },
   {
     to: "/patient/vault",
-    label: "Health Vault",
+    label: "Health History",
     icon: FolderHeart,
     premium: false,
   },

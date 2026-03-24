@@ -122,7 +122,7 @@ export const Layout: React.FC<Props> = ({
   };
 
   return (
-    <div className="flex h-screen bg-slate-950 font-sans selection:bg-blue-900/50">
+    <div className="flex h-screen bg-slate-950 font-sans ">
       {/* Sidebar */}
       <aside className="w-64 bg-slate-900 border-r border-slate-800 hidden md:flex flex-col flex-shrink-0 z-20">
         <div className="p-6 border-b border-slate-800">

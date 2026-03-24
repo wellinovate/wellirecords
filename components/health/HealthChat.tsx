@@ -127,7 +127,7 @@ export const HealthChat: React.FC = () => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask about symptoms, drugs, or recent health news..."
-            className="flex-1 px-4 py-3 rounded-lg border border-slate-700 bg-slate-950 text-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-sm placeholder:text-slate-600"
+            className="flex-1 px-4 py-3 rounded-lg border border-slate-700 bg-slate-950 text-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-sm "
           />
           <button
             type="submit"

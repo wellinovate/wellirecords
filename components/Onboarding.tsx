@@ -1,37 +1,19 @@
-import { FEATURES } from "@/constants";
 import axios from "axios";
-import {
-  Activity,
-  ArrowRight,
-  Building2,
-  Check,
-  ChevronRight,
-  Database,
-  ExternalLink,
-  FileText,
-  Key,
-  Lock,
-  Play,
-  Server,
-  Shield,
-  ShieldCheck
-} from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useAccount, useConnect } from "wagmi";
+import { AISection } from "./landing/AISection";
+import { CTASection } from "./landing/CTASection";
+import { FeaturesSection } from "./landing/FeaturesSection";
+import { HeroSection } from "./landing/HeroSection";
+import { LandingNav } from "./landing/LandingNav";
+import { PartnersSection } from "./landing/PartnersSection";
+import { SecuritySection } from "./landing/SecuritySection";
 import { DemoModal } from "./modals/DemoModal";
 import { FeatureModal } from "./modals/FeatureModal";
 import { LoginModal } from "./modals/LoginModal";
 import { SalesContactModal } from "./modals/SalesContactModal";
 import { SecurityModal } from "./modals/SecurityModal";
 import { WizardModal } from "./modals/SignupWizardModal";
-import { LandingNav } from "./landing/LandingNav";
-import { HeroSection } from "./landing/HeroSection";
-import { PartnersSection } from "./landing/PartnersSection";
-import { FeaturesSection } from "./landing/FeaturesSection";
-import { SecuritySection } from "./landing/SecuritySection";
-import { AISection } from "./landing/AISection";
-import { CTASection } from "./landing/CTASection";
-import { backendApi } from "@/utils/data";
 
 interface Props {
   onComplete: (userData: any) => void;
@@ -393,11 +375,11 @@ export const Onboarding: React.FC<Props> = ({ onComplete }) => {
 
   // --- LANDING PAGE ---
   return (
-    <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-blue-100">
+    <div className="min-h-screen bg-white font-sans text-slate-900">
       <WizardModal
         open={showWizard}
         onClose={() => setShowWizard(false)}
-        apiUrl= {backendApi}
+        apiUrl= {"http://localhost:2000"}
         onComplete={(user) => onComplete(user)}
       />
 
