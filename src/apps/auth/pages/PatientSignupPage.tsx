@@ -621,7 +621,16 @@ export default function PatientSignupPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className=" h-screen min-h-[714px] max-w-full overflow-x-hidden border border-[#D9D9D9] bg-white ">
+      <div className=" relative h-screen min-h-[714px] max-w-full overflow-x-hidden border border-[#D9D9D9] bg-white ">
+        <div className="mb-4 absolute top-10 left-20 z-50 bg-gray-100 px-5 rounded-lg">
+                      <button
+                        onClick={() => navigate(-1)}
+                        className="flex items-center gap-2 text-[#062B67] hover:opacity-70 transition"
+                      >
+                        <ArrowLeft size={36} className="  "/>
+                        <span className="text-sm md:text-lg  font-bold">Back</span>
+                      </button>
+                    </div>
         <div className="grid h-full grid-cols-[45.4%_54.6%] ">
           {/* Left side */}
           <div className="relative overflow-hidden bg-[#E9EEF1]">

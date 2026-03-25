@@ -38,31 +38,44 @@ const patientNav = [
     to: "/patient/overview",
     label: "Overview",
     icon: LayoutDashboard,
-    premium: false,
+    premium: true,
   },
-  // {
-  //   to: "/patient/vault",
-  //   label: "Health Vault",
-  //   icon: FolderHeart,
-  //   premium: false,
-  // },
+
   {
     to: "/patient/vault",
     label: "Health History",
     icon: FolderHeart,
-    premium: false,
+    premium: true,
   },
   {
     to: "/patient/medications",
     label: "Medications",
     icon: Pill,
-    premium: false,
+    premium: true,
   },
-  {
+   {
+    to: "/patient/journeys",
+    label: "Care Journeys",
+    icon: Activity,
+    premium: true,
+  },
+   {
+    to: "/patient/appointments",
+    label: "Appointments",
+    icon: Calendar,
+    premium: true,
+  },
+   {
     to: "/patient/consents",
     label: "My Data & Consents",
     icon: Shield,
-    premium: false,
+    premium: true,
+  },
+  {
+    to: "/patient/family",
+    label: "Family & Dependants",
+    icon: Baby,
+    premium: true,
   },
   {
     to: "/patient/find-care",
@@ -70,24 +83,7 @@ const patientNav = [
     icon: MapPin,
     premium: false,
   },
-  {
-    to: "/patient/journeys",
-    label: "Care Journeys",
-    icon: Activity,
-    premium: false,
-  },
-  {
-    to: "/patient/appointments",
-    label: "Appointments",
-    icon: Calendar,
-    premium: false,
-  },
-  {
-    to: "/patient/family",
-    label: "Family & Dependants",
-    icon: Baby,
-    premium: false,
-  },
+  
   {
     to: "/patient/telemedicine",
     label: "Telemedicine",
@@ -306,8 +302,9 @@ export function PatientLayout() {
               <button
                 key={item.to}
                 onClick={() => navigate(item.to)}
+                disabled={!item.premium}
                 title={item.label}
-                className={`sidebar-item sidebar-item-patient w-full ${active ? "active" : ""} justify-center lg:justify-start`}
+                className={`sidebar-item sidebar-item-patient w-full ${active ? "active" : ""} justify-center lg:justify-start ${!item.premium ? "bg-black/10": " "}`}
               >
                 <item.icon size={18} />
                 <span className="hidden lg:block flex-1 text-left">

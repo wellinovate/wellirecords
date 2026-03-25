@@ -1,6 +1,7 @@
 import { prelogin } from "@/assets";
+import { ArrowLeft } from "lucide-react";
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function PatientIcon() {
   return (
@@ -166,9 +167,19 @@ function OptionCard({ icon, title, description, link }) {
 }
 
 export default function UserTypeSelection() {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen w-full bg-[#ECEFF2]">
       <div className="relative mx-auto h-screen min-h-[760px] max-w-[1476px] overflow-hidden bg-[#EEF1F4]">
+        <div className="mb-4 absolute top-10 left-20 z-50 bg-gray-100 px-5 rounded-lg">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-[#062B67] hover:opacity-70 transition"
+          >
+            <ArrowLeft size={36} className="  " />
+            <span className="text-sm md:text-lg  font-bold">Back</span>
+          </button>
+        </div>
         {/* Background split */}
         <div className="absolute inset-0 grid grid-cols-[53%_47%]">
           <div className="bg-[#ECEEF1]" />
@@ -187,8 +198,6 @@ export default function UserTypeSelection() {
             // backgroundRepeat: "no-repeat",
           }}
         />
-
-       
 
         {/* Soft white overlay */}
         <div className="absolute inset-0 bg-white/20" />
@@ -216,8 +225,7 @@ export default function UserTypeSelection() {
               icon={<ProviderIcon />}
               title={
                 <>
-                  Healthcare {" "}
-                  {/* <br /> */}
+                  Healthcare {/* <br /> */}
                   Provider
                 </>
               }

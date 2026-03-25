@@ -547,8 +547,6 @@ export function ProviderSignupPage() {
     }
   };
 
-
-
   const update = (key) => (e) => {
     const value = key === "agree" ? e.target.checked : e.target.value;
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -556,7 +554,17 @@ export function ProviderSignupPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="mx-auto h-screen min-h-[760px] max-w-full overflow-hidden border border-[#DDDDDD] bg-white">
+      <div className="relative mx-auto h-screen min-h-[760px] max-w-full overflow-hidden border border-[#DDDDDD] bg-white">
+        <div className="mb-4 absolute top-10 left-20 z-50 bg-gray-100 px-5 rounded-lg">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-[#062B67] hover:opacity-70 transition"
+          >
+            <ArrowLeft size={36} className="  " />
+            <span className="text-sm md:text-lg  font-bold">Back</span>
+          </button>
+        </div>
+
         <div className="grid h-full grid-cols-[49%_51%]">
           {/* Left panel */}
           <div className="relative overflow-hidden bg-[#DDE5EE]">

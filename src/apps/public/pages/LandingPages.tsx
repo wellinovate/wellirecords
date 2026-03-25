@@ -167,7 +167,7 @@ function Logo() {
   );
 }
 
-function Navbar() {
+export function Navbar() {
   const users = getCurrentUser();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -741,13 +741,13 @@ function Hero() {
             </p>
 
             <div className="mt-8 flex flex-col gap-4 sm:mt-10 sm:max-w-xl sm:flex-row sm:flex-wrap sm:items-center">
-              <button className="w-full rounded-lg bg-[#2f8f53] px-6 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-[#2E8B57] sm:w-auto sm:px-8 sm:py-4 sm:text-lg">
+              <Link to="/auth/patient/signup" className="w-full rounded-lg bg-[#2f8f53] px-6 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-[#2E8B57] sm:w-auto sm:px-8 sm:py-4 sm:text-lg">
                 Create Health Vault
-              </button>
+              </Link>
 
-              <button className="w-full rounded-lg border-2 border-[#173f73] bg-white px-6 py-3.5 text-base font-semibold text-[#173f73] transition hover:bg-slate-50 sm:w-auto sm:px-8 sm:py-4 sm:text-lg">
+              <Link to="/auth/provider/signup" className="w-full rounded-lg border-2 border-[#173f73] bg-white px-6 py-3.5 text-base font-semibold text-[#173f73] transition hover:bg-slate-50 sm:w-auto sm:px-8 sm:py-4 sm:text-lg">
                 For Healthcare Providers
-              </button>
+              </Link>
             </div>
 
             <div className="mt-8 flex flex-wrap gap-x-4 gap-y-2 text-[11px] uppercase tracking-[0.25em] text-[#5c6f85] sm:text-xs sm:tracking-[0.3em]">
