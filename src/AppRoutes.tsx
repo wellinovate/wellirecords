@@ -99,6 +99,7 @@ import UserTypeSelection from "./apps/auth/pages/UserTypeSelection";
 import PatientSignupPage from "./apps/auth/pages/PatientSignupPage";
 import UserTypeSelectionLogin from "./apps/auth/pages/UserTypeSelectionLogin";
 import { HealthCategoryHistoryPage } from "./apps/components/HealthCategoryHistoryPage";
+import { HealthHistoryTimelinePage } from "./apps/patient/pages/HealthHistory";
 
 // ─── Root redirect ────────────────────────────────────────────────────────────
 const ADMIN_ROLES = [
@@ -151,22 +152,19 @@ export function AppRoutes() {
       <Route
         path="/patient"
         element={
-          // <RequireRole allow="patient">
-          <PatientLayout />
-          // </RequireRole>
+          <RequireRole allow="user">
+            <PatientLayout />
+          </RequireRole>
         }
       >
         <Route index element={<Navigate to="overview" replace />} />
         <Route path="overview" element={<PatientOverview />} />
         <Route path="vault" element={<HealthVaultPage />} />
         <Route path="vault/:category" element={<HealthCategoryHistoryPage />} />
-        {/* <Route path="vault" element={<HealthVaultPage />} /> */}
-        {/* <Route path=":link" element={<HealthCategoryHistoryPage />} /> */}
-        {/* <Route
-          path="/patient/history"
-          element={<HealthHistoryOverviewPage />}
-        /> */}
-        <Route path="journeys" element={<CareJourneysPage />} />
+
+        {/* <Route path="journeys" element={<CareJourneysPage />} /> */}
+        <Route path="journeys" element={<HealthHistoryTimelinePage />} />
+
         <Route path="consents" element={<DataSovereigntyCenterPage />} />
         <Route path="medications" element={<MedicationsPage />} />
         <Route path="emergency-card" element={<EmergencyCardPage />} />
@@ -193,9 +191,9 @@ export function AppRoutes() {
       <Route
         path="/provider"
         element={
-          // <RequireRole allow="provider">
+          <RequireRole allow="organization">
             <ProviderLayout />
-          // </RequireRole>
+          </RequireRole>
         }
       >
         <Route index element={<Navigate to="overview" replace />} />

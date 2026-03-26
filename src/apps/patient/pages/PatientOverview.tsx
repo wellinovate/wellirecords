@@ -435,7 +435,7 @@ export function PatientOverview() {
             style={{ color: "var(--pat-text)" }}
           >
             Welcome to your Dashboard{" "}
-            {user ? `, ${user?.data?.profile?.fullName}` : ""}!
+            {user ?`, ${user?.fullName}` : ""}!
           </h1>
           <p
             className="text-sm font-medium flex items-center gap-2"

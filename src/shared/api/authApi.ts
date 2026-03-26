@@ -2,12 +2,13 @@ import { AuthUser, LoginMethod, UserRole } from "@/shared/types/types";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { register } from "module";
+import { getAuthFromToken } from "../utils/utilityFunction";
 
 // Moved from authService
 const STORAGE_KEY = "welli_auth_user";
 
-export const apiUrl: string = "https://wellirecord.onrender.com";
-// export const apiUrl: string = "http://localhost:3000";
+// export const apiUrl: string = "https://wellirecord.onrender.com";
+export const apiUrl: string = "http://localhost:3000";
 
 type IdentifierType = "wrId" | "email" | "phone" | "qr";
 
@@ -180,6 +181,7 @@ export const authApi = {
             secure: true, // only over HTTPS (important in prod)
             sameSite: "lax",
         });
+        
         return data;
       }
     } catch (err: any) {

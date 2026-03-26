@@ -1,8 +1,109 @@
 import { FirstRecordWizard } from "@/apps/patient/components/FirstRecordWizard";
 import { getUsersRecords } from "@/shared/utils/utilityFunction";
-import { Search, UploadCloud } from "lucide-react";
+import { ArrowLeft, Search, UploadCloud } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  Pill,
+  Activity,
+  Syringe,
+  FlaskConical,
+  AlertCircle,
+  Stethoscope,
+  HeartPulse,
+} from "lucide-react";
+
+function formatDate(value?: string) {
+  if (!value) return "No date";
+  return new Date(value).toLocaleDateString();
+}
+
+function InfoRow({
+  label,
+  value,
+}: {
+  label: string;
+  value?: string | number | null;
+}) {
+  if (!value && value !== 0) return null;
+
+  return (
+    <p className="text-sm text-[#7B8BA3]">
+      <span className="font-medium text-[#8B9BB3]">{label}:</span> {value}
+    </p>
+  );
+}
+
+function RecordShell({
+  icon,
+  title,
+  subtitle,
+  status,
+  metaLeft,
+  metaRight,
+  footerLeft,
+  actionLabel = "View Details",
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  subtitle?: string;
+  status?: string;
+  metaLeft?: React.ReactNode;
+  metaRight?: React.ReactNode;
+  footerLeft?: React.ReactNode;
+  actionLabel?: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-[22px] border border-[#DDE3EA] bg-[#F9FAFB] px-5 py-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#EAF7F1] text-[#2F915C]">
+            {icon}
+          </div>
+
+          <div className="min-w-0">
+            <h3 className="text-[22px] font-semibold leading-tight text-[#1F2A37] truncate">
+              {title}
+            </h3>
+            {subtitle && (
+              <p className="mt-1 text-base text-[#667085]">{subtitle}</p>
+            )}
+          </div>
+        </div>
+
+        {status && (
+          <span className="shrink-0 rounded-full bg-[#E7F7EF] px-3 py-1 text-sm font-semibold text-[#22A06B]">
+            {status}
+          </span>
+        )}
+      </div>
+
+      {(metaLeft || metaRight) && (
+        <div className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
+          <div>{metaLeft}</div>
+          <div>{metaRight}</div>
+        </div>
+      )}
+
+      {children && <div className="mt-4 space-y-2">{children}</div>}
+
+      {(footerLeft || actionLabel) && (
+        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-sm text-[#7B8BA3]">{footerLeft}</div>
+
+          <button
+            type="button"
+            className="inline-flex items-center justify-center self-start rounded-full bg-[#E7F1EE] px-4 py-2 text-sm font-semibold text-[#138A72] transition hover:bg-[#dcebe6]"
+          >
+            {actionLabel}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const CATEGORY_LABELS: Record<string, string> = {
   vitals: "Vitals History",
@@ -16,19 +117,24 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 export function HealthCategoryHistoryPage() {
+  const navigate = useNavigate();
   const { category } = useParams();
   const [search, setSearch] = useState("");
   const [wizardOpen, setWizardOpen] = useState(false);
   const [record, setRecord] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const title = CATEGORY_LABELS[category || ""] || "Health History";
 
   const loadRecords = async () => {
     try {
+      setIsLoading(true);
       const result = await getUsersRecords(category, 1, 10);
       setRecord(result.items || []);
     } catch (err: any) {
       console.log("🚀 ~ loadRecords ~ err.message:", err.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -184,171 +290,245 @@ export function HealthCategoryHistoryPage() {
 
   const renderRecordCard = (item: any) => {
     if (category === "vitals") {
-      return (
-        <div key={item.id} className="rounded-lg bg-[#0d2443] px-4 py-3 space-y-2">
-          <div className="text-xs text-[#7b9ac0]">
-            {item.measuredAt ? new Date(item.measuredAt).toLocaleString() : "No date"}
-          </div>
+      const vitalsSummary = [
+        item.bloodPressure
+          ? `BP ${item.bloodPressure.systolic}/${item.bloodPressure.diastolic}`
+          : null,
+        item.heartRate ? `HR ${item.heartRate} bpm` : null,
+        item.temperature?.value
+          ? `Temp ${item.temperature.value}°${item.temperature.unit || "C"}`
+          : null,
+      ]
+        .filter(Boolean)
+        .join(" • ");
 
-          <div className="flex flex-wrap gap-3 text-sm text-[#e8f1ff]">
-            {item.bloodPressure && (
-              <span>
-                BP: {item.bloodPressure.systolic}/{item.bloodPressure.diastolic}
-              </span>
-            )}
-            {item.heartRate && <span>HR: {item.heartRate} bpm</span>}
-            {item.temperature?.value && (
-              <span>
-                Temp: {item.temperature.value}°{item.temperature.unit}
-              </span>
-            )}
-            {item.respiratoryRate && <span>RR: {item.respiratoryRate}</span>}
-            {item.oxygenSaturation && <span>O₂: {item.oxygenSaturation}%</span>}
+      return (
+        <RecordShell
+          key={item.id}
+          icon={<HeartPulse size={18} />}
+          title="Vital Record"
+          subtitle={vitalsSummary || "Patient vital signs"}
+          status="Recorded"
+          metaLeft={
+            <>
+              <InfoRow label="Measured" value={formatDate(item.measuredAt)} />
+              <InfoRow label="Respiratory Rate" value={item.respiratoryRate} />
+            </>
+          }
+          metaRight={
+            <>
+              <InfoRow
+                label="Oxygen Saturation"
+                value={item.oxygenSaturation ? `${item.oxygenSaturation}%` : ""}
+              />
+              <InfoRow
+                label="Blood Glucose"
+                value={
+                  item.bloodGlucose?.value
+                    ? `${item.bloodGlucose.value} ${item.bloodGlucose.unit || ""}`
+                    : ""
+                }
+              />
+            </>
+          }
+          footerLeft={
+            item.notes ? `Notes: ${item.notes}` : "Vitals history entry"
+          }
+          actionLabel="View Vital"
+        >
+          <div className="flex flex-wrap gap-2 text-sm text-[#475467]">
             {item.weight?.value && (
               <span>
-                WT: {item.weight.value} {item.weight.unit}
+                Weight: {item.weight.value} {item.weight.unit}
               </span>
             )}
             {item.height?.value && (
               <span>
-                HT: {item.height.value} {item.height.unit}
-              </span>
-            )}
-            {item.bloodGlucose?.value && (
-              <span>
-                Glucose: {item.bloodGlucose.value} {item.bloodGlucose.unit}
+                Height: {item.height.value} {item.height.unit}
               </span>
             )}
           </div>
-
-          {item.notes && <div className="text-sm text-[#7b9ac0]">{item.notes}</div>}
-        </div>
+        </RecordShell>
       );
     }
 
     if (category === "medications") {
+      const subtitle = [
+        item.dosage?.value
+          ? `${item.dosage.value}${item.dosage.unit ? ` ${item.dosage.unit}` : ""}`
+          : null,
+        item.frequency,
+        item.route,
+      ]
+        .filter(Boolean)
+        .join(" • ");
+
       return (
-        <div key={item.id} className="rounded-lg bg-[#0d2443] px-4 py-3 space-y-2">
-          <div className="text-xs text-[#7b9ac0]">
-            {item.prescribedAt ? new Date(item.prescribedAt).toLocaleString() : "No date"}
-          </div>
-
-          <div className="text-sm font-semibold text-[#e8f1ff]">
-            {item.medicationName}
-          </div>
-
-          <div className="flex flex-wrap gap-3 text-sm text-[#e8f1ff]">
-            {item.genericName && <span>Generic: {item.genericName}</span>}
-            {item.brandName && <span>Brand: {item.brandName}</span>}
-            {item.dosage?.value && (
-              <span>
-                Dosage: {item.dosage.value} {item.dosage.unit}
-              </span>
-            )}
-            {item.route && <span>Route: {item.route}</span>}
-            {item.frequency && <span>Frequency: {item.frequency}</span>}
-            {item.medicationStatus && <span>Status: {item.medicationStatus}</span>}
-          </div>
-
-          {item.indication && (
-            <div className="text-sm text-[#7b9ac0]">Indication: {item.indication}</div>
-          )}
-          {item.notes && <div className="text-sm text-[#7b9ac0]">{item.notes}</div>}
-        </div>
+        <RecordShell
+          key={item.id}
+          icon={<Pill size={18} />}
+          title={item.medicationName}
+          subtitle={subtitle || "Medication entry"}
+          status={item.medicationStatus || "Active"}
+          metaLeft={
+            <>
+              <InfoRow
+                label="Prescribed by"
+                value={
+                  item.prescribedByName || item.prescriberName || "Unknown"
+                }
+              />
+              <InfoRow label="Started" value={formatDate(item.prescribedAt)} />
+            </>
+          }
+          metaRight={
+            <>
+              <InfoRow label="Generic" value={item.genericName} />
+              <InfoRow label="Brand" value={item.brandName} />
+            </>
+          }
+          footerLeft={
+            item.indication
+              ? `Indication: ${item.indication}`
+              : item.notes || "Medication history entry"
+          }
+          actionLabel="Request Refill"
+        >
+          {item.notes && <p className="text-sm text-[#667085]">{item.notes}</p>}
+        </RecordShell>
       );
     }
 
     if (category === "allergies") {
       return (
-        <div key={item.id} className="rounded-lg bg-[#0d2443] px-4 py-3 space-y-2">
-          <div className="text-sm font-semibold text-[#e8f1ff]">{item.allergen}</div>
-
-          <div className="flex flex-wrap gap-3 text-sm text-[#e8f1ff]">
-            {item.allergyType && <span>Type: {item.allergyType}</span>}
-            {item.severity && <span>Severity: {item.severity}</span>}
-            {item.clinicalStatus && <span>Status: {item.clinicalStatus}</span>}
-            {item.verificationStatus && (
-              <span>Verification: {item.verificationStatus}</span>
-            )}
-          </div>
-
-          {item.reaction && (
-            <div className="text-sm text-[#7b9ac0]">Reaction: {item.reaction}</div>
-          )}
-        </div>
+        <RecordShell
+          key={item.id}
+          icon={<AlertCircle size={18} />}
+          title={item.allergen}
+          subtitle={
+            [item.allergyType, item.reaction].filter(Boolean).join(" • ") ||
+            "Allergy record"
+          }
+          status={item.clinicalStatus || "Active"}
+          metaLeft={
+            <>
+              <InfoRow label="Severity" value={item.severity} />
+              <InfoRow label="Verification" value={item.verificationStatus} />
+            </>
+          }
+          metaRight={
+            <>
+              <InfoRow label="Type" value={item.allergyType} />
+              <InfoRow label="Reaction" value={item.reaction} />
+            </>
+          }
+          footerLeft={item.notes || "Allergy history entry"}
+          actionLabel="View Allergy"
+        />
       );
     }
 
     if (category === "diagnoses") {
       return (
-        <div key={item.id} className="rounded-lg bg-[#0d2443] px-4 py-3 space-y-2">
-          <div className="text-xs text-[#7b9ac0]">
-            {item.diagnosedAt ? new Date(item.diagnosedAt).toLocaleString() : "No date"}
-          </div>
-
-          <div className="text-sm font-semibold text-[#e8f1ff]">
-            {item.diagnosisName}
-          </div>
-
-          <div className="flex flex-wrap gap-3 text-sm text-[#e8f1ff]">
-            {item.diagnosisType && <span>Type: {item.diagnosisType}</span>}
-            {item.icd10Code && <span>ICD-10: {item.icd10Code}</span>}
-            {item.clinicalStatus && <span>Status: {item.clinicalStatus}</span>}
-          </div>
-
-          {item.notes && <div className="text-sm text-[#7b9ac0]">{item.notes}</div>}
-        </div>
+        <RecordShell
+          key={item.id}
+          icon={<Stethoscope size={18} />}
+          title={item.diagnosisName}
+          subtitle={
+            [item.diagnosisType, item.icd10Code].filter(Boolean).join(" • ") ||
+            "Diagnosis entry"
+          }
+          status={item.clinicalStatus || "Recorded"}
+          metaLeft={
+            <>
+              <InfoRow label="Diagnosed" value={formatDate(item.diagnosedAt)} />
+              <InfoRow label="ICD-10" value={item.icd10Code} />
+            </>
+          }
+          metaRight={
+            <>
+              <InfoRow label="Type" value={item.diagnosisType} />
+              <InfoRow label="Status" value={item.clinicalStatus} />
+            </>
+          }
+          footerLeft={item.notes || "Diagnosis history entry"}
+          actionLabel="View Diagnosis"
+        />
       );
     }
 
     if (category === "immunizations") {
       return (
-        <div key={item.id} className="rounded-lg bg-[#0d2443] px-4 py-3 space-y-2">
-          <div className="text-xs text-[#7b9ac0]">
-            {item.administeredAt
-              ? new Date(item.administeredAt).toLocaleString()
-              : "No date"}
-          </div>
-
-          <div className="text-sm font-semibold text-[#e8f1ff]">
-            {item.vaccineName}
-          </div>
-
-          <div className="flex flex-wrap gap-3 text-sm text-[#e8f1ff]">
-            {item.vaccineCode && <span>Code: {item.vaccineCode}</span>}
-            {item.manufacturer && <span>Manufacturer: {item.manufacturer}</span>}
-            {item.doseNumber && <span>Dose: {item.doseNumber}</span>}
-            {item.immunizationStatus && <span>Status: {item.immunizationStatus}</span>}
-          </div>
-        </div>
+        <RecordShell
+          key={item.id}
+          icon={<Syringe size={18} />}
+          title={item.vaccineName}
+          subtitle={
+            [item.series, item.doseNumber ? `Dose ${item.doseNumber}` : null]
+              .filter(Boolean)
+              .join(" • ") || "Immunization entry"
+          }
+          status={item.immunizationStatus || "Completed"}
+          metaLeft={
+            <>
+              <InfoRow
+                label="Administered"
+                value={formatDate(item.administeredAt)}
+              />
+              <InfoRow label="Code" value={item.vaccineCode} />
+            </>
+          }
+          metaRight={
+            <>
+              <InfoRow label="Manufacturer" value={item.manufacturer} />
+              <InfoRow label="Dose Number" value={item.doseNumber} />
+            </>
+          }
+          footerLeft={item.notes || "Immunization history entry"}
+          actionLabel="View Vaccine"
+        />
       );
     }
 
     if (category === "lab-results") {
       return (
-        <div key={item.id} className="rounded-lg bg-[#0d2443] px-4 py-3 space-y-2">
-          <div className="text-xs text-[#7b9ac0]">
-            {item.resultedAt ? new Date(item.resultedAt).toLocaleString() : "No date"}
-          </div>
-
-          <div className="text-sm font-semibold text-[#e8f1ff]">{item.testName}</div>
-
-          <div className="flex flex-wrap gap-3 text-sm text-[#e8f1ff]">
-            {item.category && <span>Category: {item.category}</span>}
-            {item.resultValue && <span>Result: {item.resultValue}</span>}
-            {item.unit && <span>Unit: {item.unit}</span>}
-            {item.interpretation && <span>Interpretation: {item.interpretation}</span>}
-          </div>
-
-          {item.notes && <div className="text-sm text-[#7b9ac0]">{item.notes}</div>}
-        </div>
+        <RecordShell
+          key={item.id}
+          icon={<FlaskConical size={18} />}
+          title={item.testName}
+          subtitle={
+            [item.resultValue, item.unit].filter(Boolean).join(" ") ||
+            "Lab result"
+          }
+          status={item.interpretation || "Completed"}
+          metaLeft={
+            <>
+              <InfoRow label="Resulted" value={formatDate(item.resultedAt)} />
+              <InfoRow label="Category" value={item.category} />
+            </>
+          }
+          metaRight={
+            <>
+              <InfoRow label="Specimen" value={item.specimen} />
+              <InfoRow label="Interpretation" value={item.interpretation} />
+            </>
+          }
+          footerLeft={item.notes || "Lab history entry"}
+          actionLabel="View Result"
+        />
       );
     }
 
     return (
-      <div key={item.id} className="rounded-lg bg-[#0d2443] px-4 py-3 text-sm text-[#e8f1ff]">
-        Record
-      </div>
+      <RecordShell
+        key={item.id}
+        icon={<Activity size={18} />}
+        title="Record"
+        subtitle="Health entry"
+        status="Saved"
+        footerLeft="Record entry"
+        actionLabel="View Record"
+      />
     );
   };
 
@@ -358,7 +538,19 @@ export function HealthCategoryHistoryPage() {
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="section-header font-display" style={{ color: "#1a2e1e" }}>
+          <div className="mb-4  top-10 left-20 z-50 bg-gray-100 px-5 rounded-lg">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-2 text-[#062B67] hover:opacity-70 transition"
+            >
+              <ArrowLeft size={26} className="  " />
+              <span className="text-sm md:text-base  font-meduim">Back</span>
+            </button>
+          </div>
+          <h1
+            className="section-header font-display"
+            style={{ color: "#1a2e1e" }}
+          >
             {title}
           </h1>
           <p className="text-sm" style={{ color: "#5a7a63" }}>
@@ -391,15 +583,95 @@ export function HealthCategoryHistoryPage() {
       </div>
 
       <div className="space-y-4">
-        {filteredRecords.length === 0 ? (
+        {isLoading ? (
+          <HealthHistoryLoader title={title} />
+        ) : filteredRecords.length === 0 ? (
           <div className="card-patient p-8 text-center">
             <p className="font-semibold" style={{ color: "#5a7a63" }}>
               No records found
             </p>
           </div>
         ) : (
-          filteredRecords.map((item) => renderRecordCard(item))
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+            {filteredRecords.map((item) => renderRecordCard(item))}
+          </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function RecordCardSkeleton() {
+  return (
+    <div className="animate-pulse rounded-[22px] border border-[#DDE3EA] bg-[#F9FAFB] px-5 py-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex min-w-0 items-start gap-3">
+          <div className="h-10 w-10 shrink-0 rounded-full bg-[#EAF1F6]" />
+
+          <div className="min-w-0 space-y-2">
+            <div className="h-5 w-40 rounded-md bg-[#E6EDF3]" />
+            <div className="h-4 w-56 rounded-md bg-[#EDF2F7]" />
+          </div>
+        </div>
+
+        <div className="h-7 w-20 rounded-full bg-[#E8F3EC]" />
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="space-y-2">
+          <div className="h-4 w-36 rounded-md bg-[#EDF2F7]" />
+          <div className="h-4 w-28 rounded-md bg-[#EDF2F7]" />
+        </div>
+
+        <div className="space-y-2">
+          <div className="h-4 w-32 rounded-md bg-[#EDF2F7]" />
+          <div className="h-4 w-24 rounded-md bg-[#EDF2F7]" />
+        </div>
+      </div>
+
+      <div className="mt-4 space-y-2">
+        <div className="h-4 w-full rounded-md bg-[#F1F5F9]" />
+        <div className="h-4 w-4/5 rounded-md bg-[#F1F5F9]" />
+      </div>
+
+      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="h-4 w-44 rounded-md bg-[#EDF2F7]" />
+        <div className="h-10 w-28 rounded-full bg-[#E7F1EE]" />
+      </div>
+    </div>
+  );
+}
+
+function HealthHistoryLoader({
+  title,
+  count = 6,
+}: {
+  title: string;
+  count?: number;
+}) {
+  return (
+    <div className="space-y-4">
+      <div className="rounded-[22px] border border-[#DDE3EA] bg-gradient-to-r from-[#F8FBFA] to-[#F4F8FB] p-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#EAF7F1]">
+            <div className="h-5 w-5 rounded-full border-2 border-[#2F915C] border-t-transparent animate-spin" />
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold text-[#1F2A37]">
+              Loading {title.toLowerCase()}
+            </p>
+            <p className="text-sm text-[#6B7280]">
+              Fetching patient records...
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        {Array.from({ length: count }).map((_, index) => (
+          <RecordCardSkeleton key={index} />
+        ))}
       </div>
     </div>
   );

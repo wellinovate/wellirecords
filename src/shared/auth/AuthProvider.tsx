@@ -8,7 +8,7 @@ import React, {
 import { AuthUser, UserRole } from "@/shared/types/types";
 import { authApi, SearchPatientResponse } from "@/shared/api/authApi";
 import axios from "axios";
-import { getCurrentUser, logOut } from "../utils/utilityFunction";
+import { getAuthFromToken, getCurrentUser, logOut } from "../utils/utilityFunction";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = async (email: string, password: string) => {
     const res = await authApi.signIn(email, password);
     console.log("🚀 ~ signIn ~ u:", res.data.account);
-    setUser(res);
+    setUser(res.data.account);
     localStorage.setItem(
       "ui_user",
       JSON.stringify({
@@ -76,6 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         accountType: res.data.account.accountType,
       }),
     );
+    getAuthFromToken(res.data.accessToken)
     return res;
   };
 

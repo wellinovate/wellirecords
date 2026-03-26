@@ -17,6 +17,7 @@ import {
   HeartPulse,
   LayoutDashboard,
   LifeBuoy,
+  Lock,
   LogOut,
   MapPin,
   Menu,
@@ -43,8 +44,15 @@ const patientNav = [
 
   {
     to: "/patient/vault",
-    label: "Health History",
+    label: "Health Record",
     icon: FolderHeart,
+    premium: true,
+  },
+  {
+    to: "/patient/journeys",
+    label: "Health History",
+    // label: "Health History/Journeys",
+    icon: Activity,
     premium: true,
   },
   {
@@ -53,29 +61,24 @@ const patientNav = [
     icon: Pill,
     premium: true,
   },
-   {
-    to: "/patient/journeys",
-    label: "Care Journeys",
-    icon: Activity,
-    premium: true,
-  },
-   {
+
+  {
     to: "/patient/appointments",
     label: "Appointments",
     icon: Calendar,
     premium: true,
   },
-   {
+  {
     to: "/patient/consents",
-    label: "My Data & Consents",
+    label: "My Consents",
     icon: Shield,
-    premium: true,
+    premium: false,
   },
   {
     to: "/patient/family",
     label: "Family & Dependants",
     icon: Baby,
-    premium: true,
+    premium: false,
   },
   {
     to: "/patient/find-care",
@@ -83,7 +86,7 @@ const patientNav = [
     icon: MapPin,
     premium: false,
   },
-  
+
   {
     to: "/patient/telemedicine",
     label: "Telemedicine",
@@ -106,9 +109,9 @@ const patientNav = [
     to: "/patient/billing",
     label: "Billing",
     icon: CreditCard,
-    premium: false,
+    premium: true,
   },
-  { to: "/patient/support", label: "Support", icon: LifeBuoy, premium: false },
+  { to: "/patient/support", label: "Support", icon: LifeBuoy, premium: true },
 ];
 
 // Bottom nav — 4 primary tabs + "more" button
@@ -152,7 +155,7 @@ export function PatientLayout() {
           {/* Drawer panel */}
           <aside
             className="relative flex flex-col w-72 max-w-[85vw] h-full animate-slide-in-left"
-            style={{ background: "#f8fafc", borderRight: "1px solid #e2e8f0" }}
+            style={{ background: "#DAE5F7", borderRight: "1px solid #e2e8f0" }}
           >
             <div className="p-4 border-b border-slate-200 flex items-center justify-between">
               <WelliRecordLogo height={32} theme="dark" />
@@ -237,13 +240,16 @@ export function PatientLayout() {
 
       {/* ─── Desktop / Tablet Sidebar ─── */}
       <aside
-        className="sidebar-patient hidden md:flex flex-col w-16 lg:w-64 z-20 flex-shrink-0"
-        style={{ background: "#f8fafc", borderRight: "1px solid #e2e8f0" }}
+        className="sidebar-patient hidden md:flex flex-col w-16 lg:w-64 z-20 flex-shrink-0 border bg-[#DAE5F7] border-r-2 border-gray-100"
+        
       >
         {/* Logo */}
         <div className="p-3 lg:p-5 border-b border-slate-200 flex items-center justify-center lg:justify-start">
           {/* <WelliRecordLogo height={32} theme="dark" className="hidden lg:block" /> */}
-          <Link to="/" className="flex h-14 w-72 overflow-hidden items-center justify-center rounded-md  text-white shadow-sm cursor-pointer">
+          <Link
+            to="/"
+            className="flex h-14 w-72 overflow-hidden items-center justify-center rounded-md  text-white shadow-sm cursor-pointer"
+          >
             <img
               src={logos}
               alt="wellirecord"
@@ -256,10 +262,7 @@ export function PatientLayout() {
           >
             W
           </div>
-          <div
-            className="ml-2 hidden lg:block text-[10px] font-bold tracking-widest uppercase"
-            style={{ color: "#1e3a8a" }}
-          >
+          <div className="ml-2 hidden lg:block text-[10px] font-bold tracki uppercase text-white bg-[#1e3a8a] px-4 rounded-lg ">
             Patient Portal
           </div>
         </div>
@@ -304,9 +307,16 @@ export function PatientLayout() {
                 onClick={() => navigate(item.to)}
                 disabled={!item.premium}
                 title={item.label}
-                className={`sidebar-item sidebar-item-patient w-full ${active ? "active" : ""} justify-center lg:justify-start ${!item.premium ? "bg-black/10": " "}`}
+                className={`sidebar-item sidebar-item-patient w-full ${active ? "active" : ""} justify-center lg:justify-start ${
+                  !item.premium
+                    ? "opacity-60 grayscale text-gray-400 cursor-not-allowed"
+                    : "text-gray-800 font-semibold"
+                }`}
               >
                 <item.icon size={18} />
+                {!item.premium && (
+                  <Lock size={14} className="ml-2 text-gray-400" />
+                )}
                 <span className="hidden lg:block flex-1 text-left">
                   {item.label}
                 </span>
@@ -316,7 +326,7 @@ export function PatientLayout() {
               </button>
             );
           })}
-          <div
+          {/* <div
             className="flex items-center gap-3 px-2 lg:px-3 py-2.5 rounded-xl mt-2 cursor-pointer justify-center lg:justify-start"
             style={{ background: "#f0fdfa", border: "1px solid #ccfbf1" }}
             onClick={() => setWelliMateEnabled(!isWelliMateEnabled)}
@@ -341,7 +351,7 @@ export function PatientLayout() {
           >
             <ExternalLink size={12} /> Link profile at wellimate.com{" "}
             <ChevronRight size={10} className="ml-auto" />
-          </a>
+          </a> */}
         </nav>
         <div className="p-2 lg:p-3 border-t border-slate-200 space-y-0.5">
           <button
@@ -364,9 +374,9 @@ export function PatientLayout() {
       </aside>
 
       {/* ─── Main ─── */}
-      <div className="flex-1 flex flex-col overflow-hidden bg-slate-50 min-w-0">
+      <div className="flex-1 flex flex-col overflow-hidden bg-[#e2e9f3] min-w-0">
         {/* Top bar */}
-        <header className="h-14 flex items-center justify-between px-4 md:px-6 border-b border-slate-200 flex-shrink-0 bg-white">
+        <header className="h-14 flex items-center justify-between px-4 md:px-6 border-b border-slate-50 flex-shrink-0 bg-[#DAE5F7] ">
           {/* Mobile: hamburger + logo */}
           <div className="flex items-center gap-3">
             <button
