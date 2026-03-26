@@ -145,19 +145,22 @@ export async function getPatients({
   search = "",
   page = 1,
   limit = 10,
-  id,
 }: GetPatientsParams): Promise<GetPatientsResponse> {
   const query = new URLSearchParams({
     search,
     page: String(page),
     limit: String(limit),
-    id: String(id)
   });
+  const token = Cookies.get("accessToken");
 
   const res = await fetch(
     `${apiUrl}/api/v1/organization/patients?${query.toString()}`,
     {
       method: "GET",
+    headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       credentials: "include",
     },
   );
@@ -521,6 +524,69 @@ export async function getPatientImmunizations(
 
   if (!res.ok) {
     throw new Error(data?.message || "Failed to fetch immunizations");
+  }
+
+  return data.data;
+}
+
+export type EncounterItem = {
+  id: string;
+  patientId: string;
+  providerId: string;
+  organizationId: string;
+  encounterType: string | null;
+  scheduledAt: string | null;
+  startedAt: string | null;
+  endedAt: string | null;
+  reasonForVisit: string | null;
+  chiefComplaint: string | null;
+  priority: string | null;
+  source: string | null;
+  status: string | null;
+  visibilityToPatient: boolean;
+  patientAccess: string | null;
+  recordStatus: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export async function createEncounter(payload: any) {
+  const res = await fetch("/api/v1/encounters", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data?.message || "Failed to create encounter");
+  }
+
+  return data.data;
+}
+
+export async function getPatientEncounters(
+  patientId: string,
+  page = 1,
+  limit = 10,
+) {
+  const res = await fetch(
+    `/api/v1/encounters/patient/${patientId}?page=${page}&limit=${limit}`,
+    {
+      method: "GET",
+      credentials: "include",
+    },
+  );
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data?.message || "Failed to fetch encounters");
   }
 
   return data.data;

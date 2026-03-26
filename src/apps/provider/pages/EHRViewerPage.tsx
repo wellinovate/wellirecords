@@ -17,9 +17,11 @@ import {
 import {
   AllergyItem,
   DiagnosisItem,
+  EncounterItem,
   getPatientAllergies,
   getPatientDetail,
   getPatientDiagnoses,
+  getPatientEncounters,
   getPatientLabResults,
   getPatientMedications,
   getPatientVitals,
@@ -35,6 +37,7 @@ import { MedicationRecordForm } from "@/apps/components/MedicationRecordForm";
 import { AllergyRecordForm } from "@/apps/components/AllergyRecordForm";
 import { DiagnosisRecordForm } from "@/apps/components/DiagnosisRecordForm";
 import { LabResultRecordForm } from "@/apps/components/LabResultRecordForm";
+import { EncounterRecordForm } from "@/apps/components/EncounterRecordForm";
 
 const TABS = [
   "Overview",
@@ -230,6 +233,9 @@ export function EHRViewerPage() {
   const [labResults, setLabResults] = useState<LabResultItem[]>([]);
   const [loadingLabResults, setLoadingLabResults] = useState(false);
   const [labResultsError, setLabResultsError] = useState("");
+  const [encounters, setEncounters] = useState<EncounterItem[]>([]);
+  const [loadingEncounters, setLoadingEncounters] = useState(false);
+  const [encountersError, setEncountersError] = useState("");
 
   const patientId = String(id);
 
@@ -301,6 +307,22 @@ export function EHRViewerPage() {
     }
   };
 
+  const loadEncounters = async () => {
+    if (!patientId) return;
+
+    try {
+      setLoadingEncounters(true);
+      setEncountersError("");
+
+      const result = await getPatientEncounters(patientId, 1, 10);
+      setEncounters(result.items || []);
+    } catch (err: any) {
+      setEncountersError(err.message || "Failed to load encounters");
+    } finally {
+      setLoadingEncounters(false);
+    }
+  };
+
   useEffect(() => {
     loadLabResults();
   }, [patientId]);
@@ -315,6 +337,10 @@ export function EHRViewerPage() {
 
   useEffect(() => {
     loadDiagnoses();
+  }, [patientId]);
+
+  useEffect(() => {
+    loadEncounters();
   }, [patientId]);
 
   const loadVitals = async () => {
@@ -461,9 +487,24 @@ export function EHRViewerPage() {
     }));
   }, [labResults]);
 
+  const encounterTabRecords = useMemo(() => {
+    return encounters.map((item) => ({
+      id: item.id,
+      title: item.reasonForVisit || item.encounterType || "Encounter",
+      subtitle:
+        [item.chiefComplaint, item.priority, item.status]
+          .filter(Boolean)
+          .join(" • ") || "Encounter record",
+      meta: item.startedAt
+        ? new Date(item.startedAt).toLocaleString()
+        : "No start time",
+    }));
+  }, [encounters]);
+
   const resolvedRecordDataByTab = useMemo(() => {
     return {
       ...recordDataByTab,
+      Encounters: encounterTabRecords,
       Vitals: vitalTabRecords,
       Medications: medicationTabRecords,
       Allergies: allergyTabRecords,
@@ -471,6 +512,7 @@ export function EHRViewerPage() {
       "Lab Results": labResultTabRecords,
     };
   }, [
+    encounterTabRecords,
     vitalTabRecords,
     medicationTabRecords,
     allergyTabRecords,
@@ -908,6 +950,18 @@ export function EHRViewerPage() {
                     onSuccess={async () => {
                       await loadLabResults();
                       setTab("Lab Results");
+                      handleCloseCreateModal();
+                    }}
+                  />
+                )}
+
+                {activeCreateTab === "Encounters" && (
+                  <EncounterRecordForm
+                    patientId={patientId}
+                    onClose={handleCloseCreateModal}
+                    onSuccess={async () => {
+                      await loadEncounters();
+                      setTab("Encounters");
                       handleCloseCreateModal();
                     }}
                   />

@@ -1,4 +1,4 @@
-import { logos } from "@/assets";
+import { logo, logos } from "@/assets";
 import { orgApi } from "@/shared/api/orgApi";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { useWelliMate } from "@/shared/context/WelliMateContext";
@@ -47,7 +47,15 @@ const ALL_NAV = [
     roles: ["*"],
   },
   { to: "/provider/patients", label: "Patients", icon: Users, roles: ["*"] },
+
   { to: "/provider/queue", label: "Queue", icon: CalendarClock, roles: ["*"] },
+  {
+    to: "/provider/prescriptions",
+    label: "Prescriptions",
+    icon: Pill,
+    // roles: ["clinician", "pharmacist", "provider_admin"],
+    roles: ["*"]
+  },
   {
     to: "/provider/encounters/new",
     label: "New Encounter",
@@ -62,26 +70,21 @@ const ALL_NAV = [
     // roles: ["clinician", "lab_tech", "provider_admin"],
     roles: ["*"]
   },
+  
+  
   {
-    to: "/provider/prescriptions",
-    label: "Prescriptions",
-    icon: Pill,
-    // roles: ["clinician", "pharmacist", "provider_admin"],
-    roles: ["*"]
+    to: "/provider/telemedicine",
+    label: "Telemedicine",
+    icon: Video,
+    roles: ["clinician", "provider_admin", "telehealth_provider"],
+    // roles: ["*"]
   },
   {
     to: "/provider/referrals",
     label: "Referrals",
     icon: GitBranch,
-    // roles: ["clinician", "provider_admin"],
-    roles: ["*"]
-  },
-  {
-    to: "/provider/telemedicine",
-    label: "Telemedicine",
-    icon: Video,
-    // roles: ["clinician", "provider_admin", "telehealth_provider"],
-    roles: ["*"]
+    roles: ["clinician", "provider_admin"],
+    // roles: ["*"]
   },
   {
     to: "/provider/nursing",
@@ -339,20 +342,18 @@ export function ProviderLayout() {
             className="flex h-14 w-72 overflow-hidden items-center justify-center rounded-md  text-white shadow-sm cursor-pointer"
           >
             <img
-              src={logos}
+              src={logo}
               alt="wellirecord"
               className=" w-full h- full object-cover"
             />
           </Link>
           <div
-            className="lg:hidden w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black"
-            style={{ background: "var(--prov-accent)", color: "#000" }}
+            className="lg:hidden w-8 h-8 rounded-lg flex items-center justify-center text-sm text-white font-black"
           >
-            W
+            
           </div>
           <div
-            className="ml-2 hidden lg:block text-[10px] font-bold tracking-widest uppercase"
-            style={{ color: "var(--prov-accent)" }}
+            className="ml-2 hidden lg:block text-[10px] font-bold border border-blue-800 px-2 rounded-lg tracking-widest uppercase"
           >
             Provider Portal
           </div>

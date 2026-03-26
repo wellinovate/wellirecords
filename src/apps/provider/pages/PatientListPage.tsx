@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Search,
   QrCode,
@@ -591,7 +591,6 @@ export function PatientListPage() {
           search,
           page,
           limit,
-          id: user?.data?.account?.id,
         });
 
         setPatients(result?.data?.patients);
@@ -678,15 +677,15 @@ export function PatientListPage() {
                     <SlidersHorizontal size={13} />
                   </button>
 
-                  <button
-                    type="button"
+                  <Link
+                    to="/provider/encounters/new"
                     className="inline-flex h-10 items-center gap-2 rounded-md border border-[#365f8f] bg-[#17365d] px-4 text-sm font-medium text-[#dcecff] hover:bg-[#1a416f]"
                   >
                     <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-white/20">
                       +
                     </span>
                     <span>New Encounter</span>
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>
