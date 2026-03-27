@@ -3,7 +3,7 @@ import { useAuth } from "@/shared/auth/AuthProvider";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+// import { toast } from "react-toastify";
 
 function PasswordInput({ label, value, onChange }) {
   const [visible, setVisible] = useState(false);
@@ -128,7 +128,7 @@ export function PatientLoginPage() {
         setError("Invalid email or password. try again");
         return;
       }
-      toast.success("login successfully");
+      // toast.success("login successfully");
 
       localStorage.setItem("activeProfileType", profileType);
       if (user?.data?.account?.accountType === "user") {
@@ -139,9 +139,11 @@ export function PatientLoginPage() {
     } catch (error: any) {
       console.log("🚀 ~ handleSubmit ~ error:", error);
       if (error.message.includes("timeout")) {
-        toast.error("Request took too long. Check your connection.");
+        // toast.error("Request took too long. Check your connection.");
+        console.log("Request took too long. Check your connection.");
       } else {
-        toast.error(error.message || "Something went wrong. Try again.");
+        // toast.error(error.message || "Something went wrong. Try again.");
+        console.log(error.message || "Something went wrong. Try again.");
       }
     } finally {
       setLoading(false);
