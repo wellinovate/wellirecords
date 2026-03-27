@@ -1,7 +1,13 @@
 import { dependantApi } from "@/shared/api/dependantApi";
 import { patientDashboardApi } from "@/shared/api/patientDashboardApi";
+import { HeartPulse, ShieldAlert, TestTube, Scissors } from "lucide-react";
 import { useAuth } from "@/shared/auth/AuthProvider";
-import { ConsentGrant, TimelineRecord, VitalRecord } from "@/shared/types/types";
+import {
+  ConsentGrant,
+  TimelineRecord,
+  VitalRecord,
+} from "@/shared/types/types";
+import { getUsersRecord } from "@/shared/utils/utilityFunction";
 import {
   Activity,
   AlertCircle,
@@ -11,14 +17,12 @@ import {
   BrainCircuit,
   Camera,
   ChevronRight,
-  Clock,
   Dna,
   Droplets,
   FileText,
   FolderHeart,
   Heart,
   Pill,
-  QrCode,
   Shield,
   Sparkles,
   Stethoscope,
@@ -30,6 +34,7 @@ import {
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { RecordCardSkeleton } from "../components/RecordCardSkeleton ";
 
 /* ── tiny inline SVG sparkline ───────────────────────────────────────────── */
 function Sparkline({ points, color }: { points: number[]; color: string }) {
@@ -333,15 +338,21 @@ export function PatientOverview() {
   const { user } = useAuth();
   // console.log("🚀 ~ PatientOverview ~ user:", user?.data?.account?._id)
   const navigate = useNavigate();
-  const [records, setRecords] = useState<TimelineRecord[]>([]);
   const [grants, setGrants] = useState<ConsentGrant[]>([]);
   const [vitalRecords, setVitalRecords] = useState<VitalRecord[]>([]);
   const [requests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  type RecordCategory = {
+    category: string;
+    recordCount: number;
+    lastUpdatedAt: string | null;
+    summaryMetric: Record<string, any>;
+  };
 
-  const patientId = user?.data?.account?._id;
-  console.log("🚀 ~ PatientOverview ~ patientId:", patientId);
+  type RecordsResponse = Record<string, RecordCategory>;
+
+  const [records, setRecords] = useState<RecordsResponse>({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -349,81 +360,22 @@ export function PatientOverview() {
       setError("");
 
       try {
-        const [recordsRes, grantsRes] = await Promise.all([
-          patientDashboardApi.getRecords(patientId, { page: 1, limit: 10 }),
-          //   patientDashboardApi.getGrants(patientId),
-          //   patientDashboardApi.getRequests(patientId),
-          patientDashboardApi.getVitals(patientId, { page: 1, limit: 10 }),
-        ]);
-        console.log("🚀 ~ fetchDashboardData ~ recordsRes:", recordsRes);
+        const result = await getUsersRecord(1, 10);
+        console.log("🚀 ~ fetchDashboardData ~ result:", result);
 
-        // if (!isMounted) return;
-
-        setRecords(recordsRes?.items || recordsRes?.data || []);
-        setGrants(
-          (grantsRes?.data || grantsRes || []).filter(
-            (g) => g.status === "active",
-          ),
-        );
-        // setRequests(requestsRes?.data || requestsRes || []);
-        // setVitalRecords(vitalsRes?.items || vitalsRes?.data || []);
-      } catch (err) {
-        const error: Error = err;
-        // if (!isMounted) return;
-        setError(error.message || "Failed to load dashboard data");
+        const data: RecordsResponse = result?.data ?? result ?? {};
+        setRecords(data);
+      } catch (err: any) {
+        setError(err?.message || "Failed to load dashboard data");
       } finally {
-        // if (isMounted)
         setLoading(false);
       }
     };
 
-    // fetchDashboardData();
+    fetchDashboardData();
+  }, []);
 
-    // return () => {
-    //   isMounted = false;
-    // };
-  }, [patientId]);
-
-  // const records = vaultApi.getRecords(user?.userId ?? '');
-  // const grants = consentApi.getGrants(user?.userId ?? '').filter(g => g.status === 'active');
-  // const requests = consentApi.getRequests(user?.userId ?? '');
-
-  /* vitals — neutral border; color lives in icon + sparkline only */
-  const vitals = [
-    {
-      label: "Heart Rate",
-      value: "72",
-      unit: "BPM",
-      icon: Heart,
-      metricColor: "#ef4444",
-      spark: [68, 74, 71, 76, 70, 72, 72],
-      status: "Normal",
-      statusColor: "#10b981",
-      subtext: "60–100 BPM is healthy",
-    },
-    {
-      label: "Blood Pressure",
-      value: "118/78",
-      unit: "mmHg",
-      icon: Activity,
-      metricColor: "#3b82f6",
-      spark: [115, 122, 119, 125, 117, 120, 118],
-      status: "Optimal",
-      statusColor: "#10b981",
-      subtext: "Below 120/80 is ideal",
-    },
-    {
-      label: "O₂ Saturation",
-      value: "98",
-      unit: "%",
-      icon: Droplets,
-      metricColor: "#06b6d4",
-      spark: [97, 98, 97, 99, 98, 98, 98],
-      status: "Normal",
-      statusColor: "#10b981",
-      subtext: "95–100% is healthy",
-    },
-  ];
+  const recordList = Object.values(records || {});
 
   return (
     <div className="animate-fade-in">
@@ -434,8 +386,7 @@ export function PatientOverview() {
             className="section-header font-display mb-1 text-[28px]"
             style={{ color: "var(--pat-text)" }}
           >
-            Welcome to your Dashboard{" "}
-            {user ?`, ${user?.fullName}` : ""}!
+            Welcome to your Dashboard {user ? `, ${user?.fullName}` : ""}!
           </h1>
           <p
             className="text-sm font-medium flex items-center gap-2"
@@ -467,7 +418,7 @@ export function PatientOverview() {
       </div>
 
       {/* ── Pending consent alert ── */}
-      {requests.length > 0 && (
+      {!records && (
         <div
           className="mb-6 p-4 rounded-2xl flex items-start gap-3 animate-fade-in-up"
           style={{
@@ -504,77 +455,61 @@ export function PatientOverview() {
       )}
 
       {/* ── Vital Stats — neutral top border, color in icon + sparkline only ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        {records?.map((v) => (
-          <div
-            key={v.label}
-            className="card-patient p-5 relative overflow-hidden"
-          >
-            {/* Neutral top border — NOT metric-colored so "red" doesn't imply alert */}
-            <div
-              className="absolute top-0 left-0 right-0 h-0.5 rounded-t-[var(--radius-lg)]"
-              style={{ background: "var(--pat-border)" }}
-            />
-
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <div
-                  className="text-xs font-bold uppercase tracking-widest mb-1"
-                  style={{ color: "var(--pat-muted)" }}
-                >
-                  {v.label}
-                </div>
-                <div
-                  className="text-3xl font-black font-display leading-none"
-                  style={{ color: "var(--pat-text)" }}
-                >
-                  {v.value}
-                </div>
-                <div
-                  className="text-xs font-semibold mt-0.5"
-                  style={{ color: "var(--pat-muted)" }}
-                >
-                  {v.unit}
-                </div>
-              </div>
-              {/* Icon retains full metric color */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
+        {loading
+          ? Array.from({ length: 6 }).map((_, index) => (
+              <RecordCardSkeleton key={index} />
+            ))
+          : recordList.map((item: any) => (
               <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: `${v.metricColor}15` }}
+                key={item.category}
+                className="card-patient p-5 relative overflow-hidden rounded-2xl border border-gray-200 bg-white hover:shadow-md transition cursor-pointer"
               >
-                <v.icon size={18} style={{ color: v.metricColor }} />
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <div className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                      {formatLabel(item.category)}
+                    </div>
+                    <div className="text-3xl font-black text-gray-900 mt-1">
+                      {item.recordCount}
+                    </div>
+                    <div className="text-xs text-gray-400">records</div>
+                  </div>
+
+                  <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
+                    {getCategoryIcon(item.category)}
+                  </div>
+                </div>
+
+                <div className="text-sm text-gray-700 mb-3">
+                  {getCategorySummary(item)}
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="text-[11px] text-gray-400">
+                    {item.lastUpdatedAt
+                      ? `Updated ${new Date(item.lastUpdatedAt).toLocaleDateString()}`
+                      : "No records yet"}
+                  </div>
+
+                  <button className="text-xs font-semibold text-[#2F915C]">
+                    View
+                  </button>
+                </div>
               </div>
-            </div>
-
-            {/* Sparkline retains metric color */}
-            <div className="mb-2">
-              <Sparkline points={v.spark} color={v.metricColor} />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <StatusChip label={v.status} color={v.statusColor} />
-              <span
-                className="text-[10px]"
-                style={{ color: "var(--pat-muted)" }}
-              >
-                {v.subtext}
-              </span>
-            </div>
-          </div>
-        ))}
+            ))}
       </div>
 
       {/* ── AI Health Brief ── */}
-      <AIHealthBrief />
+      {/* <AIHealthBrief /> */}
 
       {/* ── Family Health Snapshot ── */}
-      <FamilyHealthSnapshot
+      {/* <FamilyHealthSnapshot
         userId={user?.userId ?? "pat_1"}
         onNavigate={navigate}
-      />
+      /> */}
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* ── Left 2/3: Smart Health Timeline ── */}
         <div className="lg:col-span-2 space-y-6">
           {records.length > 0 ? (
             <div className="card-patient p-6">
@@ -607,7 +542,7 @@ export function PatientOverview() {
               >
                 <style>{`.timeline-line::before { background: var(--pat-border); }`}</style>
                 <div className="relative pl-6 space-y-5 timeline-line">
-                  {records.slice(0, 5).map((rec) => (
+                  {vitals.slice(0, 5).map((rec) => (
                     <div key={rec.id} className="relative">
                       <div
                         className="absolute left-[-1.6rem] top-1.5 w-3 h-3 rounded-full border-2"
@@ -663,96 +598,97 @@ export function PatientOverview() {
             </div>
           ) : (
             /* Clean, Friendly White Block Empty State */
-            <div
-              className="rounded-2xl overflow-hidden shadow-sm border-2 border-dashed relative"
-              style={{
-                background: "var(--pat-surface)",
-                borderColor: "var(--pat-border)",
-              }}
-            >
-              <div
-                className="p-14 flex flex-col items-center text-center relative z-10 border-b"
-                style={{ borderColor: "var(--pat-border)" }}
-              >
-                <div
-                  className="w-24 h-24 rounded-full flex items-center justify-center mb-6"
-                  style={{
-                    background: "rgba(4, 30, 66, 0.05)",
-                    color: "var(--pat-primary)",
-                  }}
-                >
-                  <FolderHeart size={48} />
-                </div>
-                <h3
-                  className="font-display font-bold text-2xl mb-3 tracking-tight"
-                  style={{ color: "var(--pat-text)" }}
-                >
-                  You don't have any health records yet
-                </h3>
-                <p
-                  className="text-base mb-10 max-w-md leading-relaxed"
-                  style={{ color: "var(--pat-muted)" }}
-                >
-                  It's easy to get started. Just upload a photo or PDF of your
-                  latest lab results, a prescription, or a doctor's note.
-                </p>
-                <button
-                  onClick={() => navigate("/patient/vault")}
-                  className="flex items-center justify-center gap-3 px-10 py-4 rounded-xl font-bold text-base transition-all hover:-translate-y-1 shadow-md hover:shadow-lg w-full sm:w-auto"
-                  style={{ background: "var(--pat-primary)", color: "#ffffff" }}
-                >
-                  <UploadCloud size={20} />
-                  Upload a Record Now
-                </button>
-              </div>
+            <div></div>
+            // <div
+            //   className="rounded-2xl overflow-hidden shadow-sm border-2 border-dashed relative"
+            //   style={{
+            //     background: "var(--pat-surface)",
+            //     borderColor: "var(--pat-border)",
+            //   }}
+            // >
+            //   <div
+            //     className="p-14 flex flex-col items-center text-center relative z-10 border-b"
+            //     style={{ borderColor: "var(--pat-border)" }}
+            //   >
+            //     <div
+            //       className="w-24 h-24 rounded-full flex items-center justify-center mb-6"
+            //       style={{
+            //         background: "rgba(4, 30, 66, 0.05)",
+            //         color: "var(--pat-primary)",
+            //       }}
+            //     >
+            //       <FolderHeart size={48} />
+            //     </div>
+            //     <h3
+            //       className="font-display font-bold text-2xl mb-3 tracking-tight"
+            //       style={{ color: "var(--pat-text)" }}
+            //     >
+            //       You don't have any health records yet
+            //     </h3>
+            //     <p
+            //       className="text-base mb-10 max-w-md leading-relaxed"
+            //       style={{ color: "var(--pat-muted)" }}
+            //     >
+            //       It's easy to get started. Just upload a photo or PDF of your
+            //       latest lab results, a prescription, or a doctor's note.
+            //     </p>
+            //     <button
+            //       onClick={() => navigate("/patient/vault")}
+            //       className="flex items-center justify-center gap-3 px-10 py-4 rounded-xl font-bold text-base transition-all hover:-translate-y-1 shadow-md hover:shadow-lg w-full sm:w-auto"
+            //       style={{ background: "var(--pat-primary)", color: "#ffffff" }}
+            //     >
+            //       <UploadCloud size={20} />
+            //       Upload a Record Now
+            //     </button>
+            //   </div>
 
-              {/* Drag-and-drop zone */}
-              <div
-                className="p-10 relative overflow-hidden z-10"
-                style={{ background: "var(--pat-bg)" }}
-              >
-                <div className="flex flex-col items-center">
-                  <p
-                    className="font-bold text-sm text-center mb-4 max-w-sm"
-                    style={{ color: "var(--pat-text)" }}
-                  >
-                    Or instantly auto-save a physical document:
-                  </p>
-                  <div
-                    className="w-full max-w-lg border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all hover:bg-white group"
-                    style={{
-                      borderColor: "var(--pat-border)",
-                      background: "transparent",
-                    }}
-                  >
-                    <BrainCircuit
-                      size={32}
-                      className="mx-auto mb-3 transition-transform group-hover:-translate-y-1"
-                      style={{ color: "var(--pat-primary)" }}
-                    />
-                    <div
-                      className="font-bold text-base mb-1"
-                      style={{ color: "var(--pat-text)" }}
-                    >
-                      Drop a PDF or image here
-                    </div>
-                    <div
-                      className="text-sm"
-                      style={{ color: "var(--pat-muted)" }}
-                    >
-                      or click to browse your files
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            //   {/* Drag-and-drop zone */}
+            //   <div
+            //     className="p-10 relative overflow-hidden z-10"
+            //     style={{ background: "var(--pat-bg)" }}
+            //   >
+            //     <div className="flex flex-col items-center">
+            //       <p
+            //         className="font-bold text-sm text-center mb-4 max-w-sm"
+            //         style={{ color: "var(--pat-text)" }}
+            //       >
+            //         Or instantly auto-save a physical document:
+            //       </p>
+            //       <div
+            //         className="w-full max-w-lg border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all hover:bg-white group"
+            //         style={{
+            //           borderColor: "var(--pat-border)",
+            //           background: "transparent",
+            //         }}
+            //       >
+            //         <BrainCircuit
+            //           size={32}
+            //           className="mx-auto mb-3 transition-transform group-hover:-translate-y-1"
+            //           style={{ color: "var(--pat-primary)" }}
+            //         />
+            //         <div
+            //           className="font-bold text-base mb-1"
+            //           style={{ color: "var(--pat-text)" }}
+            //         >
+            //           Drop a PDF or image here
+            //         </div>
+            //         <div
+            //           className="text-sm"
+            //           style={{ color: "var(--pat-muted)" }}
+            //         >
+            //           or click to browse your files
+            //         </div>
+            //       </div>
+            //     </div>
+            //   </div>
+            // </div>
           )}
         </div>
 
         {/* ── Right 1/3: Sidebar widgets ── */}
         <div className="space-y-4">
           {/* Connected Devices */}
-          <div className="card-patient p-6">
+          {/* <div className="card-patient p-6">
             <h2
               className="font-bold text-sm mb-4"
               style={{ color: "var(--pat-text)" }}
@@ -785,10 +721,10 @@ export function PatientOverview() {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Who Has Access */}
-          <div className="card-patient p-6">
+          {/* <div className="card-patient p-6">
             <div className="flex items-center justify-between mb-4">
               <h2
                 className="font-bold text-sm"
@@ -870,7 +806,7 @@ export function PatientOverview() {
             >
               <QrCode size={16} /> View Emergency Card
             </button>
-          </div>
+          </div> */}
 
           {/* AI Document Extraction — only when records exist */}
           {records.length > 0 && (
@@ -919,3 +855,81 @@ export function PatientOverview() {
     </div>
   );
 }
+
+const formatLabel = (label: string) =>
+  label.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+const renderSummary = (summary: Record<string, any>) => {
+  if (!summary) return null;
+
+  return Object.entries(summary).map(([key, value]) => (
+    <div key={key}>
+      <span className="font-medium">{formatLabel(key)}:</span> {String(value)}
+    </div>
+  ));
+};
+
+const getCategorySummary = (item: any) => {
+  const summary = item.summaryMetric || {};
+
+  switch (item.category) {
+    case "allergies":
+      return item.recordCount > 0
+        ? `Latest allergen: ${summary.latestAllergen || "N/A"}`
+        : "No allergy records yet";
+
+    case "medications":
+      return item.recordCount > 0
+        ? `Latest medication: ${summary.latestMedication || "N/A"}`
+        : "No medication records yet";
+
+    case "vitals":
+      return item.recordCount > 0
+        ? `Total vital entries: ${item.recordCount}`
+        : "No vital records yet";
+
+    case "lab_results":
+      return item.recordCount > 0
+        ? `Recent result available`
+        : "No lab results yet";
+
+    case "diagnoses":
+      return item.recordCount > 0
+        ? `Diagnosis records available`
+        : "No diagnosis records yet";
+
+    case "immunizations":
+      return item.recordCount > 0
+        ? `Immunization history available`
+        : "No immunization records yet";
+
+    case "procedures":
+      return item.recordCount > 0
+        ? `Procedure history available`
+        : "No procedure records yet";
+
+    default:
+      return "No summary available";
+  }
+};
+
+const getCategoryIcon = (category: string) => {
+  switch (category) {
+    case "vitals":
+      return <HeartPulse size={18} className="text-red-500" />;
+    case "medications":
+      return <Pill size={18} className="text-blue-500" />;
+    case "allergies":
+      return <ShieldAlert size={18} className="text-amber-500" />;
+    case "lab_results":
+      return <TestTube size={18} className="text-purple-500" />;
+    case "diagnoses":
+      return <Stethoscope size={18} className="text-green-600" />;
+    case "immunizations":
+      return <Syringe size={18} className="text-emerald-500" />;
+    case "procedures":
+      return <Scissors size={18} className="text-gray-600" />;
+    default:
+      return <HeartPulse size={18} className="text-gray-400" />;
+  }
+};
