@@ -171,7 +171,11 @@ export const authApi = {
       const response = await axios.post(`${apiUrl}/api/v1/auth/login`, {
         email: email,
         password: password,
-      });
+      },
+      {
+    timeout: 60000, // 60 seconds
+  }
+    );
 
       if (response.status === 200) {
         const data = await response.data;

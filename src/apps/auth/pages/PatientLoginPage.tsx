@@ -3,6 +3,7 @@ import { useAuth } from "@/shared/auth/AuthProvider";
 import { ArrowLeft } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {toast} from "react-toastify";
 
 function PasswordInput({ label, value, onChange }) {
   const [visible, setVisible] = useState(false);
@@ -117,29 +118,34 @@ export function PatientLoginPage() {
     }
 
     console.log("🚀 ~ handleSubmit ~ form?.email:", form?.email);
-    // Proceed with login...
-    setLoading(true);
-    setError("");
-    const user = await signIn(form?.email, form?.password);
-    console.log("🚀 ~ handleSubmit ~ user:", user);
-    setLoading(false);
-    if (!user) {
-      setError("Invalid email or password. try again");
-      return;
-    }
-    localStorage.setItem("activeProfileType", profileType);
-    if (user?.data?.account?.accountType === "user") {
+    try {
+      setLoading(true);
+      setError("");
+      const user = await signIn(form?.email, form?.password);
+      console.log("🚀 ~ handleSubmit ~ user:", user);
+      setLoading(false);
+      if (!user) {
+        setError("Invalid email or password. try again");
+        return;
+      }
+      toast.success("login successfully")
       
-      navigate("/patient/overview");
-    } else {
-      navigate("/provider/overview");
+      localStorage.setItem("activeProfileType", profileType);
+      if (user?.data?.account?.accountType === "user") {
+        navigate("/patient/overview");
+      } else {
+        navigate("/provider/overview");
+      }
+    } catch (error: any) {
+      console.log("🚀 ~ handleSubmit ~ error:", error);
+      if (error.message.includes("timeout")) {
+        toast.error("Request took too long. Check your connection.");
+      } else {
+        toast.error(error.message || "Something went wrong. Try again.");
+      }
+    } finally {
+      setLoading(false);
     }
-    // if (!user.roles?.includes("patient")) {
-    //   setError("This account is not a patient account.");
-    //   return;
-    // }
-
-    // Pass the profile type to state so we know what mode they logged in as
   };
 
   //   const handleWeb3 = () => {
@@ -155,19 +161,18 @@ export function PatientLoginPage() {
   return (
     <div className="min-h-screen bg-white">
       <div className="relative w-full h-screen max-w-full border border-gray-200">
-          <div className="mb-4 absolute top-10 left-20 z-50 bg-gray-100 px-5 rounded-lg">
-              <button
-                onClick={() => navigate(-1)}
-                className="flex items-center gap-2 text-[#062B67] hover:opacity-70 transition"
-              >
-                <ArrowLeft size={36} className="  "/>
-                <span className="text-sm md:text-lg  font-bold">Back</span>
-              </button>
-            </div>
+        <div className="mb-4 absolute top-10 left-20 z-50 bg-gray-100 px-5 rounded-lg">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-[#062B67] hover:opacity-70 transition"
+          >
+            <ArrowLeft size={36} className="  " />
+            <span className="text-sm md:text-lg  font-bold">Back</span>
+          </button>
+        </div>
         <div className="flex h-full px-1  ">
           {/* LEFT IMAGE PANEL */}
           <div className="hidden md:block relative w-full flex-1 overflow-hidden bg-[#E8EDF2]">
-            
             <img
               src={phone}
               alt="Phone UI"
