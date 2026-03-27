@@ -1,9 +1,9 @@
 import { phone } from "@/assets";
 import { useAuth } from "@/shared/auth/AuthProvider";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {toast} from "react-toastify";
+import { toast } from "react-toastify";
 
 function PasswordInput({ label, value, onChange }) {
   const [visible, setVisible] = useState(false);
@@ -128,8 +128,8 @@ export function PatientLoginPage() {
         setError("Invalid email or password. try again");
         return;
       }
-      toast.success("login successfully")
-      
+      toast.success("login successfully");
+
       localStorage.setItem("activeProfileType", profileType);
       if (user?.data?.account?.accountType === "user") {
         navigate("/patient/overview");
@@ -209,9 +209,16 @@ export function PatientLoginPage() {
 
                 <button
                   type="submit"
-                  className="w-full h-[46px] bg-[#2F915C] text-white rounded-md text-[18px] font-semibold hover:brightness-95 transition"
+                  className="w-full h-[46px] flex justify-center items-center bg-[#2F915C] text-white rounded-md text-[18px] font-semibold hover:brightness-95 transition"
                 >
-                  {loading ? "Signing in..." : " Log In"}
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Signing in...
+                    </>
+                  ) : (
+                    "Log In"
+                  )}
                 </button>
 
                 {/* divider */}
