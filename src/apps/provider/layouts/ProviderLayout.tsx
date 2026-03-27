@@ -1,4 +1,4 @@
-import { logo, logos } from "@/assets";
+import {  logos } from "@/assets";
 import { orgApi } from "@/shared/api/orgApi";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { useWelliMate } from "@/shared/context/WelliMateContext";
@@ -342,7 +342,7 @@ export function ProviderLayout() {
             className="flex h-14 w-72 overflow-hidden items-center justify-center rounded-md  text-white shadow-sm cursor-pointer"
           >
             <img
-              src={logo}
+              src={logos}
               alt="wellirecord"
               className=" w-full h- full object-cover"
             />

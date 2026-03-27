@@ -14,7 +14,7 @@ import HealthRecord from './HealthRecord.png'
 import doctorsignup from './doctorsignup.png'
 import health_companion_image from './health_companion_image.png'
 import logos from './logos.png'
-import logo from './wellirecord_logos.png'
+// import logo from './wellirecord_logos.png'
 import qr_card_image from './qr_card_image.png'
 import telehealth from './telehealth.png'
 import wellirecordimage from './wellirecordimage.png'
@@ -41,7 +41,7 @@ export {
     doctorsignup,
     health_companion_image,
     logos,
-    logo,
+    // logo,
     qr_card_image,
     telehealth,
     wellirecordimage,
