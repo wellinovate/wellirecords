@@ -173,7 +173,7 @@ export const authApi = {
         password: password,
       },
       {
-    timeout: 60000, // 60 seconds
+    timeout: 30000, // 30 seconds
   }
     );
 
