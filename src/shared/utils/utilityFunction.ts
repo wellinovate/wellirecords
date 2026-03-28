@@ -251,6 +251,59 @@ export async function getUsersRecords(
 
   return data.data;
 }
+export async function getUsersEncounters(
+  page = 1,
+  limit = 10,
+) {
+  const token = Cookies.get("accessToken");
+  const res = await fetch(
+    `${apiUrl}/api/v1/user/medical-history/encounter?page=${page}&limit=${limit}`,
+    {
+    method: "GET",
+    headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: "include",
+    },
+  );
+
+  const data = await res.json();
+  console.log("🚀 ~ getUsersRecord ~ data:", data)
+
+  if (!res.ok) {
+    throw new Error(data?.message || "Failed to fetch vitals");
+  }
+
+  return data.data;
+}
+export async function getEncounterDetails(
+  encounterId: string
+) {
+  const token = Cookies.get("accessToken");
+  const res = await fetch(
+    `${apiUrl}/api/v1/user/medical-history/encounter/${encounterId}`,
+    {
+    method: "GET",
+    headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: "include",
+    },
+  );
+
+  const data = await res.json();
+  console.log("🚀 ~ getUsersRecord ~ data:", data.data)
+
+  if (!res.ok) {
+    throw new Error(data?.message || "Failed to fetch vitals");
+  }
+
+  return data.data;
+}
+
+
 
 export async function getPatientVitals(
   patientId: string,
@@ -405,6 +458,7 @@ export async function getPatientDiagnoses(
     `${apiUrl}/api/v1/diagnoses/patient/${patientId}?page=${page}&limit=${limit}`,
     {
       method: "GET",
+      
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -445,34 +499,21 @@ export type LabResultItem = {
   updatedAt: string;
 };
 
-export async function createLabResult(payload: any) {
-  const res = await fetch("/api/v1/lab-results", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-    body: JSON.stringify(payload),
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data?.message || "Failed to create lab result");
-  }
-
-  return data.data;
-}
-
 export async function getPatientLabResults(
   patientId: string,
   page = 1,
   limit = 10,
 ) {
+  const token = Cookies.get("accessToken");
   const res = await fetch(
     `${apiUrl}/api/v1/lab-results/patient/${patientId}?page=${page}&limit=${limit}`,
     {
       method: "GET",
+
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       credentials: "include",
     },
   );
@@ -511,10 +552,16 @@ export async function getPatientImmunizations(
   page = 1,
   limit = 10,
 ) {
+  const token = Cookies.get("accessToken");
   const res = await fetch(
-    `/api/v1/immunizations/patient/${patientId}?page=${page}&limit=${limit}`,
+    `${apiUrl}/api/v1/immunizations/patient/${patientId}?page=${page}&limit=${limit}`,
     {
       method: "GET",
+
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       credentials: "include",
     },
   );
@@ -550,39 +597,27 @@ export type EncounterItem = {
   updatedAt: string;
 };
 
-export async function createEncounter(payload: any) {
-  const res = await fetch("/api/v1/encounters", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-    body: JSON.stringify(payload),
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data?.message || "Failed to create encounter");
-  }
-
-  return data.data;
-}
-
 export async function getPatientEncounters(
   patientId: string,
   page = 1,
   limit = 10,
 ) {
+  const token = Cookies.get("accessToken");
   const res = await fetch(
-    `/api/v1/encounters/patient/${patientId}?page=${page}&limit=${limit}`,
+    `${apiUrl}/api/v1/encounter/patient/${patientId}?page=${page}&limit=${limit}`,
     {
       method: "GET",
+
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       credentials: "include",
     },
   );
 
   const data = await res.json();
+  console.log("🚀 ~ getPatientEncounters ~ data:", data)
 
   if (!res.ok) {
     throw new Error(data?.message || "Failed to fetch encounters");

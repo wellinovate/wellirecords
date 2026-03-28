@@ -1,19 +1,12 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import {
-  AlertTriangle,
-  ArrowLeft,
-  ChevronDown,
-  ClipboardList,
-  Eye,
-  FileText,
-  HeartPulse,
-  Pill,
-  Plus,
-  Shield,
-  Stethoscope,
-  Syringe,
-} from "lucide-react";
+import { AllergyRecordForm } from "@/apps/components/AllergyRecordForm";
+import { DiagnosisRecordForm } from "@/apps/components/DiagnosisRecordForm";
+import { EncounterRecordForm } from "@/apps/components/EncounterRecordForm";
+import { LabResultRecordForm } from "@/apps/components/LabResultRecordForm";
+import { MedicationRecordForm } from "@/apps/components/MedicationRecordForm";
+import { TabRecordPanel } from "@/apps/components/TabRecordPanel";
+import { VitalRecordForm } from "@/apps/components/VitalRecordForm";
+import { useAuth } from "@/shared/auth/AuthProvider";
+import { recordDataByTab, TAB_CONFIG } from "@/shared/utils/data";
 import {
   AllergyItem,
   DiagnosisItem,
@@ -29,15 +22,18 @@ import {
   MedicationItem,
   PatientDetailResponse,
 } from "@/shared/utils/utilityFunction";
-import { TabRecordPanel } from "@/apps/components/TabRecordPanel";
-import { recordDataByTab, TAB_CONFIG } from "@/shared/utils/data";
-import { VitalRecordForm } from "@/apps/components/VitalRecordForm";
-import { useAuth } from "@/shared/auth/AuthProvider";
-import { MedicationRecordForm } from "@/apps/components/MedicationRecordForm";
-import { AllergyRecordForm } from "@/apps/components/AllergyRecordForm";
-import { DiagnosisRecordForm } from "@/apps/components/DiagnosisRecordForm";
-import { LabResultRecordForm } from "@/apps/components/LabResultRecordForm";
-import { EncounterRecordForm } from "@/apps/components/EncounterRecordForm";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  ChevronDown,
+  ClipboardList,
+  FileText,
+  HeartPulse,
+  Shield,
+  Stethoscope,
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 const TABS = [
   "Overview",
@@ -50,19 +46,6 @@ const TABS = [
   "Procedures",
   "Documents",
 ];
-
-const MOCK_PATIENT = {
-  id: "pat_001",
-  name: "John Doe",
-  code: "WR-10391",
-  sex: "M",
-  age: 43,
-  bloodGroup: "O+",
-  genotype: "AA",
-  phone: "5065-123-4567",
-  avatar:
-    "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=300&auto=format&fit=crop",
-};
 
 const ALERT_CHIPS = [
   { label: "Penicillin Allergy", value: "993 v", tone: "yellow" },
@@ -209,11 +192,9 @@ function SmallActionButton({
 export function EHRViewerPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
-  console.log("🚀 ~ EHRViewerPage ~ user:", user);
   const navigate = useNavigate();
 
   const [patient, setPatient] = useState<PatientDetailResponse | null>(null);
-  console.log("🚀 ~ EHRViewerPage ~ patient:", patient);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [tab, setTab] = useState("Overview");
@@ -236,6 +217,8 @@ export function EHRViewerPage() {
   const [encounters, setEncounters] = useState<EncounterItem[]>([]);
   const [loadingEncounters, setLoadingEncounters] = useState(false);
   const [encountersError, setEncountersError] = useState("");
+  const [selectedEncounter, setSelectedEncounter] =
+    useState<EncounterItem | null>(null);
 
   const patientId = String(id);
 
@@ -308,6 +291,7 @@ export function EHRViewerPage() {
   };
 
   const loadEncounters = async () => {
+    console.log("🚀 ~ loadEncounters ~ patientId:", patientId)
     if (!patientId) return;
 
     try {
@@ -315,6 +299,7 @@ export function EHRViewerPage() {
       setEncountersError("");
 
       const result = await getPatientEncounters(patientId, 1, 10);
+      console.log("🚀 ~ loadEncounters ~ result:", result)
       setEncounters(result.items || []);
     } catch (err: any) {
       setEncountersError(err.message || "Failed to load encounters");
@@ -341,7 +326,7 @@ export function EHRViewerPage() {
 
   useEffect(() => {
     loadEncounters();
-  }, [patientId]);
+  }, [patientId, tab]);
 
   const loadVitals = async () => {
     if (!patientId) return;
@@ -365,7 +350,9 @@ export function EHRViewerPage() {
 
   const handleCloseCreateModal = () => {
     setActiveCreateTab(null);
+    setSelectedEncounter(null);
   };
+
   useEffect(() => {
     let ignore = false;
 
@@ -574,6 +561,19 @@ export function EHRViewerPage() {
       };
     });
   }, [vitals]);
+
+  const handleAddRecordFromEncounter = (
+    encounter: EncounterItem,
+    recordType:
+      | "Vitals"
+      | "Medications"
+      | "Diagnoses"
+      | "Lab Results"
+      | "Allergies",
+  ) => {
+    setSelectedEncounter(encounter);
+    setActiveCreateTab(recordType);
+  };
 
   const getAgeFromDateOfBirth = (dateOfBirth?: string | null) => {
     if (!dateOfBirth) return null;
@@ -872,6 +872,133 @@ export function EHRViewerPage() {
                 onAddRecord={handleOpenCreateModal}
               />
             )}
+            {tab === "Encounters" ? (
+              loadingEncounters ? (
+                <div className="rounded-xl border border-[#173a63] bg-[#0a1d39] p-6 text-sm text-[#8fb0d5]">
+                  Loading encounters...
+                </div>
+              ) : encountersError ? (
+                <div className="rounded-xl border border-[#173a63] bg-[#0a1d39] p-6 text-sm text-red-300">
+                  {encountersError}
+                </div>
+              ) : encounters.length === 0 ? (
+                <div className="rounded-xl border border-[#173a63] bg-[#0a1d39] p-6 text-sm text-[#8fb0d5]">
+                  No encounters found for this patient.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {encounters.map((encounter) => (
+                    <div
+                      key={encounter.id}
+                      className="rounded-xl border border-[#173a63] bg-[#0a1d39] p-4"
+                    >
+                      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                        <div>
+                          <div className="text-lg font-semibold text-[#eef5ff]">
+                            {encounter.reasonForVisit ||
+                              encounter.encounterType ||
+                              "Encounter"}
+                          </div>
+
+                          <div className="mt-1 text-sm text-[#7b9ac0]">
+                            {[
+                              encounter.chiefComplaint,
+                              encounter.priority,
+                              encounter.status,
+                            ]
+                              .filter(Boolean)
+                              .join(" • ")}
+                          </div>
+
+                          <div className="mt-2 text-xs text-[#8fb0d5]">
+                            {encounter.startedAt
+                              ? new Date(encounter.startedAt).toLocaleString()
+                              : "No start time"}
+                          </div>
+
+                          {encounter.notes && (
+                            <div className="mt-3 text-sm text-[#c8daf0]">
+                              {encounter.notes}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleAddRecordFromEncounter(encounter, "Vitals")
+                            }
+                            className="inline-flex h-9 items-center rounded-md border border-[#345f92] bg-[#102845] px-3 text-xs font-medium text-[#dbeafe]"
+                          >
+                            Add Vital
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleAddRecordFromEncounter(
+                                encounter,
+                                "Medications",
+                              )
+                            }
+                            className="inline-flex h-9 items-center rounded-md border border-[#345f92] bg-[#102845] px-3 text-xs font-medium text-[#dbeafe]"
+                          >
+                            Add Medication
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleAddRecordFromEncounter(
+                                encounter,
+                                "Diagnoses",
+                              )
+                            }
+                            className="inline-flex h-9 items-center rounded-md border border-[#345f92] bg-[#102845] px-3 text-xs font-medium text-[#dbeafe]"
+                          >
+                            Add Diagnosis
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleAddRecordFromEncounter(
+                                encounter,
+                                "Lab Results",
+                              )
+                            }
+                            className="inline-flex h-9 items-center rounded-md border border-[#345f92] bg-[#102845] px-3 text-xs font-medium text-[#dbeafe]"
+                          >
+                            Add Lab Result
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleAddRecordFromEncounter(
+                                encounter,
+                                "Allergies",
+                              )
+                            }
+                            className="inline-flex h-9 items-center rounded-md border border-[#345f92] bg-[#102845] px-3 text-xs font-medium text-[#dbeafe]"
+                          >
+                            Add Allergy
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
+            ) : (
+              <div></div>
+              // <TabRecordPanel
+              //   tab={tab}
+              //   records={resolvedRecordDataByTab[tab] || []}
+              //   onAddRecord={handleOpenCreateModal}
+              // />
+            )}
           </div>
 
           {activeCreateTab && (
@@ -893,12 +1020,25 @@ export function EHRViewerPage() {
                     ✕
                   </button>
                 </div>
+                {selectedEncounter && (
+                  <div className="mb-4 rounded-lg border border-[#345f92] bg-[#102845] px-4 py-3 text-sm text-[#dbeafe]">
+                    Adding to encounter:{" "}
+                    <span className="font-semibold">
+                      {selectedEncounter.reasonForVisit ||
+                        selectedEncounter.encounterType ||
+                        "Encounter"}
+                    </span>
+                    {" • "}
+                    {selectedEncounter.startedAt
+                      ? new Date(selectedEncounter.startedAt).toLocaleString()
+                      : "No start time"}
+                  </div>
+                )}
                 {activeCreateTab === "Vitals" && (
                   <VitalRecordForm
                     patientId={patientId}
                     organizationId={user?.data?.account?.id}
-                    providerId={user?.data?.account?.id}
-                    encounterId={undefined}
+                    encounterId={selectedEncounter?.id}
                     onClose={handleCloseCreateModal}
                     onSuccess={(data) => {
                       console.log("Created vital:", data);
@@ -909,6 +1049,7 @@ export function EHRViewerPage() {
 
                 {activeCreateTab === "Medications" && (
                   <MedicationRecordForm
+                    encounterId={selectedEncounter?.id}
                     patientId={patientId}
                     onClose={handleCloseCreateModal}
                     onSuccess={async () => {
@@ -921,6 +1062,7 @@ export function EHRViewerPage() {
 
                 {activeCreateTab === "Allergies" && (
                   <AllergyRecordForm
+                    encounterId={selectedEncounter?.id}
                     patientId={patientId}
                     onClose={handleCloseCreateModal}
                     onSuccess={async () => {
@@ -933,6 +1075,7 @@ export function EHRViewerPage() {
 
                 {activeCreateTab === "Diagnoses" && (
                   <DiagnosisRecordForm
+                    encounterId={selectedEncounter?.id}
                     patientId={patientId}
                     onClose={handleCloseCreateModal}
                     onSuccess={async () => {
@@ -945,6 +1088,7 @@ export function EHRViewerPage() {
 
                 {activeCreateTab === "Lab Results" && (
                   <LabResultRecordForm
+                    encounterId={selectedEncounter?.id}
                     patientId={patientId}
                     onClose={handleCloseCreateModal}
                     onSuccess={async () => {
@@ -957,6 +1101,7 @@ export function EHRViewerPage() {
 
                 {activeCreateTab === "Encounters" && (
                   <EncounterRecordForm
+                    // encounterId={selectedEncounter?.id}
                     patientId={patientId}
                     onClose={handleCloseCreateModal}
                     onSuccess={async () => {

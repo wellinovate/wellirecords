@@ -1,15 +1,18 @@
 import React, { useState } from "react";
 import { Plus, X } from "lucide-react";
-import { createMedication } from "@/shared/utils/utilityFunction";
+
 import { useAuth } from "@/shared/auth/AuthProvider";
 
 type MedicationRecordFormProps = {
+  
+  encounterId: string | undefined;
   patientId: string;
   onClose: () => void;
   onSuccess?: (data: any) => void;
 };
 
 type MedicationFormState = {
+
   medicationName: string;
   genericName: string;
   brandName: string;
@@ -74,6 +77,7 @@ const toNullableNumber = (value: string) => {
 };
 
 export function MedicationRecordForm({
+  encounterId,
   patientId,
   onClose,
   onSuccess,
@@ -89,6 +93,7 @@ export function MedicationRecordForm({
     setError("");
 
     const payload = {
+      encounterId,
       patientId,
       source: "provider",
       createdContext: "provider-chart",

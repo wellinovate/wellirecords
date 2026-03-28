@@ -3,6 +3,7 @@ import { Plus, X } from "lucide-react";
 import { useAuth } from "@/shared/auth/AuthProvider";
 
 type DiagnosisRecordFormProps = {
+  encounterId: string | undefined;
   patientId: string;
   onClose: () => void;
   onSuccess?: (data: any) => void;
@@ -36,6 +37,7 @@ const initialState: DiagnosisFormState = {
 };
 
 export function DiagnosisRecordForm({
+  encounterId,
   patientId,
   onClose,
   onSuccess,
@@ -50,6 +52,7 @@ export function DiagnosisRecordForm({
     setError("");
 
     const payload = {
+      encounterId,
       patientId,
       source: "provider",
       createdContext: "provider-chart",

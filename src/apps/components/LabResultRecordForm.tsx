@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { Plus, Upload, X } from "lucide-react";
-import { createLabResult, uploadFile } from "@/shared/utils/utilityFunction";
+import {  uploadFile } from "@/shared/utils/utilityFunction";
+import { useAuth } from "@/shared/auth/AuthProvider";
 
 type LabResultRecordFormProps = {
+  encounterId: string | undefined;
   patientId: string;
   onClose: () => void;
   onSuccess?: (data: any) => void;
@@ -65,10 +67,12 @@ const toNullableNumber = (value: string) => {
 };
 
 export function LabResultRecordForm({
+  encounterId,
   patientId,
   onClose,
   onSuccess,
 }: LabResultRecordFormProps) {
+  const {createLabResult} = useAuth();
   const [form, setForm] = useState(initialState);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -97,6 +101,7 @@ export function LabResultRecordForm({
       }
 
       const payload = {
+        encounterId,
         patientId,
         source: "lab",
         createdContext: "facility-chart",

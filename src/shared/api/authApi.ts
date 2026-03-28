@@ -456,6 +456,52 @@ export const authApi = {
 
     return data.message;
   },
+  async  createLabResult(payload: any) {
+    console.log("🚀 ~ payload:", payload)
+    const token = Cookies.get("accessToken");
+    const response = await fetch(`${apiUrl}/api/v1/lab-results`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+
+    
+
+    if (!response.ok) {
+      throw new Error(data?.message || "Failed to link patient");
+    }
+
+    return data.message;
+  },
+  async  createEncounter(payload: any) {
+    console.log("🚀 ~ payload:", payload)
+    const token = Cookies.get("accessToken");
+    const response = await fetch(`${apiUrl}/api/v1/encounter`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+
+    
+
+    if (!response.ok) {
+      throw new Error(data?.message || "Failed to link patient");
+    }
+
+    return data.message;
+  },
 
   signOut(): void {
     localStorage.removeItem(STORAGE_KEY);

@@ -8,7 +8,11 @@ import React, {
 import { AuthUser, UserRole } from "@/shared/types/types";
 import { authApi, SearchPatientResponse } from "@/shared/api/authApi";
 import axios from "axios";
-import { getAuthFromToken, getCurrentUser, logOut } from "../utils/utilityFunction";
+import {
+  getAuthFromToken,
+  getCurrentUser,
+  logOut,
+} from "../utils/utilityFunction";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -31,6 +35,8 @@ type AuthContextValue = {
   createMedication: (payload: any) => any;
   createAllergy: (payload: any) => any;
   createDiagnosis: (payload: any) => any;
+  createLabResult: (payload: any) => any;
+  createEncounter: (payload: any) => any;
   signIn: (email: string, password: string) => AuthUser | null;
   signInAsRole: (role: UserRole) => AuthUser;
   signUpPatient: (
@@ -59,6 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   console.log("🚀 ~ AuthProvider ~ user:", user);
   const [isLoading, setIsLoading] = useState(true);
 
+
   // Rehydrate from localStorage on mount
   useEffect(() => {
     const users = getCurrentUser();
@@ -76,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         accountType: res.data.account.accountType,
       }),
     );
-    getAuthFromToken(res.data.accessToken)
+    getAuthFromToken(res.data.accessToken);
     return res;
   };
 
@@ -145,6 +152,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log("🚀 ~ signIn ~ u:", res);
     return res;
   };
+  const createLabResult = async (
+    payload: any,
+  ): Promise<SearchPatientResponse> => {
+    const res = await authApi.createLabResult(payload);
+    console.log("🚀 ~ signIn ~ u:", res);
+    return res;
+  };
+
+  const createEncounter = async (
+    payload: any,
+  ): Promise<SearchPatientResponse> => {
+    const res = await authApi.createEncounter(payload);
+    console.log("🚀 ~ signIn ~ u:", res);
+    return res;
+  };
 
   const signInAsRole = (role: UserRole): AuthUser => {
     const u = authApi.signInAsRole(role);
@@ -206,6 +228,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       createMedication,
       createAllergy,
       createDiagnosis,
+      createLabResult,
+      createEncounter,
       createVitalRecord,
       registerNewPatient,
       linkPatientRequest,

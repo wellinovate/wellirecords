@@ -46,7 +46,10 @@ export function RequireRole({ children, allow }: RequireRoleProps) {
   //     );
   //   }
 
-  if (!user) {
+  const userstored = localStorage.getItem("ui_user");
+  console.log("🚀 ~ RequireRole ~ userstored:", userstored)
+
+  if (!user || !userstored) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
