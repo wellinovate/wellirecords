@@ -80,7 +80,7 @@ const patientNav = [
     icon: Shield,
     premium: false,
   },
-  
+
   {
     to: "/patient/find-care",
     label: "Find Care",
@@ -160,15 +160,15 @@ export function PatientLayout() {
           >
             <div className="p-4 border-b border-slate-200 flex items-center justify-between">
               <Link
-            to="/"
-            className="flex h-14 w-44  overflow-hidden items-center justify-center rounded-md  text-white shadow-sm cursor-pointer"
-          >
-            <img
-              src={logos}
-              alt="wellirecord"
-              className=" w-full h- full object-cover"
-            />
-          </Link>
+                to="/"
+                className="flex h-14 w-44  overflow-hidden items-center justify-center rounded-md  text-white shadow-sm cursor-pointer"
+              >
+                <img
+                  src={logos}
+                  alt="wellirecord"
+                  className=" w-full h- full object-cover"
+                />
+              </Link>
               <button
                 onClick={() => setDrawerOpen(false)}
                 className="p-2 rounded-xl hover:bg-slate-100"
@@ -205,10 +205,10 @@ export function PatientLayout() {
                     key={item.to}
                     onClick={() => navTo(item.to)}
                     className={`sidebar-item sidebar-item-patient w-full ${active ? "active" : ""} ${
-                  !item.premium
-                    ? "opacity-60 grayscale text-gray-400 cursor-not-allowed"
-                    : "text-gray-800 font-semibold"
-                }`}
+                      !item.premium
+                        ? "opacity-60 grayscale text-gray-400 cursor-not-allowed"
+                        : "text-gray-800 font-semibold"
+                    }`}
                   >
                     <item.icon size={18} />
                     <span className="flex-1 text-left">{item.label}</span>
@@ -266,8 +266,6 @@ export function PatientLayout() {
               className=" w-full h- full object-cover"
             />
           </Link>
-
-          
         </div>
 
         {/* Avatar */}
@@ -276,9 +274,9 @@ export function PatientLayout() {
             // onClick={() => navigate("/patient/family")}
             className="flex items-center gap-3 p-2 lg:p-3 rounded-xl  border border-slate-200 cursor-pointer hover:border-emerald-500/30 transition-all w-full bg-[#1e3a8a]"
           >
-           <div className=" hidden mx-auto w-full text-center lg:block text-[14px] font-bold tracki uppercase text-white bg-[#1e3a8a] py-2 px-4 rounded-lg ">
-            Patient Portal
-          </div>
+            <div className=" hidden mx-auto w-full text-center lg:block text-[14px] font-bold tracki uppercase text-white bg-[#1e3a8a] py-2 px-4 rounded-lg ">
+              Patient Portal
+            </div>
           </div>
         </div>
 
@@ -371,7 +369,16 @@ export function PatientLayout() {
               <Menu size={20} style={{ color: "#1e293b" }} />
             </button>
             <div className="md:hidden">
-              <WelliRecordLogo height={24} theme="dark" />
+              <Link
+                to="/"
+                className="flex h-10 w-28  overflow-hidden items-center justify-center rounded-md  text-white shadow-sm cursor-pointer"
+              >
+                <img
+                  src={logos}
+                  alt="wellirecord"
+                  className=" w-full h- full object-cover"
+                />
+              </Link>
             </div>
             {/* Desktop: page title */}
             <div
