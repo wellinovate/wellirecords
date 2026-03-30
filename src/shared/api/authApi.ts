@@ -7,8 +7,8 @@ import { getAuthFromToken } from "../utils/utilityFunction";
 // Moved from authService
 const STORAGE_KEY = "welli_auth_user";
 
-// export const apiUrl: string = "https://wellirecord.onrender.com";
-export const apiUrl: string = "http://localhost:3000";
+export const apiUrl: string = "https://wellirecord.onrender.com";
+// export const apiUrl: string = "http://localhost:3000";
 
 type IdentifierType = "wrId" | "email" | "phone" | "qr";
 
