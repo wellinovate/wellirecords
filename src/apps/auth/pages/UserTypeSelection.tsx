@@ -136,42 +136,43 @@ function FloatingPlus() {
 
 function OptionCard({ icon, title, description, link }) {
   return (
-    <button
+    <Link
+      to={link}
       className="
-        relative flex h-[300px] w-[400px] flex-col items-center rounded-[14px]
+        relative flex w-full max-w-[400px] min-h-[240px] sm:min-h-[270px] md:min-h-[300px]
+        flex-col rounded-[18px]
         border border-[#E7E8EB] bg-[#FBFBFC]
-        px-3 pt-9 text-center
+        px-4 sm:px-5 md:px-6 py-6 sm:py-8 text-center
         shadow-[0_8px_18px_rgba(0,0,0,0.10),0_2px_5px_rgba(0,0,0,0.06)]
         transition duration-200 hover:-translate-y-0.5
       "
     >
-      <div className="mb-5">{icon}</div>
+      <div className="mb-4 sm:mb-5 flex justify-center">{icon}</div>
 
-      <h2 className="max-w-[340px] text-[32px] font-extrabold leading-[1.08] tracking-[-0.02em] text-[#062B67]">
+      <h2 className="text-[24px] sm:text-[28px] md:text-[32px] font-extrabold leading-[1.08] tracking-[-0.02em] text-[#062B67]">
         {title}
       </h2>
 
-      <p className="mt-4 max-w-[360px] text-[18px] leading-[1.35] text-[#4B5B77]">
+      <p className="mt-3 sm:mt-4 text-[14px] sm:text-[16px] md:text-[18px] leading-[1.4] text-[#4B5B77]">
         {description}
       </p>
 
-      <Link
-        to={link}
-        className="absolute font-bold flex text-[#062B67] bottom-10 right-10"
-      >
-        Go to {title} SignUp page
+      <div className="mt-6 sm:mt-auto flex items-center justify-center sm:justify-end gap-1 font-bold text-[#062B67]">
+        <span>
+          Go to {typeof title === "string" ? title : "this"} SignUp page
+        </span>
         <ArrowIcon />
-      </Link>
-    </button>
+      </div>
+    </Link>
   );
 }
 
 export default function UserTypeSelection() {
   const navigate = useNavigate();
   return (
-    <div className="min-h-screen w-full bg-[#ECEFF2]">
+    <div className="min-h-screen overflow-y-auto w-full bg-[#ECEFF2] px-3">
       <div className="relative mx-auto h-screen min-h-[760px] max-w-[1476px] overflow-hidden bg-[#EEF1F4]">
-        <div className="mb-4 absolute top-10 left-20 z-50 bg-gray-100 px-5 rounded-lg">
+        <div className="mb-4 absolute top-4 md:top-10 md:left-20 z-50 bg-gray-100 px-5 rounded-lg">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-[#062B67] hover:opacity-70 transition"
@@ -204,16 +205,16 @@ export default function UserTypeSelection() {
 
         {/* Main content */}
         <div className="relative z-10 flex h-full flex-col items-center">
-          <div className="pt-[100px] text-center">
-            <h1 className="text-[52px] font-extrabold leading-none tracking-[-0.03em] text-[#062B67]">
+          <div className="px-4 pt-24 sm:pt-28 md:pt-[100px] text-center">
+            <h1 className="text-[30px] sm:text-[40px] md:text-[52px] font-extrabold leading-tight md:leading-none tracking-[-0.03em] text-[#062B67]">
               Create Your Account
             </h1>
-            <p className="mt-3 text-[22px] font-medium text-[#4E5D75]">
+            <p className="mt-3 text-[15px] sm:text-[18px] md:text-[22px] font-medium text-[#4E5D75]">
               Choose how you want to use WelliRecord.
             </p>
           </div>
 
-          <div className="mt-[112px] flex items-start gap-[88px]">
+          <div className="mt-10 sm:mt-14 md:mt-[112px] flex w-full max-w-[980px] flex-col items-stretch gap-5 px-4 sm:px-6 md:flex-row md:items-start md:justify-center md:gap-8 lg:gap-12">
             <OptionCard
               icon={<PatientIcon />}
               title="Patient"
