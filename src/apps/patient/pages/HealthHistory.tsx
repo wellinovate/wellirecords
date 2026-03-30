@@ -16,6 +16,7 @@ import {
   getEncounterDetails,
   getUsersEncounters,
 } from "@/shared/utils/utilityFunction";
+import { HealthHistoryLoader } from "@/apps/components/Loader/HealthHistoryLoader";
 
 
 
@@ -565,7 +566,7 @@ export function HealthHistoryTimelinePage() {
       </div>
 
       {loadingList ? (
-        <div>Loading encounters...</div>
+        <HealthHistoryLoader title={"Loading encounters..."} />
       ) : filteredHistory.length === 0 ? (
         <div className="rounded-[24px] border border-[#E3E8EF] bg-[#F9FBFD] p-10 text-center">
           <p className="text-base font-semibold text-[#344054]">

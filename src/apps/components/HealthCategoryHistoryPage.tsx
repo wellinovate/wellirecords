@@ -12,6 +12,7 @@ import {
   Stethoscope,
   HeartPulse,
 } from "lucide-react";
+import { HealthHistoryLoader } from "./Loader/HealthHistoryLoader";
 
 function formatDate(value?: string) {
   if (!value) return "No date";
@@ -106,30 +107,41 @@ function RecordShell({
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  vitals: "Vitals History",
-  medications: "Medication History",
-  allergies: "Allergy History",
-  diagnoses: "Diagnosis History",
-  immunizations: "Immunization History",
-  "lab-results": "Lab Results History",
-  procedures: "Procedures / Surgeries History",
-  "clinical-notes": "Clinical Notes History",
+  vitals: "Vitals Records",
+  medications: "Medication Records",
+  allergies: "Allergy Records",
+  diagnoses: "Diagnosis Records",
+  immunizations: "Immunization Records",
+  "lab-results": "Lab Results Records",
+  procedures: "Procedures / Surgeries Records",
+  "clinical-notes": "Clinical Notes Records",
 };
+
+const CATEGORY_TABS = [
+  { key: "vitals", label: "Vitals", icon: HeartPulse },
+  { key: "medications", label: "Medications", icon: Pill },
+  { key: "allergies", label: "Allergies", icon: AlertCircle },
+  { key: "diagnoses", label: "Diagnoses", icon: Stethoscope },
+  { key: "immunizations", label: "Immunizations", icon: Syringe },
+  { key: "procedures", label: "Procedures", icon: Syringe },
+  { key: "lab", label: "Lab Results", icon: FlaskConical },
+];
 
 export function HealthCategoryHistoryPage() {
   const navigate = useNavigate();
   const { category } = useParams();
   const [search, setSearch] = useState("");
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [tab, setTab] = useState<string>(category || "vitals");
   const [record, setRecord] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const title = CATEGORY_LABELS[category || ""] || "Health History";
+  const title = CATEGORY_LABELS[tab] || "Health History";
 
   const loadRecords = async () => {
     try {
       setIsLoading(true);
-      const result = await getUsersRecords(category, 1, 10);
+      const result = await getUsersRecords(tab, 1, 10);
       setRecord(result.items || []);
     } catch (err: any) {
       console.log("🚀 ~ loadRecords ~ err.message:", err.message);
@@ -137,18 +149,28 @@ export function HealthCategoryHistoryPage() {
       setIsLoading(false);
     }
   };
+  const changeRecordsTab = (nextTab: string) => {
+  setSearch("");
+  setTab(nextTab);
+};
 
   useEffect(() => {
-    if (category) {
+    if (tab) {
       loadRecords();
     }
-  }, [category]);
+  }, [tab]);
+
+  useEffect(() => {
+  if (category && category !== tab) {
+    setTab(category);
+  }
+}, [category]);
 
   const filteredRecords = useMemo(() => {
     const q = search.trim().toLowerCase();
 
     return record.filter((item) => {
-      if (category === "vitals") {
+      if (tab === "vitals") {
         const hasVitalsData =
           item.bloodPressure ||
           item.heartRate ||
@@ -181,7 +203,7 @@ export function HealthCategoryHistoryPage() {
           .includes(q);
       }
 
-      if (category === "medications") {
+      if (tab === "medications") {
         const hasMedicationData = item.medicationName;
 
         if (!hasMedicationData) return false;
@@ -203,7 +225,7 @@ export function HealthCategoryHistoryPage() {
           .includes(q);
       }
 
-      if (category === "allergies") {
+      if (tab === "allergies") {
         const hasAllergyData = item.allergen;
 
         if (!hasAllergyData) return false;
@@ -224,7 +246,7 @@ export function HealthCategoryHistoryPage() {
           .includes(q);
       }
 
-      if (category === "diagnoses") {
+      if (tab === "diagnoses") {
         const hasDiagnosisData = item.diagnosisName;
 
         if (!hasDiagnosisData) return false;
@@ -243,7 +265,7 @@ export function HealthCategoryHistoryPage() {
           .includes(q);
       }
 
-      if (category === "immunizations") {
+      if (tab === "immunizations") {
         const hasImmunizationData = item.vaccineName;
 
         if (!hasImmunizationData) return false;
@@ -263,7 +285,7 @@ export function HealthCategoryHistoryPage() {
           .includes(q);
       }
 
-      if (category === "lab-results") {
+      if (tab === "lab-results") {
         const hasLabData = item.testName;
 
         if (!hasLabData) return false;
@@ -286,10 +308,10 @@ export function HealthCategoryHistoryPage() {
 
       return true;
     });
-  }, [record, category, search]);
+  }, [record, tab, search]);
 
   const renderRecordCard = (item: any) => {
-    if (category === "vitals") {
+    if (tab === "vitals") {
       const vitalsSummary = [
         item.bloodPressure
           ? `BP ${item.bloodPressure.systolic}/${item.bloodPressure.diastolic}`
@@ -352,7 +374,7 @@ export function HealthCategoryHistoryPage() {
       );
     }
 
-    if (category === "medications") {
+    if (tab === "medications") {
       const subtitle = [
         item.dosage?.value
           ? `${item.dosage.value}${item.dosage.unit ? ` ${item.dosage.unit}` : ""}`
@@ -399,7 +421,7 @@ export function HealthCategoryHistoryPage() {
       );
     }
 
-    if (category === "allergies") {
+    if (tab === "allergies") {
       return (
         <RecordShell
           key={item.id}
@@ -428,7 +450,7 @@ export function HealthCategoryHistoryPage() {
       );
     }
 
-    if (category === "diagnoses") {
+    if (tab === "diagnoses") {
       return (
         <RecordShell
           key={item.id}
@@ -457,7 +479,7 @@ export function HealthCategoryHistoryPage() {
       );
     }
 
-    if (category === "immunizations") {
+    if (tab === "immunizations") {
       return (
         <RecordShell
           key={item.id}
@@ -490,7 +512,7 @@ export function HealthCategoryHistoryPage() {
       );
     }
 
-    if (category === "lab-results") {
+    if (tab === "lab-results") {
       return (
         <RecordShell
           key={item.id}
@@ -567,19 +589,45 @@ export function HealthCategoryHistoryPage() {
         </button>
       </div>
 
-      <div className="relative mb-6">
-        <Search
-          size={16}
-          className="absolute left-3 top-1/2 -translate-y-1/2"
-          style={{ color: "#9ca3af" }}
-        />
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="input input-light w-full"
-          style={{ paddingLeft: "2.5rem" }}
-          placeholder={`Search ${title.toLowerCase()}...`}
-        />
+      <div className="mb-6 space-y-4">
+        <div className="relative">
+          <Search
+            size={16}
+            className="absolute left-3 top-1/2 -translate-y-1/2"
+            style={{ color: "#9ca3af" }}
+          />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="input input-light w-full"
+            style={{ paddingLeft: "2.5rem" }}
+            placeholder={`Search ${title.toLowerCase()}...`}
+          />
+        </div>
+
+        <div className="overflow-x-auto scrollbar-hide">
+          <div className="flex gap-2 min-w-max">
+            {CATEGORY_TABS.map(({ key, label, icon: Icon }) => {
+              const isActive = tab === key;
+
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => changeRecordsTab(key)}
+                  className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap transition border ${
+                    isActive
+                      ? "bg-[#2F915C] text-white border-[#2F915C]"
+                      : "bg-white text-[#5B6470] border-[#DDE3EA] hover:bg-[#F8FAFC]"
+                  }`}
+                >
+                  <Icon size={15} />
+                  <span>{label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -601,78 +649,4 @@ export function HealthCategoryHistoryPage() {
   );
 }
 
-function RecordCardSkeleton() {
-  return (
-    <div className="animate-pulse rounded-[22px] border border-[#DDE3EA] bg-[#F9FAFB] px-5 py-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex min-w-0 items-start gap-3">
-          <div className="h-10 w-10 shrink-0 rounded-full bg-[#EAF1F6]" />
 
-          <div className="min-w-0 space-y-2">
-            <div className="h-5 w-40 rounded-md bg-[#E6EDF3]" />
-            <div className="h-4 w-56 rounded-md bg-[#EDF2F7]" />
-          </div>
-        </div>
-
-        <div className="h-7 w-20 rounded-full bg-[#E8F3EC]" />
-      </div>
-
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <div className="space-y-2">
-          <div className="h-4 w-36 rounded-md bg-[#EDF2F7]" />
-          <div className="h-4 w-28 rounded-md bg-[#EDF2F7]" />
-        </div>
-
-        <div className="space-y-2">
-          <div className="h-4 w-32 rounded-md bg-[#EDF2F7]" />
-          <div className="h-4 w-24 rounded-md bg-[#EDF2F7]" />
-        </div>
-      </div>
-
-      <div className="mt-4 space-y-2">
-        <div className="h-4 w-full rounded-md bg-[#F1F5F9]" />
-        <div className="h-4 w-4/5 rounded-md bg-[#F1F5F9]" />
-      </div>
-
-      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="h-4 w-44 rounded-md bg-[#EDF2F7]" />
-        <div className="h-10 w-28 rounded-full bg-[#E7F1EE]" />
-      </div>
-    </div>
-  );
-}
-
-function HealthHistoryLoader({
-  title,
-  count = 6,
-}: {
-  title: string;
-  count?: number;
-}) {
-  return (
-    <div className="space-y-4">
-      <div className="rounded-[22px] border border-[#DDE3EA] bg-gradient-to-r from-[#F8FBFA] to-[#F4F8FB] p-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#EAF7F1]">
-            <div className="h-5 w-5 rounded-full border-2 border-[#2F915C] border-t-transparent animate-spin" />
-          </div>
-
-          <div>
-            <p className="text-sm font-semibold text-[#1F2A37]">
-              Loading {title.toLowerCase()}
-            </p>
-            <p className="text-sm text-[#6B7280]">
-              Fetching patient records...
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-        {Array.from({ length: count }).map((_, index) => (
-          <RecordCardSkeleton key={index} />
-        ))}
-      </div>
-    </div>
-  );
-}

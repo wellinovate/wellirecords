@@ -3,6 +3,7 @@ import { DiagnosisRecordForm } from "@/apps/components/DiagnosisRecordForm";
 import { EncounterRecordForm } from "@/apps/components/EncounterRecordForm";
 import { LabResultRecordForm } from "@/apps/components/LabResultRecordForm";
 import { MedicationRecordForm } from "@/apps/components/MedicationRecordForm";
+import { ProcedureRecordForm } from "@/apps/components/ProcedureRecordForm";
 import { TabRecordPanel } from "@/apps/components/TabRecordPanel";
 import { VitalRecordForm } from "@/apps/components/VitalRecordForm";
 import { useAuth } from "@/shared/auth/AuthProvider";
@@ -17,10 +18,12 @@ import {
   getPatientEncounters,
   getPatientLabResults,
   getPatientMedications,
+  getPatientProcedures,
   getPatientVitals,
   LabResultItem,
   MedicationItem,
   PatientDetailResponse,
+  ProcedureItem,
 } from "@/shared/utils/utilityFunction";
 import {
   AlertTriangle,
@@ -219,6 +222,9 @@ export function EHRViewerPage() {
   const [encountersError, setEncountersError] = useState("");
   const [selectedEncounter, setSelectedEncounter] =
     useState<EncounterItem | null>(null);
+  const [procedures, setProcedures] = useState<ProcedureItem[]>([]);
+  const [loadingProcedures, setLoadingProcedures] = useState(false);
+  const [proceduresError, setProceduresError] = useState("");
 
   const patientId = String(id);
 
@@ -291,7 +297,7 @@ export function EHRViewerPage() {
   };
 
   const loadEncounters = async () => {
-    console.log("🚀 ~ loadEncounters ~ patientId:", patientId)
+    console.log("🚀 ~ loadEncounters ~ patientId:", patientId);
     if (!patientId) return;
 
     try {
@@ -299,12 +305,28 @@ export function EHRViewerPage() {
       setEncountersError("");
 
       const result = await getPatientEncounters(patientId, 1, 10);
-      console.log("🚀 ~ loadEncounters ~ result:", result)
+      console.log("🚀 ~ loadEncounters ~ result:", result);
       setEncounters(result.items || []);
     } catch (err: any) {
       setEncountersError(err.message || "Failed to load encounters");
     } finally {
       setLoadingEncounters(false);
+    }
+  };
+
+  const loadProcedures = async () => {
+    if (!patientId) return;
+
+    try {
+      setLoadingProcedures(true);
+      setProceduresError("");
+
+      const result = await getPatientProcedures(patientId, 1, 10);
+      setProcedures(result.items || []);
+    } catch (err: any) {
+      setProceduresError(err.message || "Failed to load procedures");
+    } finally {
+      setLoadingProcedures(false);
     }
   };
 
@@ -343,6 +365,10 @@ export function EHRViewerPage() {
       setLoadingVitals(false);
     }
   };
+
+  useEffect(() => {
+    loadProcedures();
+  }, [patientId]);
 
   useEffect(() => {
     loadVitals();
@@ -488,6 +514,20 @@ export function EHRViewerPage() {
     }));
   }, [encounters]);
 
+  const procedureTabRecords = useMemo(() => {
+    return procedures.map((item) => ({
+      id: item.id,
+      title: item.procedureName,
+      subtitle:
+        [item.procedureType, item.bodySite, item.outcome]
+          .filter(Boolean)
+          .join(" • ") || "Procedure record",
+      meta: item.performedAt
+        ? new Date(item.performedAt).toLocaleDateString()
+        : "No procedure date",
+    }));
+  }, [procedures]);
+
   const resolvedRecordDataByTab = useMemo(() => {
     return {
       ...recordDataByTab,
@@ -497,6 +537,7 @@ export function EHRViewerPage() {
       Allergies: allergyTabRecords,
       Diagnoses: diagnosisTabRecords,
       "Lab Results": labResultTabRecords,
+      Procedures: procedureTabRecords,
     };
   }, [
     encounterTabRecords,
@@ -505,6 +546,7 @@ export function EHRViewerPage() {
     allergyTabRecords,
     diagnosisTabRecords,
     labResultTabRecords,
+    procedureTabRecords,
   ]);
 
   const recentVitalCards = useMemo(() => {
@@ -1107,6 +1149,19 @@ export function EHRViewerPage() {
                     onSuccess={async () => {
                       await loadEncounters();
                       setTab("Encounters");
+                      handleCloseCreateModal();
+                    }}
+                  />
+                )}
+
+                {activeCreateTab === "Procedures" && (
+                  <ProcedureRecordForm
+                    patientId={patientId}
+                    encounterId={selectedEncounter?.id}
+                    onClose={handleCloseCreateModal}
+                    onSuccess={async () => {
+                      await loadProcedures();
+                      setTab("Procedures");
                       handleCloseCreateModal();
                     }}
                   />

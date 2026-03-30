@@ -118,7 +118,7 @@ export function EncounterRecordForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-            Encounter Type
+            Encounter Title
           </label>
           <input
             type="text"

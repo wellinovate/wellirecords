@@ -61,12 +61,18 @@ const patientNav = [
     icon: Pill,
     premium: true,
   },
+  {
+    to: "/patient/family",
+    label: "Family & Dependants",
+    icon: Baby,
+    premium: true,
+  },
 
   {
     to: "/patient/appointments",
     label: "Appointments",
     icon: Calendar,
-    premium: true,
+    premium: false,
   },
   {
     to: "/patient/consents",
@@ -74,12 +80,7 @@ const patientNav = [
     icon: Shield,
     premium: false,
   },
-  {
-    to: "/patient/family",
-    label: "Family & Dependants",
-    icon: Baby,
-    premium: false,
-  },
+  
   {
     to: "/patient/find-care",
     label: "Find Care",
@@ -158,7 +159,16 @@ export function PatientLayout() {
             style={{ background: "#DAE5F7", borderRight: "1px solid #e2e8f0" }}
           >
             <div className="p-4 border-b border-slate-200 flex items-center justify-between">
-              <WelliRecordLogo height={32} theme="dark" />
+              <Link
+            to="/"
+            className="flex h-14 w-44  overflow-hidden items-center justify-center rounded-md  text-white shadow-sm cursor-pointer"
+          >
+            <img
+              src={logos}
+              alt="wellirecord"
+              className=" w-full h- full object-cover"
+            />
+          </Link>
               <button
                 onClick={() => setDrawerOpen(false)}
                 className="p-2 rounded-xl hover:bg-slate-100"
@@ -194,7 +204,11 @@ export function PatientLayout() {
                   <button
                     key={item.to}
                     onClick={() => navTo(item.to)}
-                    className={`sidebar-item sidebar-item-patient w-full ${active ? "active" : ""}`}
+                    className={`sidebar-item sidebar-item-patient w-full ${active ? "active" : ""} ${
+                  !item.premium
+                    ? "opacity-60 grayscale text-gray-400 cursor-not-allowed"
+                    : "text-gray-800 font-semibold"
+                }`}
                   >
                     <item.icon size={18} />
                     <span className="flex-1 text-left">{item.label}</span>
@@ -203,7 +217,7 @@ export function PatientLayout() {
                 );
               })}
               {/* WelliMate */}
-              <div
+              {/* <div
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl mt-2 cursor-pointer"
                 style={{ background: "#f0fdfa", border: "1px solid #ccfbf1" }}
                 onClick={() => setWelliMateEnabled(!isWelliMateEnabled)}
@@ -218,7 +232,7 @@ export function PatientLayout() {
                 <span className="text-[9px] bg-amber-400 text-amber-900 font-black px-1.5 py-0.5 rounded-full uppercase flex items-center gap-0.5">
                   <Crown size={8} /> PRO
                 </span>
-              </div>
+              </div> */}
             </nav>
             <div className="p-3 border-t border-slate-200 space-y-0.5">
               <button
@@ -239,16 +253,12 @@ export function PatientLayout() {
       )}
 
       {/* ─── Desktop / Tablet Sidebar ─── */}
-      <aside
-        className="sidebar-patient hidden md:flex flex-col w-16 lg:w-64 z-20 flex-shrink-0 border bg-[#DAE5F7] border-r-2 border-gray-100"
-        
-      >
+      <aside className="sidebar-patient hidden md:flex flex-col w-16 lg:w-64 z-20 flex-shrink-0 border bg-[#DAE5F7] border-r-2 border-gray-100">
         {/* Logo */}
-        <div className="p-3 lg:p-5 border-b border-slate-200 flex items-center justify-center lg:justify-start">
-          {/* <WelliRecordLogo height={32} theme="dark" className="hidden lg:block" /> */}
+        <div className="p-3 lg:p- b border-b border-slate-200 fle items-center justify-center lg:justify-start">
           <Link
             to="/"
-            className="flex h-14 w-72 overflow-hidden items-center justify-center rounded-md  text-white shadow-sm cursor-pointer"
+            className="flex h-14 w-44 mx-auto overflow-hidden items-center justify-center rounded-md  text-white shadow-sm cursor-pointer"
           >
             <img
               src={logos}
@@ -256,49 +266,24 @@ export function PatientLayout() {
               className=" w-full h- full object-cover"
             />
           </Link>
-          <div
-            className="lg:hidden w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black"
-            style={{ background: "#0d9488", color: "#fff" }}
-          >
-            W
-          </div>
-          <div className="ml-2 hidden lg:block text-[10px] font-bold tracki uppercase text-white bg-[#1e3a8a] px-4 rounded-lg ">
-            Patient Portal
-          </div>
+
+          
         </div>
 
         {/* Avatar */}
-        <div className="px-2 lg:px-4 py-3 lg:py-4 border-b border-slate-200 flex justify-center lg:justify-start">
+        <div className="px-2 w-full lg:px-0 py-3 lg:py-4 border-b border-slate-200 flex justify-center lg:justify-start ">
           <div
-            onClick={() => navigate("/patient/family")}
-            className="flex items-center gap-3 p-2 lg:p-3 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-emerald-500/30 transition-all w-full"
+            // onClick={() => navigate("/patient/family")}
+            className="flex items-center gap-3 p-2 lg:p-3 rounded-xl  border border-slate-200 cursor-pointer hover:border-emerald-500/30 transition-all w-full bg-[#1e3a8a]"
           >
-            <img
-              src={user?.avatar}
-              alt={user?.name}
-              className="w-8 h-8 rounded-full object-cover flex-shrink-0"
-              style={{ border: "2px solid #e2e8f0" }}
-            />
-            <div className="flex-1 min-w-0 hidden lg:block">
-              <div
-                className="font-bold text-sm truncate"
-                style={{ color: "#1a2e1e" }}
-              >
-                {user?.name}
-              </div>
-              <div className="text-[10px] font-bold text-emerald-600 flex items-center gap-1">
-                <Crown size={9} /> Family Manager
-              </div>
-            </div>
-            <ChevronRight
-              size={14}
-              className="text-slate-400 hidden lg:block"
-            />
+           <div className=" hidden mx-auto w-full text-center lg:block text-[14px] font-bold tracki uppercase text-white bg-[#1e3a8a] py-2 px-4 rounded-lg ">
+            Patient Portal
+          </div>
           </div>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 p-2 lg:p-3 space-y-0.5 overflow-y-auto">
+        <nav className="flex-1 p-2 lg:p-3  space-y-0.5 overflow-y-auto">
           {patientNav.map((item) => {
             const active = location.pathname.startsWith(item.to);
             return (

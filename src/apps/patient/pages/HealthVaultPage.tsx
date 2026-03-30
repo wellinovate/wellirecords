@@ -117,20 +117,20 @@ const SHOWCASE_TYPES = [
     color: "#ec4899",
     example: "X-ray, MRI, CT scan reports…",
   },
-  {
-    label: "Clinical Notes",
-    link: "note",
-    icon: Stethoscope,
-    color: "#1a6b42",
-    example: "Visit summaries, SOAP notes…",
-  },
-  {
-    label: "Vaccinations",
-    link: "vaccinations",
-    icon: Syringe,
-    color: "#f59e0b",
-    example: "Yellow fever, COVID, travel shots…",
-  },
+  // {
+  //   label: "Clinical Notes",
+  //   link: "note",
+  //   icon: Stethoscope,
+  //   color: "#1a6b42",
+  //   example: "Visit summaries, SOAP notes…",
+  // },
+  // {
+  //   label: "Vaccinations",
+  //   link: "vaccinations",
+  //   icon: Syringe,
+  //   color: "#f59e0b",
+  //   example: "Yellow fever, COVID, travel shots…",
+  // },
 ];
 
 /* ─── Main page component ─────────────────────────────────────── */

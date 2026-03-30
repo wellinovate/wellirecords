@@ -269,7 +269,7 @@ export async function getUsersEncounters(
   );
 
   const data = await res.json();
-  console.log("🚀 ~ getUsersRecord ~ data:", data)
+  console.log("🚀 ~ getUsersEncounters ~ data:", data)
 
   if (!res.ok) {
     throw new Error(data?.message || "Failed to fetch vitals");
@@ -626,6 +626,66 @@ export async function getPatientEncounters(
   return data.data;
 }
 
+export type ProcedureItem = {
+  id: string;
+  patientId: string;
+  encounterId: string | null;
+  procedureName: string;
+  procedureType: string | null;
+  bodySite: string | null;
+  indication: string | null;
+  outcome: string | null;
+  complications: string | null;
+  performedBy: string | null;
+  facilityName: string | null;
+  performedAt: string | null;
+  clinicalStatus: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export async function createProcedure(payload: any) {
+  const res = await fetch("/api/v1/procedures", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data?.message || "Failed to create procedure");
+  }
+
+  return data.data;
+}
+
+export async function getPatientProcedures(
+  patientId: string,
+  page = 1,
+  limit = 10,
+) {
+  const res = await fetch(
+    `/api/v1/procedures/patient/${patientId}?page=${page}&limit=${limit}`,
+    {
+      method: "GET",
+      credentials: "include",
+    },
+  );
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data?.message || "Failed to fetch procedures");
+  }
+
+  return data.data;
+}
+
 export async function uploadFile(file: File) {
   const formData = new FormData();
   formData.append("file", file);
@@ -644,3 +704,110 @@ export async function uploadFile(file: File) {
 
   return data.data; // expected: { id, ... }
 }
+
+type ApiEncounter = {
+  id: string;
+  encounterTitle: string | null;
+  encounterType: string | null;
+  startedAt: string | null;
+  createdAt: string;
+  status: string | null;
+  priority: string | null;
+  organizationName: string | null;
+  organizationFullName: string | null;
+  providerId?: string | null;
+  reasonForVisit?: string | null;
+  chiefComplaint?: string | null;
+  notes?: string | null;
+};
+
+export type UiEncounter = {
+  id: string;
+  date: string;
+  title: string;
+  encounterType: "outpatient" | "lab" | "emergency" | "cardiology";
+  status: "completed" | "ongoing" | "attention";
+  facility: string;
+  provider?: string;
+  summary: string;
+};
+
+const mapEncounterType = (
+  type?: string | null
+): UiEncounter["encounterType"] => {
+  switch ((type || "").toLowerCase()) {
+    case "emergency":
+      return "emergency";
+    case "lab":
+    case "laboratory":
+      return "lab";
+    case "cardiology":
+      return "cardiology";
+    case "outpatient":
+    default:
+      return "outpatient";
+  }
+};
+
+const mapEncounterStatus = (
+  status?: string | null,
+  priority?: string | null
+): UiEncounter["status"] => {
+  if ((priority || "").toLowerCase() === "critical") return "attention";
+
+  switch ((status || "").toLowerCase()) {
+    case "completed":
+    case "closed":
+      return "completed";
+    case "active":
+    case "in_progress":
+    case "ongoing":
+    case "scheduled":
+      return "ongoing";
+    default:
+      return "ongoing";
+  }
+};
+
+const buildEncounterTitle = (item: ApiEncounter): string => {
+  if (item.encounterTitle?.trim()) return item.encounterTitle.trim();
+  if (item.reasonForVisit?.trim()) return item.reasonForVisit.trim();
+  if (item.chiefComplaint?.trim()) return item.chiefComplaint.trim();
+
+  switch ((item.encounterType || "").toLowerCase()) {
+    case "emergency":
+      return "Emergency Visit";
+    case "lab":
+    case "laboratory":
+      return "Lab Visit";
+    case "cardiology":
+      return "Cardiology Visit";
+    case "outpatient":
+      return "Outpatient Visit";
+    default:
+      return "Medical Visit";
+  }
+};
+
+const buildEncounterSummary = (item: ApiEncounter): string => {
+  if (item.notes?.trim()) return item.notes.trim();
+  if (item.reasonForVisit?.trim()) return item.reasonForVisit.trim();
+  if (item.chiefComplaint?.trim()) return item.chiefComplaint.trim();
+  return "No summary available.";
+};
+
+export const mapApiEncounterToUi = (item: ApiEncounter): UiEncounter => {
+  return {
+    id: item.id,
+    date: item.startedAt || item.createdAt,
+    title: buildEncounterTitle(item),
+    encounterType: mapEncounterType(item.encounterType),
+    status: mapEncounterStatus(item.status, item.priority),
+    facility:
+      item.organizationFullName ||
+      item.organizationName ||
+      "Unknown facility",
+    provider: undefined, // replace later when provider name is available
+    summary: buildEncounterSummary(item),
+  };
+};
