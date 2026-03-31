@@ -321,6 +321,7 @@ export function PatientSettingsPage() {
   // Full name change flow
   const [nameEditing, setNameEditing] = useState(false);
   const [profile, setProfile] = useState<any>(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const [nameValue, setNameValue] = useState(user?.name ?? "");
   const [nameRequested, setNameRequested] = useState(false);
 
@@ -332,9 +333,15 @@ export function PatientSettingsPage() {
   const [otpCode, setOtpCode] = useState("");
 
   const fetchUserProfile = async () => {
-   const result = await fetchProfile();
-   setProfile(result);
-   console.log("🚀 ~ fetchUserProfile ~ result:", result)
+    try {
+      setLoadingProfile(true);
+      const data = await fetchProfile();
+      setProfile(data);
+    } catch (error) {
+      console.error("Failed to load profile", error);
+    } finally {
+      setLoadingProfile(false);
+    }
   };
 
   useEffect(() => {
@@ -464,128 +471,146 @@ export function PatientSettingsPage() {
           {/* ── PROFILE TAB ── */}
           {tab === "profile" && (
             <>
-              <div className="card-patient p-6">
-                <h2 className="font-bold text-base mb-6 border-b pb-2 text-gray-900 border-gray-100">
-                  Personal Information
-                </h2>
-                <div className="grid md:grid-cols-2 gap-5">
-                  {/* Full Name — editable with name-change request flow */}
-                  <div>
-                    <label className="block text-sm font-semibold mb-1 text-gray-700">
-                      Full Name
-                    </label>
-                    {nameRequested ? (
-                      <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm font-semibold">
-                        <CheckCircle size={15} />
-                        Name change request submitted — we'll update your record
-                        within 24 hrs.
+              {loadingProfile ? (
+                <ProfileSkeleton />
+              ) : (
+                <>
+                  <div className="card-patient p-6">
+                    <h2 className="font-bold text-base mb-6 border-b pb-2 text-gray-900 border-gray-100">
+                      Personal Information
+                    </h2>
+
+                    <div className="grid md:grid-cols-2 gap-5">
+                      <div>
+                        <label className="block text-sm font-semibold mb-1 text-gray-700">
+                          Full Name
+                        </label>
+
+                        {nameRequested ? (
+                          <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm font-semibold">
+                            <CheckCircle size={15} />
+                            Name change request submitted — we'll update your
+                            record within 24 hrs.
+                          </div>
+                        ) : nameEditing ? (
+                          <div className="space-y-2">
+                            <input
+                              className="input input-light w-full"
+                              value={nameValue}
+                              onChange={(e) => setNameValue(e.target.value)}
+                              autoFocus
+                            />
+                            <p className="text-[11px] text-gray-400">
+                              Legal name changes require a brief identity check
+                              for record integrity.
+                            </p>
+                            <div className="flex gap-2 mt-1">
+                              <button
+                                onClick={() => {
+                                  setNameEditing(false);
+                                  setNameRequested(true);
+                                }}
+                                disabled={nameValue.trim().length < 2}
+                                className="btn btn-sm btn-patient gap-1"
+                              >
+                                <Check size={13} /> Submit Request
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setNameEditing(false);
+                                  setNameValue(profile?.fullName ?? "");
+                                }}
+                                className="btn btn-sm bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <input
+                              value={profile?.fullName || ""}
+                              className="input input-light bg-gray-50 flex-1"
+                              readOnly
+                            />
+                            <button
+                              onClick={() => {
+                                setNameValue(profile?.fullName || "");
+                                setNameEditing(true);
+                              }}
+                              className="btn btn-sm bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 whitespace-nowrap"
+                            >
+                              Change
+                            </button>
+                          </div>
+                        )}
                       </div>
-                    ) : nameEditing ? (
-                      <div className="space-y-2">
-                        <input
-                          className="input input-light w-full"
-                          value={nameValue}
-                          onChange={(e) => setNameValue(e.target.value)}
-                          autoFocus
-                        />
-                        <p className="text-[11px] text-gray-400">
-                          Legal name changes require a brief identity check for
-                          record integrity.
-                        </p>
-                        <div className="flex gap-2 mt-1">
-                          <button
-                            onClick={() => {
-                              setNameEditing(false);
-                              setNameRequested(true);
-                            }}
-                            disabled={nameValue.trim().length < 2}
-                            className="btn btn-sm btn-patient gap-1"
-                          >
-                            <Check size={13} /> Submit Request
-                          </button>
-                          <button
-                            onClick={() => {
-                              setNameEditing(false);
-                              setNameValue(user?.name ?? "");
-                            }}
-                            className="btn btn-sm bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
-                          >
-                            Cancel
-                          </button>
+
+                      <div>
+                        <label className="block text-sm font-semibold mb-1 text-gray-700">
+                          Member ID
+                        </label>
+                        <div className="input input-light bg-gray-50 font-mono text-gray-500 select-all tracking-wider">
+                          {profile?.wrId || "—"}
                         </div>
                       </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
+
+                      <div>
+                        <label className="block text-sm font-semibold mb-1 text-gray-700">
+                          Email Address
+                        </label>
                         <input
-                          defaultValue={user?.name}
-                          className="input input-light bg-gray-50 flex-1"
+                          value={profile?.email || ""}
+                          className="input input-light"
+                          type="email"
                           readOnly
                         />
-                        <button
-                          onClick={() => setNameEditing(true)}
-                          className="btn btn-sm bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 whitespace-nowrap"
-                        >
-                          Change
-                        </button>
                       </div>
-                    )}
-                  </div>
 
-                  <div>
-                    <label className="block text-sm font-semibold mb-1 text-gray-700">
-                      Member ID
-                    </label>
-                    <div className="input input-light bg-gray-50 font-mono text-gray-500 select-all tracking-wider">
-                      WR-8921-XKA9
+                      <div>
+                        <label className="block text-sm font-semibold mb-1 text-gray-700">
+                          Phone Number
+                        </label>
+                        <input
+                          value={profile?.phone || "XXX XXX XXX XXXX"}
+                          className="input input-light"
+                          type="tel"
+                          readOnly
+                        />
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-semibold mb-1 text-gray-700">
+                          Residential Address
+                        </label>
+                        <input
+                          value={profile?.homeAddress || ""}
+                          className="input input-light"
+                          readOnly
+                        />
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-semibold mb-1 text-gray-700">
-                      Email Address
-                    </label>
-                    <input
-                      defaultValue={user?.email}
-                      className="input input-light"
-                      type="email"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold mb-1 text-gray-700">
-                      Phone Number
-                    </label>
-                    <input
-                      defaultValue="+234 801 234 5678"
-                      className="input input-light"
-                      type="tel"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold mb-1 text-gray-700">
-                      Residential Address
-                    </label>
-                    <input
-                      defaultValue="14 Victoria Island, Lagos, Nigeria"
-                      className="input input-light"
-                    />
-                  </div>
-                </div>
-              </div>
 
-              <div className="flex justify-end pt-0">
-                <button onClick={save} className="btn btn-patient gap-2 px-8">
-                  {saved ? (
-                    <>
-                      <CheckCircle size={16} /> Saved Successfully
-                    </>
-                  ) : (
-                    <>
-                      <Save size={16} /> Save Changes
-                    </>
-                  )}
-                </button>
-              </div>
+                  <div className="flex justify-end pt-0">
+                    <button
+                      onClick={save}
+                      className="btn btn-patient gap-2 px-8"
+                    >
+                      {saved ? (
+                        <>
+                          <CheckCircle size={16} /> Saved Successfully
+                        </>
+                      ) : (
+                        <>
+                          <Save size={16} /> Save Changes
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </>
+              )}
 
-              {/* Data Portability */}
               <DataPortabilitySection />
             </>
           )}
@@ -929,3 +954,44 @@ export function PatientSettingsPage() {
     </div>
   );
 }
+
+const ProfileSkeleton = () => {
+  return (
+    <>
+      <div className="card-patient p-6 animate-pulse">
+        <div className="h-5 w-48 bg-gray-200 rounded mb-6 border-b pb-2" />
+
+        <div className="grid md:grid-cols-2 gap-5">
+          <div>
+            <div className="h-4 w-24 bg-gray-200 rounded mb-2" />
+            <div className="h-12 w-full bg-gray-200 rounded-xl" />
+          </div>
+
+          <div>
+            <div className="h-4 w-24 bg-gray-200 rounded mb-2" />
+            <div className="h-12 w-full bg-gray-200 rounded-xl" />
+          </div>
+
+          <div>
+            <div className="h-4 w-28 bg-gray-200 rounded mb-2" />
+            <div className="h-12 w-full bg-gray-200 rounded-xl" />
+          </div>
+
+          <div>
+            <div className="h-4 w-28 bg-gray-200 rounded mb-2" />
+            <div className="h-12 w-full bg-gray-200 rounded-xl" />
+          </div>
+
+          <div className="md:col-span-2">
+            <div className="h-4 w-36 bg-gray-200 rounded mb-2" />
+            <div className="h-12 w-full bg-gray-200 rounded-xl" />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-end pt-0">
+        <div className="h-11 w-36 bg-gray-200 rounded-xl animate-pulse" />
+      </div>
+    </>
+  );
+};
