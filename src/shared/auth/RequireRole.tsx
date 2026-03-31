@@ -47,9 +47,10 @@ export function RequireRole({ children, allow }: RequireRoleProps) {
   //   }
 
   const userstored = localStorage.getItem("ui_user");
-  console.log("🚀 ~ RequireRole ~ userstored:", userstored)
+  // console.log("🚀 ~ RequireRole ~ userstored:", userstored)
+  const storedUser = userstored ? JSON.parse(userstored) : null;
 
-  if (!user || !userstored) {
+  if (!user || !storedUser) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
@@ -103,6 +104,36 @@ export function RequireRole({ children, allow }: RequireRoleProps) {
         : "/patient/overview";
 
     return <Navigate to={dest} replace />;
+  }
+
+  return <>{children}</>;
+}
+
+
+
+
+
+export function PublicOnlyRoute({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { user } = useAuth();
+
+  const userstored = localStorage.getItem("ui_user");
+  const storedUser = userstored ? JSON.parse(userstored) : null;
+  console.log("🚀 ~ PublicOnlyRoute ~ storedUser:", storedUser)
+  
+  const isAuthenticated = !!user && !!storedUser;
+  console.log("🚀 ~ PublicOnlyRoute ~ isAuthenticated:", isAuthenticated)
+
+  if (isAuthenticated) {
+    const destination =
+      user.accountType === "organization"
+        ? "/provider/overview"
+        : "/patient/overview";
+
+    return <Navigate to={destination} replace />;
   }
 
   return <>{children}</>;

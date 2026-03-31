@@ -11,6 +11,7 @@ import {
   Activity,
 } from "lucide-react";
 import { useAuth } from "@/shared/auth/AuthProvider";
+import { doctorsignup } from "@/assets";
 
 const STYLES = `
 @keyframes prov-su-up {
@@ -207,18 +208,18 @@ export function ProviderSignupPage() {
 
         <div className="flex h-full ">
           {/* Left panel */}
-          <div className="hidden relative overflow-hidden bg-[#DDE5EE]">
+          <div className="hidden md:block md:w-[45%] relative overflow-hidden bg-[#DDE5EE]">
             <img
-              src="/doctorsignup.png"
+              src={doctorsignup}
               alt="Healthcare professional"
-              className="h-full w-full object-cover object-left"
+              className="h-full w-full object-center object-cover"
             />
 
             <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.00)_0%,rgba(255,255,255,0.00)_72%,rgba(221,229,238,0.22)_100%)]" />
           </div>
 
           {/* Right panel */}
-          <div className="overflow-y-auto bg-[#F3F4F5] pt-6">
+          <div className="overflow-y-auto md:w-[55%] bg-[#F3F4F5] pt-6">
             <div className="mx-auto flex w-full max-w-[720px] flex-col px-5 md:px-[82px] pb-14 pt-[24px]">
               <div className="text-center">
                 <h1 className="text-[36px] md:text-[46px] font-extrabold leading-[1.08] md:tracking-[-0.03em] text-[#062B67]">

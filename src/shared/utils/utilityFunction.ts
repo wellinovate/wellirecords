@@ -1,3 +1,4 @@
+import axios from "axios";
 import { apiUrl } from "../api/authApi";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
@@ -103,6 +104,29 @@ export const clearWalletStorage = () => {
       localStorage.removeItem(key);
     }
   });
+};
+
+
+
+
+
+export const fetchProfile = async () => {
+  try {
+    const token = Cookies.get("accessToken");
+
+    const res = await axios.get(`${apiUrl}/api/v1/user/me`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log("Profile:", res.data.data);
+    return res.data.data;
+  } catch (err) {
+    console.error("Failed to fetch profile", err);
+    throw err;
+  }
 };
 
 

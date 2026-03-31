@@ -1,4 +1,4 @@
-import { logos } from "@/assets";
+import { health_companion_image, logos } from "@/assets";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { useWelliMate } from "@/shared/context/WelliMateContext";
 import { useNetwork } from "@/shared/hooks/useNetwork";
@@ -31,7 +31,7 @@ import {
   WifiOff,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 const patientNav = [
@@ -130,6 +130,8 @@ export function PatientLayout() {
   const { isOnline } = useNetwork();
   const { isWelliMateEnabled, setWelliMateEnabled } = useWelliMate();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   const handleSignOut = () => {
     signOut();
@@ -139,6 +141,22 @@ export function PatientLayout() {
     navigate(path);
     setDrawerOpen(false);
   };
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [open]);
 
   return (
     <div
@@ -390,7 +408,7 @@ export function PatientLayout() {
           </div>
           <div className="flex items-center gap-2 md:gap-3">
             {/* WelliMate toggle — hidden on smallest mobile */}
-            <button
+            {/* <button
               onClick={() => setWelliMateEnabled(!isWelliMateEnabled)}
               className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold border"
               style={{
@@ -416,20 +434,61 @@ export function PatientLayout() {
               <span className="hidden sm:inline">
                 {isWelliMateEnabled ? "WelliMate On" : "WelliMate"}
               </span>
-            </button>
+            </button> */}
+
             <button className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-gray-100 relative">
               <Bell size={18} style={{ color: "#041E42" }} />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500" />
             </button>
-            <div
-              className="w-8 h-8 rounded-full overflow-hidden"
-              style={{ border: "2px solid #e2e8f0" }}
-            >
-              <img
-                src={user?.avatar}
-                alt=""
-                className="w-full h-full object-cover"
-              />
+
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setOpen((prev) => !prev)}
+                className="w-10 h-10 rounded-full overflow-hidden border-2 border-green-800"
+                type="button"
+              >
+                <img
+                  src={user?.avatar || health_companion_image}
+                  alt="avatar"
+                  className="w-full h-full object-cover"
+                />
+              </button>
+
+              {open && (
+                <div className="absolute right-0 top-full mt-2 w-44 rounded-xl bg-white shadow-lg border border-gray-100 z-50 overflow-hidden animate-fade-in">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpen(false);
+                      navigate("/patient/settings");
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
+                  >
+                    Settings
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpen(false);
+                      navigate("/patient/billing");
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
+                  >
+                    Billing
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpen(false);
+                      signOut();
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>

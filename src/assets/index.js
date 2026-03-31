@@ -46,5 +46,5 @@ export {
     telehealth,
     wellirecordimage,
     yourhealthrecord,
-    wearable
+    wearable,
 }

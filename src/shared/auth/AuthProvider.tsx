@@ -61,9 +61,15 @@ type IdentifierType = "wrId" | "email" | "phone" | "qr";
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  console.log("🚀 ~ AuthProvider ~ user:", user);
+  // const [user, setUser] = useState<AuthUser | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    const stored = localStorage.getItem("ui_user");
+    return stored ? JSON.parse(stored) : null;
+  });
+  console.log("🚀 ~ AuthProvider ~ user:", user)
   const [isLoading, setIsLoading] = useState(true);
+
+
 
 
   // Rehydrate from localStorage on mount
@@ -213,6 +219,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = () => {
     authApi.signOut();
+    localStorage.removeItem("ui_user");
     logOut();
     setUser(null);
   };

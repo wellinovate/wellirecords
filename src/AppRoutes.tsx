@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { RequireRole } from "@/shared/auth/RequireRole";
+import { PublicOnlyRoute, RequireRole } from "@/shared/auth/RequireRole";
 import { useAuth } from "@/shared/auth/AuthProvider";
 
 // ─── Public Pages ─────────────────────────────────────────────────────────────
@@ -136,12 +136,47 @@ export function AppRoutes() {
       <Route path="/security" element={<SecurityPage />} />
 
       {/* Auth */}
-      <Route path="/auth/login" element={<PatientLoginPage />} />
+      <Route
+        path="/auth/login"
+        element={
+          <PublicOnlyRoute>
+            <PatientLoginPage />
+          </PublicOnlyRoute>
+        }
+      />
       <Route path="/auth/pre-signup" element={<UserTypeSelection />} />
-      <Route path="/auth/pre-login" element={<UserTypeSelectionLogin />} />
-      <Route path="/auth/patient/signup" element={<PatientSignupPage />} />
-      <Route path="/auth/provider/login" element={<ProviderLoginPage />} />
-      <Route path="/auth/provider/signup" element={<ProviderSignupPage />} />
+      <Route
+        path="/auth/pre-login"
+        element={
+          <PublicOnlyRoute>
+            <UserTypeSelectionLogin />
+          </PublicOnlyRoute>
+        }
+      />
+      <Route
+        path="/auth/patient/signup"
+        element={
+          <PublicOnlyRoute>
+            <PatientSignupPage />
+          </PublicOnlyRoute>
+        }
+      />
+      <Route
+        path="/auth/provider/login"
+        element={
+          <PublicOnlyRoute>
+            <ProviderLoginPage />
+          </PublicOnlyRoute>
+        }
+      />
+      <Route
+        path="/auth/provider/signup"
+        element={
+          <PublicOnlyRoute>
+            <ProviderSignupPage />
+          </PublicOnlyRoute>
+        }
+      />
       <Route
         path="/auth/provider/verify-org"
         element={<OrgVerificationPage />}
