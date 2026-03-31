@@ -1,11 +1,22 @@
 import { phone } from "@/assets";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import axios from "axios";
+import { apiUrl } from "@/shared/api/authApi";
+import Cookies from "js-cookie";
 
-function PasswordInput({ label, value, onChange }) {
+function PasswordInput({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}) {
   const [visible, setVisible] = useState(false);
 
   return (
@@ -35,7 +46,17 @@ function PasswordInput({ label, value, onChange }) {
   );
 }
 
-function TextInput({ label, placeholder, value, onChange }) {
+function TextInput({
+  label,
+  placeholder,
+  value,
+  onChange,
+}: {
+  label: string;
+  placeholder: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}) {
   return (
     <div className="w-full">
       <label className="block mb-2 text-[18px] font-medium text-[#0A2F6B]">
@@ -53,110 +74,162 @@ function TextInput({ label, placeholder, value, onChange }) {
   );
 }
 
-function GoogleIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="w-5 h-5">
-      <path
-        fill="#4285F4"
-        d="M21.35 12.23c0-.72-.06-1.25-.2-1.8H12v3.41h5.37
-        c-.11.85-.74 2.13-2.13 2.99l-.02.11
-        3.1 2.4.21.02c1.92-1.77 3.02-4.37
-        3.02-7.13z"
-      />
-      <path
-        fill="#34A853"
-        d="M12 21.75c2.63 0 4.84-.87
-        6.45-2.37l-3.07-2.38
-        c-.82.57-1.91.97-3.38.97
-        -2.57 0-4.75-1.69-5.52-4.02
-        l-.1.01-3.23 2.49-.03.1
-        C4.71 19.72 8.08 21.75 12 21.75z"
-      />
-      <path
-        fill="#FBBC05"
-        d="M6.48 13.95A5.98 5.98 0 0 1
-        6.16 12c0-.68.12-1.34.31-1.95
-        l-.01-.13-3.26-2.53-.11.05
-        A9.7 9.7 0 0 0 2 12
-        c0 1.57.37 3.05 1.03 4.38l3.45-2.43z"
-      />
-      <path
-        fill="#EA4335"
-        d="M12 6.03c1.85 0 3.1.8
-        3.81 1.46l2.78-2.71
-        C16.83 3.16 14.63 2.25
-        12 2.25 8.08 2.25
-        4.71 4.28 3.12 7.45
-        l3.38 2.61C7.25 7.72
-        9.43 6.03 12 6.03z"
-      />
-    </svg>
-  );
-}
-
 export function PatientLoginPage() {
-  const { signIn } = useAuth();
+  const { signIn, setUser } = useAuth();
   const navigate = useNavigate();
 
   const [profileType, setProfileType] = useState("Personal");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
+  const googleBtnRef = useRef<HTMLDivElement | null>(null);
+
   const [form, setForm] = useState({
     email: "",
     password: "",
   });
 
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  console.log("🚀 ~ PatientLoginPage ~ googleClientId:", googleClientId);
+
+  const update =
+    (key: "email" | "password") => (e: React.ChangeEvent<HTMLInputElement>) =>
+      setForm((prev) => ({ ...prev, [key]: e.target.value }));
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // --- Access Restrictions based on Profile Type ---
-    if (profileType === "Child") {
-      setError(
-        "Restricted Access: Child records cannot log in independently. A parent or guardian must log in via a Personal or Family profile to access dependants.",
-      );
-      return;
-    }
-
-    console.log("🚀 ~ handleSubmit ~ form?.email:", form?.email);
     try {
       setLoading(true);
       setError("");
-      const user = await signIn(form?.email, form?.password);
-      console.log("🚀 ~ handleSubmit ~ user:", user);
-      setLoading(false);
+
+      const user = await signIn(form.email, form.password);
+
       if (!user) {
-        setError("Invalid email or password. try again");
+        setError("Invalid email or password. Try again");
         return;
       }
-      toast.success("login successfully");
 
+      toast.success("Login successful");
       localStorage.setItem("activeProfileType", profileType);
+
       if (user?.data?.account?.accountType === "user") {
         navigate("/patient/overview");
       } else {
         navigate("/provider/overview");
       }
     } catch (error: any) {
-      console.log("🚀 ~ handleSubmit ~ error:", error);
-      if (error.message.includes("timeout")) {
+      if (error?.message?.includes("timeout")) {
         toast.error("Request took too long. Check your connection.");
       } else {
-        toast.error(error.message || "Something went wrong. Try again.");
+        toast.error(error?.message || "Something went wrong. Try again.");
       }
     } finally {
       setLoading(false);
     }
   };
 
-  //   const handleWeb3 = () => {
-  //     setWeb3Loading(true);
-  //     setTimeout(() => {
-  //       signInAsRole("patient");
-  //       navigate("/patient/overview");
-  //     }, 1400);
-  //   };
+  const handleGoogleCredential = async (response: GoogleCredentialResponse) => {
+    try {
+      setGoogleLoading(true);
+      setError("");
 
-  const update = (key) => (e) => setForm({ ...form, [key]: e.target.value });
+      console.log("🚀 ~ handleGoogleCredential ~ apiUrl:", apiUrl);
+      const res = await axios.post(`${apiUrl}/api/v1/auth/google/login`, {
+        credential: response.credential,
+        profileType,
+      });
+
+      const data = res.data;
+      console.log("🚀 ~ handleGoogleCredential ~ data:", data);
+      Cookies.set("accessToken", data.token, {
+        expires: 1, // days
+        secure: true, // only over HTTPS (important in prod)
+        sameSite: "lax",
+      });
+
+      localStorage.setItem(
+        "ui_user",
+        JSON.stringify({
+          id: data.user.id,
+          accountType: data.user.accountType,
+        }),
+      );
+
+      const userstored = localStorage.getItem("ui_user");
+      const storedUser = userstored ? JSON.parse(userstored) : null;
+      setUser(storedUser);
+      toast.success("Google sign-in successful");
+
+      if (data?.user?.accountType === "user") {
+        navigate("/patient/overview");
+      } else {
+        navigate("/provider/overview");
+      }
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Google sign-in failed",
+      );
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!googleClientId) {
+      console.error("Missing VITE_GOOGLE_CLIENT_ID");
+      return;
+    }
+
+    const existingScript = document.getElementById("google-gsi-script");
+    if (existingScript && window.google && googleBtnRef.current) {
+      window.google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: handleGoogleCredential,
+      });
+
+      googleBtnRef.current.innerHTML = "";
+
+      window.google.accounts.id.renderButton(googleBtnRef.current, {
+        theme: "outline",
+        size: "large",
+        text: "signin_with",
+        shape: "rectangular",
+        width: 460,
+      });
+
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.id = "google-gsi-script";
+
+    script.onload = () => {
+      if (!window.google || !googleBtnRef.current) return;
+
+      window.google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: handleGoogleCredential,
+      });
+
+      googleBtnRef.current.innerHTML = "";
+
+      window.google.accounts.id.renderButton(googleBtnRef.current, {
+        theme: "outline",
+        size: "large",
+        text: "signin_with",
+        shape: "rectangular",
+        width: 460,
+      });
+    };
+
+    document.head.appendChild(script);
+  }, [googleClientId]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -166,23 +239,21 @@ export function PatientLoginPage() {
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-[#062B67] hover:opacity-70 transition"
           >
-            <ArrowLeft size={36} className="  " />
-            <span className="text-sm md:text-lg  font-bold">Back</span>
+            <ArrowLeft size={36} />
+            <span className="text-sm md:text-lg font-bold">Back</span>
           </button>
         </div>
-        <div className="flex h-full px-1  ">
-          {/* LEFT IMAGE PANEL */}
+
+        <div className="flex h-full px-1">
           <div className="hidden md:block relative w-full flex-1 overflow-hidden bg-[#E8EDF2]">
             <img
               src={phone}
               alt="Phone UI"
-              className="  w-ful h-full object-cover"
+              className="w-full h-full object-cover"
             />
-
-            <div className=" top-0 left-0 w-full h-[4px] bg-[#2F915C]" />
+            <div className="top-0 left-0 w-full h-[4px] bg-[#2F915C]" />
           </div>
 
-          {/* RIGHT LOGIN PANEL */}
           <div className="bg-[#F3F4F5] flex w-full flex-1 items-start justify-center px-3">
             <div className="w-full max-w-[460px] mt-[70px]">
               <h1 className="text-[44px] font-extrabold text-center text-[#062B67]">
@@ -203,13 +274,20 @@ export function PatientLoginPage() {
                   onChange={update("password")}
                 />
 
+                {error && (
+                  <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3">
+                    {error}
+                  </div>
+                )}
+
                 <div className="text-right text-[14px] text-gray-500">
                   Forgot Password?
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full h-[46px] flex justify-center items-center bg-[#2F915C] text-white rounded-md text-[18px] font-semibold hover:brightness-95 transition"
+                  disabled={loading || googleLoading}
+                  className="w-full h-[46px] flex justify-center items-center gap-2 bg-[#2F915C] text-white rounded-md text-[18px] font-semibold hover:brightness-95 transition disabled:opacity-70"
                 >
                   {loading ? (
                     <>
@@ -221,20 +299,22 @@ export function PatientLoginPage() {
                   )}
                 </button>
 
-                {/* divider */}
                 <div className="flex items-center gap-4">
                   <div className="h-px flex-1 bg-gray-300"></div>
                   <span className="text-gray-500 text-[14px]">Or</span>
                   <div className="h-px flex-1 bg-gray-300"></div>
                 </div>
 
-                <button
-                  type="button"
-                  className="flex items-center justify-center gap-3 text-[16px] text-[#173A71]"
-                >
-                  <GoogleIcon />
-                  Sign In
-                </button>
+                <div className="w-full flex justify-center">
+                  {googleLoading ? (
+                    <div className="flex items-center gap-2 text-[16px] text-[#173A71]">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Signing in with Google...
+                    </div>
+                  ) : (
+                    <div ref={googleBtnRef} />
+                  )}
+                </div>
 
                 <div className="text-center text-[15px] text-[#333]">
                   Connect Wallet (Web3 Access)

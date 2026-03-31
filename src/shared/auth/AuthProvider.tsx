@@ -18,6 +18,7 @@ import {
 
 type AuthContextValue = {
   user: AuthUser | null;
+  setUser: AuthUser | null;
   isLoading: boolean;
   isPatient: boolean;
   isProvider: boolean;
@@ -38,6 +39,7 @@ type AuthContextValue = {
   createLabResult: (payload: any) => any;
   createEncounter: (payload: any) => any;
   signIn: (email: string, password: string) => AuthUser | null;
+  handleGoogleCredentials: (response: GoogleCredentialResponse) => AuthUser | null;
   signInAsRole: (role: UserRole) => AuthUser;
   signUpPatient: (
     profileType: string,
@@ -80,6 +82,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     const res = await authApi.signIn(email, password);
+    console.log("🚀 ~ signIn ~ u:", res.data.account);
+    setUser(res.data.account);
+    localStorage.setItem(
+      "ui_user",
+      JSON.stringify({
+        id: res.data.account.id,
+        accountType: res.data.account.accountType,
+      }),
+    );
+    getAuthFromToken(res.data.accessToken);
+    return res;
+  };
+
+  const handleGoogleCredentials = async (response: GoogleCredentialResponse, profileType: string) => {
+    console.log("🚀 ~ handleGoogleCredentials ~ response:", response)
+    const res = await authApi.handleGoogleCredentials(response);
     console.log("🚀 ~ signIn ~ u:", res.data.account);
     setUser(res.data.account);
     localStorage.setItem(
@@ -227,10 +245,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
+      setUser,
       isLoading,
       isPatient: user?.userType === "PATIENT",
       isProvider: user?.userType === "ORG_USER",
       signIn,
+      handleGoogleCredentials,
       searchPatientRequest,
       createMedication,
       createAllergy,

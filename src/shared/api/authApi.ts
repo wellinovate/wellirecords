@@ -192,6 +192,33 @@ export const authApi = {
       console.log(err);
     }
   },
+
+  async handleGoogleCredentials(response: GoogleCredentialResponse) {
+    const profileType = "user"
+    try {
+      const res = await axios.post(`${apiUrl}/api/v1/auth/google/login`, {
+              credential: response.credential,
+              profileType,
+            });
+  
+
+      if (res.status === 200) {
+        const data = await res.data;
+        // document.cookie = `accessToken=${data.accessToken}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
+        Cookies.set("accessToken", data.accessToken, {
+            expires: 1, // days
+            secure: true, // only over HTTPS (important in prod)
+            sameSite: "lax",
+        });
+        
+        return data;
+      }
+    } catch (err: any) {
+      console.log(err);
+    }
+  },
+
+  
   /** Mock provider sign-in with role override */
   signInAsRole(role: UserRole): AuthUser {
     const isPatient = role === "patient";
