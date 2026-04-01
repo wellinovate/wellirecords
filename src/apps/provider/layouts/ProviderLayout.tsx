@@ -1,4 +1,4 @@
-import {  logos } from "@/assets";
+import { logos } from "@/assets";
 import { orgApi } from "@/shared/api/orgApi";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { useWelliMate } from "@/shared/context/WelliMateContext";
@@ -34,7 +34,7 @@ import {
   Users,
   Video,
   WifiOff,
-  X
+  X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -54,7 +54,7 @@ const ALL_NAV = [
     label: "Prescriptions",
     icon: Pill,
     // roles: ["clinician", "pharmacist", "provider_admin"],
-    roles: ["*"]
+    roles: ["*"],
   },
   {
     to: "/provider/encounters/new",
@@ -68,10 +68,9 @@ const ALL_NAV = [
     label: "Lab Orders",
     icon: FlaskConical,
     // roles: ["clinician", "lab_tech", "provider_admin"],
-    roles: ["*"]
+    roles: ["*"],
   },
-  
-  
+
   {
     to: "/provider/telemedicine",
     label: "Telemedicine",
@@ -134,7 +133,7 @@ const BOTTOM_NAV = [
 
 export function ProviderLayout() {
   const { user, signOut } = useAuth();
-  console.log("🚀 ~ ProviderLayout ~ user:", user)
+  console.log("🚀 ~ ProviderLayout ~ user:", user);
   const navigate = useNavigate();
   const location = useLocation();
   const org = user?.orgId ? orgApi.getById(user.orgId) : undefined;
@@ -144,6 +143,8 @@ export function ProviderLayout() {
   const { isOnline } = useNetwork();
   const { isWelliMateEnabled, setWelliMateEnabled } = useWelliMate();
   const { can, roleMetadata, primaryRole } = useRBAC();
+
+  const isLocked = !user?.isVerified;
 
   const [syncTime, setSyncTime] = useState(() => new Date());
   useEffect(() => {
@@ -180,8 +181,6 @@ export function ProviderLayout() {
       className="flex h-screen portal-provider"
       style={{ overflow: "hidden" }}
     >
-     
-
       {/* ─── Desktop / Tablet Sidebar ─── */}
       <aside
         className="sidebar-provider hidden md:flex flex-col w-16 lg:w-64 flex-shrink-0 z-20"
@@ -202,14 +201,8 @@ export function ProviderLayout() {
               className=" w-full h- full object-cover"
             />
           </Link>
-          <div
-            className="lg:hidden w-8 h-8 rounded-lg flex items-center justify-center text-sm text-white font-black"
-          >
-            
-          </div>
-          <div
-            className="ml-2 hidden lg:block text-[10px] font-bold border border-blue-800 px-2 rounded-lg tracking-widest uppercase"
-          >
+          <div className="lg:hidden w-8 h-8 rounded-lg flex items-center justify-center text-sm text-white font-black"></div>
+          <div className="ml-2 hidden lg:block text-[10px] font-bold border border-blue-800 px-2 rounded-lg tracking-widest uppercase">
             Provider Portal
           </div>
         </div>
@@ -302,11 +295,16 @@ export function ProviderLayout() {
         <nav className="flex-1 px-2 lg:px-3 py-2 space-y-0.5 overflow-y-auto">
           {navWithAccess.map((item) => {
             const active = location.pathname.startsWith(item.to);
-            const locked = !item.hasAccess;
+            // const locked = !item.hasAccess;
+            const locked = !item.hasAccess || isLocked;
             return (
               <button
                 key={item.to}
-                onClick={() => !locked && navigate(item.to)}
+                // onClick={() => !locked && navigate(item.to)}
+                onClick={() => {
+                  if (isLocked) return;
+                  if (!locked) navigate(item.to);
+                }}
                 title={item.label}
                 className={`sidebar-item sidebar-item-provider w-full ${active && !locked ? "active" : ""} justify-center lg:justify-start`}
                 style={locked ? { opacity: 0.38, cursor: "not-allowed" } : {}}
@@ -477,10 +475,35 @@ export function ProviderLayout() {
             </span>
           </div>
         )}
-        <main className="flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-6 pb-20 md:pb-6">
-          <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
-            <Outlet />
-          </div>
+        
+
+        <main className="relative ">
+          <Outlet />
+
+          
+        {!user?.isVerified && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+    <div className="bg-white rounded-xl p-6 w-[320px] text-center shadow-xl">
+      <Lock size={32} className="mx-auto mb-3 text-red-500" />
+
+      <h2 className="text-lg font-bold mb-2">
+        Verification Required
+      </h2>
+
+      <p className="text-sm text-gray-600 mb-4">
+        Your provider account is not verified yet. Complete
+        verification to unlock full access.
+      </p>
+
+      <button
+        onClick={() => navigate("/provider/verify")}
+        className="w-full bg-[#2F915C] text-white py-2 rounded-md font-semibold"
+      >
+        Complete Verification
+      </button>
+    </div>
+  </div>
+)}
         </main>
       </div>
 
