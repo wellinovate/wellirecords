@@ -257,26 +257,9 @@ export const authApi = {
     }
   },
 
-  async signUpProvider(
-    profileTypes: string,
-    organisationName: string,
-    email: string,
-    phone: string,
-    country: string,
-    password: string,
-  ) {
-    const organisation = `organization(${profileTypes})`;
+  async signUpProvider(payload: any) {
     try {
-      const response = await axios.post(`${apiUrl}/api/v1/auth/register`, {
-        profileType: "organization",
-        organizationName: organisationName,
-        organizationType: organisation,
-        organizationMainType: profileTypes,
-        email: email,
-        phone: phone,
-        country: country,
-        password: password,
-      });
+      const response = await axios.post(`${apiUrl}/api/v1/auth/register`, payload);
       console.log("🚀 ~ response:", response);
 
       if (response.status === 201) {

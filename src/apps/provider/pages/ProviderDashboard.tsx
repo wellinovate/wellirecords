@@ -13,6 +13,7 @@ import {
   Search,
   Users,
 } from "lucide-react";
+import { useAuth } from "@/shared/auth/AuthProvider";
 
 type WorklistItem = {
   id: string;
@@ -267,6 +268,7 @@ function statusPill(status: WorklistItem["status"] | ScheduleItem["status"]) {
 
 export function ProviderDashboard() {
   const navigate = useNavigate();
+  const {user } = useAuth();
   const [activeTab, setActiveTab] = useState("waiting");
 
   const worklistItems = useMemo(() => WORKLIST_ITEMS, []);

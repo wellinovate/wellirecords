@@ -10,6 +10,9 @@ type JwtPayload = {
   fullName: string;
   accountType: string;
   role: string;
+  orgId: string;
+  wrOrgId: string;
+  isVerified: string;
   exp: number;
 };
 
@@ -26,8 +29,10 @@ export function getAuthFromToken(token: string) {
         sub: decoded.sub,
         email: decoded.email,
         fullName: decoded.fullName,
+        wrOrgId: decoded.orgId,
         accountType: decoded.accountType,
         role: decoded.role,
+        isVerified: decoded.isVerified,
       },
     };
   } catch (error) {

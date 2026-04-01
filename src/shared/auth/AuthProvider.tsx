@@ -44,14 +44,7 @@ type AuthContextValue = {
   ) => AuthUser | null;
   signInAsRole: (role: UserRole) => AuthUser;
   signUpPatient: (payload: any) => string | null;
-  signUpProvider: (
-    profileType: string,
-    organizationName: string,
-    email: string,
-    phone: string,
-    country: string,
-    password: string,
-  ) => string | null;
+  signUpProvider: (payload: any) => string | null;
   signOut: () => void;
 };
 
@@ -72,6 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const users = getCurrentUser();
     setUser(users);
+    console.log("🚀 ~ AuthProvider ~ users:", users)
   }, []);
 
   const signIn = async (email: string, password: string) => {
@@ -207,23 +201,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return u;
   };
 
-  const signUpProvider = async (
-    profileType: string,
-    organizationName: string,
-    email: string,
-    phone: string,
-    country: string,
-    password: string,
-  ) => {
-    console.log("🚀 ~ signUpProvider ~ profileType:", profileType);
-    const u = await authApi.signUpProvider(
-      profileType,
-      organizationName,
-      email,
-      phone,
-      country,
-      password,
-    );
+  const signUpProvider = async (payload: any ) => {
+    const u = await authApi.signUpProvider(payload);
     console.log("🚀 ~ signUpProvider ~ u:", u);
     return u;
   };
