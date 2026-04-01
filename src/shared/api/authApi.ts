@@ -242,19 +242,9 @@ export const authApi = {
     return user;
   },
 
-  async signUpPatient(
-    profileType: string,
-    fullName: string,
-    email: string,
-    password: string,
-  ) {
+  async signUpPatient(payload: any) {
     try {
-      const response = await axios.post(`${apiUrl}/api/v1/auth/register`, {
-        profileType,
-        fullName,
-        email: email,
-        password: password,
-      });
+      const response = await axios.post(`${apiUrl}/api/v1/auth/register`, payload);
       console.log("🚀 ~ response:", response);
 
       if (response.status === 201) {

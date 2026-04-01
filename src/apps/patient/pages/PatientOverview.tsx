@@ -102,6 +102,7 @@ const DUMMY_ALERTS: DashboardAlertItem[] = [
 
 export function PatientOverview() {
   const { user } = useAuth();
+  console.log("🚀 ~ PatientOverview ~ user:", user)
   const navigate = useNavigate();
 
   const [records, setRecords] = useState<RecordsResponse>({});

@@ -39,14 +39,11 @@ type AuthContextValue = {
   createLabResult: (payload: any) => any;
   createEncounter: (payload: any) => any;
   signIn: (email: string, password: string) => AuthUser | null;
-  handleGoogleCredentials: (response: GoogleCredentialResponse) => AuthUser | null;
+  handleGoogleCredentials: (
+    response: GoogleCredentialResponse,
+  ) => AuthUser | null;
   signInAsRole: (role: UserRole) => AuthUser;
-  signUpPatient: (
-    profileType: string,
-    fullName: string,
-    email: string,
-    password: string,
-  ) => string | null;
+  signUpPatient: (payload: any) => string | null;
   signUpProvider: (
     profileType: string,
     organizationName: string,
@@ -68,11 +65,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const stored = localStorage.getItem("ui_user");
     return stored ? JSON.parse(stored) : null;
   });
-  console.log("🚀 ~ AuthProvider ~ user:", user)
+  console.log("🚀 ~ AuthProvider ~ user:", user);
   const [isLoading, setIsLoading] = useState(true);
-
-
-
 
   // Rehydrate from localStorage on mount
   useEffect(() => {
@@ -82,8 +76,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     const res = await authApi.signIn(email, password);
-    console.log("🚀 ~ signIn ~ u:", res.data.account);
-    setUser(res.data.account);
+
+    // setUser(res.data.account + " " + res.data.profile.fullName);
+    const { account, profile } = res.data;
+
+    setUser({
+      ...account,
+      fullName: profile?.fullName || "",
+    });
     localStorage.setItem(
       "ui_user",
       JSON.stringify({
@@ -91,12 +91,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         accountType: res.data.account.accountType,
       }),
     );
-    getAuthFromToken(res.data.accessToken);
+    const auth = getAuthFromToken(res.data.accessToken);
     return res;
   };
 
-  const handleGoogleCredentials = async (response: GoogleCredentialResponse, profileType: string) => {
-    console.log("🚀 ~ handleGoogleCredentials ~ response:", response)
+  const handleGoogleCredentials = async (
+    response: GoogleCredentialResponse,
+    profileType: string,
+  ) => {
+    console.log("🚀 ~ handleGoogleCredentials ~ response:", response);
     const res = await authApi.handleGoogleCredentials(response);
     console.log("🚀 ~ signIn ~ u:", res.data.account);
     setUser(res.data.account);
@@ -198,18 +201,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return u;
   };
 
-  const signUpPatient = async (
-    profileType: string,
-    fullName: string,
-    email: string,
-    password: string,
-  ) => {
-    const u = await authApi.signUpPatient(
-      profileType,
-      fullName,
-      email,
-      password,
-    );
+  const signUpPatient = async (payload: any) => {
+    const u = await authApi.signUpPatient(payload);
     console.log("🚀 ~ signUpPatient ~ u:", u);
     return u;
   };

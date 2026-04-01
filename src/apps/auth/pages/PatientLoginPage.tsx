@@ -104,6 +104,7 @@ export function PatientLoginPage() {
       setError("");
 
       const user = await signIn(form.email, form.password);
+      console.log("🚀 ~ handleSubmit ~ user:", user)
 
       if (!user) {
         setError("Invalid email or password. Try again");
@@ -158,7 +159,7 @@ export function PatientLoginPage() {
 
       const userstored = localStorage.getItem("ui_user");
       const storedUser = userstored ? JSON.parse(userstored) : null;
-      setUser(storedUser);
+      setUser?.(storedUser);
       toast.success("Google sign-in successful");
 
       if (data?.user?.accountType === "user") {

@@ -612,7 +612,7 @@ declare global {
     };
   }
 
-  interface GoogleCredentialResponse {
+  export interface GoogleCredentialResponse {
     credential: string;
     select_by?: string;
     clientId?: string;
