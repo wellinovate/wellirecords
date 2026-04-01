@@ -468,37 +468,13 @@ export default function PatientSignupPage() {
           </div>
 
           {/* Mobile / tablet hero */}
-          <div className="relative overflow-hidden bg-[#E9EEF1] px-5 pb-8 pt-20 sm:px-6 lg:hidden">
-            <img
-              src="/signups.jpg"
-              alt="background"
-              className="absolute inset-0 h-full w-full object-cover object-left opacity-40"
-            />
-            <div className="absolute inset-0 bg-[#E9EEF1]/85" />
-
-            <div className="relative z-10 flex flex-col items-center">
-              <div className="flex items-center justify-center gap-4">
-                <RxIconCard />
-                <PhoneMockup />
-                <PlusIconCard />
-              </div>
-
-              <div className="mt-6 text-center">
-                <h1 className="text-3xl sm:text-4xl font-extrabold leading-tight tracking-[-0.03em] text-[#082E6A]">
-                  Create Your Account
-                </h1>
-                <p className="mt-2 text-sm sm:text-base text-[#49576A]">
-                  Choose how you want to use WelliRecord.
-                </p>
-              </div>
-            </div>
-          </div>
+      
 
           {/* Right side / form */}
-          <div className="relative bg-[#F3F3F3] pb-8">
+          <div className="relative bg-[#F3F3F3] pb-8 pt-8">
             <div className="mx-auto flex h-full w-full max-w-[650px] flex-col px-5 pt-8 sm:px-8 sm:pt-10 md:px-10 lg:px-12 xl:px-[78px] xl:pt-[36px]">
-              <div className="hidden text-center lg:block">
-                <h1 className="text-4xl xl:text-[50px] font-extrabold leading-none tracking-[-0.03em] text-[#082E6A]">
+              <div className=" text-center lg:block">
+                <h1 className="text-3xl md:text-4xl xl:text-[50px] font-extrabold leading-none tracking-[-0.03em] text-[#082E6A]">
                   Create Your Account
                 </h1>
                 <p className="mt-2 text-base xl:text-[18px] text-[#49576A]">
