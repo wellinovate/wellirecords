@@ -16,6 +16,7 @@ import {
   DiagnosisItem,
   EncounterItem,
   getEncounterDetails,
+  getEncounterDetailsByProvider,
   getPatientAllergies,
   getPatientDetail,
   getPatientDiagnoses,
@@ -250,7 +251,7 @@ export function EHRViewerPage() {
   try {
     setLoadingDetailId(encounterId);
 
-    const response = await getEncounterDetails(encounterId);
+    const response = await getEncounterDetailsByProvider(encounterId,patientId );
 
     setEncounterDetails((prev) => ({
       ...prev,

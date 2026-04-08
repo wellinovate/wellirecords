@@ -146,7 +146,7 @@ export function ProviderLayout() {
   const { isWelliMateEnabled, setWelliMateEnabled } = useWelliMate();
   const { can, roleMetadata, primaryRole } = useRBAC();
 
-  const isLocked = !user?.isVerified;
+  const isLocked = !!user?.isVerified;
 
   const [syncTime, setSyncTime] = useState(() => new Date());
   useEffect(() => {
@@ -481,7 +481,7 @@ export function ProviderLayout() {
           <Outlet />
 
           
-        {!user?.isVerified && (
+        {!!user?.isVerified && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
     <div className="bg-white rounded-xl p-6 w-[320px] text-center shadow-xl">
       <Lock size={32} className="mx-auto mb-3 text-red-500" />

@@ -331,6 +331,32 @@ export async function getEncounterDetails(
 
   return data.data;
 }
+export async function getEncounterDetailsByProvider(
+  encounterId: string,
+  patientId: string
+) {
+  const token = Cookies.get("accessToken");
+  const res = await fetch(
+    `${apiUrl}/api/v1/organization/medical-history/encounter/${encounterId}/${patientId}`,
+    {
+    method: "GET",
+    headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: "include",
+    },
+  );
+
+  const data = await res.json();
+  console.log("🚀 ~ getUsersRecord ~ data:", data.data)
+
+  if (!res.ok) {
+    throw new Error(data?.message || "Failed to fetch vitals");
+  }
+
+  return data.data;
+}
 
 
 
