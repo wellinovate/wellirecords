@@ -2,16 +2,20 @@ import { AllergyRecordForm } from "@/apps/components/AllergyRecordForm";
 import { DiagnosisRecordForm } from "@/apps/components/DiagnosisRecordForm";
 import { EncounterRecordForm } from "@/apps/components/EncounterRecordForm";
 import { LabResultRecordForm } from "@/apps/components/LabResultRecordForm";
+import PatientsLoadingSkeleton from "@/apps/components/Loader/PatientsLoadingSkeleton";
 import { MedicationRecordForm } from "@/apps/components/MedicationRecordForm";
 import { ProcedureRecordForm } from "@/apps/components/ProcedureRecordForm";
+import { SharedDashboardSection } from "@/apps/components/shared/SharedDashboardSection";
 import { TabRecordPanel } from "@/apps/components/TabRecordPanel";
 import { VitalRecordForm } from "@/apps/components/VitalRecordForm";
+import { TimelineNode } from "@/apps/patient/pages/HealthHistory";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { recordDataByTab, TAB_CONFIG } from "@/shared/utils/data";
 import {
   AllergyItem,
   DiagnosisItem,
   EncounterItem,
+  getEncounterDetails,
   getPatientAllergies,
   getPatientDetail,
   getPatientDiagnoses,
@@ -94,13 +98,6 @@ const RECENT_TIMELINE = [
     subtitle: "Access point • Prior remote access, additional delegated",
     doctor: "Dr. Patel",
   },
-];
-
-const RECENT_VITALS = [
-  { label: "BP", value: "101/105 mmHg", right: "102L" },
-  { label: "HR", value: "68 bpm", right: "98 dc" },
-  { label: "O2", value: "99 bp bpm", right: "43.2" },
-  { label: "WT", value: "99 kg / bmi", right: "91 dx" },
 ];
 
 const MINI_CARDS = [
@@ -195,6 +192,7 @@ function SmallActionButton({
 export function EHRViewerPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  console.log("🚀 ~ EHRViewerPage ~ user:", user)
   const navigate = useNavigate();
 
   const [patient, setPatient] = useState<PatientDetailResponse | null>(null);
@@ -225,12 +223,45 @@ export function EHRViewerPage() {
   const [procedures, setProcedures] = useState<ProcedureItem[]>([]);
   const [loadingProcedures, setLoadingProcedures] = useState(false);
   const [proceduresError, setProceduresError] = useState("");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [encounterDetails, setEncounterDetails] = useState<Record<string, any>>(
+    {},
+  );
+  const [loadingDetailId, setLoadingDetailId] = useState<string | null>(null);
 
   const patientId = String(id);
 
   const handleOpenCreateModal = (tabName: string) => {
     setActiveCreateTab(tabName);
   };
+
+  const handleViewMore = async (encounterId: string) => {
+  const isOpen = expandedId === encounterId;
+
+  if (isOpen) {
+    setExpandedId(null);
+    return;
+  }
+
+  setExpandedId(encounterId);
+
+  if (encounterDetails[encounterId]) return;
+
+  try {
+    setLoadingDetailId(encounterId);
+
+    const response = await getEncounterDetails(encounterId);
+
+    setEncounterDetails((prev) => ({
+      ...prev,
+      [encounterId]: response || null,
+    }));
+  } catch (error) {
+    console.error("Failed to fetch encounter details", error);
+  } finally {
+    setLoadingDetailId(null);
+  }
+};
 
   const loadMedications = async () => {
     if (!patientId) return;
@@ -240,6 +271,7 @@ export function EHRViewerPage() {
       setMedicationsError("");
 
       const result = await getPatientMedications(patientId, 1, 10);
+      console.log("🚀 ~ loadMedications ~ result:", result)
       setMedications(result.items || []);
     } catch (err: any) {
       setMedicationsError(err.message || "Failed to load medications");
@@ -305,7 +337,6 @@ export function EHRViewerPage() {
       setEncountersError("");
 
       const result = await getPatientEncounters(patientId, 1, 10);
-      console.log("🚀 ~ loadEncounters ~ result:", result);
       setEncounters(result.items || []);
     } catch (err: any) {
       setEncountersError(err.message || "Failed to load encounters");
@@ -340,7 +371,7 @@ export function EHRViewerPage() {
 
   useEffect(() => {
     loadMedications();
-  }, [patientId]);
+  }, [patientId, tab]);
 
   useEffect(() => {
     loadDiagnoses();
@@ -643,18 +674,20 @@ export function EHRViewerPage() {
       .join("")
       .toUpperCase() || "PT";
 
+      if (loading) return <PatientsLoadingSkeleton/>
+
   return (
-    <div className="min-h-screen bg-[#06162d] px-5 py-5 text-white">
+    <div className="min-h-screen bg-[#010a18] px-3 py-3 text-white">
       <div className="mx-auto max-w-[1280px]">
         <button
           onClick={() => navigate("/provider/patients")}
-          className="mb-4 inline-flex items-center gap-2 text-sm text-[#86a8ce] hover:text-white"
+          className="mb-4 inline-flex font-bold items-center gap-2 text-sm text-[#deebfa] hover:text-white"
         >
           <ArrowLeft size={16} />
           Back to patients
         </button>
 
-        <div className="overflow-hidden rounded-2xl border border-[#173a63] bg-[#081b35] shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+        <div className="overflow-hidden rounded-2xl border/ border-[#173a63]/ bg-[#081b35]/20 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
           {/* Header */}
           <div className="border-b border-[#173a63] px-5 py-4">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
@@ -690,12 +723,14 @@ export function EHRViewerPage() {
                     )}
                   </div>
 
-                  <div className="mt-2 flex flex-col items-start justify-start gap-3 text-[13px] text-[#8fb0d5]">
-                    <span>{patient?.email || "No email"}</span>
-                    <span>{patient?.phone || "No phone"}</span>
+                  <div className="flex bg-blue-700/10 rounded-md px-3 py-2 mt-2 text-sm font-bold text-blue-50 ">
+
+                  <div className="mt-2 grid grid-cols-2 items-start justify-start gap-3 text-[13px] text-[#8fb0d5]">
+                    <span>Email: {" "} {patient?.email || "No email"}</span>
+                    <span> Phone: {" "} {patient?.phone || "No phone"}</span>
                     <div className="space-x-4">
-                      <span>{patient?.gender || "—"}</span>
-                      <span>
+                      <span>Sex: {" "} {patient?.gender || "—"}</span>
+                      <span> Age: {" "}
                         {age !== null ? `${age} years` : "Age unavailable"}
                       </span>
                     </div>
@@ -710,6 +745,8 @@ export function EHRViewerPage() {
                       Retention Access
                     </button>
                   </div>
+                  </div>
+
                 </div>
               </div>
 
@@ -757,155 +794,20 @@ export function EHRViewerPage() {
               <div className="grid grid-cols-1 gap-4 xl:grid-cols-[340px_minmax(0,1fr)]">
                 {/* keep your current Overview content exactly here */}
                 {/* Left Column */}
-                <div className="space-y-4">
-                  <div className="rounded-xl border border-[#173a63] bg-[#0a1d39] p-4">
-                    <div className="mb-4 text-[22px] font-semibold text-[#eef5ff]">
-                      Active Clinical Alerts
-                    </div>
-
-                    <div className="space-y-3">
-                      {CLINICAL_ALERTS.map((item, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-start justify-between gap-3 rounded-lg bg-[#0d2443] px-3 py-3"
-                        >
-                          <div className="flex gap-3">
-                            <div className="mt-0.5">
-                              {item.tone === "yellow" ? (
-                                <AlertTriangle
-                                  size={16}
-                                  className="text-amber-300"
-                                />
-                              ) : item.tone === "red" ? (
-                                <HeartPulse
-                                  size={16}
-                                  className="text-rose-300"
-                                />
-                              ) : (
-                                <Stethoscope
-                                  size={16}
-                                  className="text-sky-300"
-                                />
-                              )}
-                            </div>
-                            <div>
-                              <div className="text-[13px] font-semibold text-[#eef5ff]">
-                                {item.title}
-                              </div>
-                              <div className="mt-1 text-[11px] text-[#7b9ac0]">
-                                {item.subtitle}
-                              </div>
-                            </div>
-                          </div>
-
-                          <button
-                            type="button"
-                            className="flex h-7 w-7 items-center justify-center rounded-full bg-[#14365d] text-[#8bc7ff]"
-                          >
-                            +
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="rounded-xl border border-[#173a63] bg-[#0a1d39] p-4">
-                    <div className="mb-4 text-[22px] font-semibold text-[#eef5ff]">
-                      Recent Vitals
-                    </div>
-
-                    <div className="space-y-3">
-                      {loadingVitals ? (
-                        <div className="rounded-lg bg-[#0d2443] px-3 py-4 text-sm text-[#7b9ac0]">
-                          Loading vitals...
-                        </div>
-                      ) : vitalsError ? (
-                        <div className="rounded-lg bg-[#0d2443] px-3 py-4 text-sm text-red-300">
-                          {vitalsError}
-                        </div>
-                      ) : recentVitalCards.length > 0 ? (
-                        recentVitalCards.map((item) => (
-                          <div
-                            key={`${item.label}-${item.right}-${item.value}`}
-                            className="flex items-center justify-between rounded-lg bg-[#0d2443] px-3 py-2.5"
-                          >
-                            <div className="flex items-center gap-2">
-                              <div className="rounded bg-[#12355f] px-1.5 py-0.5 text-[10px] font-semibold text-[#9ccfff]">
-                                {item.label}
-                              </div>
-                              <span className="text-[13px] text-[#e8f1ff]">
-                                {item.value}
-                              </span>
-                            </div>
-                            <span className="text-[11px] text-[#7b9ac0]">
-                              {item.right}
-                            </span>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="rounded-lg bg-[#0d2443] px-3 py-4 text-sm text-[#7b9ac0]">
-                          No vitals recorded yet.
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right Column */}
-                <div className="space-y-4">
-                  <div className="rounded-xl border border-[#173a63] bg-[#0a1d39] p-4">
-                    <div className="mb-4 flex items-center justify-between">
-                      <div className="text-[22px] font-semibold text-[#eef5ff]">
-                        Recent Timeline
-                      </div>
-
-                      <button
-                        type="button"
-                        className="inline-flex h-8 items-center gap-2 rounded-md border border-[#345f92] bg-[#102845] px-3 text-[12px] font-medium text-[#dbeafe]"
-                      >
-                        <ClipboardList size={14} />
-                        Start Chart
-                      </button>
-                    </div>
-
-                    <div className="space-y-3">
-                      {RECENT_TIMELINE.map((item) => (
-                        <div
-                          key={item.id}
-                          className="flex items-center justify-between gap-4 rounded-lg bg-[#0d2443] px-4 py-3"
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className="mt-1 flex h-9 w-9 items-center justify-center rounded-full bg-[#1b3458] text-[#aac8eb]">
-                              <FileText size={15} />
-                            </div>
-
-                            <div>
-                              <div className="text-[14px] font-semibold text-[#eef5ff]">
-                                {item.title}
-                              </div>
-                              <div className="mt-1 text-[12px] text-[#7b9ac0]">
-                                {item.subtitle}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex min-w-[160px] items-center justify-end gap-4">
-                            <span className="text-[12px] text-[#c8daf0]">
-                              {item.doctor}
-                            </span>
-
-                            <button
-                              type="button"
-                              className="inline-flex h-8 items-center rounded-md border border-[#3f6ea5] bg-[#0c2342] px-3 text-[12px] font-medium text-[#e8f1ff] hover:bg-[#13345e]"
-                            >
-                              Open
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                <SharedDashboardSection
+                  alerts={[]}
+                  recentEncounters={[]}
+                  recordList={[]}
+                  loading={loading}
+                  routeBase={`/provider/patients/${patientId}`}
+                  navigate={navigate}
+                  onShareEncounter={(id) =>
+                    console.log("provider share encounter", id)
+                  }
+                  onContinueCare={(id) =>
+                    navigate(`/provider/encounters/${id}/continue`)
+                  }
+                />
               </div>
             ) : (
               <TabRecordPanel
@@ -929,108 +831,29 @@ export function EHRViewerPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {encounters.map((encounter) => (
-                    <div
-                      key={encounter.id}
-                      className="rounded-xl border border-[#173a63] bg-[#0a1d39] p-4"
-                    >
-                      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                        <div>
-                          <div className="text-lg font-semibold text-[#eef5ff]">
-                            {encounter.reasonForVisit ||
-                              encounter.encounterType ||
-                              "Encounter"}
-                          </div>
+                  <div className="space-y-5">
+                    {encounters.map((encounter, index) => {
+                      const isExpanded = expandedId === encounter.id;
+                      const detail = encounterDetails[encounter.id];
+                      const isLoadingDetail = loadingDetailId === encounter.id;
 
-                          <div className="mt-1 text-sm text-[#7b9ac0]">
-                            {[
-                              encounter.chiefComplaint,
-                              encounter.priority,
-                              encounter.status,
-                            ]
-                              .filter(Boolean)
-                              .join(" • ")}
-                          </div>
-
-                          <div className="mt-2 text-xs text-[#8fb0d5]">
-                            {encounter.startedAt
-                              ? new Date(encounter.startedAt).toLocaleString()
-                              : "No start time"}
-                          </div>
-
-                          {encounter.notes && (
-                            <div className="mt-3 text-sm text-[#c8daf0]">
-                              {encounter.notes}
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleAddRecordFromEncounter(encounter, "Vitals")
-                            }
-                            className="inline-flex h-9 items-center rounded-md border border-[#345f92] bg-[#102845] px-3 text-xs font-medium text-[#dbeafe]"
-                          >
-                            Add Vital
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleAddRecordFromEncounter(
-                                encounter,
-                                "Medications",
-                              )
-                            }
-                            className="inline-flex h-9 items-center rounded-md border border-[#345f92] bg-[#102845] px-3 text-xs font-medium text-[#dbeafe]"
-                          >
-                            Add Medication
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleAddRecordFromEncounter(
-                                encounter,
-                                "Diagnoses",
-                              )
-                            }
-                            className="inline-flex h-9 items-center rounded-md border border-[#345f92] bg-[#102845] px-3 text-xs font-medium text-[#dbeafe]"
-                          >
-                            Add Diagnosis
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleAddRecordFromEncounter(
-                                encounter,
-                                "Lab Results",
-                              )
-                            }
-                            className="inline-flex h-9 items-center rounded-md border border-[#345f92] bg-[#102845] px-3 text-xs font-medium text-[#dbeafe]"
-                          >
-                            Add Lab Result
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleAddRecordFromEncounter(
-                                encounter,
-                                "Allergies",
-                              )
-                            }
-                            className="inline-flex h-9 items-center rounded-md border border-[#345f92] bg-[#102845] px-3 text-xs font-medium text-[#dbeafe]"
-                          >
-                            Add Allergy
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                      return (
+                        <TimelineNode
+                          key={encounter.id}
+                          user={user}
+                          encounter={encounter}
+                          expanded={isExpanded}
+                          encounterDetail={detail}
+                          loadingDetail={isLoadingDetail}
+                          onToggle={() => handleViewMore(encounter.id)}
+                          // 🔥 THIS is the important part
+                          onAdd={(type) =>
+                            handleAddRecordFromEncounter(encounter, type)
+                          }
+                        />
+                      );
+                    })}
+                  </div>
                 </div>
               )
             ) : (

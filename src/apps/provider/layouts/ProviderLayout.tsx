@@ -35,6 +35,7 @@ import {
   Video,
   WifiOff,
   X,
+  TelescopeIcon
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -46,6 +47,7 @@ const ALL_NAV = [
     icon: LayoutDashboard,
     roles: ["*"],
   },
+  { to: "/provider/doctors", label: "Doctors", icon: TelescopeIcon, roles: ["*"] },
   { to: "/provider/patients", label: "Patients", icon: Users, roles: ["*"] },
 
   { to: "/provider/queue", label: "Queue", icon: CalendarClock, roles: ["*"] },
@@ -133,7 +135,7 @@ const BOTTOM_NAV = [
 
 export function ProviderLayout() {
   const { user, signOut } = useAuth();
-  console.log("🚀 ~ ProviderLayout ~ user:", user);
+  // console.log("🚀 ~ ProviderLayout ~ user:", user);
   const navigate = useNavigate();
   const location = useLocation();
   const org = user?.orgId ? orgApi.getById(user.orgId) : undefined;
@@ -144,7 +146,7 @@ export function ProviderLayout() {
   const { isWelliMateEnabled, setWelliMateEnabled } = useWelliMate();
   const { can, roleMetadata, primaryRole } = useRBAC();
 
-  const isLocked = !user?.isVerified;
+  const isLocked = !!user?.isVerified;
 
   const [syncTime, setSyncTime] = useState(() => new Date());
   useEffect(() => {
@@ -178,22 +180,20 @@ export function ProviderLayout() {
 
   return (
     <div
-      className="flex h-screen portal-provider"
-      style={{ overflow: "hidden" }}
+      className="flex h-screen portal-provider overflow-hidden"
     >
       {/* ─── Desktop / Tablet Sidebar ─── */}
       <aside
         className="sidebar-provider hidden md:flex flex-col w-16 lg:w-64 flex-shrink-0 z-20"
-        style={{ boxShadow: "2px 0 30px rgba(0,0,0,.3)" }}
+        // style={{ boxShadow: "2px 0 30px rgba(0,0,0,.3)" }}
       >
         {/* Logo */}
         <div
-          className="p-3 lg:p-5 border-b flex items-center justify-center lg:justify-start"
-          style={{ borderColor: "var(--prov-border)" }}
+          className="p-3 lg:p-5 border-b border-blue-950 flex flex-col items-center justify-center lg:justify-start"
         >
           <Link
             to="/"
-            className="flex h-14 w-72 overflow-hidden items-center justify-center rounded-md  text-white shadow-sm cursor-pointer"
+            className="flex h-10 w-46 overflow-hidden items-center justify-center rounded-md  text-white shadow-sm cursor-pointer"
           >
             <img
               src={logos}
@@ -201,8 +201,8 @@ export function ProviderLayout() {
               className=" w-full h- full object-cover"
             />
           </Link>
-          <div className="lg:hidden w-8 h-8 rounded-lg flex items-center justify-center text-sm text-white font-black"></div>
-          <div className="ml-2 hidden lg:block text-[10px] font-bold border border-blue-800 px-2 rounded-lg tracking-widest uppercase">
+          
+          <div className="ml-2 lg:block text-[16px] font-bold border border-blue-800 rounded-lg tracking-widest uppercase mt-2 py-2 px-3 bg-[#01475C] text-white">
             Provider Portal
           </div>
         </div>
@@ -325,7 +325,7 @@ export function ProviderLayout() {
               </button>
             );
           })}
-          <div
+          {/* <div
             className="flex items-center gap-3 px-2 lg:px-3 py-2 rounded-xl mt-2 cursor-pointer justify-center lg:justify-start"
             style={{
               background: "rgba(56,189,248,0.08)",
@@ -343,7 +343,7 @@ export function ProviderLayout() {
             <span className="hidden lg:flex items-center gap-0.5 text-[9px] bg-amber-400 text-amber-900 font-black px-1.5 py-0.5 rounded-full uppercase">
               <Crown size={8} /> PRO
             </span>
-          </div>
+          </div> */}
         </nav>
         <div
           className="p-2 lg:p-3 border-t space-y-0.5"
@@ -418,7 +418,7 @@ export function ProviderLayout() {
             </div>
           </div>
           <div className="flex items-center gap-2 md:gap-3">
-            <button
+            {/* <button
               onClick={() => setWelliMateEnabled(!isWelliMateEnabled)}
               className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold border"
               style={{
@@ -449,7 +449,7 @@ export function ProviderLayout() {
               <span className="hidden sm:inline">
                 {isWelliMateEnabled ? "WelliMate On" : "WelliMate"}
               </span>
-            </button>
+            </button> */}
             <div
               className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
               style={{ background: "rgba(16,185,129,.1)", color: "#10b981" }}
@@ -477,11 +477,11 @@ export function ProviderLayout() {
         )}
         
 
-        <main className="relative ">
+        <main className="relative overflow-y-auto ">
           <Outlet />
 
           
-        {!user?.isVerified && (
+        {!!user?.isVerified && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
     <div className="bg-white rounded-xl p-6 w-[320px] text-center shadow-xl">
       <Lock size={32} className="mx-auto mb-3 text-red-500" />

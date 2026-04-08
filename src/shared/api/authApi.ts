@@ -286,19 +286,19 @@ export const authApi = {
   async  searchPatientRequest(
   identifier: string,
   identifierType: IdentifierType,
-  id: string,
   signal?: AbortSignal,
 ): Promise<SearchPatientResponse> {
+  const token = Cookies.get("accessToken");
   const response = await fetch(`${apiUrl}/api/v1/organization/patient/search`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+     headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
     credentials: "include",
     signal,
     body: JSON.stringify({
       identifier,
-      id,
       identifierType,
     }),
   });
@@ -314,16 +314,16 @@ export const authApi = {
 
   async  linkPatientRequest(patientIdentityId: string, id: string) {
     console.log("🚀 ~ patientIdentityId:", patientIdentityId)
+    const token = Cookies.get("accessToken");
     const response = await fetch(`${apiUrl}/api/v1/organization/patient/link`, {
-      method: "POST",
-      
+      method: "POST",      
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       credentials: "include",
       body: JSON.stringify({
         patientIdentityId,
-        id,
       }),
     });
 
@@ -483,6 +483,30 @@ export const authApi = {
     console.log("🚀 ~ payload:", payload)
     const token = Cookies.get("accessToken");
     const response = await fetch(`${apiUrl}/api/v1/encounter`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+
+    
+
+    if (!response.ok) {
+      throw new Error(data?.message || "Failed to link patient");
+    }
+
+    return data.message;
+  },
+
+  async  createProcedure(payload: any) {
+    console.log("🚀 ~ payload:", payload)
+    const token = Cookies.get("accessToken");
+    const response = await fetch(`${apiUrl}/api/v1/procedures`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

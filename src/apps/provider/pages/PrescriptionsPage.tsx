@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/shared/auth/AuthProvider';
 import { consentApi } from '@/shared/api/consentApi';
 import { vaultApi } from '@/shared/api/vaultApi';
 import { Pill, Plus, CheckCircle, X, Package, ShieldCheck } from 'lucide-react';
+import { getAllPatientMedications, MedicationItem } from '@/shared/utils/utilityFunction';
 
 const STATUS_BADGE: Record<string, string> = {
     active: 'badge-active', dispensed: 'badge-verified', cancelled: 'badge-revoked', expired: 'badge-expired',
@@ -15,11 +16,35 @@ export function PrescriptionsPage() {
     const [rxList, setRxList] = useState(() => vaultApi.getPrescriptions(user?.orgId ?? ''));
     const [showNew, setShowNew] = useState(false);
     const [filter, setFilter] = useState<string>('all');
+    const [medications, setMedications] = useState<MedicationItem[]>([]);
+      const [loadingMedications, setLoadingMedications] = useState(false);
+      const [medicationsError, setMedicationsError] = useState("");
 
-    const filtered = filter === 'all' ? rxList : rxList.filter(r => r.status === filter);
+     const loadMedications = async () => {
+    
+        try {
+          setLoadingMedications(true);
+          setMedicationsError("");
+    
+          const result = await getAllPatientMedications( 1, 10);
+          console.log("🚀 ~ AllPatientsMedications ~ result:", result)
+          setMedications(result.items || []);
+        } catch (err: any) {
+          setMedicationsError(err.message || "Failed to load medications");
+        } finally {
+          setLoadingMedications(false);
+        }
+      };
+
+      useEffect(() => {
+          loadMedications();
+        }, []);
+
+    // const filtered = filter === 'all' ? rxList : rxList.filter(r => r.status === filter);
+     const filtered = filter === 'all' ? medications : medications.filter(r => r.medicationStatus === filter);
 
     return (
-        <div className="animate-fade-in">
+        <div className="animate-fade-in px-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <div>
                     <h1 className="section-header font-display" style={{ color: '#e2eaf4' }}>Prescriptions</h1>
@@ -47,23 +72,23 @@ export function PrescriptionsPage() {
 
             <div className="space-y-4">
                 {filtered.map(rx => (
-                    <div key={rx.id} className="card-provider p-5">
+                    <div key={rx._id} className="card-provider p-5">
                         <div className="flex items-start justify-between gap-4">
                             <div className="flex items-start gap-4">
                                 <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(16,185,129,.1)' }}>
                                     <Pill size={18} style={{ color: '#10b981' }} />
                                 </div>
                                 <div>
-                                    <div className="font-bold text-lg" style={{ color: '#e2eaf4' }}>{rx.drug}</div>
+                                    <div className="font-bold text-lg" style={{ color: '#e2eaf4' }}>{rx.medicationName}</div>
                                     <div className="text-sm" style={{ color: '#38bdf8' }}>{rx.dose} · {rx.frequency}</div>
                                     <div className="text-xs mt-1" style={{ color: '#7ba3c8' }}>For: {rx.patientName} · Duration: {rx.duration}</div>
-                                    <div className="text-xs mt-0.5" style={{ color: '#7ba3c8' }}>Prescribed by: {rx.prescribedByName} · {new Date(rx.date).toLocaleDateString()}</div>
+                                    <div className="text-xs mt-0.5" style={{ color: '#7ba3c8' }}>Prescribed by: {rx.prescribedByFullName} {""} <br/>  Date: {new Date(rx.createdAt).toLocaleDateString()}</div>
                                     {rx.notes && <p className="text-xs italic mt-1" style={{ color: '#3e5a78' }}>{rx.notes}</p>}
                                 </div>
                             </div>
                             <div className="flex flex-col items-end gap-2">
-                                <span className={`badge ${STATUS_BADGE[rx.status]}`}>{rx.status}</span>
-                                {rx.status === 'active' && (
+                                <span className={`badge ${STATUS_BADGE[rx.medicationStatus]}`}>{rx.medicationStatus}</span>
+                                {rx.medicationStatus === 'active' && (
                                     <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full"
                                         style={{ background: 'rgba(16,185,129,.1)', color: '#10b981', border: '1px solid rgba(16,185,129,.2)' }}>
                                         <ShieldCheck size={10} /> WelliChain Verified
@@ -75,7 +100,7 @@ export function PrescriptionsPage() {
                                         <CheckCircle size={9} /> Write-back enabled
                                     </span>
                                 )}
-                                {rx.status === 'active' && (
+                                {rx.medicationStatus === 'active' && (
                                     <button className="btn btn-sm gap-1" style={{ background: 'rgba(16,185,129,.15)', color: '#10b981' }}>
                                         <Package size={12} /> Mark Dispensed
                                     </button>

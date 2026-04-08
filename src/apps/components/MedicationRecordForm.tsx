@@ -4,7 +4,6 @@ import { Plus, X } from "lucide-react";
 import { useAuth } from "@/shared/auth/AuthProvider";
 
 type MedicationRecordFormProps = {
-  
   encounterId: string | undefined;
   patientId: string;
   onClose: () => void;
@@ -12,7 +11,6 @@ type MedicationRecordFormProps = {
 };
 
 type MedicationFormState = {
-
   medicationName: string;
   genericName: string;
   brandName: string;
@@ -45,7 +43,7 @@ type MedicationFormState = {
   frequency: string;
   indication: string;
   prescribedAt: string;
-  startDate: string;
+  duration: string;
   endDate: string;
   medicationStatus: "active" | "completed" | "stopped" | "on-hold";
   adherence: "unknown" | "good" | "partial" | "poor";
@@ -63,7 +61,7 @@ const initialState: MedicationFormState = {
   frequency: "",
   indication: "",
   prescribedAt: new Date().toISOString().slice(0, 16),
-  startDate: "",
+  duration: "",
   endDate: "",
   medicationStatus: "active",
   adherence: "unknown",
@@ -122,9 +120,8 @@ export function MedicationRecordForm({
         ? new Date(form.prescribedAt).toISOString()
         : undefined,
 
-      startDate: form.startDate
-        ? new Date(form.startDate).toISOString()
-        : undefined,
+      duration: form.duration,
+        
       endDate: form.endDate ? new Date(form.endDate).toISOString() : undefined,
 
       medicationStatus: form.medicationStatus,
@@ -147,10 +144,9 @@ export function MedicationRecordForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-3">
       <div className="flex items-start justify-between">
         <div>
-         
           <p className="mt-1 text-sm text-[#7fa3cb]">
             Record a medication prescribed or currently being used.
           </p>
@@ -179,52 +175,16 @@ export function MedicationRecordForm({
 
         <div>
           <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-            Generic Name
-          </label>
-          <input
-            value={form.genericName}
-            onChange={(e) =>
-              setForm((p) => ({ ...p, genericName: e.target.value }))
-            }
-            className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff]"
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-            Brand Name
-          </label>
-          <input
-            value={form.brandName}
-            onChange={(e) =>
-              setForm((p) => ({ ...p, brandName: e.target.value }))
-            }
-            className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff]"
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium text-[#dcecff]">
             Dosage Value
           </label>
           <input
-            type="number"
+            placeholder="e.g. 500 mg"
+            // value={form.dosage}
+            // onChange={(e) => setForm((p) => ({ ...p, dosage: e.target.value }))}
+            type="text"
             value={form.dosageValue}
             onChange={(e) =>
               setForm((p) => ({ ...p, dosageValue: e.target.value }))
-            }
-            className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff]"
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-            Dosage Unit
-          </label>
-          <input
-            value={form.dosageUnit}
-            onChange={(e) =>
-              setForm((p) => ({ ...p, dosageUnit: e.target.value }))
             }
             className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff]"
           />
@@ -264,7 +224,38 @@ export function MedicationRecordForm({
           </select>
         </div>
 
-        <div>
+<div className="flex justify-between  gap-4 col-span-2">
+
+        <div className="flex-1">
+          <label className="mb-2 block text-sm font-medium text-[#dcecff]">
+            Frequency
+          </label>
+          <input
+            value={form.frequency}
+            onChange={(e) =>
+              setForm((p) => ({ ...p, frequency: e.target.value }))
+            }
+            placeholder="e.g. Twice daily"
+            className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff]"
+          />
+        </div>
+
+        <div className="flex-1">
+          <label className="mb-2 block text-sm font-medium text-[#dcecff]">
+            Duration
+          </label>
+
+          <input
+            placeholder="e.g. 5 days"
+            value={form.duration}
+            onChange={(e) =>
+              setForm((p) => ({ ...p, duration: e.target.value }))
+            }
+            className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff]"
+          />
+        </div>
+
+        <div className="flex-1">
           <label className="mb-2 block text-sm font-medium text-[#dcecff]">
             Route
           </label>
@@ -297,22 +288,9 @@ export function MedicationRecordForm({
             ))}
           </select>
         </div>
+</div>
 
-        <div>
-          <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-            Frequency
-          </label>
-          <input
-            value={form.frequency}
-            onChange={(e) =>
-              setForm((p) => ({ ...p, frequency: e.target.value }))
-            }
-            placeholder="e.g. Twice daily"
-            className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff]"
-          />
-        </div>
-
-        <div>
+        <div className="hidden">
           <label className="mb-2 block text-sm font-medium text-[#dcecff]">
             Indication
           </label>
@@ -326,7 +304,7 @@ export function MedicationRecordForm({
           />
         </div>
 
-        <div>
+        <div className="hidden">
           <label className="mb-2 block text-sm font-medium text-[#dcecff]">
             Prescribed At
           </label>
@@ -340,78 +318,7 @@ export function MedicationRecordForm({
           />
         </div>
 
-        <div>
-          <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-            Start Date
-          </label>
-          <input
-            type="date"
-            value={form.startDate}
-            onChange={(e) =>
-              setForm((p) => ({ ...p, startDate: e.target.value }))
-            }
-            className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff]"
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-            End Date
-          </label>
-          <input
-            type="date"
-            value={form.endDate}
-            onChange={(e) =>
-              setForm((p) => ({ ...p, endDate: e.target.value }))
-            }
-            className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff]"
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-            Status
-          </label>
-          <select
-            value={form.medicationStatus}
-            onChange={(e) =>
-              setForm((p) => ({
-                ...p,
-                medicationStatus: e.target
-                  .value as MedicationFormState["medicationStatus"],
-              }))
-            }
-            className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff]"
-          >
-            {["active", "completed", "stopped", "on-hold"].map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-            Adherence
-          </label>
-          <select
-            value={form.adherence}
-            onChange={(e) =>
-              setForm((p) => ({
-                ...p,
-                adherence: e.target.value as MedicationFormState["adherence"],
-              }))
-            }
-            className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff]"
-          >
-            {["unknown", "good", "partial", "poor"].map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
-        </div>
+        
 
         <div className="sm:col-span-2">
           <label className="mb-2 block text-sm font-medium text-[#dcecff]">

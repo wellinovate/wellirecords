@@ -11,14 +11,17 @@ import {
   Activity,
   Pill,
   FlaskConical,
+  AlertTriangle,
+  AlertCircle,
+  HeartPulse,
+  Syringe,
 } from "lucide-react";
 import {
   getEncounterDetails,
   getUsersEncounters,
 } from "@/shared/utils/utilityFunction";
 import { HealthHistoryLoader } from "@/apps/components/Loader/HealthHistoryLoader";
-
-
+import { formatDate, InfoRow, RecordShell } from "@/apps/components/HealthCategoryHistoryPage";
 
 type EncounterItem = {
   id: string;
@@ -234,7 +237,9 @@ function formatVitals(vitals: any[] = []) {
     }
 
     if (v?.temperature?.value) {
-      rows.push(`Temperature: ${v.temperature.value}${v.temperature.unit || ""}`);
+      rows.push(
+        `Temperature: ${v.temperature.value}${v.temperature.unit || ""}`,
+      );
     }
 
     if (v?.weight?.value) {
@@ -249,59 +254,456 @@ function formatVitals(vitals: any[] = []) {
   });
 }
 
-function EncounterDetailContent({ detail }: { detail: any }) {
-  const vitals = formatVitals(detail?.records?.vitals || []);
-  const diagnoses =
-    detail?.records?.diagnoses?.map((d: any) => d.diagnosisName || d.name).filter(Boolean) || [];
-  const medications =
-    detail?.records?.medications?.map((m: any) => m.medicationName).filter(Boolean) || [];
-  const labResults =
-    detail?.records?.labResults?.map((l: any) => l.testName || l.labName).filter(Boolean) || [];
+function EncounterDetailContents({ detail }: { detail: any }) {
+  const records = detail?.records || {};
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-2xl border border-[#E6EBF2] bg-white p-4">
-        <div className="mb-2 text-sm font-semibold text-[#1F2A37]">Clinical Notes</div>
-        <p className="whitespace-pre-line text-sm leading-6 text-[#516173]">
-          {detail?.encounter?.notes || "No notes"}
-        </p>
-      </div>
+    <div className="space-y-6">
+      {/* Clinical Notes */}
+      {detail?.encounter?.notes && (
+        <div className="rounded-2xl border border-[#E6EBF2] bg-white p-4">
+          <div className="mb-2 text-sm font-semibold text-[#1F2A37]">
+            Clinical Notes
+          </div>
+          <p className="whitespace-pre-line text-sm leading-6 text-[#516173]">
+            {detail.encounter.notes}
+          </p>
+        </div>
+      )}
 
-      <div className="grid gap-4 xl:grid-cols-2">
-        <DetailSection
-          icon={<Activity size={16} />}
-          title="Vitals"
-          items={vitals}
-        />
+      {/* Records Grid */}
+      <div className="grid gap-4">
+        {/* Vitals */}
+        {records.vitals?.length > 0 && (
+          <div>
+            <div className="mb-3 flex items-center gap-2 text-lg font-semibold text-[#1F2A37]">
+              <Activity size={20} />
+              Vitals
+            </div>
+            <div className="space-y-3">
+              {records.vitals.map((item: any) => renderRecordCard(item, "vitals"))}
+            </div>
+          </div>
+        )}
 
-        <DetailSection
-          icon={<ClipboardList size={16} />}
-          title="Diagnoses"
-          items={diagnoses}
-        />
+        {/* Diagnoses */}
+        {records.diagnoses?.length > 0 && (
+          <div>
+            <div className="mb-3 flex items-center gap-2 text-lg font-semibold text-[#1F2A37]">
+              <ClipboardList size={20} />
+              Diagnoses
+            </div>
+            <div className="space-y-3">
+              {records.diagnoses.map((item: any) => renderRecordCard(item, "diagnoses"))}
+            </div>
+          </div>
+        )}
 
-        <DetailSection
-          icon={<Pill size={16} />}
-          title="Medications"
-          items={medications}
-        />
+        {/* Medications */}
+        {records.medications?.length > 0 && (
+          <div>
+            <div className="mb-3 flex items-center gap-2 text-lg font-semibold text-[#1F2A37]">
+              <Pill size={20} />
+              Medications
+            </div>
+            <div className="space-y-3">
+              {records.medications.map((item: any) => renderRecordCard(item, "medications"))}
+            </div>
+          </div>
+        )}
 
-        <DetailSection
-          icon={<FlaskConical size={16} />}
-          title="Labs / Tests"
-          items={labResults}
-        />
+        {/* Procedures */}
+        {records.procedures?.length > 0 && (
+          <div>
+            <div className="mb-3 flex items-center gap-2 text-lg font-semibold text-[#1F2A37]">
+              <Stethoscope size={20} />   {/* Better icon than FlaskConical */}
+              Procedures
+            </div>
+            <div className="space-y-3">
+              {records.procedures.map((item: any) => renderRecordCard(item, "procedures"))}
+            </div>
+          </div>
+        )}
+
+        {/* Allergies */}
+        {records.allergies?.length > 0 && (
+          <div>
+            <div className="mb-3 flex items-center gap-2 text-lg font-semibold text-[#1F2A37]">
+              <AlertTriangle size={20} />
+              Allergies
+            </div>
+            <div className="space-y-3">
+              {records.allergies.map((item: any) => renderRecordCard(item, "allergies"))}
+            </div>
+          </div>
+        )}
+
+        {/* Labs */}
+        {records.labResults?.length > 0 && (
+          <div>
+            <div className="mb-3 flex items-center gap-2 text-lg font-semibold text-[#1F2A37]">
+              <FlaskConical size={20} />
+              Lab Results
+            </div>
+            <div className="space-y-3">
+              {records.labResults.map((item: any) => renderRecordCard(item, "lab"))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-function TimelineNode({
+const renderRecordCard = (item: any, recordType: string) => {
+  switch (recordType) {
+    case "vitals":
+      const vitalsSummary = [
+        item.bloodPressure
+          ? `BP ${item.bloodPressure.systolic}/${item.bloodPressure.diastolic}`
+          : null,
+        item.heartRate ? `HR ${item.heartRate} bpm` : null,
+        item.temperature?.value
+          ? `Temp ${item.temperature.value}°${item.temperature.unit || "C"}`
+          : null,
+      ]
+        .filter(Boolean)
+        .join(" • ");
+
+      return (
+        <RecordShell
+          key={item.id}
+          icon={<HeartPulse size={18} />}
+          title="Vital Signs"
+          subtitle={vitalsSummary || "Patient vital signs"}
+          status="Recorded"
+          metaLeft={
+            <>
+              <InfoRow label="Measured" value={formatDate(item.measuredAt)} />
+              <InfoRow label="Respiratory Rate" value={item.respiratoryRate} />
+            </>
+          }
+          metaRight={
+            <>
+              <InfoRow
+                label="Oxygen Saturation"
+                value={item.oxygenSaturation ? `${item.oxygenSaturation}%` : ""}
+              />
+              <InfoRow
+                label="Blood Glucose"
+                value={
+                  item.bloodGlucose?.value
+                    ? `${item.bloodGlucose.value} ${item.bloodGlucose.unit || ""}`
+                    : ""
+                }
+              />
+            </>
+          }
+          footerLeft={
+            item.notes ? `Notes: ${item.notes}` : "Vitals history entry"
+          }
+          actionLabel="View Vital"
+        >
+          <div className="flex flex-wrap gap-2 text-sm text-[#475467]">
+            {item.weight?.value && (
+              <span>Weight: {item.weight.value} {item.weight.unit}</span>
+            )}
+            {item.height?.value && (
+              <span>Height: {item.height.value} {item.height.unit}</span>
+            )}
+          </div>
+        </RecordShell>
+      );
+
+    case "medications":
+      const subtitle = [
+        item.dosage?.value
+          ? `${item.dosage.value}${item.dosage.unit ? ` ${item.dosage.unit}` : ""}`
+          : null,
+        item.frequency,
+        item.route,
+      ]
+        .filter(Boolean)
+        .join(" • ");
+
+      return (
+        <RecordShell
+          key={item.id}
+          icon={<Pill size={18} />}
+          title={item.medicationName}
+          subtitle={subtitle || "Medication entry"}
+          status={item.medicationStatus || "Active"}
+          metaLeft={
+            <>
+              <InfoRow
+                label="Prescribed by"
+                value={item.prescribedByName || item.prescriberName || "Unknown"}
+              />
+              <InfoRow label="Started" value={formatDate(item.prescribedAt)} />
+            </>
+          }
+          metaRight={
+            <>
+              <InfoRow label="Generic" value={item.genericName} />
+              <InfoRow label="Brand" value={item.brandName} />
+            </>
+          }
+          footerLeft={
+            item.indication
+              ? `Indication: ${item.indication}`
+              : item.notes || "Medication history entry"
+          }
+          actionLabel="Request Refill"
+        >
+          {item.notes && <p className="text-sm text-[#667085]">{item.notes}</p>}
+        </RecordShell>
+      );
+
+    case "allergies":
+      return (
+        <RecordShell
+          key={item.id}
+          icon={<AlertCircle size={18} />}
+          title={item.allergen}
+          subtitle={
+            [item.allergyType, item.reaction].filter(Boolean).join(" • ") ||
+            "Allergy record"
+          }
+          status={item.clinicalStatus || "Active"}
+          metaLeft={
+            <>
+              <InfoRow label="Severity" value={item.severity} />
+              <InfoRow label="Verification" value={item.verificationStatus} />
+            </>
+          }
+          metaRight={
+            <>
+              <InfoRow label="Type" value={item.allergyType} />
+              <InfoRow label="Reaction" value={item.reaction} />
+            </>
+          }
+          footerLeft={item.notes || "Allergy history entry"}
+          actionLabel="View Allergy"
+        />
+      );
+
+    case "diagnoses":
+      return (
+        <RecordShell
+          key={item.id}
+          icon={<Stethoscope size={18} />}
+          title={item.diagnosisName}
+          subtitle={
+            [item.diagnosisType, item.icd10Code].filter(Boolean).join(" • ") ||
+            "Diagnosis entry"
+          }
+          status={item.clinicalStatus || "Recorded"}
+          metaLeft={
+            <>
+              <InfoRow label="Diagnosed" value={formatDate(item.diagnosedAt)} />
+              <InfoRow label="ICD-10" value={item.icd10Code} />
+            </>
+          }
+          metaRight={
+            <>
+              <InfoRow label="Type" value={item.diagnosisType} />
+              <InfoRow label="Status" value={item.clinicalStatus} />
+            </>
+          }
+          footerLeft={item.notes || "Diagnosis history entry"}
+          actionLabel="View Diagnosis"
+        />
+      );
+
+    case "procedures":
+      return (
+        <RecordShell
+          key={item.id}
+          icon={<Stethoscope size={18} />}
+          title={item.procedureName || "Unknown Procedure"}
+          subtitle={
+            [item.procedureType, item.outcome]
+              .filter(Boolean)
+              .join(" • ") || "Surgical Procedure"
+          }
+          status={item.clinicalStatus || item.outcome || "Completed"}
+          metaLeft={
+            <>
+              <InfoRow 
+                label="Performed" 
+                value={item.performedAt ? formatDate(item.performedAt) : "—"} 
+              />
+              <InfoRow 
+                label="Indication" 
+                value={item.indication || "—"} 
+              />
+            </>
+          }
+          metaRight={
+            <>
+              <InfoRow 
+                label="Performed By" 
+                value={item.performedBy || "—"} 
+              />
+              <InfoRow 
+                label="Facility" 
+                value={item.facilityName || "—"} 
+              />
+            </>
+          }
+          footerLeft={item.notes || "No additional notes"}
+          actionLabel="View Details"
+        />
+      );
+
+    case "lab":
+      return (
+        <RecordShell
+          key={item.id}
+          icon={<FlaskConical size={18} />}
+          title={item.testName}
+          subtitle={
+            [item.resultValue, item.unit].filter(Boolean).join(" ") ||
+            "Lab result"
+          }
+          status={item.interpretation || "Completed"}
+          metaLeft={
+            <>
+              <InfoRow label="Resulted" value={formatDate(item.resultedAt)} />
+              <InfoRow label="Category" value={item.category} />
+            </>
+          }
+          metaRight={
+            <>
+              <InfoRow label="Specimen" value={item.specimen} />
+              <InfoRow label="Interpretation" value={item.interpretation} />
+            </>
+          }
+          footerLeft={item.notes || "Lab history entry"}
+          actionLabel="View Result"
+        />
+      );
+
+    default:
+      return (
+        <RecordShell
+          key={item.id}
+          icon={<Activity size={18} />}
+          title="Record"
+          subtitle="Health entry"
+          status="Saved"
+          footerLeft="Record entry"
+          actionLabel="View Record"
+        />
+      );
+  }
+};
+
+// ==================== ENCOUNTER DETAIL CONTENT ====================
+function EncounterDetailContent({ detail }: { detail: any }) {
+  const records = detail?.records || {};
+
+  return (
+    <div className="space-y-6">
+      {/* Clinical Notes */}
+      {detail?.encounter?.notes && (
+        <div className="rounded-2xl border border-[#E6EBF2] bg-white p-4">
+          <div className="mb-2 text-sm font-semibold text-[#1F2A37]">
+            Clinical Notes
+          </div>
+          <p className="whitespace-pre-line text-sm leading-6 text-[#516173]">
+            {detail.encounter.notes}
+          </p>
+        </div>
+      )}
+
+      {/* Records Sections */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+        {records.vitals?.length > 0 && (
+          <div>
+            <div className="mb-3 flex items-center gap-2 text-lg font-semibold text-[#1F2A37]">
+              <Activity size={20} />
+              Vitals
+            </div>
+            <div className="space-y-3">
+              {records.vitals.map((item: any) => renderRecordCard(item, "vitals"))}
+            </div>
+          </div>
+        )}
+
+        {records.diagnoses?.length > 0 && (
+          <div>
+            <div className="mb-3 flex items-center gap-2 text-lg font-semibold text-[#1F2A37]">
+              <ClipboardList size={20} />
+              Diagnoses
+            </div>
+            <div className="space-y-3">
+              {records.diagnoses.map((item: any) => renderRecordCard(item, "diagnoses"))}
+            </div>
+          </div>
+        )}
+
+        {records.medications?.length > 0 && (
+          <div>
+            <div className="mb-3 flex items-center gap-2 text-lg font-semibold text-[#1F2A37]">
+              <Pill size={20} />
+              Medications
+            </div>
+            <div className="space-y-3">
+              {records.medications.map((item: any) => renderRecordCard(item, "medications"))}
+            </div>
+          </div>
+        )}
+
+        {records.procedures?.length > 0 && (
+          <div>
+            <div className="mb-3 flex items-center gap-2 text-lg font-semibold text-[#1F2A37]">
+              <Stethoscope size={20} />
+              Procedures
+            </div>
+            <div className="space-y-3">
+              {records.procedures.map((item: any) => renderRecordCard(item, "procedures"))}
+            </div>
+          </div>
+        )}
+
+        {records.allergies?.length > 0 && (
+          <div>
+            <div className="mb-3 flex items-center gap-2 text-lg font-semibold text-[#1F2A37]">
+              <AlertTriangle size={20} />
+              Allergies
+            </div>
+            <div className="space-y-3">
+              {records.allergies.map((item: any) => renderRecordCard(item, "allergies"))}
+            </div>
+          </div>
+        )}
+
+        {records.labResults?.length > 0 && (
+          <div>
+            <div className="mb-3 flex items-center gap-2 text-lg font-semibold text-[#1F2A37]">
+              <FlaskConical size={20} />
+              Lab Results
+            </div>
+            <div className="space-y-3">
+              {records.labResults.map((item: any) => renderRecordCard(item, "lab"))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function TimelineNode({
   encounter,
   expanded,
+  user,
   encounterDetail,
   loadingDetail,
   onToggle,
+  onAdd,
+  // onAdd={(type, encounter) => handleAddRecordFromEncounter(encounter, type)}
 }: {
   encounter: EncounterListItem;
   expanded: boolean;
@@ -314,13 +716,13 @@ function TimelineNode({
   );
 
   return (
-    <div className="relative pl-10">
+    <div className="relative pl-3">
       <div className="absolute left-[11px] top-2 h-full w-px bg-[#075fc4]" />
       <div className="absolute left-0 top-2 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-[#0456a8] shadow-sm">
         <div className="h-2.5 w-2.5 rounded-full bg-white" />
       </div>
 
-      <div className="rounded-[24px] border border-[#E3E8EF] bg-[#F9FBFD] p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
+      <div className="rounded-[24px] border border-[#27634a]/40 bg-[#F9FBFD] p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 flex-1">
             <div className="mb-2 flex flex-wrap items-center gap-2">
@@ -397,14 +799,62 @@ function TimelineNode({
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={onToggle}
-            className="inline-flex items-center gap-2 self-start rounded-full bg-[#E9F1EF] px-4 py-2 text-sm font-semibold text-[#138A72] transition hover:bg-[#DCEAE6]"
-          >
-            {expanded ? "Hide Details" : "View Details"}
-            {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-          </button>
+          <div>
+            <button
+              type="button"
+              onClick={onToggle}
+              className="inline-flex items-center gap-2 self-start rounded-full bg-[#E9F1EF] px-4 py-2 text-sm font-semibold text-[#138A72] transition hover:bg-[#DCEAE6]"
+            >
+              {expanded ? "Hide Details" : "View Details"}
+              {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+            {/* 🔥 ACTION BAR */}
+            {user?.role === "organization" && user?.wrOrgId && (
+
+            <div className="grid grid-cols-2 gap-2 text-green-700 mt-1">
+              <button
+                onClick={() => onAdd("Vitals", encounter)}
+                className="text-[#E8F7EF] px-3 py-2 text-sm font-semibold bg-[#01475c] transition hover:bg-[#025a75] rounded-xl"
+              >
+                + Vital
+              </button>
+
+              <button
+                onClick={() => onAdd("Medications", encounter)}
+                className="text-[#E8F7EF] px-3 py-2 text-sm font-semibold bg-[#01475c] transition hover:bg-[#025a75] rounded-xl"
+              >
+                + Medication
+              </button>
+
+              <button
+                onClick={() => onAdd("Diagnoses", encounter)}
+                className="text-[#E8F7EF] px-3 py-2 text-sm font-semibold bg-[#01475c] transition hover:bg-[#025a75] rounded-xl"
+              >
+                + Diagnosis
+              </button>
+
+              <button
+                onClick={() => onAdd("Lab Results", encounter)}
+                className="text-[#E8F7EF] px-3 py-2 text-sm font-semibold bg-[#01475c] transition hover:bg-[#025a75] rounded-xl"
+              >
+                + Lab
+              </button>
+
+              <button
+                onClick={() => onAdd("Allergies", encounter)}
+                className="text-[#E8F7EF] px-3 py-2 text-sm font-semibold bg-[#01475c] transition hover:bg-[#025a75] rounded-xl"
+              >
+                + Allergy
+              </button>
+              <button
+                onClick={() => onAdd("Procedures", encounter)}
+                className="text-[#E8F7EF] px-3 py-2 text-sm font-semibold bg-[#01475c] transition hover:bg-[#025a75] rounded-xl"
+              >
+                + Procedure
+              </button>
+            </div>
+            )} 
+          </div>
         </div>
 
         {expanded && (
@@ -450,32 +900,32 @@ export function HealthHistoryTimelinePage() {
   };
 
   const handleViewMore = async (encounterId: string) => {
-  const isOpen = expandedId === encounterId;
+    const isOpen = expandedId === encounterId;
 
-  if (isOpen) {
-    setExpandedId(null);
-    return;
-  }
+    if (isOpen) {
+      setExpandedId(null);
+      return;
+    }
 
-  setExpandedId(encounterId);
+    setExpandedId(encounterId);
 
-  if (encounterDetails[encounterId]) return;
+    if (encounterDetails[encounterId]) return;
 
-  try {
-    setLoadingDetailId(encounterId);
-    const response = await getEncounterDetails(encounterId);
-    console.log("🚀 ~ handleViewMore ~ response:", response)
+    try {
+      setLoadingDetailId(encounterId);
+      const response = await getEncounterDetails(encounterId);
+      console.log("🚀 ~ handleViewMore ~ response:", response);
 
-    setEncounterDetails((prev) => ({
-      ...prev,
-      [encounterId]: response || null,
-    }));
-  } catch (error) {
-    console.error("Failed to fetch encounter details", error);
-  } finally {
-    setLoadingDetailId(null);
-  }
-};
+      setEncounterDetails((prev) => ({
+        ...prev,
+        [encounterId]: response || null,
+      }));
+    } catch (error) {
+      console.error("Failed to fetch encounter details", error);
+    } finally {
+      setLoadingDetailId(null);
+    }
+  };
 
   useEffect(() => {
     fetchEncounters();
@@ -535,7 +985,7 @@ export function HealthHistoryTimelinePage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search encounter history..."
-            className="h-11 w-full rounded-xl border border-[#D8E1EA] bg-[#F9FBFD] pl-10 pr-4 text-sm text-[#1F2A37] outline-none transition placeholder:text-[#98A2B3] focus:border-[#9FC3B6]"
+            className="h-11 w-full rounded-xl border border-[#D8E1EA] bg-[#F9FBFD] pl-10 pr-4 text-sm text-[#1F2A37] outline-none transition focus:border-[#9FC3B6]"
           />
         </div>
 
@@ -622,160 +1072,3 @@ function formatEncounterDateTime(date?: string | null) {
     }),
   };
 }
-
-// export function HealthHistoryTimelinePage() {
-//   const [search, setSearch] = useState("");
-//   const [statusFilter, setStatusFilter] = useState<string>("all");
-//   const [typeFilter, setTypeFilter] = useState<string>("all");
-//   // const [expandedId, setExpandedId] = useState<string | null>(
-//   //   DUMMY_HISTORY[0].id,
-//   // );
-//   const [records, setRecords] = useState();
-
-//   const [encounters, setEncounters] = useState<any[]>([]);
-//   const [expandedId, setExpandedId] = useState<string | null>(null);
-//   const [encounterDetails, setEncounterDetails] = useState<Record<string, any>>(
-//     {},
-//   );
-//   const [loadingList, setLoadingList] = useState(false);
-//   const [loadingDetailId, setLoadingDetailId] = useState<string | null>(null);
-
-//   const fetchingEncounter = async () => {
-//     const record = await getUsersEncounters(1, 10);
-//     setRecords(record);
-//   };
-
-//   useEffect(() => {
-//     fetchingEncounter();
-//   }, []);
-
-//   const filteredHistory = useMemo(() => {
-//     const q = search.trim().toLowerCase();
-
-//     return DUMMY_HISTORY.filter((item) => {
-//       const matchesSearch =
-//         !q ||
-//         [
-//           item.title,
-//           item.facility,
-//           item.provider,
-//           item.reason,
-//           item.summary,
-//           item.status,
-//           item.encounterType,
-//           ...(item.diagnoses || []),
-//           ...(item.medications || []),
-//           ...(item.labs || []),
-//           item.notes || "",
-//         ]
-//           .join(" ")
-//           .toLowerCase()
-//           .includes(q);
-
-//       const matchesStatus =
-//         statusFilter === "all" || item.status === statusFilter;
-
-//       const matchesType =
-//         typeFilter === "all" || item.encounterType === typeFilter;
-
-//       return matchesSearch && matchesStatus && matchesType;
-//     });
-//   }, [search, statusFilter, typeFilter]);
-
-//   return (
-//     <div className="animate-fade-in">
-//       <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-//         <div>
-//           <h1 className="text-3xl font-semibold text-[#1F2A37]">
-//             Health History Timeline
-//           </h1>
-//           <p className="mt-1 text-sm text-[#667085]">
-//             Track encounters, visits, diagnoses, prescriptions, and follow-ups
-//             over time.
-//           </p>
-//         </div>
-//       </div>
-
-//       <div className="mb-6 grid gap-3 rounded-[24px] border border-[#E3E8EF] bg-white p-4 md:grid-cols-[minmax(0,1fr)_180px_180px]">
-//         <div className="relative">
-//           <Search
-//             size={16}
-//             className="absolute left-3 top-1/2 -translate-y-1/2 text-[#98A2B3]"
-//           />
-//           <input
-//             value={search}
-//             onChange={(e) => setSearch(e.target.value)}
-//             placeholder="Search encounter history..."
-//             className="h-11 w-full rounded-xl border border-[#D8E1EA] bg-[#F9FBFD] pl-10 pr-4 text-sm text-[#1F2A37] outline-none transition placeholder:text-[#98A2B3] focus:border-[#9FC3B6]"
-//           />
-//         </div>
-
-//         <select
-//           value={statusFilter}
-//           onChange={(e) => setStatusFilter(e.target.value)}
-//           className="h-11 rounded-xl border border-[#D8E1EA] bg-[#F9FBFD] px-3 text-sm text-[#1F2A37] outline-none focus:border-[#9FC3B6]"
-//         >
-//           <option value="all">All statuses</option>
-//           <option value="completed">Completed</option>
-//           <option value="ongoing">Ongoing</option>
-//           <option value="cancelled">Cancelled</option>
-//           <option value="follow-up">Follow-up</option>
-//         </select>
-
-//         <select
-//           value={typeFilter}
-//           onChange={(e) => setTypeFilter(e.target.value)}
-//           className="h-11 rounded-xl border border-[#D8E1EA] bg-[#F9FBFD] px-3 text-sm text-[#1F2A37] outline-none focus:border-[#9FC3B6]"
-//         >
-//           <option value="all">All types</option>
-//           <option value="outpatient">Outpatient</option>
-//           <option value="emergency">Emergency</option>
-//           <option value="telemedicine">Telemedicine</option>
-//           <option value="admission">Admission</option>
-//           <option value="follow-up">Follow-up</option>
-//         </select>
-//       </div>
-
-//       <div className="mb-4 flex items-center justify-between">
-//         <p className="text-sm text-[#667085]">
-//           {filteredHistory.length} encounter
-//           {filteredHistory.length === 1 ? "" : "s"} found
-//         </p>
-//       </div>
-
-//       {filteredHistory.length === 0 ? (
-//         <div className="rounded-[24px] border border-[#E3E8EF] bg-[#F9FBFD] p-10 text-center">
-//           <p className="text-base font-semibold text-[#344054]">
-//             No encounter history found
-//           </p>
-//           <p className="mt-2 text-sm text-[#667085]">
-//             Try adjusting your search or filters.
-//           </p>
-//         </div>
-//       ) : (
-//         <div className="space-y-5">
-//           {filteredHistory.map((encounter, index) => {
-//             const isLast = index === filteredHistory.length - 1;
-
-//             return (
-//               <div
-//                 key={encounter.id}
-//                 className={isLast ? "[&_.absolute]:last:hidden" : ""}
-//               >
-//                 <TimelineNode
-//                   encounter={encounter}
-//                   expanded={expandedId === encounter.id}
-//                   onToggle={() =>
-//                     setExpandedId((prev) =>
-//                       prev === encounter.id ? null : encounter.id,
-//                     )
-//                   }
-//                 />
-//               </div>
-//             );
-//           })}
-//         </div>
-//       )}
-//     </div>
-//   );
-// }

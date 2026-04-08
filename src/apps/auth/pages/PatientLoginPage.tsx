@@ -123,7 +123,7 @@ export function PatientLoginPage() {
       if (error?.message?.includes("timeout")) {
         toast.error("Request took too long. Check your connection.");
       } else {
-        toast.error(error?.message || "Something went wrong. Try again.");
+        toast.error(error?.message === "Cannot read properties of undefined (reading 'data')"  ? "Something went wrong. Try again." : error?.message);
       }
     } finally {
       setLoading(false);

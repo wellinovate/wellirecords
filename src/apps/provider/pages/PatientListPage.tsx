@@ -16,6 +16,8 @@ import {
 import { SearchPatientResponse } from "@/shared/api/authApi";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { getPatients } from "@/shared/utils/utilityFunction";
+import PatientsLoadingSkeleton from "../../components/Loader/PatientsLoadingSkeleton";
+import { health_companion_image } from "@/assets";
 
 type PatientRow = {
   id: string;
@@ -193,7 +195,6 @@ function RegisterPatientModal({
         const result = await searchPatientRequest(
           trimmed,
           identifierType,
-          user?.data?.account?.id,
           controller.signal,
         );
 
@@ -250,7 +251,7 @@ function RegisterPatientModal({
 
       const result = await linkPatientRequest(
         searchResult.patientIdentityId,
-        user?.data?.account?.id,
+        user?.account?.id,
       );
 
       console.log("Patient linked", result);
@@ -581,10 +582,10 @@ export function PatientListPage() {
 
   useEffect(() => {
     const controller = new AbortController();
+    setLoading(true);
 
     const timeout = setTimeout(async () => {
       try {
-        setLoading(true);
         setError("");
 
         const result = await getPatients({
@@ -610,21 +611,23 @@ export function PatientListPage() {
 
   return (
     <>
-      <div className="min-h-screen bg-[#06162d] px-5 py-5 text-white">
+      <div className="min-h-screen bg-[#06162d]/20 px-2 py-5 text-white">
         <div className="mx-auto max-w-[1280px]">
-          <div className="rounded-2xl border border-[#163761] bg-[#081b35] shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+          <div className="rounded-2xl borde border-[#163761] bg-[#081b35]/10 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
             <div className="border-b border-[#163761] px-6 py-5">
-              <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+              <div className="flex flex-col gap-4 md:flex-row xl:items-start xl:justify-between">
                 <div>
                   <h1 className="text-[34px] font-semibold tracking-[-0.02em] text-[#e9f1fb]">
                     Patients
                   </h1>
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-[15px]">
-                    <span className="text-[#d8e7fb]">1,384 patients</span>
+                    <span className="text-[#d8e7fb]">
+                      {patients?.length} Patients
+                    </span>
                     <span className="text-[#2b527e]">•</span>
-                    <span className="text-[#58b8ff]">22 due today</span>
+                    <span className="text-[#58b8ff]">0 due today</span>
                     <span className="text-[#2b527e]">•</span>
-                    <span className="text-[#58b8ff]">8 pending review</span>
+                    <span className="text-[#58b8ff]">0 pending review</span>
                   </div>
                 </div>
 
@@ -649,8 +652,8 @@ export function PatientListPage() {
                 </div>
               </div>
 
-              <div className="mt-5 flex flex-col gap-3 xl:flex-row xl:items-center">
-                <div className="relative min-w-0 flex-1">
+              <div className="mt-5 flex flex-col gap-3 md:flex-row xl:items-center">
+                <div className="relative flex min-w-0 flex-1">
                   <Search
                     size={16}
                     className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#7fa3cb]"
@@ -659,11 +662,11 @@ export function PatientListPage() {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Search by name, id or patient..."
-                    className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] pl-11 pr-4 text-sm text-[#dcecff] placeholder:text-[#6e8eb4] focus:border-[#3793e0] focus:outline-none"
+                    className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] pl-11 pr-4 text-sm text-[#dcecff] focus:border-[#3793e0] focus:outline-none"
                   />
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="md:eflex hidden flex-wrap gap-2">
                   <FilterButton label="Database" />
                   <FilterButton label="Views" />
                   <FilterButton label="Spaces" />
@@ -676,194 +679,199 @@ export function PatientListPage() {
                   >
                     <SlidersHorizontal size={13} />
                   </button>
-
-                  <Link
-                    to="/provider/encounters/new"
-                    className="inline-flex h-10 items-center gap-2 rounded-md border border-[#365f8f] bg-[#17365d] px-4 text-sm font-medium text-[#dcecff] hover:bg-[#1a416f]"
-                  >
-                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-white/20">
-                      +
-                    </span>
-                    <span>New Encounter</span>
-                  </Link>
                 </div>
+                <Link
+                  to="/provider/encounters/new"
+                  className="inline-flex h-10 items-center gap-2 rounded-md border border-[#365f8f] bg-[#17365d] px-4 text-sm font-medium text-[#dcecff] hover:bg-[#1a416f]"
+                >
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-white/20">
+                    +
+                  </span>
+                  <span>New Encounter</span>
+                </Link>
               </div>
             </div>
+            {loading ? (
+              <PatientsLoadingSkeleton />
+            ) : (
+              <div className="px-4 py-4">
+                <div className="overflow-hidden rounded-xl border border-[#173a63] bg-[#0a1d39]">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full border-separate border-spacing-0">
+                      <thead>
+                        <tr className="bg-[#0d2342] text-left">
+                          <th className="border-b border-[#173a63] px-4 py-3 text-[12px] font-medium text-[#90adcf]">
+                            Patient
+                          </th>
+                          <th className="border-b border-[#173a63] px-4 py-3 text-[12px] font-medium text-[#90adcf]">
+                            ID / Code
+                          </th>
+                          <th className="border-b border-[#173a63] px-4 py-3 text-[12px] font-medium text-[#90adcf]">
+                            Age / Sex
+                          </th>
+                          <th className="border-b border-[#173a63] px-4 py-3 text-[12px] font-medium text-[#90adcf]">
+                            Last Encounter
+                          </th>
+                          <th className="border-b border-[#173a63] px-4 py-3 text-[12px] font-medium text-[#90adcf]">
+                            Access
+                          </th>
+                          <th className="border-b border-[#173a63] px-4 py-3 text-[12px] font-medium text-[#90adcf]">
+                            Alerts
+                          </th>
+                          <th className="border-b border-[#173a63] px-4 py-3 text-[12px] font-medium text-[#90adcf]">
+                            Assigned
+                          </th>
+                          <th className="border-b border-[#173a63] px-4 py-3 text-[12px] font-medium text-[#90adcf]">
+                            Action
+                          </th>
+                        </tr>
+                      </thead>
 
-            <div className="px-4 py-4">
-              <div className="overflow-hidden rounded-xl border border-[#173a63] bg-[#0a1d39]">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full border-separate border-spacing-0">
-                    <thead>
-                      <tr className="bg-[#0d2342] text-left">
-                        <th className="border-b border-[#173a63] px-4 py-3 text-[12px] font-medium text-[#90adcf]">
-                          Patient
-                        </th>
-                        <th className="border-b border-[#173a63] px-4 py-3 text-[12px] font-medium text-[#90adcf]">
-                          ID / Code
-                        </th>
-                        <th className="border-b border-[#173a63] px-4 py-3 text-[12px] font-medium text-[#90adcf]">
-                          Age / Sex
-                        </th>
-                        <th className="border-b border-[#173a63] px-4 py-3 text-[12px] font-medium text-[#90adcf]">
-                          Last Encounter
-                        </th>
-                        <th className="border-b border-[#173a63] px-4 py-3 text-[12px] font-medium text-[#90adcf]">
-                          Access
-                        </th>
-                        <th className="border-b border-[#173a63] px-4 py-3 text-[12px] font-medium text-[#90adcf]">
-                          Alerts
-                        </th>
-                        <th className="border-b border-[#173a63] px-4 py-3 text-[12px] font-medium text-[#90adcf]">
-                          Assigned
-                        </th>
-                        <th className="border-b border-[#173a63] px-4 py-3 text-[12px] font-medium text-[#90adcf]">
-                          Action
-                        </th>
-                      </tr>
-                    </thead>
+                      <tbody>
+                        {patients?.map((patient, index) => (
+                          <tr
+                            key={patient.id}
+                            onClick={() =>
+                              navigate(
+                                `/provider/patients/${patient.patientId}`,
+                              )
+                            }
+                            className={`cursor-pointer transition hover:bg-[#102a4d] ${
+                              index !== patients?.length - 1
+                                ? "border-b border-[#132f52]"
+                                : ""
+                            }`}
+                          >
+                            <td className="px-4 py-3 align-middle">
+                              <div className="flex items-center gap-3">
+                                <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[#11233d] border text-[5px] font-semibold text-[#e4e8ec]">
+                                  <img src={patient?.avatar || health_companion_image} alt="" className="w-full h-full object-cover object-center" />
+                                  
+                                </div>
 
-                    <tbody>
-                      {patients?.map((patient, index) => (
-                        <tr
-                          key={patient.id}
-                          onClick={() =>
-                            navigate(`/provider/patients/${patient.id}`)
-                          }
-                          className={`cursor-pointer transition hover:bg-[#102a4d] ${
-                            index !== patients?.length - 1
-                              ? "border-b border-[#132f52]"
-                              : ""
-                          }`}
-                        >
-                          <td className="px-4 py-3 align-middle">
-                            <div className="flex items-center gap-3">
-                              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#d8b08b] text-xs font-semibold text-[#11233d]">
-                                {
-                                  patient?.fullName
-                                  // ?.split(" ")
-                                  // ?.map((n) => n[0])
-                                  // ?.slice(0, 2)
-                                  // ?.join("")
-                                }
+                                <div className="min-w-[150px]">
+                                  <div className="text-[13px] font-semibold text-[#edf5ff]">
+                                    {patient?.fullName}
+                                  </div>
+                                  <div className="text-[11px] text-[#6f8eb3]">
+                                    {patient?.subtitle}
+                                  </div>
+                                </div>
                               </div>
+                            </td>
 
-                              <div className="min-w-[150px]">
-                                <div className="text-[13px] font-semibold text-[#edf5ff]">
-                                  {patient?.fullName}
+                            <td className="px-4 py-3 text-[12px] text-[#cdddf2]">
+                              {patient?.externalPatientId}
+                            </td>
+
+                            <td className="px-4 py-3 text-[12px] text-[#cdddf2]">
+                              {patient?.gender || "N/A"}
+                            </td>
+
+                            <td className="px-4 py-3">
+                              <div className="min-w-[140px]">
+                                <div className="text-[12px] text-[#dce9fb]">
+                                  {patient?.encounterStatus?.provider}
                                 </div>
                                 <div className="text-[11px] text-[#6f8eb3]">
-                                  {patient?.subtitle}
+                                  {patient?.encounterStatus}
                                 </div>
                               </div>
-                            </div>
-                          </td>
+                            </td>
 
-                          <td className="px-4 py-3 text-[12px] text-[#cdddf2]">
-                            {patient?.patientId}
-                          </td>
+                            <td className="px-4 py-3">
+                              <Badge
+                                label={patient?.relationshipType}
+                                tone={patient?.access?.tone}
+                              />
+                            </td>
 
-                          <td className="px-4 py-3 text-[12px] text-[#cdddf2]">
-                            {patient?.ageSex}
-                          </td>
-
-                          <td className="px-4 py-3">
-                            <div className="min-w-[140px]">
-                              <div className="text-[12px] text-[#dce9fb]">
-                                {patient?.encounterStatus?.provider}
+                            <td className="px-4 py-3">
+                              <div className="flex flex-wrap gap-1.5">
+                                {patient?.alerts?.length > 0 ? (
+                                  patient?.alerts?.map((alert, i) => (
+                                    <Badge
+                                      key={`${patient?.id}-alert-${i}`}
+                                      label={alert?.label}
+                                      tone={alert?.tone}
+                                    />
+                                  ))
+                                ) : (
+                                  <span className="text-[11px] text-[#59779d]">
+                                    N/A
+                                  </span>
+                                )}
                               </div>
-                              <div className="text-[11px] text-[#6f8eb3]">
-                                {patient?.encounterStatus}
-                              </div>
-                            </div>
-                          </td>
+                            </td>
 
-                          <td className="px-4 py-3">
-                            <Badge
-                              label={patient?.access?.label}
-                              tone={patient?.access?.tone}
-                            />
-                          </td>
+                            <td className="px-4 py-3 text-[12px] text-[#cdddf2]">
+                              {/* {patient?.assigned} */}
+                              {patient?.email}
+                            </td>
 
-                          <td className="px-4 py-3">
-                            <div className="flex flex-wrap gap-1.5">
-                              {patient?.alerts?.length > 0 ? (
-                                patient?.alerts?.map((alert, i) => (
-                                  <Badge
-                                    key={`${patient?.id}-alert-${i}`}
-                                    label={alert?.label}
-                                    tone={alert?.tone}
-                                  />
-                                ))
-                              ) : (
-                                <span className="text-[11px] text-[#59779d]">
-                                  —
-                                </span>
-                              )}
-                            </div>
-                          </td>
-
-                          <td className="px-4 py-3 text-[12px] text-[#cdddf2]">
-                            {patient?.assigned}
-                          </td>
-
-                          <td className="px-4 py-3">
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(
-                                  `/provider/patients/${patient?.patientId}`,
-                                );
-                              }}
-                              className="inline-flex h-8 items-center rounded-md border border-[#3f6ea5] bg-[#0c2342] px-3 text-[12px] font-medium text-[#e8f1ff] hover:bg-[#13345e]"
-                            >
-                              Open
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                <div className="flex flex-col gap-3 border-t border-[#173a63] bg-[#091a33] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="text-[12px] text-[#8aa6c7]">110 of 1,284</div>
-
-                  <div className="flex items-center gap-1 text-[#90adcf]">
-                    <button className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-[#0d2342] hover:bg-[#143258]">
-                      <ChevronsLeft size={14} />
-                    </button>
-                    <button className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-[#0d2342] hover:bg-[#143258]">
-                      <ChevronLeft size={14} />
-                    </button>
-
-                    <button className="inline-flex h-8 min-w-8 items-center justify-center rounded-md border border-[#3a6ea8] bg-[#12355f] px-2 text-[12px] text-white">
-                      1
-                    </button>
-                    <button className="inline-flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-[12px] hover:bg-[#12355f]">
-                      2
-                    </button>
-                    <button className="inline-flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-[12px] hover:bg-[#12355f]">
-                      3
-                    </button>
-                    <button className="inline-flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-[12px] hover:bg-[#12355f]">
-                      4
-                    </button>
-                    <button className="inline-flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-[12px] hover:bg-[#12355f]">
-                      5
-                    </button>
-
-                    <button className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-[#0d2342] hover:bg-[#143258]">
-                      <ChevronRight size={14} />
-                    </button>
-                    <button className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-[#0d2342] hover:bg-[#143258]">
-                      <ChevronsRight size={14} />
-                    </button>
+                            <td className="px-4 py-3">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(
+                                    `/provider/patients/${patient?.patientId}`,
+                                  );
+                                }}
+                                className="inline-flex h-8 items-center rounded-md border border-[#3f6ea5] bg-[#0c2342] px-3 text-[12px] font-medium text-[#e8f1ff] hover:bg-[#13345e]"
+                              >
+                                Open
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
+
+                  {patients.length > 10 && (
+                  <div className="flex flex-col gap-3 border-t border-[#173a63] bg-[#091a33] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="text-[12px] text-[#8aa6c7]">
+                      110 of 1,284
+                    </div>
+
+                    <div className="flex items-center gap-1 text-[#90adcf]">
+                      <button className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-[#0d2342] hover:bg-[#143258]">
+                        <ChevronsLeft size={14} />
+                      </button>
+                      <button className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-[#0d2342] hover:bg-[#143258]">
+                        <ChevronLeft size={14} />
+                      </button>
+
+                      <button className="inline-flex h-8 min-w-8 items-center justify-center rounded-md border border-[#3a6ea8] bg-[#12355f] px-2 text-[12px] text-white">
+                        1
+                      </button>
+                      <button className="inline-flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-[12px] hover:bg-[#12355f]">
+                        2
+                      </button>
+                      <button className="inline-flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-[12px] hover:bg-[#12355f]">
+                        3
+                      </button>
+                      <button className="inline-flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-[12px] hover:bg-[#12355f]">
+                        4
+                      </button>
+                      <button className="inline-flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-[12px] hover:bg-[#12355f]">
+                        5
+                      </button>
+
+                      <button className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-[#0d2342] hover:bg-[#143258]">
+                        <ChevronRight size={14} />
+                      </button>
+                      <button className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-[#0d2342] hover:bg-[#143258]">
+                        <ChevronsRight size={14} />
+                      </button>
+                    </div>
+                  </div>
+                  )}
+
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

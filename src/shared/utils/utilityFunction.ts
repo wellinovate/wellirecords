@@ -414,6 +414,32 @@ export async function getPatientMedications(
   return data.data;
 }
 
+export async function getAllPatientMedications(
+  page = 1,
+  limit = 10,
+) {
+  const token = Cookies.get("accessToken");
+  const res = await fetch(
+    `${apiUrl}/api/v1/medications/patients/?page=${page}&limit=${limit}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: "include",
+    },
+  );
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data?.message || "Failed to fetch medications");
+  }
+
+  return data.data;
+}
+
 export type AllergyItem = {
   id: string;
   patientId: string;
@@ -556,6 +582,33 @@ export async function getPatientLabResults(
   return data.data;
 }
 
+export async function getAllPatientLabResults(
+  page = 1,
+  limit = 10,
+) {
+  const token = Cookies.get("accessToken");
+  const res = await fetch(
+    `${apiUrl}/api/v1/lab-results/patients?page=${page}&limit=${limit}`,
+    {
+      method: "GET",
+
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: "include",
+    },
+  );
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data?.message || "Failed to fetch lab results");
+  }
+
+  return data.data;
+}
+
 export type ImmunizationItem = {
   id: string;
   patientId: string;
@@ -646,7 +699,6 @@ export async function getPatientEncounters(
   );
 
   const data = await res.json();
-  console.log("🚀 ~ getPatientEncounters ~ data:", data)
 
   if (!res.ok) {
     throw new Error(data?.message || "Failed to fetch encounters");
@@ -674,34 +726,22 @@ export type ProcedureItem = {
   updatedAt: string;
 };
 
-export async function createProcedure(payload: any) {
-  const res = await fetch("/api/v1/procedures", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-    body: JSON.stringify(payload),
-  });
 
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data?.message || "Failed to create procedure");
-  }
-
-  return data.data;
-}
 
 export async function getPatientProcedures(
   patientId: string,
   page = 1,
   limit = 10,
 ) {
+  const token = Cookies.get("accessToken");
   const res = await fetch(
-    `/api/v1/procedures/patient/${patientId}?page=${page}&limit=${limit}`,
+    `${apiUrl}/api/v1/procedures/patient/${patientId}?page=${page}&limit=${limit}`,
     {
       method: "GET",
+       headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       credentials: "include",
     },
   );

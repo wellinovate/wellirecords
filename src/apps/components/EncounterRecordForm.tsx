@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plus, X } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useAuth } from "@/shared/auth/AuthProvider";
 
 type EncounterRecordFormProps = {
@@ -8,46 +8,38 @@ type EncounterRecordFormProps = {
   onSuccess?: (data: any) => void;
 };
 
+type EncounterStatus =  "active" | "completed" | "cancelled";
+type EncounterType =
+  | "outpatient"
+  | "inpatient"
+  | "emergency"
+  | "telemedicine"
+  | "homecare";
+
 type EncounterFormState = {
-  encounterTitle: string;
-  encounterType:
-    | "outpatient"
-    | "inpatient"
-    | "emergency"
-    | "telemedicine"
-    | "homecare";
-  scheduledAt: string;
+  encounterType: EncounterType;
+  status: EncounterStatus;
   startedAt: string;
   endedAt: string;
   reasonForVisit: string;
   chiefComplaint: string;
-  priority: "routine" | "urgent" | "high" | "critical";
-  source: "provider" | "organization" | "patient" | "imported" | "system";
-  status:
-    | "scheduled"
-    | "checked-in"
-    | "in-progress"
-    | "completed"
-    | "cancelled"
-    | "no-show";
-  visibilityToPatient: boolean;
-  patientAccess: "full" | "limited" | "hidden-until-reviewed";
   notes: string;
 };
 
+const getLocalDateTimeValue = () => {
+  const now = new Date();
+  const offset = now.getTimezoneOffset();
+  const local = new Date(now.getTime() - offset * 60 * 1000);
+  return local.toISOString().slice(0, 16);
+};
+
 const initialState: EncounterFormState = {
-  encounterTitle: "",
   encounterType: "outpatient",
-  scheduledAt: "",
-  startedAt: new Date().toISOString().slice(0, 16),
+  status: "active",
+  startedAt: getLocalDateTimeValue(),
   endedAt: "",
   reasonForVisit: "",
   chiefComplaint: "",
-  priority: "routine",
-  source: "provider",
-  status: "scheduled",
-  visibilityToPatient: true,
-  patientAccess: "full",
   notes: "",
 };
 
@@ -56,40 +48,60 @@ export function EncounterRecordForm({
   onClose,
   onSuccess,
 }: EncounterRecordFormProps) {
-  const {createEncounter} = useAuth()
-  const [form, setForm] = useState(initialState);
+  const { createEncounter, user } = useAuth();
+
+  const [form, setForm] = useState<EncounterFormState>(initialState);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  const updateField = <K extends keyof EncounterFormState>(
+    key: K,
+    value: EncounterFormState[K],
+  ) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
+    if (!form.startedAt) {
+      setError("Start date and time is required.");
+      return;
+    }
+
+    if (!form.reasonForVisit.trim()) {
+      setError("Reason for visit is required.");
+      return;
+    }
+
+    if (form.endedAt && new Date(form.endedAt) < new Date(form.startedAt)) {
+      setError("End date cannot be earlier than start date.");
+      return;
+    }
+
     const payload = {
       patientId,
-      encounterTitle: form.encounterTitle,
+      providerId: user?.sub,
+      organizationId: user?.sub || user?.organization?._id,
       encounterType: form.encounterType,
-      scheduledAt: form.scheduledAt
-        ? new Date(form.scheduledAt).toISOString()
-        : undefined,
-      startedAt: form.startedAt
-        ? new Date(form.startedAt).toISOString()
-        : undefined,
-      endedAt: form.endedAt ? new Date(form.endedAt).toISOString() : undefined,
-      reasonForVisit: form.reasonForVisit.trim() || undefined,
-      chiefComplaint: form.chiefComplaint.trim() || undefined,
-      priority: form.priority,
-      source: form.source,
       status: form.status,
-      visibilityToPatient: form.visibilityToPatient,
-      patientAccess: form.patientAccess,
+      startedAt: new Date(form.startedAt).toISOString(),
+      endedAt: form.endedAt ? new Date(form.endedAt).toISOString() : undefined,
+      reasonForVisit: form.reasonForVisit.trim(),
+      chiefComplaint: form.chiefComplaint.trim() || undefined,
+      createdBy: {
+        id: user?._id,
+        role: "provider",
+      },
       notes: form.notes.trim() || undefined,
     };
 
     try {
       setSubmitting(true);
       const result = await createEncounter(payload);
-      if (result === "Encounter created successfully") {
+
+      if (result === "Encounter created successfully" || result?.success) {
         onSuccess?.(result);
       }
     } catch (err: any) {
@@ -100,13 +112,11 @@ export function EncounterRecordForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="mt-1 text-sm text-[#7fa3cb]">
-            Record a patient visit, appointment, or care session.
-          </p>
-        </div>
+    <form onSubmit={handleSubmit} className="space-y-3 ">
+      <div>
+        <p className="mt-1 text-sm text-[#7fa3cb]">
+          Record a patient visit or care session.
+        </p>
       </div>
 
       {error && (
@@ -118,35 +128,14 @@ export function EncounterRecordForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-            Encounter Title
-          </label>
-          <input
-            type="text"
-            value={form.encounterTitle}
-            onChange={(e) =>
-              setForm((p) => ({
-                ...p,
-                encounterTitle: e.target
-                  .value as EncounterFormState["encounterTitle"],
-              }))
-            }
-            className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff]"
-          />
-        </div>
-        <div>
-          <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-            Encounter Type
+            Encounter Type <span className="text-red-400">*</span>
           </label>
           <select
             value={form.encounterType}
             onChange={(e) =>
-              setForm((p) => ({
-                ...p,
-                encounterType: e.target
-                  .value as EncounterFormState["encounterType"],
-              }))
+              updateField("encounterType", e.target.value as EncounterType)
             }
-            className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff]"
+            className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm capitalize text-[#dcecff] outline-none focus:border-[#2e6da5]"
           >
             {[
               "outpatient",
@@ -155,58 +144,26 @@ export function EncounterRecordForm({
               "telemedicine",
               "homecare",
             ].map((item) => (
-              <option key={item} value={item}>
+              <option key={item} value={item} className="capitalize">
                 {item}
               </option>
             ))}
           </select>
         </div>
 
-        <div>
+        <div className="hidden">
           <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-            Priority
-          </label>
-          <select
-            value={form.priority}
-            onChange={(e) =>
-              setForm((p) => ({
-                ...p,
-                priority: e.target.value as EncounterFormState["priority"],
-              }))
-            }
-            className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff]"
-          >
-            {["routine", "urgent", "high", "critical"].map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-            Status
+            Status <span className="text-red-400">*</span>
           </label>
           <select
             value={form.status}
             onChange={(e) =>
-              setForm((p) => ({
-                ...p,
-                status: e.target.value as EncounterFormState["status"],
-              }))
+              updateField("status", e.target.value as EncounterStatus)
             }
-            className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff]"
+            className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm capitalize text-[#dcecff] outline-none focus:border-[#2e6da5]"
           >
-            {[
-              "scheduled",
-              "checked-in",
-              "in-progress",
-              "completed",
-              "cancelled",
-              "no-show",
-            ].map((item) => (
-              <option key={item} value={item}>
+            {["active", "completed"].map((item) => (
+              <option key={item} value={item} className="capitalize">
                 {item}
               </option>
             ))}
@@ -215,117 +172,42 @@ export function EncounterRecordForm({
 
         <div>
           <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-            Source
-          </label>
-          <select
-            value={form.source}
-            onChange={(e) =>
-              setForm((p) => ({
-                ...p,
-                source: e.target.value as EncounterFormState["source"],
-              }))
-            }
-            className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff]"
-          >
-            {["provider", "organization", "patient", "imported", "system"].map(
-              (item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ),
-            )}
-          </select>
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-            Scheduled At
-          </label>
-          <input
-            type="datetime-local"
-            value={form.scheduledAt}
-            onChange={(e) =>
-              setForm((p) => ({ ...p, scheduledAt: e.target.value }))
-            }
-            className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff]"
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-            Started At
+            Started At <span className="text-red-400">*</span>
           </label>
           <input
             type="datetime-local"
             value={form.startedAt}
-            onChange={(e) =>
-              setForm((p) => ({ ...p, startedAt: e.target.value }))
-            }
-            className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff]"
+            onChange={(e) => updateField("startedAt", e.target.value)}
+            className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] outline-none focus:border-[#2e6da5]"
           />
         </div>
 
-        <div>
+        <div className="hidden">
           <label className="mb-2 block text-sm font-medium text-[#dcecff]">
             Ended At
           </label>
           <input
             type="datetime-local"
             value={form.endedAt}
-            onChange={(e) =>
-              setForm((p) => ({ ...p, endedAt: e.target.value }))
-            }
-            className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff]"
+            onChange={(e) => updateField("endedAt", e.target.value)}
+            className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] outline-none focus:border-[#2e6da5]"
           />
         </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-            Patient Access
-          </label>
-          <select
-            value={form.patientAccess}
-            onChange={(e) =>
-              setForm((p) => ({
-                ...p,
-                patientAccess: e.target
-                  .value as EncounterFormState["patientAccess"],
-              }))
-            }
-            className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff]"
-          >
-            {/* // {["full", "limited", "hidden-until-reviewed"].map((item) => ( */}
-            {["full"].map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <label className="flex hidden items-center gap-3 pt-8 text-sm text-[#dcecff]">
-          <input
-            type="checkbox"
-            checked={form.visibilityToPatient}
-            onChange={(e) =>
-              setForm((p) => ({ ...p, visibilityToPatient: e.target.checked }))
-            }
-            className="h-4 w-4 hidden rounded border-[#345f92] bg-[#102849]"
-          />
-          Visible to patient
-        </label>
 
         <div className="sm:col-span-2">
           <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-            Reason for Visit
+            Reason for Visit <span className="text-red-400">*</span>
           </label>
           <input
+            type="text"
             value={form.reasonForVisit}
-            onChange={(e) =>
-              setForm((p) => ({ ...p, reasonForVisit: e.target.value }))
-            }
-            className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff]"
+            onChange={(e) => updateField("reasonForVisit", e.target.value)}
+            placeholder="e.g. Follow-up for blood pressure review"
+            className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] placeholder:text-[#6f8fb4] outline-none focus:border-[#2e6da5]"
           />
+          <p className="mt-1 text-xs text-[#7fa3cb]">
+            This will be used to generate a readable encounter label in lists.
+          </p>
         </div>
 
         <div className="sm:col-span-2">
@@ -335,12 +217,13 @@ export function EncounterRecordForm({
           <textarea
             rows={3}
             value={form.chiefComplaint}
-            onChange={(e) =>
-              setForm((p) => ({ ...p, chiefComplaint: e.target.value }))
-            }
-            className="w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 py-3 text-sm text-[#dcecff]"
+            onChange={(e) => updateField("chiefComplaint", e.target.value)}
+            placeholder="Briefly describe the patient’s main complaint"
+            className="w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 py-3 text-sm text-[#dcecff] placeholder:text-[#6f8fb4] outline-none focus:border-[#2e6da5]"
           />
         </div>
+
+        <div className="hidden sm:block" />
 
         <div className="sm:col-span-2">
           <label className="mb-2 block text-sm font-medium text-[#dcecff]">
@@ -349,8 +232,9 @@ export function EncounterRecordForm({
           <textarea
             rows={4}
             value={form.notes}
-            onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
-            className="w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 py-3 text-sm text-[#dcecff]"
+            onChange={(e) => updateField("notes", e.target.value)}
+            placeholder="Optional quick note for this encounter"
+            className="w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 py-3 text-sm text-[#dcecff] placeholder:text-[#6f8fb4] outline-none focus:border-[#2e6da5]"
           />
         </div>
       </div>
@@ -367,7 +251,7 @@ export function EncounterRecordForm({
         <button
           type="submit"
           disabled={submitting}
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-[#2e6da5] bg-[#17365d] px-4 text-sm font-medium text-[#dcecff] disabled:opacity-50"
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-[#2e6da5] bg-[#17365d] px-4 text-sm font-medium text-[#dcecff] disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Plus size={14} />
           {submitting ? "Saving..." : "Save Encounter"}

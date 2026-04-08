@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Plus, X } from "lucide-react";
-import { createProcedure } from "@/shared/utils/utilityFunction";
+import { useAuth } from "@/shared/auth/AuthProvider";
 
 type ProcedureRecordFormProps = {
   patientId: string;
@@ -47,6 +47,7 @@ export function ProcedureRecordForm({
   onClose,
   onSuccess,
 }: ProcedureRecordFormProps) {
+  const {createProcedure} = useAuth();
   const [form, setForm] = useState(initialState);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");

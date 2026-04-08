@@ -46,6 +46,7 @@ export function DiagnosisRecordForm({
   const [form, setForm] = useState(initialState);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,17 +65,17 @@ export function DiagnosisRecordForm({
       diagnosisName: form.diagnosisName.trim(),
       diagnosisType: form.diagnosisType,
       icd10Code: form.icd10Code.trim() || undefined,
-      clinicalStatus: form.clinicalStatus,
-
+      
       onsetDate: form.onsetDate
-        ? new Date(form.onsetDate).toISOString()
-        : undefined,
+      ? new Date(form.onsetDate).toISOString()
+      : undefined,
       diagnosedAt: form.diagnosedAt
-        ? new Date(form.diagnosedAt).toISOString()
-        : undefined,
+      ? new Date(form.diagnosedAt).toISOString()
+      : undefined,
       resolvedAt: form.resolvedAt
-        ? new Date(form.resolvedAt).toISOString()
-        : undefined,
+      ? new Date(form.resolvedAt).toISOString()
+      : undefined,
+      clinicalStatus: form.resolvedAt ? "resolved" : "active",
 
       notes: form.notes.trim() || undefined,
     };
@@ -92,6 +93,14 @@ export function DiagnosisRecordForm({
     }
   };
 
+  const handleDiagnosisSelect = (item) => {
+  setForm((p) => ({
+    ...p,
+    diagnosisName: item.label,
+    icd10Code: item.code, // hidden auto-fill
+  }));
+};
+
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="flex items-start justify-between">
@@ -100,6 +109,13 @@ export function DiagnosisRecordForm({
             Record a clinical diagnosis for this patient.
           </p>
         </div>
+        <button
+  type="button"
+  onClick={() => setShowAdvanced((p) => !p)}
+  className="text-xs text-[#7fa3cb]"
+>
+  {showAdvanced ? "Hide advanced" : "+ More options"}
+</button>
       </div>
 
       {error && (
@@ -107,6 +123,12 @@ export function DiagnosisRecordForm({
           {error}
         </div>
       )}
+
+      {showAdvanced && (
+  <>
+    // everything else goes here
+  </>
+)}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
@@ -122,7 +144,7 @@ export function DiagnosisRecordForm({
           />
         </div>
 
-        <div>
+        <div className="hidden">
           <label className="mb-2 block text-sm font-medium text-[#dcecff]">
             Diagnosis Type
           </label>
@@ -151,7 +173,7 @@ export function DiagnosisRecordForm({
           </select>
         </div>
 
-        <div>
+        <div className="hidden">
           <label className="mb-2 block text-sm font-medium text-[#dcecff]">
             ICD-10 Code
           </label>
@@ -165,7 +187,7 @@ export function DiagnosisRecordForm({
           />
         </div>
 
-        <div>
+        <div className="hidden">
           <label className="mb-2 block text-sm font-medium text-[#dcecff]">
             Clinical Status
           </label>
@@ -204,7 +226,7 @@ export function DiagnosisRecordForm({
           />
         </div>
 
-        <div>
+        <div className="hidden">
           <label className="mb-2 block text-sm font-medium text-[#dcecff]">
             Diagnosed At
           </label>

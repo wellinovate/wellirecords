@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/shared/auth/AuthProvider';
 import { consentApi } from '@/shared/api/consentApi';
 import { vaultApi } from '@/shared/api/vaultApi';
 import { FlaskConical, Plus, CheckCircle, Clock, AlertCircle, X, ShieldCheck } from 'lucide-react';
 import { LabOrder } from '@/shared/types/types';
+import { getAllPatientLabResults, LabResultItem } from '@/shared/utils/utilityFunction';
 
 export function LabOrdersPage() {
     const { user } = useAuth();
@@ -12,8 +13,31 @@ export function LabOrdersPage() {
     const [orders, setOrders] = useState(() => vaultApi.getLabOrders(user?.orgId ?? ''));
     const [showNew, setShowNew] = useState(false);
     const [filter, setFilter] = useState<LabOrder['status'] | 'all'>('all');
+    const [labResults, setLabResults] = useState<LabResultItem[]>([]);
+      const [loadingLabResults, setLoadingLabResults] = useState(false);
+      const [labResultsError, setLabResultsError] = useState("");
 
-    const filtered = filter === 'all' ? orders : orders.filter(o => o.status === filter);
+      
+      useEffect(() => {
+          loadLabResults();
+      }, []);
+
+       const loadLabResults = async () => {
+      
+          try {
+            setLoadingLabResults(true);
+            setLabResultsError("");
+      
+            const result = await getAllPatientLabResults( 1, 10);
+            console.log("🚀 ~ ALLloadLabResults ~ result:", result)
+            setLabResults(result.items || []);
+          } catch (err: any) {
+            setLabResultsError(err.message || "Failed to load lab results");
+          } finally {
+            setLoadingLabResults(false);
+        }
+    };
+    const filtered = filter === 'all' ? labResults : labResults.filter(o => o.status === filter);
 
     const statusIcon = (s: LabOrder['status']) => ({
         pending: <Clock size={14} style={{ color: '#f59e0b' }} />,
@@ -25,7 +49,7 @@ export function LabOrdersPage() {
     const statusBadge = (s: LabOrder['status']) => ({ pending: 'badge-warning', in_progress: 'badge-verified', complete: 'badge-active', cancelled: '' }[s]);
 
     return (
-        <div className="animate-fade-in">
+        <div className="animate-fade-in px-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <div>
                     <h1 className="section-header font-display" style={{ color: '#e2eaf4' }}>Lab Orders</h1>
@@ -53,7 +77,7 @@ export function LabOrdersPage() {
             </div>
 
             <div className="space-y-4">
-                {filtered.map(o => (
+                {filtered?.map(o => (
                     <div key={o.id} className="card-provider p-5">
                         <div className="flex items-start justify-between gap-4">
                             <div className="flex items-start gap-3">
@@ -61,12 +85,12 @@ export function LabOrdersPage() {
                                     <FlaskConical size={18} style={{ color: '#a855f7' }} />
                                 </div>
                                 <div>
-                                    <div className="font-bold" style={{ color: '#e2eaf4' }}>{o.patientName}</div>
+                                    <div className="font-bold" style={{ color: '#e2eaf4' }}>{o.fullName}</div>
                                     <div className="text-xs" style={{ color: '#7ba3c8' }}>Ordered by {o.orderedByName} · {new Date(o.date).toLocaleDateString()}</div>
                                     <div className="flex flex-wrap gap-1.5 mt-2">
-                                        {o.tests.map(t => (
+                                        {/* {o.tests.map(t => (
                                             <span key={t} className="px-2 py-0.5 rounded text-xs" style={{ background: 'rgba(168,85,247,.1)', color: '#a855f7' }}>{t}</span>
-                                        ))}
+                                        ))} */}
                                     </div>
                                     {o.result && (
                                         <div className="mt-3 p-3 rounded-lg text-sm" style={{ background: 'rgba(16,185,129,.06)', borderLeft: '3px solid rgba(16,185,129,.4)', color: '#7ba3c8' }}>
@@ -76,10 +100,10 @@ export function LabOrdersPage() {
                                 </div>
                             </div>
                             <div className="flex flex-col items-end gap-2">
-                                <div className="flex items-center gap-1.5">
+                                {/* <div className="flex items-center gap-1.5">
                                     {statusIcon(o.status)}
                                     <span className={`badge ${statusBadge(o.status)}`}>{o.status.replace('_', ' ')}</span>
-                                </div>
+                                </div> */}
                                 {o.verified && (
                                     <span className="flex items-center gap-1 badge badge-active text-[10px]" style={{ background: 'rgba(16,185,129,.15)', border: '1px solid rgba(16,185,129,.2)' }}>
                                         <ShieldCheck size={10} /> WelliChain Verified

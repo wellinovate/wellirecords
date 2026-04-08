@@ -143,9 +143,10 @@ export function VitalRecordForm({
   onClose,
   onSuccess,
 }: VitalRecordFormProps) {
-  console.log(patientId)
-  const {createVitalRecord} = useAuth()
+  console.log(patientId);
+  const { createVitalRecord } = useAuth();
   const [form, setForm] = useState<VitalFormState>(initialFormState);
+  const [showMore, setShowMore] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -238,12 +239,11 @@ export function VitalRecordForm({
     try {
       setSubmitting(true);
       const result = await createVitalRecord(payload);
-      if(result === "Vital record created successfully"){
+      if (result === "Vital record created successfully") {
         onSuccess?.(result);
         onClose();
-
       }
-      console.log("VITALS", result)
+      console.log("VITALS", result);
     } catch (err: any) {
       setError(err?.message || "Failed to save vital record");
     } finally {
@@ -252,10 +252,10 @@ export function VitalRecordForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5  bg-re w-full">
+    <form onSubmit={handleSubmit} className="space-y-2  bg-re w-full">
       <div className="flex items-start justify-between">
         <div>
-          <p className="mt-1 text-sm text-[#7fa3cb]">
+          <p className=" text-sm text-[#7fa3cb]">
             Record current clinical observations for this patient.
           </p>
         </div>
@@ -268,7 +268,7 @@ export function VitalRecordForm({
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div>
+        <div className="hidden">
           <label className="mb-2 block text-sm font-medium text-[#dcecff]">
             Source
           </label>
@@ -286,7 +286,7 @@ export function VitalRecordForm({
           </select>
         </div>
 
-        <div>
+        <div className="hidden">
           <label className="mb-2 block text-sm font-medium text-[#dcecff]">
             Measured At
           </label>
@@ -298,82 +298,79 @@ export function VitalRecordForm({
           />
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 gap-2">
         <div className="rounded-xl border border-[#173a63] bg-[#0a1d39] p-4">
-          <div className="mb-4 flex items-center gap-2 text-[#eef5ff]">
-            <Activity size={16} />
-            <span className="text-base font-semibold">Core Vitals</span>
+          <div className="mb-4 flex items-center gap-2 full justify-between text-[#eef5ff]">
+            <div className="flex gap-3">
+              <Activity size={16} />
+              <span className="text-base font-semibold">Core Vitals</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowMore((prev) => !prev)}
+              className="text-xs text-[#eaeff5] rounded-xl border px-3 p-2 w-36 hover:text-white font-semibold transition-colors"
+            >
+              {showMore ? "Hide" : "Show More Vitals"}
+            </button>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <div>
               <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-                Systolic BP
+                BP
               </label>
+
               <input
-                type="number"
-                min="0"
-                value={form.bloodPressure.systolic}
-                onChange={(e) =>
+                type="text"
+                placeholder="BP (120/80)"
+                value={
+                  form.bloodPressure.systolic && form.bloodPressure.diastolic
+                    ? `${form.bloodPressure.systolic}/${form.bloodPressure.diastolic}`
+                    : ""
+                }
+                onChange={(e) => {
+                  const [sys, dia] = e.target.value.split("/");
                   setForm((prev) => ({
                     ...prev,
                     bloodPressure: {
-                      ...prev.bloodPressure,
-                      systolic: e.target.value,
+                      systolic: sys || "",
+                      diastolic: dia || "",
                     },
-                  }))
-                }
-                placeholder="e.g. 120"
+                  }));
+                }}
                 className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] focus:border-[#3793e0] focus:outline-none"
               />
             </div>
 
             <div>
               <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-                Diastolic BP
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={form.bloodPressure.diastolic}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    bloodPressure: {
-                      ...prev.bloodPressure,
-                      diastolic: e.target.value,
-                    },
-                  }))
-                }
-                placeholder="e.g. 80"
-                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] focus:border-[#3793e0] focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-                Heart Rate
+                Pulse
               </label>
               <input
                 type="number"
                 min="0"
                 value={form.heartRate}
                 onChange={(e) => updateField("heartRate", e.target.value)}
-                placeholder="bpm"
+                placeholder="Pulse (bpm)"
                 className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff]  focus:border-[#3793e0] focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-                Respiratory Rate
+              <label className="mb-2 flex  text-sm font-medium text-[#dcecff]">
+                <Thermometer size={16} className="mr-3" /> Temperature
               </label>
               <input
                 type="number"
-                min="0"
-                value={form.respiratoryRate}
-                onChange={(e) => updateField("respiratoryRate", e.target.value)}
-                placeholder="breaths/min"
+                step="0.1"
+                placeholder="Temp °C"
+                value={form.temperature.value}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    temperature: { ...prev.temperature, value: e.target.value },
+                  }))
+                }
                 className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] focus:border-[#3793e0] focus:outline-none"
               />
             </div>
@@ -390,246 +387,87 @@ export function VitalRecordForm({
                 onChange={(e) =>
                   updateField("oxygenSaturation", e.target.value)
                 }
-                placeholder="%"
+                placeholder="SpO₂ %"
                 className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] focus:border-[#3793e0] focus:outline-none"
               />
             </div>
           </div>
         </div>
 
-        <div className="rounded-xl border border-[#173a63] bg-[#0a1d39] p-4">
-          <div className="mb-4 flex items-center gap-2 text-[#eef5ff]">
-            <Thermometer size={16} />
-            <span className="text-base font-semibold">Temperature</span>
-          </div>
+        <div className="rounded-xl bg-[#0a1d39] ">
+          {/* 🔽 EXPANDED SECTION */}
+          {showMore && (
+            <div className="space-y-4">
+              {/* SECONDARY VITALS */}
+              <div className="rounded-xl border border-[#173a63] bg-[#0a1d39] p-4">
+                <div className="mb-3  flex text-sm font-semibold text-[#eef5ff]">
+                  <HeartPulse size={16} className="mr-5" /> Additional Vitals
+                </div>
 
-          <div className="grid gap-4 sm:grid-cols-[1fr_140px]">
-            <div>
-              <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-                Temperature Value
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                value={form.temperature.value}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    temperature: {
-                      ...prev.temperature,
-                      value: e.target.value,
-                    },
-                  }))
-                }
-                placeholder="e.g. 36.8"
-                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] focus:border-[#3793e0] focus:outline-none"
-              />
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <input
+                    type="number"
+                    placeholder="Respiratory Rate"
+                    value={form.respiratoryRate}
+                    onChange={(e) =>
+                      updateField("respiratoryRate", e.target.value)
+                    }
+                    className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff]  focus:border-[#3793e0] focus:outline-none"
+                  />
+
+                  <input
+                    type="number"
+                    placeholder="Weight (kg)"
+                    value={form.weight.value}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        weight: { ...prev.weight, value: e.target.value },
+                      }))
+                    }
+                    className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff]  focus:border-[#3793e0] focus:outline-none"
+                  />
+
+                  <input
+                    type="number"
+                    placeholder="Height (cm)"
+                    value={form.height.value}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        height: { ...prev.height, value: e.target.value },
+                      }))
+                    }
+                    className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff]  focus:border-[#3793e0] focus:outline-none"
+                  />
+                </div>
+
+                {/* BMI Preview */}
+                <div className="mt-3 text-xs text-[#7fa3cb]">
+                  BMI: {bmiPreview ?? "--"}
+                </div>
+
+                {/* CONDITIONAL (GLUCOSE) */}
+                <div className="flex gap-3 mt-2 items-center">
+                  <input
+                    type="number"
+                    placeholder="Blood Glucose (Optional)"
+                    value={form.bloodGlucose.value}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        bloodGlucose: {
+                          ...prev.bloodGlucose,
+                          value: e.target.value,
+                        },
+                      }))
+                    }
+                    className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff]  focus:border-[#3793e0] focus:outline-none"
+                  />
+                </div>
+              </div>
             </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-                Unit
-              </label>
-              <select
-                value={form.temperature.unit}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    temperature: {
-                      ...prev.temperature,
-                      unit: e.target.value as "C" | "F",
-                    },
-                  }))
-                }
-                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] focus:border-[#3793e0] focus:outline-none"
-              >
-                <option value="C">C</option>
-                <option value="F">F</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-[#173a63] bg-[#0a1d39] p-4">
-          <div className="mb-4 flex items-center gap-2 text-[#eef5ff]">
-            <HeartPulse size={16} />
-            <span className="text-base font-semibold">Body Metrics</span>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <div>
-              <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-                Weight
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                min="0"
-                value={form.weight.value}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    weight: {
-                      ...prev.weight,
-                      value: e.target.value,
-                    },
-                  }))
-                }
-                placeholder="e.g. 72"
-                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] focus:border-[#3793e0] focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-                Weight Unit
-              </label>
-              <select
-                value={form.weight.unit}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    weight: {
-                      ...prev.weight,
-                      unit: e.target.value as "kg" | "lb",
-                    },
-                  }))
-                }
-                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] focus:border-[#3793e0] focus:outline-none"
-              >
-                <option value="kg">kg</option>
-                <option value="lb">lb</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-                Height
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                min="0"
-                value={form.height.value}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    height: {
-                      ...prev.height,
-                      value: e.target.value,
-                    },
-                  }))
-                }
-                placeholder="e.g. 170"
-                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] focus:border-[#3793e0] focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-                Height Unit
-              </label>
-              <select
-                value={form.height.unit}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    height: {
-                      ...prev.height,
-                      unit: e.target.value as "cm" | "m" | "ft" | "in",
-                    },
-                  }))
-                }
-                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] focus:border-[#3793e0] focus:outline-none"
-              >
-                <option value="cm">cm</option>
-                <option value="m">m</option>
-                <option value="ft">ft</option>
-                <option value="in">in</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="mt-4 rounded-lg border border-[#1f4470] bg-[#102849] px-4 py-3">
-            <div className="text-[11px] uppercase tracking-wide text-[#6e8eb4]">
-              BMI Preview
-            </div>
-            <div className="mt-1 text-sm font-semibold text-[#eef5ff]">
-              {bmiPreview ??
-                "Will auto-calculate when weight and height are valid"}
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-[#173a63] bg-[#0a1d39] p-4">
-          <div className="mb-4 text-base font-semibold text-[#eef5ff]">
-            Blood Glucose
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-[1fr_160px] xl:grid-cols-[1fr_160px_auto]">
-            <div>
-              <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-                Glucose Value
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                min="0"
-                value={form.bloodGlucose.value}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    bloodGlucose: {
-                      ...prev.bloodGlucose,
-                      value: e.target.value,
-                    },
-                  }))
-                }
-                placeholder="e.g. 98"
-                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] focus:border-[#3793e0] focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-[#dcecff]">
-                Unit
-              </label>
-              <select
-                value={form.bloodGlucose.unit}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    bloodGlucose: {
-                      ...prev.bloodGlucose,
-                      unit: e.target.value as "mg/dL" | "mmol/L",
-                    },
-                  }))
-                }
-                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] focus:border-[#3793e0] focus:outline-none"
-              >
-                <option value="mg/dL">mg/dL</option>
-                <option value="mmol/L">mmol/L</option>
-              </select>
-            </div>
-
-            <label className="flex items-center gap-3 pt-8 text-sm text-[#dcecff]">
-              <input
-                type="checkbox"
-                checked={form.bloodGlucose.fasting}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    bloodGlucose: {
-                      ...prev.bloodGlucose,
-                      fasting: e.target.checked,
-                    },
-                  }))
-                }
-                className="h-4 w-4 rounded border-[#345f92] bg-[#102849]"
-              />
-              Fasting
-            </label>
-          </div>
+          )}
         </div>
       </div>
 

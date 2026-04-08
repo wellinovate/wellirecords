@@ -449,25 +449,13 @@ export default function PatientSignupPage() {
             <img
               src="/signups.jpg"
               alt="background"
-              className="absolute inset-0 h-full w-full object-cover object-left"
+              className="absolute inset-0 h-full w-full object-cover object-center"
             />
 
             <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.00)_0%,rgba(255,255,255,0.00)_84%,rgba(233,238,241,0.90)_100%)]" />
-
-            <div className="absolute right-[-2px] top-[170px] z-10">
-              <RxIconCard />
-            </div>
-
-            <div className="absolute right-[74px] top-[218px] z-10">
-              <PhoneMockup />
-            </div>
-
-            <div className="absolute right-[-2px] top-[372px] z-10">
-              <PlusIconCard />
-            </div>
+ 
           </div>
 
-          {/* Mobile / tablet hero */}
       
 
           {/* Right side / form */}

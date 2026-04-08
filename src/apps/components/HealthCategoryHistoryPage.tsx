@@ -14,12 +14,12 @@ import {
 } from "lucide-react";
 import { HealthHistoryLoader } from "./Loader/HealthHistoryLoader";
 
-function formatDate(value?: string) {
+export function formatDate(value?: string) {
   if (!value) return "No date";
   return new Date(value).toLocaleDateString();
 }
 
-function InfoRow({
+export function InfoRow({
   label,
   value,
 }: {
@@ -35,7 +35,7 @@ function InfoRow({
   );
 }
 
-function RecordShell({
+export function RecordShell({
   icon,
   title,
   subtitle,
@@ -285,7 +285,7 @@ export function HealthCategoryHistoryPage() {
           .includes(q);
       }
 
-      if (tab === "lab-results") {
+      if (tab === "lab") {
         const hasLabData = item.testName;
 
         if (!hasLabData) return false;
@@ -305,6 +305,28 @@ export function HealthCategoryHistoryPage() {
           .toLowerCase()
           .includes(q);
       }
+
+      if (tab === "procedures") {
+  const hasProcedureData = !!item.procedureName;
+
+  if (!hasProcedureData) return false;
+
+  if (!q) return true;
+
+  // Search across relevant procedure fields
+  return [
+    item.procedureName,
+    item.procedureType,
+    item.indication,
+    item.outcome,
+    item.notes,
+    item.facilityName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase()
+    .includes(q.toLowerCase());
+}
 
       return true;
     });
@@ -512,7 +534,49 @@ export function HealthCategoryHistoryPage() {
       );
     }
 
-    if (tab === "lab-results") {
+    if (tab === "procedures") {
+  return (
+    <RecordShell
+      key={item.id}
+      icon={<FlaskConical size={18} />}   // Consider changing icon to something more suitable like Scalpel or Activity
+      title={item.procedureName || "Unknown Procedure"}
+      subtitle={
+        [item.procedureType, item.outcome]
+          .filter(Boolean)
+          .join(" • ") || "Surgical Procedure"
+      }
+      status={item.clinicalStatus || item.outcome || "Completed"}
+      metaLeft={
+        <>
+          <InfoRow 
+            label="Performed" 
+            value={item.performedAt ? formatDate(item.performedAt) : "—"} 
+          />
+          <InfoRow 
+            label="Indication" 
+            value={item.indication || "—"} 
+          />
+        </>
+      }
+      metaRight={
+        <>
+          <InfoRow 
+            label="Performed By" 
+            value={item.performedBy?.organizationName || "—"} 
+          />
+          <InfoRow 
+            label="Facility" 
+            value={item.facilityName || item.performedBy?.organizationName || "—"} 
+          />
+        </>
+      }
+      footerLeft={item.notes || "No additional notes"}
+      actionLabel="View Details"
+    />
+  );
+}
+
+    if (tab === "lab") {
       return (
         <RecordShell
           key={item.id}

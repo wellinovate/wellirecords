@@ -38,6 +38,7 @@ type AuthContextValue = {
   createDiagnosis: (payload: any) => any;
   createLabResult: (payload: any) => any;
   createEncounter: (payload: any) => any;
+  createProcedure: (payload: any) => any;
   signIn: (email: string, password: string) => AuthUser | null;
   handleGoogleCredentials: (
     response: GoogleCredentialResponse,
@@ -111,13 +112,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const searchPatientRequest = async (
     identifier: string,
     identifierType: IdentifierType,
-    id: string,
     signal?: AbortSignal,
   ): Promise<SearchPatientResponse> => {
     const res = await authApi.searchPatientRequest(
       identifier,
       identifierType,
-      id,
       signal,
     );
     console.log("🚀 ~ signIn ~ u:", res);
@@ -189,6 +188,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return res;
   };
 
+  const createProcedure = async (
+    payload: any,
+  ): Promise<SearchPatientResponse> => {
+    const res = await authApi.createProcedure(payload);
+    console.log("🚀 ~ signIn ~ u:", res);
+    return res;
+  };
+
   const signInAsRole = (role: UserRole): AuthUser => {
     const u = authApi.signInAsRole(role);
     setUser(u);
@@ -229,6 +236,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       createDiagnosis,
       createLabResult,
       createEncounter,
+      createProcedure,
       createVitalRecord,
       registerNewPatient,
       linkPatientRequest,

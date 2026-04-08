@@ -234,6 +234,7 @@ export function AppRoutes() {
         <Route index element={<Navigate to="overview" replace />} />
         <Route path="overview" element={<ProviderDashboard />} />
         <Route path="patients" element={<PatientListPage />} />
+        <Route path="doctors" element={<PatientListPage />} />
         <Route path="patients/:id" element={<EHRViewerPage />} />
         <Route path="encounters/new" element={<NewEncounterPage />} />
         <Route path="orders/labs" element={<LabOrdersPage />} />
