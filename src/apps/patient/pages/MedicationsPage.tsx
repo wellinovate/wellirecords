@@ -2,7 +2,7 @@ import { getUsersRecords } from "@/shared/utils/utilityFunction";
 import { AlertTriangle, Pill, RefreshCw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-interface MedicationRecord {
+export interface MedicationRecord {
   id: string;
   medicationName: string;
   genericName?: string | null;

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle, AlertCircleIcon, BellDotIcon, DotIcon, DropletsIcon } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Search,
@@ -18,6 +18,7 @@ import { useAuth } from "@/shared/auth/AuthProvider";
 import { getPatients } from "@/shared/utils/utilityFunction";
 import PatientsLoadingSkeleton from "../../components/Loader/PatientsLoadingSkeleton";
 import { health_companion_image } from "@/assets";
+import PatientsList from "@/apps/components/shared/PatientsList";
 
 type PatientRow = {
   id: string;
@@ -612,14 +613,15 @@ export function PatientListPage() {
   return (
     <>
       <div className="min-h-screen bg-[#06162d]/20 px-2 py-5 text-white">
-        <div className="mx-auto max-w-[1280px]">
+        <div className="mx-auto max-w-[1480px]">
           <div className="rounded-2xl borde border-[#163761] bg-[#081b35]/10 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
             <div className="border-b border-[#163761] px-6 py-5">
               <div className="flex flex-col gap-4 md:flex-row xl:items-start xl:justify-between">
                 <div>
-                  <h1 className="text-[34px] font-semibold tracking-[-0.02em] text-[#e9f1fb]">
-                    Patients
-                  </h1>
+                  <div>
+            <h1 className="text-3xl font-semibold text-gray-50">Patients List</h1>
+            <p className="text-gray-300 mt-1">Manage and monitor all registered patients</p>
+          </div>
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-[15px]">
                     <span className="text-[#d8e7fb]">
                       {patients?.length} Patients
@@ -647,7 +649,7 @@ export function PatientListPage() {
                     type="button"
                   >
                     <UserPlus size={16} />
-                    <span>Register Patient</span>
+                    <span>Add Patient</span>
                   </button>
                 </div>
               </div>
@@ -699,59 +701,70 @@ export function PatientListPage() {
                   <div className="overflow-x-auto">
                     <table className="min-w-full border-separate border-spacing-0">
                       <thead>
-                        <tr className="bg-[#0d2342] text-left">
-                          <th className="border-b border-[#173a63] px-4 py-3 text-[12px] font-medium text-[#90adcf]">
-                            Patient
+                        <tr className="bg-[#0d2342]  text-center font-semibold text-[#90adcf]">
+                          <th className="border-b border-[#173a63] px-4 py-3 text-[14px]  text-[#90adcf] text-left">
+                            Patient Name
                           </th>
-                          <th className="border-b border-[#173a63] px-4 py-3 text-[12px] font-medium text-[#90adcf]">
-                            ID / Code
+                          <th className="border-b border-[#173a63] px-4 py-3 text-[14px]  text-[#90adcf]">
+                            Patiet ID 
                           </th>
-                          <th className="border-b border-[#173a63] px-4 py-3 text-[12px] font-medium text-[#90adcf]">
-                            Age / Sex
+                          <th className="border-b border-[#173a63] px-4 py-3 text-[14px]  text-[#90adcf]">
+                            Gender
                           </th>
-                          <th className="border-b border-[#173a63] px-4 py-3 text-[12px] font-medium text-[#90adcf]">
-                            Last Encounter
+                          <th className="border-b border-[#173a63] px-4 py-3 text-[14px]  text-[#90adcf]">
+                            Phone
                           </th>
-                          <th className="border-b border-[#173a63] px-4 py-3 text-[12px] font-medium text-[#90adcf]">
-                            Access
+                          <th className="border-b border-[#173a63] px-4 py-3 text-[14px] font-medium text-[#90adcf]">
+                            Address 
                           </th>
-                          <th className="border-b border-[#173a63] px-4 py-3 text-[12px] font-medium text-[#90adcf]">
-                            Alerts
+                          <th className="border-b border-[#173a63] px-4 py-3 text-[14px]  text-[#90adcf]">
+                            Last Visit
                           </th>
-                          <th className="border-b border-[#173a63] px-4 py-3 text-[12px] font-medium text-[#90adcf]">
-                            Assigned
+                          <th className="border-b border-[#173a63] px-4 py-3 text-[12px]  text-[#90adcf]">
+                            Assigned <br />
+                            Doctor
                           </th>
-                          <th className="border-b border-[#173a63] px-4 py-3 text-[12px] font-medium text-[#90adcf]">
+                          
+                          <th className="border-b border-[#173a63] px-4 py-3 text-[14px]  text-[#90adcf] text-center">
+                            Alert
+                          </th>
+                          
+                          <th className="border-b border-[#173a63] px-4 py-3 text-[12px]  text-[#90adcf]">
                             Action
                           </th>
                         </tr>
                       </thead>
 
-                      <tbody>
+                      <tbody className="divide-y divide-gray-100 text-center">
                         {patients?.map((patient, index) => (
                           <tr
                             key={patient.id}
                             onClick={() =>
                               navigate(
-                                `/provider/patients/${patient.patientId}`,
+                                `/provider/patients/${patient?.patientId}`,
                               )
                             }
-                            className={`cursor-pointer transition hover:bg-[#102a4d] ${
-                              index !== patients?.length - 1
-                                ? "border-b border-[#132f52]"
-                                : ""
-                            }`}
-                          >
-                            <td className="px-4 py-3 align-middle">
+                            className={`cursor-pointer transition   hover:bg-[#102a4d] space-y-  divide-y-4 border-b-2  border-b-white divide-[#132f52]
+                              `}
+                            // ${index === 0 ? "divide-y-0" : ""}
+                              >
+                            <td className="px-4 py-4 align-middle text-left border-b-4 border-[#132f52]  ">
                               <div className="flex items-center gap-3">
-                                <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[#11233d] border text-[5px] font-semibold text-[#e4e8ec]">
+                                <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full   text-[5px] font-semibold text-[#e4e8ec]">
                                   <img src={patient?.avatar || health_companion_image} alt="" className="w-full h-full object-cover object-center" />
                                   
                                 </div>
 
                                 <div className="min-w-[150px]">
-                                  <div className="text-[13px] font-semibold text-[#edf5ff]">
+                                  <div className=" text-[14px] lg:text-[16px] font-semibold text-[#edf5ff]">
+                                    <p>
+
                                     {patient?.fullName}
+                                    </p>
+                                    <p className="text-[12px]">
+
+                                    {patient?.email}
+                                    </p>
                                   </div>
                                   <div className="text-[11px] text-[#6f8eb3]">
                                     {patient?.subtitle}
@@ -765,17 +778,16 @@ export function PatientListPage() {
                             </td>
 
                             <td className="px-4 py-3 text-[12px] text-[#cdddf2]">
-                              {patient?.gender || "N/A"}
+                              {patient?.gender || "Female"}
+                            </td>
+                            <td className="px-4 py-3 text-[12px] text-[#cdddf2]">
+                              {patient?.phone || "XXX-XXX-XXXX"}
                             </td>
 
                             <td className="px-4 py-3">
-                              <div className="min-w-[140px]">
-                                <div className="text-[12px] text-[#dce9fb]">
-                                  {patient?.encounterStatus?.provider}
-                                </div>
-                                <div className="text-[11px] text-[#6f8eb3]">
-                                  {patient?.encounterStatus}
-                                </div>
+                              <div className=" text-[14px] text-[#e7edf5]">
+                              Graham, California
+                               
                               </div>
                             </td>
 
@@ -797,8 +809,8 @@ export function PatientListPage() {
                                     />
                                   ))
                                 ) : (
-                                  <span className="text-[11px] text-[#59779d]">
-                                    N/A
+                                  <span className="text-[13px] text-center font-semibold text-[#f7fbff]">
+                                  {patient?.encounterStatus?.provider || "Dr Enoch"}  
                                   </span>
                                 )}
                               </div>
@@ -806,11 +818,12 @@ export function PatientListPage() {
 
                             <td className="px-4 py-3 text-[12px] text-[#cdddf2]">
                               {/* {patient?.assigned} */}
-                              {patient?.email}
+                              <BellDotIcon size={16} className="inline-block mr-1" />
                             </td>
 
-                            <td className="px-4 py-3">
-                              <button
+                            <td className="font-extrabold text-[26px] text-[#58b8ff]">
+                              ...
+                              {/* <button
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -821,7 +834,7 @@ export function PatientListPage() {
                                 className="inline-flex h-8 items-center rounded-md border border-[#3f6ea5] bg-[#0c2342] px-3 text-[12px] font-medium text-[#e8f1ff] hover:bg-[#13345e]"
                               >
                                 Open
-                              </button>
+                              </button> */}
                             </td>
                           </tr>
                         ))}
@@ -874,6 +887,8 @@ export function PatientListPage() {
             )}
           </div>
         </div>
+          {/* <PatientsList  /> */}
+        
       </div>
 
       <RegisterPatientModal

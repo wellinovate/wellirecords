@@ -47,7 +47,7 @@ const ALL_NAV = [
     icon: LayoutDashboard,
     roles: ["*"],
   },
-  { to: "/provider/doctors", label: "Doctors", icon: TelescopeIcon, roles: ["*"] },
+  { to: "/provider/doctors", label: "Doctors", icon: Stethoscope, roles: ["*"] },
   { to: "/provider/patients", label: "Patients", icon: Users, roles: ["*"] },
 
   { to: "/provider/queue", label: "Queue", icon: CalendarClock, roles: ["*"] },
@@ -146,7 +146,7 @@ export function ProviderLayout() {
   const { isWelliMateEnabled, setWelliMateEnabled } = useWelliMate();
   const { can, roleMetadata, primaryRole } = useRBAC();
 
-  const isLocked = !!user?.isVerified;
+  const isLocked = !user?.isVerified;
 
   const [syncTime, setSyncTime] = useState(() => new Date());
   useEffect(() => {
@@ -481,12 +481,12 @@ export function ProviderLayout() {
           <Outlet />
 
           
-        {!!user?.isVerified && (
+        {!user?.isVerified && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
     <div className="bg-white rounded-xl p-6 w-[320px] text-center shadow-xl">
       <Lock size={32} className="mx-auto mb-3 text-red-500" />
 
-      <h2 className="text-lg font-bold mb-2">
+      <h2 className="text-lg font-bold mb-2 text-gray-800">
         Verification Required
       </h2>
 
@@ -499,7 +499,8 @@ export function ProviderLayout() {
         onClick={() => navigate("/provider/verify")}
         className="w-full bg-[#2F915C] text-white py-2 rounded-md font-semibold"
       >
-        Complete Verification
+        Verification in Progress
+      
       </button>
     </div>
   </div>

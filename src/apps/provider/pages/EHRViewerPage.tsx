@@ -1,10 +1,14 @@
 import { AllergyRecordForm } from "@/apps/components/AllergyRecordForm";
 import { DiagnosisRecordForm } from "@/apps/components/DiagnosisRecordForm";
 import { EncounterRecordForm } from "@/apps/components/EncounterRecordForm";
+import { LabResult } from "@/apps/components/LabResult";
 import { LabResultRecordForm } from "@/apps/components/LabResultRecordForm";
 import PatientsLoadingSkeleton from "@/apps/components/Loader/PatientsLoadingSkeleton";
+import { MedicalRecords } from "@/apps/components/MedicalRecords";
+import Medication from "@/apps/components/Medication";
 import { MedicationRecordForm } from "@/apps/components/MedicationRecordForm";
 import { ProcedureRecordForm } from "@/apps/components/ProcedureRecordForm";
+import PatientProfile from "@/apps/components/shared/PatientProfile";
 import { SharedDashboardSection } from "@/apps/components/shared/SharedDashboardSection";
 import { TabRecordPanel } from "@/apps/components/TabRecordPanel";
 import { VitalRecordForm } from "@/apps/components/VitalRecordForm";
@@ -15,7 +19,6 @@ import {
   AllergyItem,
   DiagnosisItem,
   EncounterItem,
-  getEncounterDetails,
   getEncounterDetailsByProvider,
   getPatientAllergies,
   getPatientDetail,
@@ -30,29 +33,24 @@ import {
   PatientDetailResponse,
   ProcedureItem,
 } from "@/shared/utils/utilityFunction";
-import {
-  AlertTriangle,
-  ArrowLeft,
-  ChevronDown,
-  ClipboardList,
-  FileText,
-  HeartPulse,
-  Shield,
-  Stethoscope,
-} from "lucide-react";
+import { ArrowLeft, ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 const TABS = [
   "Overview",
-  "Encounters",
-  "Vitals",
-  "Medications",
-  "Allergies",
-  "Diagnoses",
+  "Encounters Timeline",
+  "Medical Records",
   "Lab Results",
-  "Procedures",
-  "Documents",
+  "Prescriptions",
+  "Access",
+  // "Vitals",
+  // "Medications",
+  // "Allergies",
+  // "Diagnoses",
+  // "Lab Results",
+  // "Procedures",
+  // "Documents",
 ];
 
 const ALERT_CHIPS = [
@@ -193,7 +191,7 @@ function SmallActionButton({
 export function EHRViewerPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
-  console.log("🚀 ~ EHRViewerPage ~ user:", user)
+  console.log("🚀 ~ EHRViewerPage ~ user:", user);
   const navigate = useNavigate();
 
   const [patient, setPatient] = useState<PatientDetailResponse | null>(null);
@@ -237,32 +235,35 @@ export function EHRViewerPage() {
   };
 
   const handleViewMore = async (encounterId: string) => {
-  const isOpen = expandedId === encounterId;
+    const isOpen = expandedId === encounterId;
 
-  if (isOpen) {
-    setExpandedId(null);
-    return;
-  }
+    if (isOpen) {
+      setExpandedId(null);
+      return;
+    }
 
-  setExpandedId(encounterId);
+    setExpandedId(encounterId);
 
-  if (encounterDetails[encounterId]) return;
+    if (encounterDetails[encounterId]) return;
 
-  try {
-    setLoadingDetailId(encounterId);
+    try {
+      setLoadingDetailId(encounterId);
 
-    const response = await getEncounterDetailsByProvider(encounterId,patientId );
+      const response = await getEncounterDetailsByProvider(
+        encounterId,
+        patientId,
+      );
 
-    setEncounterDetails((prev) => ({
-      ...prev,
-      [encounterId]: response || null,
-    }));
-  } catch (error) {
-    console.error("Failed to fetch encounter details", error);
-  } finally {
-    setLoadingDetailId(null);
-  }
-};
+      setEncounterDetails((prev) => ({
+        ...prev,
+        [encounterId]: response || null,
+      }));
+    } catch (error) {
+      console.error("Failed to fetch encounter details", error);
+    } finally {
+      setLoadingDetailId(null);
+    }
+  };
 
   const loadMedications = async () => {
     if (!patientId) return;
@@ -272,7 +273,7 @@ export function EHRViewerPage() {
       setMedicationsError("");
 
       const result = await getPatientMedications(patientId, 1, 10);
-      console.log("🚀 ~ loadMedications ~ result:", result)
+      console.log("🚀 ~ loadMedications ~ result:", result);
       setMedications(result.items || []);
     } catch (err: any) {
       setMedicationsError(err.message || "Failed to load medications");
@@ -565,7 +566,7 @@ export function EHRViewerPage() {
       ...recordDataByTab,
       Encounters: encounterTabRecords,
       Vitals: vitalTabRecords,
-      Medications: medicationTabRecords,
+      Prescriptions: medicationTabRecords,
       Allergies: allergyTabRecords,
       Diagnoses: diagnosisTabRecords,
       "Lab Results": labResultTabRecords,
@@ -675,7 +676,7 @@ export function EHRViewerPage() {
       .join("")
       .toUpperCase() || "PT";
 
-      if (loading) return <PatientsLoadingSkeleton/>
+  if (loading) return <PatientsLoadingSkeleton />;
 
   return (
     <div className="min-h-screen bg-[#010a18] px-3 py-3 text-white">
@@ -693,18 +694,6 @@ export function EHRViewerPage() {
           <div className="border-b border-[#173a63] px-5 py-4">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
               <div className="flex items-start gap-4">
-                {patient?.avatar ? (
-                  <img
-                    src={patient.avatar}
-                    alt={patient?.fullName || "Patient"}
-                    className="h-14 w-14 rounded-xl object-cover ring-1 ring-white/10"
-                  />
-                ) : (
-                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#14345c] text-sm font-semibold text-[#dcecff] ring-1 ring-white/10">
-                    {initials}
-                  </div>
-                )}
-
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <h1 className="text-[34px] font-semibold leading-none tracking-[-0.03em] text-[#eef5ff]">
@@ -723,31 +712,6 @@ export function EHRViewerPage() {
                       </span>
                     )}
                   </div>
-
-                  <div className="flex bg-blue-700/10 rounded-md px-3 py-2 mt-2 text-sm font-bold text-blue-50 ">
-
-                  <div className="mt-2 grid grid-cols-2 items-start justify-start gap-3 text-[13px] text-[#8fb0d5]">
-                    <span>Email: {" "} {patient?.email || "No email"}</span>
-                    <span> Phone: {" "} {patient?.phone || "No phone"}</span>
-                    <div className="space-x-4">
-                      <span>Sex: {" "} {patient?.gender || "—"}</span>
-                      <span> Age: {" "}
-                        {age !== null ? `${age} years` : "Age unavailable"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="mt-3">
-                    <button
-                      className="inline-flex h-8 items-center gap-2 rounded-md border border-[#3f6ea5] bg-[#0c2342] px-3 text-[12px] font-medium text-[#7fd0ff]"
-                      type="button"
-                    >
-                      <Shield size={14} />
-                      Retention Access
-                    </button>
-                  </div>
-                  </div>
-
                 </div>
               </div>
 
@@ -755,20 +719,9 @@ export function EHRViewerPage() {
                 <SmallActionButton label="Add Record" />
               </div>
             </div>
-
-            {/* <div className="mt-4 flex flex-wrap gap-2">
-              {ALERT_CHIPS.map((chip) => (
-                <TopChip
-                  key={chip.label}
-                  label={chip.label}
-                  value={chip.value}
-                  tone={chip.tone as any}
-                  dropdown={chip.dropdown}
-                />
-              ))}
-            </div> */}
           </div>
 
+          <PatientProfile patient={patient} />
           {/* Tabs */}
           <div className="border-b border-[#173a63] px-5">
             <div className="flex flex-wrap gap-2 py-3">
@@ -791,34 +744,36 @@ export function EHRViewerPage() {
 
           {/* Body */}
           <div className="px-5 py-4">
-            {tab === "Overview" ? (
-              <div className="grid grid-cols-1 gap-4 xl:grid-cols-[340px_minmax(0,1fr)]">
-                {/* keep your current Overview content exactly here */}
-                {/* Left Column */}
-                <SharedDashboardSection
-                  alerts={[]}
-                  recentEncounters={[]}
-                  recordList={[]}
-                  loading={loading}
-                  routeBase={`/provider/patients/${patientId}`}
-                  navigate={navigate}
-                  onShareEncounter={(id) =>
-                    console.log("provider share encounter", id)
-                  }
-                  onContinueCare={(id) =>
-                    navigate(`/provider/encounters/${id}/continue`)
-                  }
-                />
-              </div>
-            ) : (
-              <TabRecordPanel
-                tab={tab}
-                records={resolvedRecordDataByTab[tab] || []}
-                onAddRecord={handleOpenCreateModal}
-              />
-            )}
-            {tab === "Encounters" ? (
-              loadingEncounters ? (
+            {
+              tab === "Overview" && (
+                <div className="grid grid-cols-1 gap-4 xl:grid-cols-[340px_minmax(0,1fr)]">
+                  {/* Left Column */}
+                  <SharedDashboardSection
+                    alerts={[]}
+                    recentEncounters={[]}
+                    recordList={[]}
+                    loading={loading}
+                    routeBase={`/provider/patients/${patientId}`}
+                    navigate={navigate}
+                    onShareEncounter={(id) =>
+                      console.log("provider share encounter", id)
+                    }
+                    onContinueCare={(id) =>
+                      navigate(`/provider/encounters/${id}/continue`)
+                    }
+                  />
+                </div>
+              )
+              //  : (
+              //   <TabRecordPanel
+              //     tab={tab}
+              //     records={resolvedRecordDataByTab[tab] || []}
+              //     onAddRecord={handleOpenCreateModal}
+              //   />
+              // )
+            }
+            {tab === "Encounters Timeline" &&
+              (loadingEncounters ? (
                 <div className="rounded-xl border border-[#173a63] bg-[#0a1d39] p-6 text-sm text-[#8fb0d5]">
                   Loading encounters...
                 </div>
@@ -856,16 +811,28 @@ export function EHRViewerPage() {
                     })}
                   </div>
                 </div>
-              )
-            ) : (
-              <div></div>
-              // <TabRecordPanel
-              //   tab={tab}
-              //   records={resolvedRecordDataByTab[tab] || []}
-              //   onAddRecord={handleOpenCreateModal}
-              // />
-            )}
+              ))}
           </div>
+          {tab === "Medical Records" && (
+            <div className="px-3">
+              <MedicalRecords category="vitals" />
+            </div>
+            
+          )}
+
+          {tab === "Lab Results" && (
+            <div className="px-3">
+              <LabResult category="lab" />
+            </div>
+          )}
+          {tab === "Prescriptions" && (
+            <div className=" w-full">
+              <Medication
+                visibleRecords={medicationTabRecords}
+                //  onAddRecord={() => handleOpenCreateModal("Medications")}
+              />
+            </div>
+          )}
 
           {activeCreateTab && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4 py-10">

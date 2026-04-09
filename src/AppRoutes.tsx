@@ -100,6 +100,7 @@ import PatientSignupPage from "./apps/auth/pages/PatientSignupPage";
 import UserTypeSelectionLogin from "./apps/auth/pages/UserTypeSelectionLogin";
 import { HealthCategoryHistoryPage } from "./apps/components/HealthCategoryHistoryPage";
 import { HealthHistoryTimelinePage } from "./apps/patient/pages/HealthHistory";
+import BestDoctorsPage from "./apps/provider/pages/BestDoctorsPage";
 
 // ─── Root redirect ────────────────────────────────────────────────────────────
 const ADMIN_ROLES = [
@@ -234,7 +235,7 @@ export function AppRoutes() {
         <Route index element={<Navigate to="overview" replace />} />
         <Route path="overview" element={<ProviderDashboard />} />
         <Route path="patients" element={<PatientListPage />} />
-        <Route path="doctors" element={<PatientListPage />} />
+        <Route path="doctors" element={<BestDoctorsPage />} />
         <Route path="patients/:id" element={<EHRViewerPage />} />
         <Route path="encounters/new" element={<NewEncounterPage />} />
         <Route path="orders/labs" element={<LabOrdersPage />} />

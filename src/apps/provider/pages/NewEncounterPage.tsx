@@ -304,7 +304,7 @@ export function NewEncounterPage() {
     ];
 
     return (
-        <div className="animate-fade-in" style={{ maxWidth: 1100 }}>
+        <div className="animate-fade-in w-[90%] mx-auto">
             <button onClick={() => navigate('/provider/patients')}
                 className="flex items-center gap-2 mb-6 text-sm transition-colors hover:opacity-80"
                 style={{ color: '#7ba3c8' }}>
