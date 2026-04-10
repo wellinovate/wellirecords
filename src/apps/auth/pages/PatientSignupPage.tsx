@@ -8,148 +8,6 @@ import { apiUrl } from "@/shared/api/authApi";
 import Cookies from "js-cookie";
 import { signups } from "@/assets";
 
-function RxIconCard() {
-  return (
-    <div className="flex h-20 w-20 sm:h-[92px] sm:w-[92px] lg:h-[106px] lg:w-[106px] items-center justify-center rounded-[20px] lg:rounded-[22px] border border-white/60 bg-white/20 shadow-[0_8px_30px_rgba(0,0,0,0.05)] backdrop-blur-[6px]">
-      <svg
-        viewBox="0 0 64 64"
-        className="h-11 w-11 sm:h-12 sm:w-12 lg:h-[58px] lg:w-[58px]"
-        fill="none"
-      >
-        <path
-          d="M18 38h28"
-          stroke="#3D5A73"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-        />
-        <path
-          d="M22 38c2-9 6.5-15 10-15s8 6 10 15"
-          stroke="#3D5A73"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-        />
-        <path
-          d="M20 22l23-7"
-          stroke="#3D5A73"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-        />
-        <path
-          d="M42 16l5-6"
-          stroke="#3D5A73"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-        />
-        <text
-          x="25"
-          y="33"
-          fill="#3D5A73"
-          fontSize="12"
-          fontWeight="700"
-          fontFamily="sans-serif"
-        >
-          Rx
-        </text>
-      </svg>
-    </div>
-  );
-}
-
-function PlusIconCard() {
-  return (
-    <div className="flex h-20 w-20 sm:h-[92px] sm:w-[92px] lg:h-[106px] lg:w-[106px] items-center justify-center rounded-[20px] lg:rounded-[22px] border border-white/60 bg-white/20 shadow-[0_8px_30px_rgba(0,0,0,0.05)] backdrop-blur-[6px]">
-      <svg
-        viewBox="0 0 64 64"
-        className="h-11 w-11 sm:h-12 sm:w-12 lg:h-[58px] lg:w-[58px]"
-        fill="none"
-      >
-        <path
-          d="M32 18v28"
-          stroke="#3D5A73"
-          strokeWidth="4"
-          strokeLinecap="round"
-        />
-        <path
-          d="M18 32h28"
-          stroke="#3D5A73"
-          strokeWidth="4"
-          strokeLinecap="round"
-        />
-        <rect
-          x="10"
-          y="10"
-          width="44"
-          height="44"
-          rx="10"
-          stroke="#3D5A73"
-          strokeWidth="2.2"
-        />
-      </svg>
-    </div>
-  );
-}
-
-function PhoneMockup() {
-  return (
-    <div className="relative h-[180px] w-[90px] sm:h-[194px] sm:w-[96px] lg:h-[208px] lg:w-[102px] rounded-[18px] border-[4px] border-[#1A1A1A] bg-white shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
-      <div className="absolute left-1/2 top-[5px] h-[12px] w-[46px] -translate-x-1/2 rounded-full bg-[#151515]" />
-      <div className="px-[8px] pt-[18px]">
-        <div className="text-[7px] font-semibold text-[#3B4B5B]">
-          Health Vault
-        </div>
-        <div className="mt-[8px] text-[5px] font-semibold text-[#1B2E44]">
-          Dashboard
-        </div>
-
-        <div className="mt-[6px] rounded-[6px] bg-[#F5F7F9] p-[5px]">
-          <div className="text-[4.8px] font-semibold text-[#1B2E44]">
-            Medical Records
-          </div>
-          <div className="mt-[3px] grid grid-cols-2 gap-[3px] text-[3.8px] text-[#6B7280]">
-            <span>Name</span>
-            <span>John</span>
-            <span>Date</span>
-            <span>22/02</span>
-            <span>Condition</span>
-            <span>Eye Health</span>
-          </div>
-        </div>
-
-        <div className="mt-[6px] rounded-[6px] bg-[#F5F7F9] p-[5px]">
-          <div className="text-[4.8px] font-semibold text-[#1B2E44]">
-            Lab Results
-          </div>
-          <div className="mt-[3px] grid grid-cols-2 gap-[3px] text-[3.8px] text-[#6B7280]">
-            <span>Test Result</span>
-            <span>5.40</span>
-            <span>Lab Result</span>
-            <span>00 TEST</span>
-          </div>
-        </div>
-
-        <div className="mt-[6px] rounded-[6px] bg-[#F5F7F9] p-[5px]">
-          <div className="text-[4.8px] font-semibold text-[#1B2E44]">
-            Prescriptions
-          </div>
-          <div className="mt-[3px] grid grid-cols-2 gap-[3px] text-[3.8px] text-[#6B7280]">
-            <span>Name</span>
-            <span>---</span>
-            <span>Prescription</span>
-            <span>$149.00</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="absolute bottom-[5px] left-0 right-0 flex items-center justify-around px-[12px] text-[8px] text-[#A1A1AA]">
-        <span>⌂</span>
-        <span>▣</span>
-        <span className="text-[#E16B6B]">◔</span>
-        <span>◯</span>
-      </div>
-    </div>
-  );
-}
-
 type InputFieldProps = {
   label: string;
   error?: string;
@@ -266,6 +124,7 @@ export default function PatientSignupPage() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const googleBtnRef = useRef<HTMLDivElement | null>(null);
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const [passwordTouched, setPasswordTouched] = useState(false);
 
   const [errors, setErrors] = useState({
     fullName: "",
@@ -337,14 +196,11 @@ export default function PatientSignupPage() {
 
     if (!form.fullName.trim()) newErrors.fullName = "Full name is required";
     if (!form.email.trim()) newErrors.email = "Email is required";
-
-    // NEW: Phone is now required
     if (!form.phone.trim()) {
       newErrors.phone = "Phone number is required";
     } else if (form.phone.trim().length < 10) {
       newErrors.phone = "Please enter a valid phone number";
     }
-
     if (!form.gender) newErrors.gender = "Gender is required";
 
     if (!form.password) {
@@ -353,7 +209,10 @@ export default function PatientSignupPage() {
       newErrors.password = "Must be at least 8 characters";
     }
 
-    if (form.password !== form.confirmPassword) {
+    // Confirm password validation
+    if (!form.confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password";
+    } else if (form.password !== form.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
     }
 
@@ -379,7 +238,7 @@ export default function PatientSignupPage() {
       role: form.role,
       authProvider: "local",
     };
-    console.log("🚀 ~ handleSubmit ~ payload:", payload)
+    console.log("🚀 ~ handleSubmit ~ payload:", payload);
 
     try {
       setLoading(true);
@@ -471,7 +330,41 @@ export default function PatientSignupPage() {
         ...prev,
         [field]: value,
       }));
+
+      // Track when password is first touched
+      if (field === "password") {
+        setPasswordTouched(true);
+      }
     };
+
+  const passwordMatchError =
+    form.confirmPassword && form.password !== form.confirmPassword
+      ? "Passwords do not match"
+      : "";
+
+  const handleConfirmPasswordChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const value = e.target.value;
+
+    setForm((prev) => ({
+      ...prev,
+      confirmPassword: value,
+    }));
+
+    // Immediate validation while typing
+    if (value && form.password !== value) {
+      setErrors((prev) => ({
+        ...prev,
+        confirmPassword: "Passwords do not match",
+      }));
+    } else {
+      setErrors((prev) => ({
+        ...prev,
+        confirmPassword: "",
+      }));
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -558,8 +451,7 @@ export default function PatientSignupPage() {
                   error={errors.phone}
                 />
 
-                
-
+                {/* Create Password */}
                 <InputField
                   label="Create Password"
                   required
@@ -570,14 +462,17 @@ export default function PatientSignupPage() {
                   error={errors.password}
                 />
 
+                {/* Confirm Password - with restrictions */}
                 <InputField
                   label="Confirm Password"
                   required
                   placeholder="Confirm password"
                   showToggle
                   value={form.confirmPassword}
-                  onChange={update("confirmPassword")}
-                  error={errors.confirmPassword}
+                  onChange={handleConfirmPasswordChange} // ← Special handler for real-time check
+                  error={errors.confirmPassword || passwordMatchError} // Show real-time error
+                  // Disable confirm password until password is entered
+                  disabled={!form.password}
                 />
 
                 {/* New: Address Field (Optional) */}
