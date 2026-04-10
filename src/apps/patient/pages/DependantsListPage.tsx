@@ -100,7 +100,8 @@ const PEDIATRIC_PROVIDER: BookingProvider = {
 export function FamilyManagementPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const children = dependantApi.getChildrenByParent(user?.userId ?? 'pat_1');
+  // const children = dependantApi.getChildrenByParent(user?.userId ?? 'pat_1');
+  const children = [];
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bookingChild, setBookingChild] = useState<string | null>(null);
 
@@ -117,8 +118,9 @@ export function FamilyManagementPage() {
           </p>
         </div>
         <button
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+          // onClick={() => setIsModalOpen(true)}
+          disabled={true} // Temporarily disable until modal form is ready
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md cursor-none"
           style={{ background: 'var(--pat-primary)' }}
         >
           <Plus size={16} />
@@ -138,7 +140,8 @@ export function FamilyManagementPage() {
           </p>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="px-6 py-2.5 rounded-xl font-bold text-sm text-white mx-auto transition-opacity hover:opacity-90"
+            disabled={true} // Temporarily disable until modal form is ready
+            className="px-6 py-2.5 rounded-xl font-bold text-sm text-white mx-auto transition-opacity hover:opacity-90 cursor-none"
             style={{ background: 'var(--pat-primary)' }}
           >
             Add First Family Member

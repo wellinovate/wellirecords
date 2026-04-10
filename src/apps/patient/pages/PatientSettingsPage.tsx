@@ -236,7 +236,7 @@ function DataPortabilitySection() {
   };
 
   return (
-    <div className="card-patient p-6">
+    <div className="card-patient p-6 hidden">
       <div className="flex items-start gap-4">
         <div
           className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
@@ -567,6 +567,50 @@ export function PatientSettingsPage() {
                         />
                       </div>
 
+                      <div>
+                        <label className="block text-sm font-semibold mb-1 text-gray-700">
+                          Phone Number
+                        </label>
+                        <input
+                          value={profile?.phone || "XXX XXX XXX XXXX"}
+                          className="input input-light"
+                          type="tel"
+                          readOnly
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold mb-1 text-gray-700">
+                          Phone Number
+                        </label>
+                        <input
+                          value={profile?.phone || "XXX XXX XXX XXXX"}
+                          className="input input-light"
+                          type="tel"
+                          readOnly
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold mb-1 text-gray-700">
+                          Phone Number
+                        </label>
+                        <input
+                          value={profile?.phone || "XXX XXX XXX XXXX"}
+                          className="input input-light"
+                          type="tel"
+                          readOnly
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold mb-1 text-gray-700">
+                          Phone Number
+                        </label>
+                        <input
+                          value={profile?.phone || "XXX XXX XXX XXXX"}
+                          className="input input-light"
+                          type="tel"
+                          readOnly
+                        />
+                      </div>
                       <div>
                         <label className="block text-sm font-semibold mb-1 text-gray-700">
                           Phone Number

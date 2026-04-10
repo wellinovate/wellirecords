@@ -106,7 +106,7 @@ export function MedicationsPage() {
   const interactionNotice = record.find((m) => m.notes)?.notes;
 
   return (
-    <div className="animate-fade-in max-w-2xl">
+    <div className="animate-fade-in max-w-7xl">
       <div className="mb-6">
         <h1 className="text-2xl font-black" style={{ color: "#1e293b" }}>
           My Medications
@@ -201,7 +201,7 @@ export function MedicationsPage() {
           No medication records found.
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
           {visibleRecords.map((med) => {
             const statusKey = getDisplayStatus(med.medicationStatus);
             const st = STATUS_CFG[statusKey];
@@ -209,7 +209,7 @@ export function MedicationsPage() {
             return (
               <div
                 key={med.id}
-                className="rounded-2xl p-5 border"
+                className="rounded-2xl p-5 border "
                 style={{ background: "#fff", borderColor: "#e2e8f0" }}
               >
                 <div className="flex items-start justify-between gap-3 mb-3">

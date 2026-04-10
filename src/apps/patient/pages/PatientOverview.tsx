@@ -102,7 +102,7 @@ const DUMMY_ALERTS: DashboardAlertItem[] = [
 
 export function PatientOverview() {
   const { user } = useAuth();
-  console.log("🚀 ~ PatientOverview ~ user:", user)
+  // console.log("🚀 ~ PatientOverview ~ user:", user)
   const navigate = useNavigate();
 
   const [records, setRecords] = useState<RecordsResponse>({});
@@ -124,13 +124,13 @@ export function PatientOverview() {
       try {
         const result = await getUsersRecord(1, 10);
         const encounterResult = await getUsersEncounters();
-        console.log(
-          "🚀 ~ fetchDashboardData ~ encounterResult:",
-          encounterResult.items,
-        );
-        console.log("isArray?", Array.isArray(encounterResult));
-        console.log("type:", typeof encounterResult);
-        console.log("value:", encounterResult);
+        // console.log(
+        //   "🚀 ~ fetchDashboardData ~ encounterResult:",
+        //   encounterResult.items,
+        // );
+        // console.log("isArray?", Array.isArray(encounterResult));
+        // console.log("type:", typeof encounterResult);
+        // console.log("value:", encounterResult);
         // const formattedEncounters = encounterResult.map(mapApiEncounterToUi);
         const formattedEncounters = Object.values(encounterResult).map(
   mapApiEncounterToUi

@@ -6,6 +6,7 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import axios from "axios";
 import { apiUrl } from "@/shared/api/authApi";
 import Cookies from "js-cookie";
+import { signups } from "@/assets";
 
 function RxIconCard() {
   return (
@@ -158,7 +159,11 @@ type InputFieldProps = {
   type?: string;
   showToggle?: boolean;
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => void;
+  isSelect?: boolean;
+  children?: React.ReactNode;
 };
 
 function InputField({
@@ -171,6 +176,8 @@ function InputField({
   showToggle = false,
   value,
   onChange,
+  isSelect = false,
+  children,
 }: InputFieldProps) {
   const [visible, setVisible] = useState(false);
   const inputType = showToggle ? (visible ? "text" : "password") : type;
@@ -186,7 +193,7 @@ function InputField({
           )}
         </label>
 
-        {showToggle ? (
+        {showToggle && (
           <button
             type="button"
             onClick={() => setVisible((v) => !v)}
@@ -194,20 +201,48 @@ function InputField({
           >
             {visible ? "Hide" : "Show"}
           </button>
-        ) : (
-          <span />
         )}
       </div>
 
-      <input
-        type={inputType}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className={`h-11 w-full rounded-[10px] border border-[#D4D4D4] bg-[#F4F4F4] px-4 text-sm sm:text-base text-[#4B5563] outline-none transition focus:border-[#AEB7C5] focus:bg-white ${
-          error ? "border-red-500 bg-red-50" : "border-[#D4D4D4] bg-[#F4F4F4]"
-        }`}
-      />
+      {isSelect ? (
+        <div className="relative">
+          <select
+            value={value}
+            onChange={onChange}
+            className={`h-11 w-full appearance-none rounded-[10px] border border-[#D4D4D4] bg-[#F4F4F4] px-4 pr-10 text-sm sm:text-base text-[#4B5563] outline-none focus:border-[#AEB7C5] focus:bg-white ${
+              error ? "border-red-500 bg-red-50" : ""
+            }`}
+          >
+            {children}
+          </select>
+          <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#9ca3af]">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </div>
+        </div>
+      ) : (
+        <input
+          type={inputType}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          className={`h-11 w-full rounded-[10px] border border-[#D4D4D4] bg-[#F4F4F4] px-4 text-sm sm:text-base text-[#4B5563] outline-none transition focus:border-[#AEB7C5] focus:bg-white ${
+            error ? "border-red-500 bg-red-50" : ""
+          }`}
+        />
+      )}
+
       {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
     </div>
   );
@@ -216,7 +251,9 @@ function InputField({
 type FormState = {
   fullName: string;
   email: string;
-  phone: string;
+  phone: string; // ← remains string
+  gender: string;
+  address: string;
   password: string;
   confirmPassword: string;
   role: string;
@@ -233,6 +270,8 @@ export default function PatientSignupPage() {
   const [errors, setErrors] = useState({
     fullName: "",
     email: "",
+    phone: "",
+    gender: "",
     password: "",
     confirmPassword: "",
     role: "",
@@ -242,6 +281,8 @@ export default function PatientSignupPage() {
     fullName: "",
     email: "",
     phone: "",
+    gender: "",
+    address: "",
     password: "",
     confirmPassword: "",
     role: "Patient",
@@ -294,13 +335,17 @@ export default function PatientSignupPage() {
   const validate = () => {
     const newErrors: any = {};
 
-    if (!form.fullName.trim()) {
-      newErrors.fullName = "Full name is required";
+    if (!form.fullName.trim()) newErrors.fullName = "Full name is required";
+    if (!form.email.trim()) newErrors.email = "Email is required";
+
+    // NEW: Phone is now required
+    if (!form.phone.trim()) {
+      newErrors.phone = "Phone number is required";
+    } else if (form.phone.trim().length < 10) {
+      newErrors.phone = "Please enter a valid phone number";
     }
 
-    if (!form.email.trim()) {
-      newErrors.email = "Email is required";
-    }
+    if (!form.gender) newErrors.gender = "Gender is required";
 
     if (!form.password) {
       newErrors.password = "Password is required";
@@ -312,12 +357,9 @@ export default function PatientSignupPage() {
       newErrors.confirmPassword = "Passwords do not match";
     }
 
-    if (!form.role) {
-      newErrors.role = "Please select a role";
-    }
+    if (!form.role) newErrors.role = "Please select a role";
 
     setErrors(newErrors);
-
     return Object.keys(newErrors).length === 0;
   };
 
@@ -330,11 +372,14 @@ export default function PatientSignupPage() {
       accountType: "user",
       fullName: form.fullName.trim(),
       email: form.email.trim().toLowerCase(),
-      phone: form.phone.trim() || null,
+      phone: form.phone.trim(),
+      gender: form.gender,
+      address: form.address.trim() || null,
       password: form.password,
       role: form.role,
       authProvider: "local",
     };
+    console.log("🚀 ~ handleSubmit ~ payload:", payload)
 
     try {
       setLoading(true);
@@ -447,20 +492,17 @@ export default function PatientSignupPage() {
           {/* Left side */}
           <div className="relative hidden min-h-[320px] overflow-hidden bg-[#E9EEF1] lg:block">
             <img
-              src="/signups.jpg"
+              src={signups}
               alt="background"
-              className="absolute inset-0 h-full w-full object-cover object-center"
+              className="absolute inset-0 h-full w-full object-cover object-right"
             />
 
             <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.00)_0%,rgba(255,255,255,0.00)_84%,rgba(233,238,241,0.90)_100%)]" />
- 
           </div>
-
-      
 
           {/* Right side / form */}
           <div className="relative bg-[#F3F3F3] pb-8 pt-8">
-            <div className="mx-auto flex h-full w-full max-w-[650px] flex-col px-5 pt-8 sm:px-8 sm:pt-10 md:px-10 lg:px-12 xl:px-[78px] xl:pt-[36px]">
+            <div className="mx-auto flex h-full w-full max-w-[850px] flex-col px-5 pt-8 sm:px-8 md:px-2 sm:pt-10   lg:px-12 xl:px-[78px] xl:pt-[36px]">
               <div className=" text-center lg:block">
                 <h1 className="text-3xl md:text-4xl xl:text-[50px] font-extrabold leading-none tracking-[-0.03em] text-[#082E6A]">
                   Create Your Account
@@ -472,7 +514,7 @@ export default function PatientSignupPage() {
 
               <form
                 onSubmit={handleSubmit}
-                className="mt-6 lg:mt-[34px] space-y-5"
+                className="mt-6 lg:mt-[34px] grid grid-cols-2 gap-4 space-y-"
               >
                 <InputField
                   label="Full Name"
@@ -494,13 +536,29 @@ export default function PatientSignupPage() {
                 />
 
                 <InputField
+                  label="Gender"
+                  required
+                  isSelect
+                  value={form.gender}
+                  onChange={update("gender")}
+                  error={errors.gender}
+                >
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </InputField>
+
+                <InputField
                   label="Phone Number"
-                  optional
+                  required // ← Changed from optional to required
                   placeholder="+234 801 234 5678"
                   type="tel"
                   value={form.phone}
                   onChange={update("phone")}
+                  error={errors.phone}
                 />
+
+                
 
                 <InputField
                   label="Create Password"
@@ -520,6 +578,15 @@ export default function PatientSignupPage() {
                   value={form.confirmPassword}
                   onChange={update("confirmPassword")}
                   error={errors.confirmPassword}
+                />
+
+                {/* New: Address Field (Optional) */}
+                <InputField
+                  label="Address"
+                  optional
+                  placeholder="Enter your full address"
+                  value={form.address}
+                  onChange={update("address")}
                 />
 
                 <div>
@@ -561,7 +628,7 @@ export default function PatientSignupPage() {
                   </div>
                 </div>
 
-                <div className="pt-1">
+                <div className="pt-1 col-span-2">
                   <label className="flex items-start gap-2 text-sm leading-6 text-[#173A71]">
                     <input
                       type="checkbox"
@@ -576,10 +643,10 @@ export default function PatientSignupPage() {
                   </label>
                 </div>
 
-                <div className="pt-1 text-center">
+                <div className="pt-1 text-center col-span-2 w-full">
                   <button
                     type="submit"
-                    className="h-11 w-full sm:w-auto sm:min-w-[220px] rounded-[6px] bg-[#2F915C] px-6 text-sm sm:text-base font-semibold text-white shadow-sm transition hover:brightness-95 disabled:opacity-70"
+                    className="h-11 w-full sm:w-auto sm:min-w-[220px] md:min-w-[500px] rounded-[6px] bg-[#2F915C] px-6 text-sm sm:text-base font-semibold text-white shadow-sm transition hover:brightness-95 disabled:opacity-70"
                     disabled={loading}
                   >
                     {loading
@@ -588,13 +655,13 @@ export default function PatientSignupPage() {
                   </button>
                 </div>
 
-                <div className="flex items-center justify-center gap-3 pt-1">
+                <div className="flex items-center justify-center gap-3 pt-1 col-span-2">
                   <div className="h-px flex-1 max-w-[120px] bg-[#D8D8D8]" />
                   <span className="text-sm text-[#555]">Or</span>
                   <div className="h-px flex-1 max-w-[120px] bg-[#D8D8D8]" />
                 </div>
 
-                <div className="text-center">
+                <div className="text-center col-span-2">
                   {googleLoading ? (
                     <div className="inline-flex items-center gap-2 text-sm sm:text-base font-medium text-[#1D4A8B]">
                       <Loader2 className="w-5 h-5 animate-spin" />
@@ -607,7 +674,7 @@ export default function PatientSignupPage() {
                   )}
                 </div>
 
-                <div className="text-center text-sm sm:text-[15px] text-[#575757]">
+                <div className="text-center text-sm sm:text-[15px] col-span-2 text-[#575757]">
                   Already have an account?{" "}
                   <button
                     type="button"

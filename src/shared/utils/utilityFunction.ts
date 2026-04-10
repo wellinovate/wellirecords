@@ -69,7 +69,7 @@ export function logOut() {
   
   Cookies.remove("accessToken");
   const check = getAuthFromToken(token);
-  console.log("🚀 ~ logOut ~ auth:", check)
+  // console.log("🚀 ~ logOut ~ auth:", check)
  
 
   return null;
@@ -126,7 +126,7 @@ export const fetchProfile = async () => {
       },
     });
 
-    console.log("Profile:", res.data.data);
+    // console.log("Profile:", res.data.data);
     return res.data.data;
   } catch (err) {
     console.error("Failed to fetch profile", err);
@@ -195,7 +195,7 @@ export async function getPatients({
   );
 
   const data = await res.json();
-  console.log("🚀 ~ getPatients ~ data:", data?.data)
+  // console.log("🚀 ~ getPatients ~ data:", data?.data)
 
   if (!res.ok) {
     throw new Error(data?.message || "Failed to fetch patients");
@@ -272,7 +272,7 @@ export async function getUsersRecords(
   );
 
   const data = await res.json();
-  console.log("🚀 ~ getUsersRecord ~ data:", data)
+  // console.log("🚀 ~ getUsersRecord ~ data:", data)
 
   if (!res.ok) {
     throw new Error(data?.message || "Failed to fetch vitals");
@@ -298,7 +298,7 @@ export async function getUsersEncounters(
   );
 
   const data = await res.json();
-  console.log("🚀 ~ getUsersEncounters ~ data:", data)
+  // console.log("🚀 ~ getUsersEncounters ~ data:", data)
 
   if (!res.ok) {
     throw new Error(data?.message || "Failed to fetch vitals");
@@ -323,7 +323,7 @@ export async function getEncounterDetails(
   );
 
   const data = await res.json();
-  console.log("🚀 ~ getUsersRecord ~ data:", data.data)
+  // console.log("🚀 ~ getUsersRecord ~ data:", data.data)
 
   if (!res.ok) {
     throw new Error(data?.message || "Failed to fetch vitals");
@@ -349,7 +349,7 @@ export async function getEncounterDetailsByProvider(
   );
 
   const data = await res.json();
-  console.log("🚀 ~ getUsersRecord ~ data:", data.data)
+  // console.log("🚀 ~ getUsersRecord ~ data:", data.data)
 
   if (!res.ok) {
     throw new Error(data?.message || "Failed to fetch vitals");

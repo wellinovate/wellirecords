@@ -59,14 +59,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const stored = localStorage.getItem("ui_user");
     return stored ? JSON.parse(stored) : null;
   });
-  console.log("🚀 ~ AuthProvider ~ user:", user);
+  // console.log("🚀 ~ AuthProvider ~ user:", user);
   const [isLoading, setIsLoading] = useState(true);
 
   // Rehydrate from localStorage on mount
   useEffect(() => {
     const users = getCurrentUser();
     setUser(users);
-    console.log("🚀 ~ AuthProvider ~ users:", users)
+    // console.log("🚀 ~ AuthProvider ~ users:", users)
   }, []);
 
   const signIn = async (email: string, password: string) => {
@@ -96,7 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   ) => {
     console.log("🚀 ~ handleGoogleCredentials ~ response:", response);
     const res = await authApi.handleGoogleCredentials(response);
-    console.log("🚀 ~ signIn ~ u:", res.data.account);
+    // console.log("🚀 ~ signIn ~ u:", res.data.account);
     setUser(res.data.account);
     localStorage.setItem(
       "ui_user",
@@ -128,7 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     id: string,
   ): Promise<SearchPatientResponse> => {
     const res = await authApi.linkPatientRequest(patientIdentityId, id);
-    console.log("🚀 ~ signIn ~ u:", res);
+    // console.log("🚀 ~ signIn ~ u:", res);
     return res;
   };
 

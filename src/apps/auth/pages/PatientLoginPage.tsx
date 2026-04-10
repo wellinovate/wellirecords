@@ -2,7 +2,7 @@ import { phone } from "@/assets";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { apiUrl } from "@/shared/api/authApi";
@@ -233,14 +233,14 @@ export function PatientLoginPage() {
   }, [googleClientId]);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white pb-8">
       <div className="relative w-full h-screen max-w-full border border-gray-200">
-        <div className="mb-4 absolute top-10 left-20 z-50 bg-gray-100 px-5 rounded-lg">
+        <div className="mb-4 absolute top-4 left-1 md:top-10 md:left-20 z-50 bg-gray-100 px-5 rounded-lg">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-[#062B67] hover:opacity-70 transition"
           >
-            <ArrowLeft size={36} />
+            <ArrowLeft size={26} />
             <span className="text-sm md:text-lg font-bold">Back</span>
           </button>
         </div>
@@ -255,9 +255,9 @@ export function PatientLoginPage() {
             <div className="top-0 left-0 w-full h-[4px] bg-[#2F915C]" />
           </div>
 
-          <div className="bg-[#F3F4F5] flex w-full flex-1 items-start justify-center px-3">
+          <div className="bg-[#F3F4F5] flex w-full flex-1 items-start justify-center px-3  ">
             <div className="w-full max-w-[460px] mt-[70px]">
-              <h1 className="text-[44px] font-extrabold text-center text-[#062B67]">
+              <h1 className=" text-[34px] md:text-[44px] font-extrabold text-center text-[#062B67]">
                 Welcome Back!
               </h1>
 
@@ -306,7 +306,7 @@ export function PatientLoginPage() {
                   <div className="h-px flex-1 bg-gray-300"></div>
                 </div>
 
-                <div className="w-full flex justify-center">
+                <div className="w-[90%] mx-auto flex justify-center">
                   {googleLoading ? (
                     <div className="flex items-center gap-2 text-[16px] text-[#173A71]">
                       <Loader2 className="w-5 h-5 animate-spin" />
@@ -317,13 +317,13 @@ export function PatientLoginPage() {
                   )}
                 </div>
 
-                <div className="text-center text-[15px] text-[#333]">
+                {/* <div className="text-center text-[15px] text-[#333]">
                   Connect Wallet (Web3 Access)
-                </div>
+                </div> */}
 
                 <div className="text-center text-[15px] text-gray-500">
                   Don’t have an account?{" "}
-                  <span className="text-[#2F915C] cursor-pointer">Sign Up</span>
+                  <Link to="/auth/patient/signup" className="text-[#137742] font-bold cursor-pointer">Sign Up</Link>
                 </div>
               </form>
             </div>

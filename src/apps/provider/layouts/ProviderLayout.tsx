@@ -47,8 +47,16 @@ const ALL_NAV = [
     icon: LayoutDashboard,
     roles: ["*"],
   },
-  { to: "/provider/doctors", label: "Doctors", icon: Stethoscope, roles: ["*"] },
   { to: "/provider/patients", label: "Patients", icon: Users, roles: ["*"] },
+  { to: "/provider/doctors", label: "Doctors", icon: Stethoscope, roles: ["*"] },
+  // {
+  //   to: "/provider/nursing",
+  //   label: "Nursing",
+  //   icon: Stethoscope,
+  //   // roles: ["nurse", "provider_admin"],
+  //   roles: ["*"],
+
+  // },
 
   { to: "/provider/queue", label: "Queue", icon: CalendarClock, roles: ["*"] },
   {
@@ -80,19 +88,13 @@ const ALL_NAV = [
     roles: ["clinician", "provider_admin", "telehealth_provider"],
     // roles: ["*"]
   },
-  {
-    to: "/provider/referrals",
-    label: "Referrals",
-    icon: GitBranch,
-    roles: ["clinician", "provider_admin"],
-    // roles: ["*"]
-  },
-  {
-    to: "/provider/nursing",
-    label: "Nursing",
-    icon: Stethoscope,
-    roles: ["nurse", "provider_admin"],
-  },
+  // {
+  //   to: "/provider/referrals",
+  //   label: "Referrals",
+  //   icon: GitBranch,
+  //   roles: ["clinician", "provider_admin"],
+  //   // roles: ["*"]
+  // },
   {
     to: "/provider/reports",
     label: "Reports",
@@ -105,24 +107,24 @@ const ALL_NAV = [
     icon: UserCog,
     roles: ["provider_admin"],
   },
-  {
-    to: "/provider/audit-logs",
-    label: "Audit Logs",
-    icon: ScrollText,
-    roles: ["provider_admin", "government"],
-  },
-  {
-    to: "/provider/integrations/api-keys",
-    label: "Integrations",
-    icon: Settings2,
-    roles: ["provider_admin"],
-  },
-  {
-    to: "/provider/public-health",
-    label: "Public Health",
-    icon: Activity,
-    roles: ["provider_admin", "government", "ngo"],
-  },
+  // {
+  //   to: "/provider/audit-logs",
+  //   label: "Audit Logs",
+  //   icon: ScrollText,
+  //   roles: ["provider_admin", "government"],
+  // },
+  // {
+  //   to: "/provider/integrations/api-keys",
+  //   label: "Integrations",
+  //   icon: Settings2,
+  //   roles: ["provider_admin"],
+  // },
+  // {
+  //   to: "/provider/public-health",
+  //   label: "Public Health",
+  //   icon: Activity,
+  //   roles: ["provider_admin", "government", "ngo"],
+  // },
   { to: "/provider/support", label: "Support", icon: LifeBuoy, roles: ["*"] },
 ];
 

@@ -2,10 +2,10 @@ import React from 'react';
 import { CreditCard, Download, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 
 const INVOICES = [
-    { id: 'inv001', date: '2026-03-01', facility: 'Lagos General Hospital', service: 'Outpatient Consultation', amount: 5000, status: 'paid', receipt: true },
-    { id: 'inv002', date: '2026-02-15', facility: 'CityLab Diagnostics', service: 'Full Blood Count + Lipid Panel', amount: 12500, status: 'paid', receipt: true },
-    { id: 'inv003', date: '2026-02-01', facility: 'WelliRecord Premium', service: 'Premium Plan – February', amount: 5000, status: 'paid', receipt: true },
-    { id: 'inv004', date: '2026-03-01', facility: 'WelliRecord Premium', service: 'Premium Plan – March', amount: 5000, status: 'pending', receipt: false },
+    // { id: 'inv001', date: '2026-03-01', facility: 'Lagos General Hospital', service: 'Outpatient Consultation', amount: 5000, status: 'paid', receipt: true },
+    // { id: 'inv002', date: '2026-02-15', facility: 'CityLab Diagnostics', service: 'Full Blood Count + Lipid Panel', amount: 12500, status: 'paid', receipt: true },
+    // { id: 'inv003', date: '2026-02-01', facility: 'WelliRecord Premium', service: 'Premium Plan – February', amount: 5000, status: 'paid', receipt: true },
+    // { id: 'inv004', date: '2026-03-01', facility: 'WelliRecord Premium', service: 'Premium Plan – March', amount: 5000, status: 'pending', receipt: false },
 ];
 
 const STATUS_CFG: Record<string, { color: string; bg: string; icon: React.ElementType; label: string }> = {

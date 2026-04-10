@@ -3,6 +3,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import { register } from "module";
 import { getAuthFromToken } from "../utils/utilityFunction";
+import { toast } from "react-toastify";
 
 // Moved from authService
 const STORAGE_KEY = "welli_auth_user";
@@ -253,7 +254,7 @@ export const authApi = {
         return data;
       }
     } catch (err: any) {
-      alert(err?.response?.data?.message ?? "registration failed");
+      toast.error(err?.response?.data?.message ?? "registration failed");
     }
   },
 
@@ -268,7 +269,7 @@ export const authApi = {
         return data;
       }
     } catch (err: any) {
-      alert(err?.response?.data?.message ?? "registration failed");
+      toast.error(err?.response?.data?.message ?? "registration failed");
     }
 
     // const user: AuthUser = {

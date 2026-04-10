@@ -74,19 +74,19 @@ const patientNav = [
     icon: Calendar,
     premium: false,
   },
-  {
-    to: "/patient/consents",
-    label: "My Consents",
-    icon: Shield,
-    premium: false,
-  },
+  // {
+  //   to: "/patient/consents",
+  //   label: "My Consents",
+  //   icon: Shield,
+  //   premium: false,
+  // },
 
-  {
-    to: "/patient/find-care",
-    label: "Find Care",
-    icon: MapPin,
-    premium: false,
-  },
+  // {
+  //   to: "/patient/find-care",
+  //   label: "Find Care",
+  //   icon: MapPin,
+  //   premium: false,
+  // },
 
   {
     to: "/patient/telemedicine",
@@ -100,12 +100,12 @@ const patientNav = [
     icon: MessageSquare,
     premium: false,
   },
-  {
-    to: "/patient/emergency-card",
-    label: "Emergency Card",
-    icon: QrCode,
-    premium: false,
-  },
+  // {
+  //   to: "/patient/emergency-card",
+  //   label: "Emergency Card",
+  //   icon: QrCode,
+  //   premium: false,
+  // },
   {
     to: "/patient/billing",
     label: "Billing",
