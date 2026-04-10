@@ -253,6 +253,32 @@ export async function getUsersRecord(
 
   return data.data;
 }
+export async function getUsersRecordByProvider(
+  patientId,
+  page = 1,
+  limit = 10,
+) {
+  const token = Cookies.get("accessToken");
+  const res = await fetch(
+    `${apiUrl}/api/v1/user/medical-history/summary/${patientId}?page=${page}&limit=${limit}`,
+    {
+    method: "GET",
+    headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: "include",
+    },
+  );
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data?.message || "Failed to fetch vitals");
+  }
+
+  return data.data;
+}
 export async function getUsersRecords(
   category = "vital",
   page = 1,
@@ -287,6 +313,33 @@ export async function getUsersEncounters(
   const token = Cookies.get("accessToken");
   const res = await fetch(
     `${apiUrl}/api/v1/user/medical-history/encounter?page=${page}&limit=${limit}`,
+    {
+    method: "GET",
+    headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: "include",
+    },
+  );
+
+  const data = await res.json();
+  // console.log("🚀 ~ getUsersEncounters ~ data:", data)
+
+  if (!res.ok) {
+    throw new Error(data?.message || "Failed to fetch vitals");
+  }
+
+  return data.data;
+}
+export async function getUsersEncountersByProvider(
+  patientId,
+  page = 1,
+  limit = 10,
+) {
+  const token = Cookies.get("accessToken");
+  const res = await fetch(
+    `${apiUrl}/api/v1/user/medical-history/encounter/provider/${patientId}?page=${page}&limit=${limit}`,
     {
     method: "GET",
     headers: {

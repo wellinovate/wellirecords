@@ -28,10 +28,14 @@ import {
   getPatientMedications,
   getPatientProcedures,
   getPatientVitals,
+  getUsersEncountersByProvider,
+  getUsersRecordByProvider,
   LabResultItem,
+  mapApiEncounterToUi,
   MedicationItem,
   PatientDetailResponse,
   ProcedureItem,
+  UiEncounter,
 } from "@/shared/utils/utilityFunction";
 import { ArrowLeft, ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -191,7 +195,7 @@ function SmallActionButton({
 export function EHRViewerPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
-  console.log("🚀 ~ EHRViewerPage ~ user:", user);
+  // console.log("🚀 ~ EHRViewerPage ~ user:", user);
   const navigate = useNavigate();
 
   const [patient, setPatient] = useState<PatientDetailResponse | null>(null);
@@ -226,6 +230,8 @@ export function EHRViewerPage() {
   const [encounterDetails, setEncounterDetails] = useState<Record<string, any>>(
     {},
   );
+  const [records, setRecords] = useState({});
+    const [recentEncounters, setRecentEncounters] = useState<UiEncounter[]>([]);
   const [loadingDetailId, setLoadingDetailId] = useState<string | null>(null);
 
   const patientId = String(id);
@@ -365,11 +371,11 @@ export function EHRViewerPage() {
 
   useEffect(() => {
     loadLabResults();
-  }, [patientId]);
+  }, [patientId, tab]);
 
   useEffect(() => {
     loadAllergies();
-  }, [patientId]);
+  }, [patientId,tab]);
 
   useEffect(() => {
     loadMedications();
@@ -377,7 +383,7 @@ export function EHRViewerPage() {
 
   useEffect(() => {
     loadDiagnoses();
-  }, [patientId]);
+  }, [patientId, tab]);
 
   useEffect(() => {
     loadEncounters();
@@ -405,7 +411,42 @@ export function EHRViewerPage() {
 
   useEffect(() => {
     loadVitals();
-  }, [patientId]);
+  }, [patientId, tab]);
+
+  useEffect(() => {
+      const fetchDashboardData = async () => {
+        setLoading(true);
+        setError("");
+  
+        try {
+          const result = await getUsersRecordByProvider( patientId, 1, 10);
+          console.log("🚀 ~ fetchDashboardData ~ result:", result)
+          const encounterResult = await getUsersEncountersByProvider(patientId, 1, 10);
+          console.log(
+            "🚀 ~ fetchDashboardData ~ encounterResult:",
+            encounterResult.items,
+          );
+          // console.log("isArray?", Array.isArray(encounterResult));
+          // console.log("type:", typeof encounterResult);
+          // console.log("value:", encounterResult);
+          // const formattedEncounters = encounterResult.map(mapApiEncounterToUi);
+          const formattedEncounters =
+            Object.values(encounterResult).map(mapApiEncounterToUi);
+          setRecentEncounters(formattedEncounters);
+          const data = result?.data ?? result ?? {};
+          setRecords(data);
+        } catch (err: any) {
+          setError(err?.message || "Failed to load dashboard data");
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      fetchDashboardData();
+    }, []);
+  
+    const recordList = useMemo(() => Object.values(records || {}), [records]);
+    const hasSummaryRecords = recordList.length > 0;
 
   const handleCloseCreateModal = () => {
     setActiveCreateTab(null);
@@ -443,35 +484,7 @@ export function EHRViewerPage() {
     };
   }, [id]);
 
-  const vitalTabRecords = useMemo(() => {
-    return vitals.map((item) => {
-      const bp =
-        item.bloodPressure?.systolic && item.bloodPressure?.diastolic
-          ? `${item.bloodPressure.systolic}/${item.bloodPressure.diastolic} mmHg`
-          : null;
 
-      const temp = item.temperature?.value
-        ? `${item.temperature.value}°${item.temperature.unit || "C"}`
-        : null;
-
-      const hr = item.heartRate ? `${item.heartRate} bpm` : null;
-      const spo2 =
-        item.oxygenSaturation !== null && item.oxygenSaturation !== undefined
-          ? `${item.oxygenSaturation}% SpO₂`
-          : null;
-
-      const summary = [bp, hr, temp, spo2].filter(Boolean).join(" • ");
-
-      return {
-        id: item.id,
-        title: "Vital Record",
-        subtitle: summary || "Recorded vital observation",
-        meta: item.measuredAt
-          ? new Date(item.measuredAt).toLocaleString()
-          : "No measurement time",
-      };
-    });
-  }, [vitals]);
 
   const medicationTabRecords = useMemo(() => {
     return medications.map((item) => ({
@@ -493,45 +506,9 @@ export function EHRViewerPage() {
     }));
   }, [medications]);
 
-  const allergyTabRecords = useMemo(() => {
-    return allergies.map((item) => ({
-      id: item.id,
-      title: item.allergen,
-      subtitle:
-        [item.allergyType, item.reaction, item.severity]
-          .filter(Boolean)
-          .join(" • ") || "Allergy record",
-      meta: item.confirmed ? "Confirmed" : "Unconfirmed",
-    }));
-  }, [allergies]);
 
-  const diagnosisTabRecords = useMemo(() => {
-    return diagnoses.map((item) => ({
-      id: item.id,
-      title: item.diagnosisName,
-      subtitle:
-        [item.diagnosisType, item.icd10Code, item.clinicalStatus]
-          .filter(Boolean)
-          .join(" • ") || "Diagnosis record",
-      meta: item.diagnosedAt
-        ? new Date(item.diagnosedAt).toLocaleDateString()
-        : "No diagnosis date",
-    }));
-  }, [diagnoses]);
 
-  const labResultTabRecords = useMemo(() => {
-    return labResults.map((item) => ({
-      id: item.id,
-      title: item.testName,
-      subtitle:
-        [item.resultValue, item.unit, item.interpretation]
-          .filter(Boolean)
-          .join(" • ") || "Lab result",
-      meta: item.resultedAt
-        ? new Date(item.resultedAt).toLocaleDateString()
-        : "No result date",
-    }));
-  }, [labResults]);
+
 
   const encounterTabRecords = useMemo(() => {
     return encounters.map((item) => ({
@@ -547,95 +524,38 @@ export function EHRViewerPage() {
     }));
   }, [encounters]);
 
-  const procedureTabRecords = useMemo(() => {
-    return procedures.map((item) => ({
-      id: item.id,
-      title: item.procedureName,
-      subtitle:
-        [item.procedureType, item.bodySite, item.outcome]
-          .filter(Boolean)
-          .join(" • ") || "Procedure record",
-      meta: item.performedAt
-        ? new Date(item.performedAt).toLocaleDateString()
-        : "No procedure date",
-    }));
-  }, [procedures]);
+ 
 
-  const resolvedRecordDataByTab = useMemo(() => {
-    return {
-      ...recordDataByTab,
-      Encounters: encounterTabRecords,
-      Vitals: vitalTabRecords,
-      Prescriptions: medicationTabRecords,
-      Allergies: allergyTabRecords,
-      Diagnoses: diagnosisTabRecords,
-      "Lab Results": labResultTabRecords,
-      Procedures: procedureTabRecords,
-    };
-  }, [
-    encounterTabRecords,
-    vitalTabRecords,
-    medicationTabRecords,
-    allergyTabRecords,
-    diagnosisTabRecords,
-    labResultTabRecords,
-    procedureTabRecords,
-  ]);
+  const loadDataForTab = async (currentTab: string) => {
+    switch (currentTab) {
+      case "Medical Records":
+        if (vitals.length === 0) await loadVitals();
+        if (medications.length === 0) await loadMedications();
+        if (allergies.length === 0) await loadAllergies();
+        if (diagnoses.length === 0) await loadDiagnoses();
+        if (labResults.length === 0) await loadLabResults();
+        if (procedures.length === 0) await loadProcedures();
+        break;
 
-  const recentVitalCards = useMemo(() => {
-    return vitals.slice(0, 4).map((item) => {
-      if (item.bloodPressure?.systolic && item.bloodPressure?.diastolic) {
-        return {
-          label: "BP",
-          value: `${item.bloodPressure.systolic}/${item.bloodPressure.diastolic} mmHg`,
-          right: item.measuredAt
-            ? new Date(item.measuredAt).toLocaleDateString()
-            : "—",
-        };
-      }
+      case "Lab Results":
+        if (labResults.length === 0) await loadLabResults();
+        break;
 
-      if (item.heartRate) {
-        return {
-          label: "HR",
-          value: `${item.heartRate} bpm`,
-          right: item.measuredAt
-            ? new Date(item.measuredAt).toLocaleDateString()
-            : "—",
-        };
-      }
+      case "Prescriptions":
+        if (medications.length === 0) await loadMedications();
+        break;
 
-      if (
-        item.oxygenSaturation !== null &&
-        item.oxygenSaturation !== undefined
-      ) {
-        return {
-          label: "O2",
-          value: `${item.oxygenSaturation}%`,
-          right: item.measuredAt
-            ? new Date(item.measuredAt).toLocaleDateString()
-            : "—",
-        };
-      }
+      case "Encounters Timeline":
+        if (encounters.length === 0) await loadEncounters();
+        break;
 
-      if (item.temperature?.value) {
-        return {
-          label: "Temp",
-          value: `${item.temperature.value}°${item.temperature.unit || "C"}`,
-          right: item.measuredAt
-            ? new Date(item.measuredAt).toLocaleDateString()
-            : "—",
-        };
-      }
+      default:
+        break;
+    }
+  };
 
-      return {
-        label: "Vital",
-        value: "Recorded",
-        right: item.measuredAt
-          ? new Date(item.measuredAt).toLocaleDateString()
-          : "—",
-      };
-    });
-  }, [vitals]);
+
+
 
   const handleAddRecordFromEncounter = (
     encounter: EncounterItem,
@@ -668,15 +588,7 @@ export function EHRViewerPage() {
   };
 
   const age = getAgeFromDateOfBirth(patient?.dateOfBirth);
-  const initials =
-    patient?.fullName
-      ?.split(" ")
-      .map((part) => part[0])
-      .slice(0, 2)
-      .join("")
-      .toUpperCase() || "PT";
-
-  if (loading) return <PatientsLoadingSkeleton />;
+ 
 
   return (
     <div className="min-h-screen bg-[#010a18] px-3 py-3 text-white">
@@ -729,7 +641,10 @@ export function EHRViewerPage() {
                 <button
                   key={item}
                   type="button"
-                  onClick={() => setTab(item)}
+                  onClick={() => {
+                    setTab(item);
+                    loadDataForTab(item); // ← Smart loading
+                  }}
                   className={`rounded-md px-4 py-2 text-[13px] font-medium transition ${
                     tab === item
                       ? "bg-[#12355f] text-white border border-[#3d72ab]"
@@ -744,34 +659,25 @@ export function EHRViewerPage() {
 
           {/* Body */}
           <div className="px-5 py-4">
-            {
-              tab === "Overview" && (
-                <div className="grid grid-cols-1 gap-4 xl:grid-cols-[340px_minmax(0,1fr)]">
-                  {/* Left Column */}
-                  <SharedDashboardSection
-                    alerts={[]}
-                    recentEncounters={[]}
-                    recordList={[]}
-                    loading={loading}
-                    routeBase={`/provider/patients/${patientId}`}
-                    navigate={navigate}
-                    onShareEncounter={(id) =>
-                      console.log("provider share encounter", id)
-                    }
-                    onContinueCare={(id) =>
-                      navigate(`/provider/encounters/${id}/continue`)
-                    }
-                  />
-                </div>
-              )
-              //  : (
-              //   <TabRecordPanel
-              //     tab={tab}
-              //     records={resolvedRecordDataByTab[tab] || []}
-              //     onAddRecord={handleOpenCreateModal}
-              //   />
-              // )
-            }
+            {tab === "Overview" && (
+              <div className="grid gap-4 ">
+                {/* Left Column */}
+                <SharedDashboardSection
+                  alerts={[]}
+                  recentEncounters={[]}
+                  recordList={recordList}
+                  loading={loading}
+                  routeBase={`/provider/patients/${patientId}`}
+                  navigate={navigate}
+                  onShareEncounter={(id) =>
+                    console.log("provider share encounter", id)
+                  }
+                  onContinueCare={(id) =>
+                    navigate(`/provider/encounters/${id}/continue`)
+                  }
+                />
+              </div>
+            )}
             {tab === "Encounters Timeline" &&
               (loadingEncounters ? (
                 <div className="rounded-xl border border-[#173a63] bg-[#0a1d39] p-6 text-sm text-[#8fb0d5]">
@@ -813,22 +719,36 @@ export function EHRViewerPage() {
                 </div>
               ))}
           </div>
+          {/* Replace your current Medical Records block with this: */}
           {tab === "Medical Records" && (
             <div className="px-3">
-              <MedicalRecords category="vitals" />
+              <MedicalRecords
+                vitals={vitals}
+                medications={medications}
+                allergies={allergies}
+                diagnoses={diagnoses}
+                labResults={labResults}
+                procedures={procedures}
+                loadingVitals={loadingVitals}
+                loadingMedications={loadingMedications}
+                loadingAllergies={loadingAllergies}
+                loadingDiagnoses={loadingDiagnoses}
+                loadingLabResults={loadingLabResults}
+                loadingProcedures={loadingProcedures}
+                onAddRecord={(type) => handleOpenCreateModal(type)}
+              />
             </div>
-            
           )}
 
           {tab === "Lab Results" && (
             <div className="px-3">
-              <LabResult category="lab" />
+              <LabResult labResults={labResults} />
             </div>
           )}
           {tab === "Prescriptions" && (
             <div className=" w-full">
               <Medication
-                visibleRecords={medicationTabRecords}
+                visibleRecords={medications}
                 //  onAddRecord={() => handleOpenCreateModal("Medications")}
               />
             </div>

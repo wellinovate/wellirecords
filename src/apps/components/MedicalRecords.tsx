@@ -1,110 +1,14 @@
-import { FirstRecordWizard } from "@/apps/patient/components/FirstRecordWizard";
-import { getUsersRecords } from "@/shared/utils/utilityFunction";
-import { ArrowLeft, Search, UploadCloud } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import {
-  Pill,
-  Activity,
-  Syringe,
-  FlaskConical,
-  AlertCircle,
-  Stethoscope,
-  HeartPulse,
+import { useState, useEffect, useMemo } from "react";
+import { 
+  Pill, Activity, Syringe, FlaskConical, AlertCircle, Stethoscope, HeartPulse, 
+  Search,
+  UploadCloud
 } from "lucide-react";
+import { FirstRecordWizard } from "@/apps/patient/components/FirstRecordWizard";
 import { HealthHistoryLoader } from "./Loader/HealthHistoryLoader";
+import { formatDate, InfoRow, RecordShell } from "./HealthCategoryHistoryPage";
 
-export function formatDate(value?: string) {
-  if (!value) return "No date";
-  return new Date(value).toLocaleDateString();
-}
-
-export function InfoRow({
-  label,
-  value,
-}: {
-  label: string;
-  value?: string | number | null;
-}) {
-  if (!value && value !== 0) return null;
-
-  return (
-    <p className="text-sm text-[#7B8BA3]">
-      <span className="font-medium text-[#8B9BB3]">{label}:</span> {value}
-    </p>
-  );
-}
-
-export function RecordShell({
-  icon,
-  title,
-  subtitle,
-  status,
-  metaLeft,
-  metaRight,
-  footerLeft,
-  actionLabel = "View Details",
-  children,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  subtitle?: string;
-  status?: string;
-  metaLeft?: React.ReactNode;
-  metaRight?: React.ReactNode;
-  footerLeft?: React.ReactNode;
-  actionLabel?: string;
-  children?: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-[22px] border border-[#DDE3EA] bg-[#F9FAFB] px-5 py-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-3 min-w-0">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#EAF7F1] text-[#2F915C]">
-            {icon}
-          </div>
-
-          <div className="min-w-0">
-            <h3 className="text-[22px] font-semibold leading-tight text-[#1F2A37] truncate">
-              {title}
-            </h3>
-            {subtitle && (
-              <p className="mt-1 text-base text-[#667085]">{subtitle}</p>
-            )}
-          </div>
-        </div>
-
-        {status && (
-          <span className="shrink-0 rounded-full bg-[#E7F7EF] px-3 py-1 text-sm font-semibold text-[#22A06B]">
-            {status}
-          </span>
-        )}
-      </div>
-
-      {(metaLeft || metaRight) && (
-        <div className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
-          <div>{metaLeft}</div>
-          <div>{metaRight}</div>
-        </div>
-      )}
-
-      {children && <div className="mt-4 space-y-2">{children}</div>}
-
-      {(footerLeft || actionLabel) && (
-        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-sm text-[#7B8BA3]">{footerLeft}</div>
-
-          <button
-            type="button"
-            className="inline-flex items-center justify-center self-start rounded-full bg-[#E7F1EE] px-4 py-2 text-sm font-semibold text-[#138A72] transition hover:bg-[#dcebe6]"
-          >
-            {actionLabel}
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
+// Keep your existing helper functions: formatDate, InfoRow, RecordShell
 
 const CATEGORY_LABELS: Record<string, string> = {
   vitals: "Vitals Records",
@@ -127,48 +31,87 @@ const CATEGORY_TABS = [
   { key: "lab", label: "Lab Results", icon: FlaskConical },
 ];
 
-export function MedicalRecords({ category }: { category?: string }) {
-  const navigate = useNavigate();
+type RecordItem = any; // You can make this more specific later
+
+type MedicalRecordsProps = {
+  vitals: any[];
+  medications: any[];
+  allergies: any[];
+  diagnoses: any[];
+  labResults: any[];
+  procedures: any[];
+  loadingVitals: boolean;
+  loadingMedications: boolean;
+  loadingAllergies: boolean;
+  loadingDiagnoses: boolean;
+  loadingLabResults: boolean;
+  loadingProcedures: boolean;
+  onAddRecord?: (type: string) => void;
+};
+
+export function MedicalRecords({
+  vitals,
+  medications,
+  allergies,
+  diagnoses,
+  labResults,
+  procedures,
+  loadingVitals,
+  loadingMedications,
+  loadingAllergies,
+  loadingDiagnoses,
+  loadingLabResults,
+  loadingProcedures,
+  onAddRecord,
+}: MedicalRecordsProps) {
+  
+  
   const [search, setSearch] = useState("");
   const [wizardOpen, setWizardOpen] = useState(false);
-  const [tab, setTab] = useState<string>(category || "vitals");
-  const [record, setRecord] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [tab, setTab] = useState<string>("vitals");
 
   const title = CATEGORY_LABELS[tab] || "Health History";
 
-  const loadRecords = async () => {
-    try {
-      setIsLoading(true);
-      const result = await getUsersRecords(tab, 1, 10);
-      setRecord(result.items || []);
-    } catch (err: any) {
-      console.log("🚀 ~ loadRecords ~ err.message:", err.message);
-    } finally {
-      setIsLoading(false);
+  const currentRecords = useMemo(() => {
+    switch (tab) {
+      case "vitals": return vitals;
+      case "medications": return medications;
+      case "allergies": return allergies;
+      case "diagnoses": return diagnoses;
+      case "lab": return labResults;
+      case "procedures": return procedures;
+      default: return [];
     }
-  };
+  }, [tab, vitals, medications, allergies, diagnoses, labResults, procedures]);
+
+    const isLoading = useMemo(() => {
+    switch (tab) {
+      case "vitals": return loadingVitals;
+      case "medications": return loadingMedications;
+      case "allergies": return loadingAllergies;
+      case "diagnoses": return loadingDiagnoses;
+      case "lab": return loadingLabResults;
+      case "procedures": return loadingProcedures;
+      default: return false;
+    }
+  }, [tab, loadingVitals, loadingMedications, loadingAllergies, loadingDiagnoses, loadingLabResults, loadingProcedures]);
+
+
+  
+
   const changeRecordsTab = (nextTab: string) => {
     setSearch("");
     setTab(nextTab);
   };
 
-  useEffect(() => {
-    if (tab) {
-      loadRecords();
-    }
-  }, [tab]);
-
-  useEffect(() => {
-    if (category && category !== tab) {
-      setTab(category);
-    }
-  }, [category]);
+  
 
   const filteredRecords = useMemo(() => {
     const q = search.trim().toLowerCase();
 
-    return record.filter((item) => {
+     if (!q) return currentRecords;
+
+    return currentRecords.filter((item) => {
       if (tab === "vitals") {
         const hasVitalsData =
           item.bloodPressure ||
@@ -329,9 +272,9 @@ export function MedicalRecords({ category }: { category?: string }) {
 
       return true;
     });
-  }, [record, tab, search]);
+  }, [currentRecords, tab, search]);
 
-  const renderRecordCard = (item: any) => {
+  const renderRecordCard = (item: RecordItem) => {
     if (tab === "vitals") {
       const vitalsSummary = [
         item.bloodPressure
@@ -618,12 +561,13 @@ export function MedicalRecords({ category }: { category?: string }) {
   return (
     <div className="animate-fade-in">
       {wizardOpen && <FirstRecordWizard onClose={() => setWizardOpen(false)} />}
+
+      {/* Category Tabs */}
       <div className="mb-2 space-y-4">
         <div className="overflow-x-auto scrollbar-hide">
           <div className="flex gap-2 min-w-max">
             {CATEGORY_TABS.map(({ key, label, icon: Icon }) => {
               const isActive = tab === key;
-
               return (
                 <button
                   key={key}
@@ -643,44 +587,41 @@ export function MedicalRecords({ category }: { category?: string }) {
           </div>
         </div>
       </div>
+
+      {/* Header with Search + Add Button */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <div className="mb-4  top-10 left-20 z-50 bg-gray-100 px-5 rounded-lg"></div>
-          <h1 className=" font-display text-xl font-bold">{title}</h1>
+          <h1 className="font-display text-xl font-bold">{title}</h1>
         </div>
 
         <div className="relative">
-          <Search
-            size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2"
-            style={{ color: "#9ca3af" }}
-          />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="input input-light w-full"
-            style={{ paddingLeft: "2.5rem" }}
+            className="input input-light w-full pl-10"
             placeholder={`Search ${title.toLowerCase()}...`}
           />
         </div>
 
-        <button
-          className="btn btn-patient gap-2"
-          onClick={() => setWizardOpen(true)}
-        >
-          <UploadCloud size={16} />
-          Upload New
-        </button>
+         {onAddRecord && (
+            <button 
+              className="btn btn-patient gap-2 whitespace-nowrap"
+              onClick={() => onAddRecord(tab === "lab" ? "Lab Results" : tab.charAt(0).toUpperCase() + tab.slice(1))}
+            >
+              <UploadCloud size={16} />
+              Add New
+            </button>
+          )}
       </div>
 
+      {/* Records List */}
       <div className="space-y-4">
-        {isLoading ? (
+        {isLoading  ? (
           <HealthHistoryLoader title={title} />
         ) : filteredRecords.length === 0 ? (
           <div className="card-patient p-8 text-center">
-            <p className="font-semibold" style={{ color: "#5a7a63" }}>
-              No records found
-            </p>
+            <p className="font-semibold text-[#5a7a63]">No records found</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">

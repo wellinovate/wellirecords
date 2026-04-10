@@ -132,9 +132,8 @@ export function PatientOverview() {
         // console.log("type:", typeof encounterResult);
         // console.log("value:", encounterResult);
         // const formattedEncounters = encounterResult.map(mapApiEncounterToUi);
-        const formattedEncounters = Object.values(encounterResult).map(
-  mapApiEncounterToUi
-);
+        const formattedEncounters =
+          Object.values(encounterResult).map(mapApiEncounterToUi);
         setRecentEncounters(formattedEncounters);
         const data: RecordsResponse = result?.data ?? result ?? {};
         setRecords(data);

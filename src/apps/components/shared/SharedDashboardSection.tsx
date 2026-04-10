@@ -25,8 +25,8 @@ export function SharedDashboardSection({
   onContinueCare,
 }: SharedDashboardSectionProps) {
   return (
-    <>
-      <div className="flex lg:flex-row flex-col gap-4">
+    <div className=" w-full ">
+      <div className="flex lg:flex-row flex-col gap-4 w-full">
         <DashboardAlerts alerts={alerts} onNavigate={navigate} />
 
         <RecentEncountersCard
@@ -46,6 +46,6 @@ export function SharedDashboardSection({
           navigate(`${routeBase}/records/${category}`)
         }
       />
-    </>
+    </div>
   );
 }

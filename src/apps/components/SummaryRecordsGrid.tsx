@@ -90,7 +90,7 @@ export function SummaryRecordsGrid({
 }
 
 const formatLabel = (label: string) =>
-  label.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  label.replace(/_/g, " ")?.replace(/\b\w/g, (c) => c?.toUpperCase());
 
 const getCategorySummary = (item: RecordCategory) => {
   const summary = item.summaryMetric || {};
