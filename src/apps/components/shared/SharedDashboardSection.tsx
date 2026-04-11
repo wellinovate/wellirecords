@@ -24,6 +24,7 @@ export function SharedDashboardSection({
   onShareEncounter,
   onContinueCare,
 }: SharedDashboardSectionProps) {
+  console.log("🚀 ~ SharedDashboardSection ~ recentEncounters:", recentEncounters)
   return (
     <div className=" w-full ">
       <div className="flex lg:flex-row flex-col gap-4 w-full">

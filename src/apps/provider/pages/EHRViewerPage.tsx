@@ -3,18 +3,16 @@ import { DiagnosisRecordForm } from "@/apps/components/DiagnosisRecordForm";
 import { EncounterRecordForm } from "@/apps/components/EncounterRecordForm";
 import { LabResult } from "@/apps/components/LabResult";
 import { LabResultRecordForm } from "@/apps/components/LabResultRecordForm";
-import PatientsLoadingSkeleton from "@/apps/components/Loader/PatientsLoadingSkeleton";
 import { MedicalRecords } from "@/apps/components/MedicalRecords";
 import Medication from "@/apps/components/Medication";
 import { MedicationRecordForm } from "@/apps/components/MedicationRecordForm";
 import { ProcedureRecordForm } from "@/apps/components/ProcedureRecordForm";
 import PatientProfile from "@/apps/components/shared/PatientProfile";
 import { SharedDashboardSection } from "@/apps/components/shared/SharedDashboardSection";
-import { TabRecordPanel } from "@/apps/components/TabRecordPanel";
 import { VitalRecordForm } from "@/apps/components/VitalRecordForm";
 import { TimelineNode } from "@/apps/patient/pages/HealthHistory";
 import { useAuth } from "@/shared/auth/AuthProvider";
-import { recordDataByTab, TAB_CONFIG } from "@/shared/utils/data";
+import { TAB_CONFIG } from "@/shared/utils/data";
 import {
   AllergyItem,
   DiagnosisItem,
@@ -82,26 +80,6 @@ const CLINICAL_ALERTS = [
   },
 ];
 
-const RECENT_TIMELINE = [
-  {
-    id: "tl_1",
-    title: "Medication (Propranolol)",
-    subtitle: "Medication • 10mg / 1 tab bd",
-    doctor: "Dr. Patel",
-  },
-  {
-    id: "tl_2",
-    title: "Lab Result Processed",
-    subtitle: "Medication fill Type A Result (L.O.C)",
-    doctor: "Dr. Loe",
-  },
-  {
-    id: "tl_3",
-    title: "Rogeds Retical",
-    subtitle: "Access point • Prior remote access, additional delegated",
-    doctor: "Dr. Patel",
-  },
-];
 
 const MINI_CARDS = [
   {
@@ -232,6 +210,7 @@ export function EHRViewerPage() {
   );
   const [records, setRecords] = useState({});
     const [recentEncounters, setRecentEncounters] = useState<UiEncounter[]>([]);
+    const [recentEncounter, setRecentEncounter] = useState<UiEncounter[]>([]);
   const [loadingDetailId, setLoadingDetailId] = useState<string | null>(null);
 
   const patientId = String(id);
@@ -433,6 +412,7 @@ export function EHRViewerPage() {
           const formattedEncounters =
             Object.values(encounterResult).map(mapApiEncounterToUi);
           setRecentEncounters(formattedEncounters);
+          setRecentEncounter(encounterResult);
           const data = result?.data ?? result ?? {};
           setRecords(data);
         } catch (err: any) {
@@ -446,6 +426,7 @@ export function EHRViewerPage() {
     }, []);
   
     const recordList = useMemo(() => Object.values(records || {}), [records]);
+    const recentEncounterList = useMemo(() => Object.values(recentEncounter || {}), [records]);
     const hasSummaryRecords = recordList.length > 0;
 
   const handleCloseCreateModal = () => {
@@ -664,7 +645,7 @@ export function EHRViewerPage() {
                 {/* Left Column */}
                 <SharedDashboardSection
                   alerts={[]}
-                  recentEncounters={[]}
+                  recentEncounters={ recentEncounters || recentEncounterList }
                   recordList={recordList}
                   loading={loading}
                   routeBase={`/provider/patients/${patientId}`}

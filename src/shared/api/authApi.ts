@@ -313,6 +313,35 @@ export const authApi = {
   return data.data;
   },
 
+  async  searchDoctorRequest(
+  identifier: string,
+  identifierType: IdentifierType,
+  signal?: AbortSignal,
+): Promise<SearchPatientResponse> {
+  const token = Cookies.get("accessToken");
+  const response = await fetch(`${apiUrl}/api/v1/organization/doctor/search`, {
+    method: "POST",
+     headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    credentials: "include",
+    signal,
+    body: JSON.stringify({
+      identifier,
+      identifierType,
+    }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data?.message || "Failed to search patient");
+  }
+
+  return data.data;
+  },
+
   async  linkPatientRequest(patientIdentityId: string, id: string) {
     console.log("🚀 ~ patientIdentityId:", patientIdentityId)
     const token = Cookies.get("accessToken");
@@ -325,6 +354,29 @@ export const authApi = {
       credentials: "include",
       body: JSON.stringify({
         patientIdentityId,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data?.message || "Failed to link patient");
+    }
+
+    return data.data;
+  },
+  async  addDoctorRequest(doctorIdentityId: string) {
+    console.log("🚀 ~ doctorIdentityId:", doctorIdentityId)
+    const token = Cookies.get("accessToken");
+    const response = await fetch(`${apiUrl}/api/v1/organization/doctor/add`, {
+      method: "POST",      
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        doctorIdentityId,
       }),
     });
 

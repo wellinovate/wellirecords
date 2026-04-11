@@ -1,4 +1,4 @@
-import { logos } from "@/assets";
+import { health_companion_image, logos } from "@/assets";
 import { orgApi } from "@/shared/api/orgApi";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { useWelliMate } from "@/shared/context/WelliMateContext";
@@ -66,13 +66,13 @@ const ALL_NAV = [
     // roles: ["clinician", "pharmacist", "provider_admin"],
     roles: ["*"],
   },
-  {
-    to: "/provider/encounters/new",
-    label: "New Encounter",
-    icon: FileEdit,
-    // roles: ["clinician", "provider_admin", "telehealth_provider"],
-    roles: ["*"],
-  },
+  // {
+  //   to: "/provider/encounters/new",
+  //   label: "New Encounter",
+  //   icon: FileEdit,
+  //   // roles: ["clinician", "provider_admin", "telehealth_provider"],
+  //   roles: ["*"],
+  // },
   {
     to: "/provider/orders/labs",
     label: "Lab Orders",
@@ -359,7 +359,7 @@ export function ProviderLayout() {
             }}
           >
             <img
-              src={user?.avatar}
+              src={user?.avatar || health_companion_image}
               alt=""
               className="w-8 h-8 rounded-full object-cover flex-shrink-0"
             />

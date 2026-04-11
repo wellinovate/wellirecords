@@ -204,6 +204,40 @@ export async function getPatients({
   return data;
 }
 
+export async function getDoctors({
+  search = "",
+  page = 1,
+  limit = 10,
+}) {
+  const query = new URLSearchParams({
+    search,
+    page: String(page),
+    limit: String(limit),
+  });
+  const token = Cookies.get("accessToken");
+
+  const res = await fetch(
+    `${apiUrl}/api/v1/organization/memberships/doctors?${query.toString()}`,
+    {
+      method: "GET",
+    headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      // credentials: "include",
+    },
+  );
+
+  const data = await res.json();
+  // console.log("🚀 ~ getPatients ~ data:", data?.data)
+
+  if (!res.ok) {
+    throw new Error(data?.message || "Failed to fetch patients");
+  }
+
+  return data;
+}
+
 
 
 export async function getPatientDetail(

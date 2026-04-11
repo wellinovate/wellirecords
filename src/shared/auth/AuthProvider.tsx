@@ -27,9 +27,17 @@ type AuthContextValue = {
     identifierType: IdentifierType,
     signal?: AbortSignal,
   ) => Promise<SearchPatientResponse>;
+  searchDoctorRequest: (
+    identifier: string,
+    identifierType: IdentifierType,
+    signal?: AbortSignal,
+  ) => Promise<SearchPatientResponse>;
   linkPatientRequest: (
     patientIdentityId: string,
     id: string,
+  ) => Promise<SearchPatientResponse>;
+  addDoctorRequest: (
+    doctorIdentityId: string,
   ) => Promise<SearchPatientResponse>;
   registerNewPatient: (newPatientForm: any) => string;
   createVitalRecord: (payload: any) => any;
@@ -123,11 +131,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return res;
   };
 
+  const searchDoctorRequest = async (
+    identifier: string,
+    identifierType: IdentifierType,
+    signal?: AbortSignal,
+  ): Promise<SearchPatientResponse> => {
+    const res = await authApi.searchDoctorRequest(
+      identifier,
+      identifierType,
+      signal,
+    );
+    console.log("🚀 ~ signIn ~ u:", res);
+    return res;
+  };
+
   const linkPatientRequest = async (
     patientIdentityId: string,
     id: string,
   ): Promise<SearchPatientResponse> => {
     const res = await authApi.linkPatientRequest(patientIdentityId, id);
+    // console.log("🚀 ~ signIn ~ u:", res);
+    return res;
+  };
+
+  const addDoctorRequest = async (
+    doctorIdentityId: string,
+  ): Promise<SearchPatientResponse> => {
+    const res = await authApi.addDoctorRequest(doctorIdentityId);
     // console.log("🚀 ~ signIn ~ u:", res);
     return res;
   };
@@ -231,6 +261,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signIn,
       handleGoogleCredentials,
       searchPatientRequest,
+      searchDoctorRequest,
       createMedication,
       createAllergy,
       createDiagnosis,
@@ -240,6 +271,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       createVitalRecord,
       registerNewPatient,
       linkPatientRequest,
+      addDoctorRequest,
       signInAsRole,
       signUpPatient,
       signUpProvider,
