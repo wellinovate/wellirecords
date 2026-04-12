@@ -6,9 +6,11 @@ import { WelliMateWidget } from "@/shared/ui/WelliMateWidget";
 import { WelliRecordLogo } from "@/shared/ui/WelliRecordLogo";
 import {
   Activity,
+  ArrowBigDown,
   Baby,
   Bell,
   Calendar,
+  ChevronDown,
   ChevronRight,
   CreditCard,
   Crown,
@@ -25,6 +27,7 @@ import {
   MoreHorizontal,
   Pill,
   QrCode,
+  Search,
   Settings,
   Shield,
   Video,
@@ -377,87 +380,75 @@ export function PatientLayout() {
       {/* ─── Main ─── */}
       <div className="flex-1 flex flex-col overflow-hidden bg-[#e2e9f3] min-w-0">
         {/* Top bar */}
-        <header className="h-14 flex items-center justify-between px-4 md:px-6 border-b border-slate-50 flex-shrink-0 bg-[#DAE5F7] ">
-          {/* Mobile: hamburger + logo */}
+        <header className="h-16 flex items-center justify-between px-4 md:px-6 border-b border-gray-100 bg-white">
+          {/* LEFT: Greeting */}
           <div className="flex items-center gap-3">
+            {/* Mobile menu */}
             <button
               onClick={() => setDrawerOpen(true)}
-              className="md:hidden p-2 rounded-xl hover:bg-slate-100"
+              className="md:hidden p-2 rounded-xl hover:bg-gray-100"
             >
-              <Menu size={20} style={{ color: "#1e293b" }} />
+              <Menu size={20} />
             </button>
-            <div className="md:hidden">
-              <Link
-                to="/"
-                className="flex h-10 w-28  overflow-hidden items-center justify-center rounded-md  text-white shadow-sm cursor-pointer"
-              >
-                <img
-                  src={logos}
-                  alt="wellirecord"
-                  className=" w-full h- full object-cover"
-                />
-              </Link>
-            </div>
-            {/* Desktop: page title */}
-            <div
-              className="hidden md:block text-sm font-semibold capitalize"
-              style={{ color: "#1e293b" }}
-            >
-              {location.pathname.split("/").pop()?.replace(/-/g, " ")}
+
+            <div className="flex flex-col">
+              <h1 className="text-sm md:text-base font-semibold text-gray-900">
+                Hello, {user?.fullName || "User"} 👋
+              </h1>
+              <p className="text-xs text-gray-500 hidden md:block">
+                Welcome to your dashboard
+              </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 md:gap-3">
-            {/* WelliMate toggle — hidden on smallest mobile */}
-            {/* <button
-              onClick={() => setWelliMateEnabled(!isWelliMateEnabled)}
-              className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold border"
-              style={{
-                background: isWelliMateEnabled ? "#f0fdfa" : "#f8fafc",
-                color: isWelliMateEnabled ? "#0d9488" : "#64748b",
-                borderColor: isWelliMateEnabled ? "#ccfbf1" : "#e2e8f0",
-              }}
-            >
-              <span className="relative flex h-2 w-2">
-                {isWelliMateEnabled && (
-                  <span
-                    className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60"
-                    style={{ background: "#0d9488" }}
-                  />
-                )}
-                <span
-                  className="relative inline-flex rounded-full h-2 w-2"
-                  style={{
-                    background: isWelliMateEnabled ? "#0d9488" : "#cbd5e1",
-                  }}
-                />
-              </span>
-              <span className="hidden sm:inline">
-                {isWelliMateEnabled ? "WelliMate On" : "WelliMate"}
-              </span>
-            </button> */}
 
-            <button className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-gray-100 relative">
-              <Bell size={18} style={{ color: "#041E42" }} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500" />
+          {/* CENTER: Search */}
+          <div className="hidden md:flex flex-1 max-w-md mx-6">
+            <div className="w-full relative">
+              <input
+                type="text"
+                placeholder="Search anything..."
+                className="w-full pl-10 pr-4 py-2 rounded-full border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F915C]"
+              />
+              <Search
+                size={16}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+            </div>
+          </div>
+
+          {/* RIGHT: Actions */}
+          <div className="flex items-center gap-3">
+            {/* Notification */}
+            <button className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 relative">
+              <Bell size={18} className="text-gray-700" />
+              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500" />
             </button>
 
+            {/* Profile */}
             <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setOpen((prev) => !prev)}
-                className="w-10 h-10 rounded-full overflow-hidden border-2 border-green-800"
-                type="button"
+                className="flex items-center bg-gray-100 gap-2 px-2 py-1 rounded-full hover:bg-gray-100"
               >
                 <img
                   src={user?.avatar || health_companion_image}
                   alt="avatar"
-                  className="w-full h-full object-cover"
+                  className="w-8 h-8 rounded-full object-cover border"
                 />
+                <div className="hidden md:flex text-left space-x-2" >
+                  <p className="text-sm font-medium text-gray-800">
+                    {user?.fullName || "User"}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    <ChevronDown size={18}/>
+                    {/* {user?.role || "Admin"} */}
+                  </p>
+                </div>
               </button>
 
               {open && (
-                <div className="absolute right-0 top-full mt-2 w-44 rounded-xl bg-white shadow-lg border border-gray-100 z-50 overflow-hidden animate-fade-in">
+                <div className="absolute right-0 top-full mt-2 w-44 rounded-xl bg-white shadow-lg border border-gray-100 z-50 overflow-hidden">
                   <button
-                    type="button"
                     onClick={() => {
                       setOpen(false);
                       navigate("/patient/settings");
@@ -466,8 +457,8 @@ export function PatientLayout() {
                   >
                     Settings
                   </button>
+
                   <button
-                    type="button"
                     onClick={() => {
                       setOpen(false);
                       navigate("/patient/billing");
@@ -478,7 +469,6 @@ export function PatientLayout() {
                   </button>
 
                   <button
-                    type="button"
                     onClick={() => {
                       setOpen(false);
                       signOut();

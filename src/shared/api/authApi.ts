@@ -463,7 +463,6 @@ export const authApi = {
   },
 
   async  updateProfile(payload: any) {
-    console.log("🚀 ~ payload:", payload)
     const token = Cookies.get("accessToken");
     const response = await fetch(`${apiUrl}/api/v1/user/update/profile`, {
       method: "PUT",

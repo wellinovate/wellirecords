@@ -22,8 +22,11 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { health_companion_image } from "@/assets";
 import { fetchProfile } from "@/shared/utils/utilityFunction";
+import { toast } from "react-toastify";
 
 type SettingsTab = "profile" | "notifications" | "wearables" | "identity";
+
+type GenderOption = "Male" | "Female" | "Other" | "";
 
 type EmergencyContact = {
   name: string;
@@ -38,6 +41,8 @@ type ProfileFormState = {
   lastName: string;
   fullName: string;
   dateOfBirth: string;
+  phone: string;
+  gender: GenderOption;
   emergencyContacts: EmergencyContact[];
 };
 
@@ -349,6 +354,8 @@ export function PatientSettingsPage() {
     lastName: "",
     fullName: "",
     dateOfBirth: "",
+    phone: "",
+    gender: "",
     emergencyContacts: [],
   });
 
@@ -358,6 +365,9 @@ export function PatientSettingsPage() {
   >("unverified");
   const [ninNumber, setNinNumber] = useState("");
   const [otpCode, setOtpCode] = useState("");
+
+  const canEditPhone = !profile?.phone;
+  const canEditGender = !profile?.gender;
 
   const fetchUserProfile = async () => {
     try {
@@ -375,6 +385,8 @@ export function PatientSettingsPage() {
         dateOfBirth: data?.dateOfBirth
           ? new Date(data.dateOfBirth).toISOString().split("T")[0]
           : "",
+        phone: data?.phone || "",
+        gender: data?.gender || "",
         emergencyContacts: Array.isArray(data?.emergencyContacts)
           ? data.emergencyContacts
           : [],
@@ -400,6 +412,8 @@ export function PatientSettingsPage() {
       dateOfBirth: profile?.dateOfBirth
         ? new Date(profile.dateOfBirth).toISOString().split("T")[0]
         : "",
+      phone: profile?.phone || "",
+      gender: profile?.gender || "",
       emergencyContacts: Array.isArray(profile?.emergencyContacts)
         ? profile.emergencyContacts
         : [],
@@ -409,7 +423,7 @@ export function PatientSettingsPage() {
     try {
       setSaving(true);
 
-      const payload = {
+      const payload: any = {
         avatar: form.avatar || null,
         firstName: form.firstName.trim(),
         middleName: form.middleName.trim(),
@@ -423,12 +437,17 @@ export function PatientSettingsPage() {
         })),
       };
 
-      await updateProfile(payload); // use your real API method here
+      if (!profile?.phone && form.phone.trim()) {
+        payload.phone = form.phone.trim();
+      }
 
-      setProfile((prev: any) => ({
-        ...prev,
-        ...payload,
-      }));
+      if (!profile?.gender && form.gender) {
+        payload.gender = form.gender;
+      }
+
+      const updated = await updateProfile(payload);
+
+      setProfile(updated?.data || updated);
 
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
@@ -438,6 +457,7 @@ export function PatientSettingsPage() {
       setSaving(false);
     }
   };
+
   const handleSignOut = () => {
     signOut();
     navigate("/auth");
@@ -456,7 +476,7 @@ export function PatientSettingsPage() {
 
   const updateField =
     (key: keyof ProfileFormState) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       setForm((prev) => ({
         ...prev,
         [key]: e.target.value,
@@ -594,229 +614,271 @@ export function PatientSettingsPage() {
         <div className="lg:col-span-3 space-y-6">
           {/* ── PROFILE TAB ── */}
           {tab === "profile" && (
-  <>
-    {loadingProfile ? (
-      <ProfileSkeleton />
-    ) : (
-      <>
-        <div className="card-patient p-6">
-          <h2 className="font-bold text-base mb-6 border-b pb-2 text-gray-900 border-gray-100">
-            Personal Information
-          </h2>
+            <>
+              {loadingProfile ? (
+                <ProfileSkeleton />
+              ) : (
+                <>
+                  <div className="card-patient p-6">
+                    <h2 className="font-bold text-base mb-6 border-b pb-2 text-gray-900 border-gray-100">
+                      Personal Information
+                    </h2>
 
-          <div className="grid md:grid-cols-2 gap-5">
-            <div>
-              <label className="block text-sm font-semibold mb-1 text-gray-700">
-                Full Name
-              </label>
-              <input
-                value={form.fullName}
-                onChange={updateField("fullName")}
-                className="input input-light"
-                placeholder="Enter full name"
-              />
-            </div>
+                    <div className="grid md:grid-cols-2 gap-5">
+                      <div>
+                        <label className="block text-sm font-semibold mb-1 text-gray-700">
+                          Full Name
+                        </label>
+                        <input
+                          value={form.fullName}
+                          onChange={updateField("fullName")}
+                          className="input input-light"
+                          placeholder="Enter full name"
+                        />
+                      </div>
 
-            <div>
-              <label className="block text-sm font-semibold mb-1 text-gray-700">
-                Member ID
-              </label>
-              <input
-                value={profile?.wrId || ""}
-                className="input input-light bg-gray-50 text-gray-500"
-                readOnly
-              />
-            </div>
+                      <div>
+                        <label className="block text-sm font-semibold mb-1 text-gray-700">
+                          Member ID
+                        </label>
+                        <input
+                          value={profile?.wrId || ""}
+                          className="input input-light bg-gray-50 text-gray-500"
+                          readOnly
+                        />
+                      </div>
 
-            <div>
-              <label className="block text-sm font-semibold mb-1 text-gray-700">
-                First Name
-              </label>
-              <input
-                value={form.firstName}
-                onChange={updateField("firstName")}
-                className="input input-light"
-                placeholder="Enter first name"
-              />
-            </div>
+                      <div>
+                        <label className="block text-sm font-semibold mb-1 text-gray-700">
+                          First Name
+                        </label>
+                        <input
+                          value={form.firstName}
+                          onChange={updateField("firstName")}
+                          className="input input-light"
+                          placeholder="Enter first name"
+                        />
+                      </div>
 
-            <div>
-              <label className="block text-sm font-semibold mb-1 text-gray-700">
-                Middle Name
-              </label>
-              <input
-                value={form.middleName}
-                onChange={updateField("middleName")}
-                className="input input-light"
-                placeholder="Enter middle name"
-              />
-            </div>
+                      <div>
+                        <label className="block text-sm font-semibold mb-1 text-gray-700">
+                          Middle Name
+                        </label>
+                        <input
+                          value={form.middleName}
+                          onChange={updateField("middleName")}
+                          className="input input-light"
+                          placeholder="Enter middle name"
+                        />
+                      </div>
 
-            <div>
-              <label className="block text-sm font-semibold mb-1 text-gray-700">
-                Last Name
-              </label>
-              <input
-                value={form.lastName}
-                onChange={updateField("lastName")}
-                className="input input-light"
-                placeholder="Enter last name"
-              />
-            </div>
+                      <div>
+                        <label className="block text-sm font-semibold mb-1 text-gray-700">
+                          Last Name
+                        </label>
+                        <input
+                          value={form.lastName}
+                          onChange={updateField("lastName")}
+                          className="input input-light"
+                          placeholder="Enter last name"
+                        />
+                      </div>
 
-            <div>
-              <label className="block text-sm font-semibold mb-1 text-gray-700">
-                Date of Birth
-              </label>
-              <input
-                type="date"
-                value={form.dateOfBirth}
-                onChange={updateField("dateOfBirth")}
-                className="input input-light"
-              />
-            </div>
+                      <div>
+                        <label className="block text-sm font-semibold mb-1 text-gray-700">
+                          Date of Birth
+                        </label>
+                        <input
+                          type="date"
+                          value={form.dateOfBirth}
+                          onChange={updateField("dateOfBirth")}
+                          className="input input-light"
+                        />
+                      </div>
 
-            <div>
-              <label className="block text-sm font-semibold mb-1 text-gray-700">
-                Email Address
-              </label>
-              <input
-                value={profile?.email || ""}
-                className="input input-light bg-gray-50 text-gray-500"
-                type="email"
-                readOnly
-              />
-            </div>
+                      <div>
+                        <label className="block text-sm font-semibold mb-1 text-gray-700">
+                          Email Address
+                        </label>
+                        <input
+                          value={profile?.email || ""}
+                          className="input input-light bg-gray-50 text-gray-500"
+                          type="email"
+                          readOnly
+                        />
+                      </div>
 
-            <div>
-              <label className="block text-sm font-semibold mb-1 text-gray-700">
-                Phone Number
-              </label>
-              <input
-                value={profile?.phone || ""}
-                className="input input-light bg-gray-50 text-gray-500"
-                type="tel"
-                readOnly
-              />
-            </div>
+                      <div>
+                        <label className="block text-sm font-semibold mb-1 text-gray-700">
+                          Phone Number
+                        </label>
 
-            <div>
-              <label className="block text-sm font-semibold mb-1 text-gray-700">
-                Gender
-              </label>
-              <input
-                value={profile?.gender || ""}
-                className="input input-light bg-gray-50 text-gray-500"
-                readOnly
-              />
-            </div>
+                        <input
+                          value={
+                            canEditPhone ? form.phone : profile?.phone || ""
+                          }
+                          onChange={
+                            canEditPhone ? updateField("phone") : undefined
+                          }
+                          className={`input input-light ${
+                            canEditPhone ? "" : "bg-gray-50 text-gray-500"
+                          }`}
+                          type="tel"
+                          readOnly={!canEditPhone}
+                          placeholder={canEditPhone ? "Enter phone number" : ""}
+                        />
 
-            <div>
-              <label className="block text-sm font-semibold mb-1 text-gray-700">
-                Avatar URL
-              </label>
-              <input
-                value={form.avatar}
-                onChange={updateField("avatar")}
-                className="input input-light"
-                placeholder="Paste image URL"
-              />
-            </div>
+                        {!canEditPhone && (
+                          <p className="mt-1 text-[11px] text-gray-400">
+                            Phone number cannot be changed once set.
+                          </p>
+                        )}
+                      </div>
 
-            <div className="md:col-span-2">
-              <label className="block text-sm font-semibold mb-3 text-gray-700">
-                Emergency Contacts
-              </label>
+                      <div>
+                        <label className="block text-sm font-semibold mb-1 text-gray-700">
+                          Gender
+                        </label>
 
-              <div className="space-y-4">
-                {form.emergencyContacts.length === 0 && (
-                  <div className="text-sm text-gray-500 border border-dashed border-gray-300 rounded-xl p-4">
-                    No emergency contacts added yet.
-                  </div>
-                )}
+                        {canEditGender ? (
+                          <select
+                            value={form.gender}
+                            onChange={updateField("gender")}
+                            className="input input-light"
+                          >
+                            <option value="">Select gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        ) : (
+                          <>
+                            <input
+                              value={profile?.gender || ""}
+                              className="input input-light bg-gray-50 text-gray-500"
+                              readOnly
+                            />
+                            <p className="mt-1 text-[11px] text-gray-400">
+                              Gender cannot be changed once set.
+                            </p>
+                          </>
+                        )}
+                      </div>
 
-                {form.emergencyContacts.map((contact, index) => (
-                  <div
-                    key={index}
-                    className="grid md:grid-cols-3 gap-3 border border-gray-200 rounded-xl p-4 bg-white"
-                  >
-                    <input
-                      value={contact.name}
-                      onChange={(e) =>
-                        updateEmergencyContact(index, "name", e.target.value)
-                      }
-                      className="input input-light"
-                      placeholder="Full name"
-                    />
-                    <input
-                      value={contact.relationship}
-                      onChange={(e) =>
-                        updateEmergencyContact(
-                          index,
-                          "relationship",
-                          e.target.value
-                        )
-                      }
-                      className="input input-light"
-                      placeholder="Relationship"
-                    />
-                    <div className="flex gap-2">
-                      <input
-                        value={contact.phone}
-                        onChange={(e) =>
-                          updateEmergencyContact(index, "phone", e.target.value)
-                        }
-                        className="input input-light flex-1"
-                        placeholder="Phone number"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeEmergencyContact(index)}
-                        className="px-3 rounded-lg border border-red-200 text-red-600 hover:bg-red-50"
-                      >
-                        Remove
-                      </button>
+                      <div>
+                        <label className="block text-sm font-semibold mb-1 text-gray-700">
+                          Avatar URL
+                        </label>
+                        <input
+                          value={form.avatar}
+                          onChange={updateField("avatar")}
+                          className="input input-light"
+                          placeholder="Paste image URL"
+                        />
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-semibold mb-3 text-gray-700">
+                          Emergency Contacts
+                        </label>
+
+                        <div className="space-y-4">
+                          {form.emergencyContacts.length === 0 && (
+                            <div className="text-sm text-gray-500 border border-dashed border-gray-300 rounded-xl p-4">
+                              No emergency contacts added yet.
+                            </div>
+                          )}
+
+                          {form.emergencyContacts.map((contact, index) => (
+                            <div
+                              key={index}
+                              className="grid md:grid-cols-3 gap-3 border border-gray-200 rounded-xl p-4 bg-white"
+                            >
+                              <input
+                                value={contact.name}
+                                onChange={(e) =>
+                                  updateEmergencyContact(
+                                    index,
+                                    "name",
+                                    e.target.value,
+                                  )
+                                }
+                                className="input input-light"
+                                placeholder="Full name"
+                              />
+                              <input
+                                value={contact.relationship}
+                                onChange={(e) =>
+                                  updateEmergencyContact(
+                                    index,
+                                    "relationship",
+                                    e.target.value,
+                                  )
+                                }
+                                className="input input-light"
+                                placeholder="Relationship"
+                              />
+                              <div className="flex gap-2">
+                                <input
+                                  value={contact.phone}
+                                  onChange={(e) =>
+                                    updateEmergencyContact(
+                                      index,
+                                      "phone",
+                                      e.target.value,
+                                    )
+                                  }
+                                  className="input input-light flex-1"
+                                  placeholder="Phone number"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => removeEmergencyContact(index)}
+                                  className="px-3 rounded-lg border border-red-200 text-red-600 hover:bg-red-50"
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+
+                          <button
+                            type="button"
+                            onClick={addEmergencyContact}
+                            className="btn btn-sm bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
+                          >
+                            Add Emergency Contact
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                ))}
 
-                <button
-                  type="button"
-                  onClick={addEmergencyContact}
-                  className="btn btn-sm bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
-                >
-                  Add Emergency Contact
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+                  <div className="flex justify-end pt-0">
+                    <button
+                      onClick={save}
+                      disabled={!hasChanges || saving}
+                      className="btn btn-patient gap-2 px-8 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {saving ? (
+                        "Saving..."
+                      ) : saved ? (
+                        <>
+                          <CheckCircle size={16} /> Saved Successfully
+                        </>
+                      ) : (
+                        <>
+                          <Save size={16} /> Save Changes
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </>
+              )}
 
-        <div className="flex justify-end pt-0">
-          <button
-            onClick={save}
-            disabled={!hasChanges || saving}
-            className="btn btn-patient gap-2 px-8 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {saving ? (
-              "Saving..."
-            ) : saved ? (
-              <>
-                <CheckCircle size={16} /> Saved Successfully
-              </>
-            ) : (
-              <>
-                <Save size={16} /> Save Changes
-              </>
-            )}
-          </button>
-        </div>
-      </>
-    )}
-
-    <DataPortabilitySection />
-  </>
-)}
+              <DataPortabilitySection />
+            </>
+          )}
 
           {/* ── IDENTITY TAB ── */}
           {tab === "identity" && (
