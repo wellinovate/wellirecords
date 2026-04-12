@@ -96,6 +96,12 @@ export function PatientLoginPage() {
     (key: "email" | "password") => (e: React.ChangeEvent<HTMLInputElement>) =>
       setForm((prev) => ({ ...prev, [key]: e.target.value }));
 
+    const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email);
+
+const isFormValid =
+  isEmailValid && form.password.trim() !== "";
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -104,7 +110,7 @@ export function PatientLoginPage() {
       setError("");
 
       const user = await signIn(form.email, form.password);
-      console.log("🚀 ~ handleSubmit ~ user:", user)
+      console.log("🚀 ~ handleSubmit ~ user:", user);
 
       if (!user) {
         setError("Invalid email or password. Try again");
@@ -123,7 +129,12 @@ export function PatientLoginPage() {
       if (error?.message?.includes("timeout")) {
         toast.error("Request took too long. Check your connection.");
       } else {
-        toast.error(error?.message === "Cannot read properties of undefined (reading 'data')"  ? "Something went wrong. Try again." : error?.message);
+        toast.error(
+          error?.message ===
+            "Cannot read properties of undefined (reading 'data')"
+            ? "Something went wrong. Try again."
+            : error?.message,
+        );
       }
     } finally {
       setLoading(false);
@@ -268,12 +279,15 @@ export function PatientLoginPage() {
                   value={form.email}
                   onChange={update("email")}
                 />
+           
 
-                <PasswordInput
-                  label="Password"
-                  value={form.password}
-                  onChange={update("password")}
-                />
+<PasswordInput
+  label="Password"
+  value={form.password}
+  onChange={update("password")}
+/>
+
+
 
                 {error && (
                   <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3">
@@ -287,8 +301,13 @@ export function PatientLoginPage() {
 
                 <button
                   type="submit"
-                  disabled={loading || googleLoading}
-                  className="w-full h-[46px] flex justify-center items-center gap-2 bg-[#2F915C] text-white rounded-md text-[18px] font-semibold hover:brightness-95 transition disabled:opacity-70"
+                  disabled={loading || googleLoading || !isFormValid}
+                  className={`w-full h-[46px] flex justify-center items-center gap-2 text-white rounded-md text-[18px] font-semibold transition
+  ${
+    loading || googleLoading || !isFormValid
+      ? "bg-gray-400 cursor-not-allowed"
+      : "bg-[#2F915C] hover:brightness-95"
+  }`}
                 >
                   {loading ? (
                     <>
@@ -323,7 +342,12 @@ export function PatientLoginPage() {
 
                 <div className="text-center text-[15px] text-gray-500">
                   Don’t have an account?{" "}
-                  <Link to="/auth/patient/signup" className="text-[#137742] font-bold cursor-pointer">Sign Up</Link>
+                  <Link
+                    to="/auth/patient/signup"
+                    className="text-[#137742] font-bold cursor-pointer"
+                  >
+                    Sign Up
+                  </Link>
                 </div>
               </form>
             </div>

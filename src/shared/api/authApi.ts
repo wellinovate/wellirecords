@@ -462,6 +462,30 @@ export const authApi = {
     return data.message;
   },
 
+  async  updateProfile(payload: any) {
+    console.log("🚀 ~ payload:", payload)
+    const token = Cookies.get("accessToken");
+    const response = await fetch(`${apiUrl}/api/v1/user/update/profile`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+
+    
+
+    if (!response.ok) {
+      throw new Error(data?.message || "Failed to link patient");
+    }
+
+    return data.message;
+  },
+
   async  createAllergy(payload: any) {
     console.log("🚀 ~ payload:", payload)
     const token = Cookies.get("accessToken");

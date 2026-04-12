@@ -42,6 +42,7 @@ type AuthContextValue = {
   registerNewPatient: (newPatientForm: any) => string;
   createVitalRecord: (payload: any) => any;
   createMedication: (payload: any) => any;
+  updateProfile: (payload: any) => any;
   createAllergy: (payload: any) => any;
   createDiagnosis: (payload: any) => any;
   createLabResult: (payload: any) => any;
@@ -187,6 +188,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return res;
   };
 
+  const updateProfile = async (
+    payload: any,
+  ): Promise<SearchPatientResponse> => {
+    const res = await authApi.updateProfile(payload);
+    console.log("🚀 ~ signIn ~ u:", res);
+    return res;
+  };
+
   const createAllergy = async (
     payload: any,
   ): Promise<SearchPatientResponse> => {
@@ -263,6 +272,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       searchPatientRequest,
       searchDoctorRequest,
       createMedication,
+      updateProfile,
       createAllergy,
       createDiagnosis,
       createLabResult,

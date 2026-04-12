@@ -332,7 +332,7 @@ export async function getUsersRecords(
   );
 
   const data = await res.json();
-  // console.log("🚀 ~ getUsersRecord ~ data:", data)
+  console.log("🚀 ~ getUsersRecord ~ data:", data)
 
   if (!res.ok) {
     throw new Error(data?.message || "Failed to fetch vitals");

@@ -25,6 +25,22 @@ import { fetchProfile } from "@/shared/utils/utilityFunction";
 
 type SettingsTab = "profile" | "notifications" | "wearables" | "identity";
 
+type EmergencyContact = {
+  name: string;
+  relationship: string;
+  phone: string;
+};
+
+type ProfileFormState = {
+  avatar: string;
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  fullName: string;
+  dateOfBirth: string;
+  emergencyContacts: EmergencyContact[];
+};
+
 /* ── Google Fit proper SVG icon ─────────────────────────────────────────── */
 function GoogleFitIcon({ size = 20 }: { size?: number }) {
   return (
@@ -313,7 +329,7 @@ function DataPortabilitySection() {
 }
 
 export function PatientSettingsPage() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, updateProfile } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState<SettingsTab>("profile");
   const [saved, setSaved] = useState(false);
@@ -324,6 +340,17 @@ export function PatientSettingsPage() {
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [nameValue, setNameValue] = useState(user?.name ?? "");
   const [nameRequested, setNameRequested] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const [form, setForm] = useState<ProfileFormState>({
+    avatar: "",
+    firstName: "",
+    middleName: "",
+    lastName: "",
+    fullName: "",
+    dateOfBirth: "",
+    emergencyContacts: [],
+  });
 
   // NIN Verification Mock State
   const [ninStatus, setNinStatus] = useState<
@@ -336,7 +363,22 @@ export function PatientSettingsPage() {
     try {
       setLoadingProfile(true);
       const data = await fetchProfile();
+
       setProfile(data);
+
+      setForm({
+        avatar: data?.avatar || "",
+        firstName: data?.firstName || "",
+        middleName: data?.middleName || "",
+        lastName: data?.lastName || "",
+        fullName: data?.fullName || "",
+        dateOfBirth: data?.dateOfBirth
+          ? new Date(data.dateOfBirth).toISOString().split("T")[0]
+          : "",
+        emergencyContacts: Array.isArray(data?.emergencyContacts)
+          ? data.emergencyContacts
+          : [],
+      });
     } catch (error) {
       console.error("Failed to load profile", error);
     } finally {
@@ -348,9 +390,53 @@ export function PatientSettingsPage() {
     fetchUserProfile();
   }, []);
 
-  const save = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  const hasChanges =
+    JSON.stringify({
+      avatar: profile?.avatar || "",
+      firstName: profile?.firstName || "",
+      middleName: profile?.middleName || "",
+      lastName: profile?.lastName || "",
+      fullName: profile?.fullName || "",
+      dateOfBirth: profile?.dateOfBirth
+        ? new Date(profile.dateOfBirth).toISOString().split("T")[0]
+        : "",
+      emergencyContacts: Array.isArray(profile?.emergencyContacts)
+        ? profile.emergencyContacts
+        : [],
+    }) !== JSON.stringify(form);
+
+  const save = async () => {
+    try {
+      setSaving(true);
+
+      const payload = {
+        avatar: form.avatar || null,
+        firstName: form.firstName.trim(),
+        middleName: form.middleName.trim(),
+        lastName: form.lastName.trim(),
+        fullName: form.fullName.trim(),
+        dateOfBirth: form.dateOfBirth || null,
+        emergencyContacts: form.emergencyContacts.map((c) => ({
+          name: c.name.trim(),
+          relationship: c.relationship.trim(),
+          phone: c.phone.trim(),
+        })),
+      };
+
+      await updateProfile(payload); // use your real API method here
+
+      setProfile((prev: any) => ({
+        ...prev,
+        ...payload,
+      }));
+
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (error) {
+      console.error("Failed to update profile", error);
+    } finally {
+      setSaving(false);
+    }
   };
   const handleSignOut = () => {
     signOut();
@@ -366,6 +452,44 @@ export function PatientSettingsPage() {
       setNinStatus("verifying");
       setTimeout(() => setNinStatus("verified"), 2000);
     }
+  };
+
+  const updateField =
+    (key: keyof ProfileFormState) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setForm((prev) => ({
+        ...prev,
+        [key]: e.target.value,
+      }));
+    };
+
+  const updateEmergencyContact = (
+    index: number,
+    key: keyof EmergencyContact,
+    value: string,
+  ) => {
+    setForm((prev) => {
+      const updated = [...prev.emergencyContacts];
+      updated[index] = { ...updated[index], [key]: value };
+      return { ...prev, emergencyContacts: updated };
+    });
+  };
+
+  const addEmergencyContact = () => {
+    setForm((prev) => ({
+      ...prev,
+      emergencyContacts: [
+        ...prev.emergencyContacts,
+        { name: "", relationship: "", phone: "" },
+      ],
+    }));
+  };
+
+  const removeEmergencyContact = (index: number) => {
+    setForm((prev) => ({
+      ...prev,
+      emergencyContacts: prev.emergencyContacts.filter((_, i) => i !== index),
+    }));
   };
 
   const TABS: {
@@ -470,194 +594,229 @@ export function PatientSettingsPage() {
         <div className="lg:col-span-3 space-y-6">
           {/* ── PROFILE TAB ── */}
           {tab === "profile" && (
-            <>
-              {loadingProfile ? (
-                <ProfileSkeleton />
-              ) : (
-                <>
-                  <div className="card-patient p-6">
-                    <h2 className="font-bold text-base mb-6 border-b pb-2 text-gray-900 border-gray-100">
-                      Personal Information
-                    </h2>
+  <>
+    {loadingProfile ? (
+      <ProfileSkeleton />
+    ) : (
+      <>
+        <div className="card-patient p-6">
+          <h2 className="font-bold text-base mb-6 border-b pb-2 text-gray-900 border-gray-100">
+            Personal Information
+          </h2>
 
-                    <div className="grid md:grid-cols-2 gap-5">
-                      <div>
-                        <label className="block text-sm font-semibold mb-1 text-gray-700">
-                          Full Name
-                        </label>
+          <div className="grid md:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-sm font-semibold mb-1 text-gray-700">
+                Full Name
+              </label>
+              <input
+                value={form.fullName}
+                onChange={updateField("fullName")}
+                className="input input-light"
+                placeholder="Enter full name"
+              />
+            </div>
 
-                        {nameRequested ? (
-                          <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm font-semibold">
-                            <CheckCircle size={15} />
-                            Name change request submitted — we'll update your
-                            record within 24 hrs.
-                          </div>
-                        ) : nameEditing ? (
-                          <div className="space-y-2">
-                            <input
-                              className="input input-light w-full"
-                              value={nameValue}
-                              onChange={(e) => setNameValue(e.target.value)}
-                              autoFocus
-                            />
-                            <p className="text-[11px] text-gray-400">
-                              Legal name changes require a brief identity check
-                              for record integrity.
-                            </p>
-                            <div className="flex gap-2 mt-1">
-                              <button
-                                onClick={() => {
-                                  setNameEditing(false);
-                                  setNameRequested(true);
-                                }}
-                                disabled={nameValue.trim().length < 2}
-                                className="btn btn-sm btn-patient gap-1"
-                              >
-                                <Check size={13} /> Submit Request
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setNameEditing(false);
-                                  setNameValue(profile?.fullName ?? "");
-                                }}
-                                className="btn btn-sm bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <input
-                              value={profile?.fullName || ""}
-                              className="input input-light bg-gray-50 flex-1"
-                              readOnly
-                            />
-                            <button
-                              onClick={() => {
-                                setNameValue(profile?.fullName || "");
-                                setNameEditing(true);
-                              }}
-                              className="btn btn-sm bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 whitespace-nowrap"
-                            >
-                              Change
-                            </button>
-                          </div>
-                        )}
-                      </div>
+            <div>
+              <label className="block text-sm font-semibold mb-1 text-gray-700">
+                Member ID
+              </label>
+              <input
+                value={profile?.wrId || ""}
+                className="input input-light bg-gray-50 text-gray-500"
+                readOnly
+              />
+            </div>
 
-                      <div>
-                        <label className="block text-sm font-semibold mb-1 text-gray-700">
-                          Member ID
-                        </label>
-                        <div className="input input-light bg-gray-50 font-mono text-gray-500 select-all tracking-wider">
-                          {profile?.wrId || "—"}
-                        </div>
-                      </div>
+            <div>
+              <label className="block text-sm font-semibold mb-1 text-gray-700">
+                First Name
+              </label>
+              <input
+                value={form.firstName}
+                onChange={updateField("firstName")}
+                className="input input-light"
+                placeholder="Enter first name"
+              />
+            </div>
 
-                      <div>
-                        <label className="block text-sm font-semibold mb-1 text-gray-700">
-                          Email Address
-                        </label>
-                        <input
-                          value={profile?.email || ""}
-                          className="input input-light"
-                          type="email"
-                          readOnly
-                        />
-                      </div>
+            <div>
+              <label className="block text-sm font-semibold mb-1 text-gray-700">
+                Middle Name
+              </label>
+              <input
+                value={form.middleName}
+                onChange={updateField("middleName")}
+                className="input input-light"
+                placeholder="Enter middle name"
+              />
+            </div>
 
-                      <div>
-                        <label className="block text-sm font-semibold mb-1 text-gray-700">
-                          Phone Number
-                        </label>
-                        <input
-                          value={profile?.phone || "XXX XXX XXX XXXX"}
-                          className="input input-light"
-                          type="tel"
-                          readOnly
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold mb-1 text-gray-700">
-                          Phone Number
-                        </label>
-                        <input
-                          value={profile?.phone || "XXX XXX XXX XXXX"}
-                          className="input input-light"
-                          type="tel"
-                          readOnly
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold mb-1 text-gray-700">
-                          Phone Number
-                        </label>
-                        <input
-                          value={profile?.phone || "XXX XXX XXX XXXX"}
-                          className="input input-light"
-                          type="tel"
-                          readOnly
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold mb-1 text-gray-700">
-                          Phone Number
-                        </label>
-                        <input
-                          value={profile?.phone || "XXX XXX XXX XXXX"}
-                          className="input input-light"
-                          type="tel"
-                          readOnly
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold mb-1 text-gray-700">
-                          Phone Number
-                        </label>
-                        <input
-                          value={profile?.phone || "XXX XXX XXX XXXX"}
-                          className="input input-light"
-                          type="tel"
-                          readOnly
-                        />
-                      </div>
+            <div>
+              <label className="block text-sm font-semibold mb-1 text-gray-700">
+                Last Name
+              </label>
+              <input
+                value={form.lastName}
+                onChange={updateField("lastName")}
+                className="input input-light"
+                placeholder="Enter last name"
+              />
+            </div>
 
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-semibold mb-1 text-gray-700">
-                          Residential Address
-                        </label>
-                        <input
-                          value={profile?.homeAddress || ""}
-                          className="input input-light"
-                          readOnly
-                        />
-                      </div>
+            <div>
+              <label className="block text-sm font-semibold mb-1 text-gray-700">
+                Date of Birth
+              </label>
+              <input
+                type="date"
+                value={form.dateOfBirth}
+                onChange={updateField("dateOfBirth")}
+                className="input input-light"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold mb-1 text-gray-700">
+                Email Address
+              </label>
+              <input
+                value={profile?.email || ""}
+                className="input input-light bg-gray-50 text-gray-500"
+                type="email"
+                readOnly
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold mb-1 text-gray-700">
+                Phone Number
+              </label>
+              <input
+                value={profile?.phone || ""}
+                className="input input-light bg-gray-50 text-gray-500"
+                type="tel"
+                readOnly
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold mb-1 text-gray-700">
+                Gender
+              </label>
+              <input
+                value={profile?.gender || ""}
+                className="input input-light bg-gray-50 text-gray-500"
+                readOnly
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold mb-1 text-gray-700">
+                Avatar URL
+              </label>
+              <input
+                value={form.avatar}
+                onChange={updateField("avatar")}
+                className="input input-light"
+                placeholder="Paste image URL"
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-semibold mb-3 text-gray-700">
+                Emergency Contacts
+              </label>
+
+              <div className="space-y-4">
+                {form.emergencyContacts.length === 0 && (
+                  <div className="text-sm text-gray-500 border border-dashed border-gray-300 rounded-xl p-4">
+                    No emergency contacts added yet.
+                  </div>
+                )}
+
+                {form.emergencyContacts.map((contact, index) => (
+                  <div
+                    key={index}
+                    className="grid md:grid-cols-3 gap-3 border border-gray-200 rounded-xl p-4 bg-white"
+                  >
+                    <input
+                      value={contact.name}
+                      onChange={(e) =>
+                        updateEmergencyContact(index, "name", e.target.value)
+                      }
+                      className="input input-light"
+                      placeholder="Full name"
+                    />
+                    <input
+                      value={contact.relationship}
+                      onChange={(e) =>
+                        updateEmergencyContact(
+                          index,
+                          "relationship",
+                          e.target.value
+                        )
+                      }
+                      className="input input-light"
+                      placeholder="Relationship"
+                    />
+                    <div className="flex gap-2">
+                      <input
+                        value={contact.phone}
+                        onChange={(e) =>
+                          updateEmergencyContact(index, "phone", e.target.value)
+                        }
+                        className="input input-light flex-1"
+                        placeholder="Phone number"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeEmergencyContact(index)}
+                        className="px-3 rounded-lg border border-red-200 text-red-600 hover:bg-red-50"
+                      >
+                        Remove
+                      </button>
                     </div>
                   </div>
+                ))}
 
-                  <div className="flex justify-end pt-0">
-                    <button
-                      onClick={save}
-                      className="btn btn-patient gap-2 px-8"
-                    >
-                      {saved ? (
-                        <>
-                          <CheckCircle size={16} /> Saved Successfully
-                        </>
-                      ) : (
-                        <>
-                          <Save size={16} /> Save Changes
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </>
-              )}
+                <button
+                  type="button"
+                  onClick={addEmergencyContact}
+                  className="btn btn-sm bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
+                >
+                  Add Emergency Contact
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
 
-              <DataPortabilitySection />
-            </>
-          )}
+        <div className="flex justify-end pt-0">
+          <button
+            onClick={save}
+            disabled={!hasChanges || saving}
+            className="btn btn-patient gap-2 px-8 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {saving ? (
+              "Saving..."
+            ) : saved ? (
+              <>
+                <CheckCircle size={16} /> Saved Successfully
+              </>
+            ) : (
+              <>
+                <Save size={16} /> Save Changes
+              </>
+            )}
+          </button>
+        </div>
+      </>
+    )}
+
+    <DataPortabilitySection />
+  </>
+)}
 
           {/* ── IDENTITY TAB ── */}
           {tab === "identity" && (
