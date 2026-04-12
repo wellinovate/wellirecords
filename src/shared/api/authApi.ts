@@ -246,11 +246,9 @@ export const authApi = {
   async signUpPatient(payload: any) {
     try {
       const response = await axios.post(`${apiUrl}/api/v1/auth/register`, payload);
-      console.log("🚀 ~ response:", response);
 
       if (response.status === 201) {
         const data = await response.data.message;
-        console.log("🚀 ~ data:", data);
         return data;
       }
     } catch (err: any) {
@@ -261,11 +259,9 @@ export const authApi = {
   async signUpProvider(payload: any) {
     try {
       const response = await axios.post(`${apiUrl}/api/v1/auth/register`, payload);
-      console.log("🚀 ~ response:", response);
 
       if (response.status === 201) {
         const data = await response.data.message;
-        console.log("🚀 ~ data:", data);
         return data;
       }
     } catch (err: any) {
@@ -343,7 +339,6 @@ export const authApi = {
   },
 
   async  linkPatientRequest(patientIdentityId: string, id: string) {
-    console.log("🚀 ~ patientIdentityId:", patientIdentityId)
     const token = Cookies.get("accessToken");
     const response = await fetch(`${apiUrl}/api/v1/organization/patient/link`, {
       method: "POST",      
@@ -366,7 +361,6 @@ export const authApi = {
     return data.data;
   },
   async  addDoctorRequest(doctorIdentityId: string) {
-    console.log("🚀 ~ doctorIdentityId:", doctorIdentityId)
     const token = Cookies.get("accessToken");
     const response = await fetch(`${apiUrl}/api/v1/organization/doctor/add`, {
       method: "POST",      
@@ -390,7 +384,6 @@ export const authApi = {
   },
 
   async  registerNewPatient(newPatientForm: any) {
-    console.log("🚀 ~ patientIdentityId:", newPatientForm)
     const token = Cookies.get("accessToken");
     const response = await fetch(`${apiUrl}/api/v1/organization/register-patient`, {
       method: "POST",
@@ -439,7 +432,6 @@ export const authApi = {
   },
 
   async  createMedication(payload: any) {
-    console.log("🚀 ~ payload:", payload)
     const token = Cookies.get("accessToken");
     const response = await fetch(`${apiUrl}/api/v1/medications`, {
       method: "POST",
@@ -486,7 +478,6 @@ export const authApi = {
   },
 
   async  createAllergy(payload: any) {
-    console.log("🚀 ~ payload:", payload)
     const token = Cookies.get("accessToken");
     const response = await fetch(`${apiUrl}/api/v1/allergies`, {
       method: "POST",
@@ -510,7 +501,6 @@ export const authApi = {
   },
   
   async  createDiagnosis(payload: any) {
-    console.log("🚀 ~ payload:", payload)
     const token = Cookies.get("accessToken");
     const response = await fetch(`${apiUrl}/api/v1/diagnoses`, {
       method: "POST",
@@ -533,7 +523,6 @@ export const authApi = {
     return data.message;
   },
   async  createLabResult(payload: any) {
-    console.log("🚀 ~ payload:", payload)
     const token = Cookies.get("accessToken");
     const response = await fetch(`${apiUrl}/api/v1/lab-results`, {
       method: "POST",
@@ -556,7 +545,6 @@ export const authApi = {
     return data.message;
   },
   async  createEncounter(payload: any) {
-    console.log("🚀 ~ payload:", payload)
     const token = Cookies.get("accessToken");
     const response = await fetch(`${apiUrl}/api/v1/encounter`, {
       method: "POST",
@@ -580,7 +568,6 @@ export const authApi = {
   },
 
   async  createProcedure(payload: any) {
-    console.log("🚀 ~ payload:", payload)
     const token = Cookies.get("accessToken");
     const response = await fetch(`${apiUrl}/api/v1/procedures`, {
       method: "POST",

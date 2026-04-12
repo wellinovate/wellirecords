@@ -90,7 +90,6 @@ export function PatientLoginPage() {
   });
 
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-  console.log("🚀 ~ PatientLoginPage ~ googleClientId:", googleClientId);
 
   const update =
     (key: "email" | "password") => (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -110,7 +109,6 @@ const isFormValid =
       setError("");
 
       const user = await signIn(form.email, form.password);
-      console.log("🚀 ~ handleSubmit ~ user:", user);
 
       if (!user) {
         setError("Invalid email or password. Try again");
@@ -146,14 +144,12 @@ const isFormValid =
       setGoogleLoading(true);
       setError("");
 
-      console.log("🚀 ~ handleGoogleCredential ~ apiUrl:", apiUrl);
       const res = await axios.post(`${apiUrl}/api/v1/auth/google/login`, {
         credential: response.credential,
         profileType,
       });
 
       const data = res.data;
-      console.log("🚀 ~ handleGoogleCredential ~ data:", data);
       Cookies.set("accessToken", data.token, {
         expires: 1, // days
         secure: true, // only over HTTPS (important in prod)
