@@ -35,10 +35,61 @@ export function InfoRow({
   );
 }
 
+export function SummaryChip({
+  label,
+  value,
+  tone = "neutral",
+}: {
+  label: string;
+  value: React.ReactNode;
+  tone?: "neutral" | "red" | "green" | "blue" | "amber" | "purple";
+}) {
+  const toneClasses = {
+    neutral: "bg-gray-100 text-gray-700",
+    red: "bg-red-50 text-red-700",
+    green: "bg-green-50 text-green-700",
+    blue: "bg-blue-50 text-blue-700",
+    amber: "bg-amber-50 text-amber-700",
+    purple: "bg-purple-50 text-purple-700",
+  };
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-medium ${toneClasses[tone]}`}
+    >
+      <span className="opacity-80">{label}</span>
+      <span className="font-semibold">{value}</span>
+    </span>
+  );
+}
+
+export function StatusBadge({
+  value,
+  tone = "green",
+}: {
+  value: string;
+  tone?: "green" | "red" | "amber" | "blue" | "gray";
+}) {
+  const toneClasses = {
+    green: "bg-green-50 text-green-700",
+    red: "bg-red-50 text-red-700",
+    amber: "bg-amber-50 text-amber-700",
+    blue: "bg-blue-50 text-blue-700",
+    gray: "bg-gray-100 text-gray-700",
+  };
+
+  return (
+    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${toneClasses[tone]}`}>
+      {value}
+    </span>
+  );
+}
+
 export function RecordShell({
   icon,
   title,
   subtitle,
+  summaryChips,
   status,
   metaLeft,
   metaRight,
@@ -48,8 +99,9 @@ export function RecordShell({
 }: {
   icon: React.ReactNode;
   title: string;
-  subtitle?: string;
-  status?: string;
+  subtitle?: React.ReactNode;
+  summaryChips?: React.ReactNode;
+  status?: React.ReactNode;
   metaLeft?: React.ReactNode;
   metaRight?: React.ReactNode;
   footerLeft?: React.ReactNode;
@@ -57,51 +109,43 @@ export function RecordShell({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-[22px] border border-[#DDE3EA] bg-[#F9FAFB] px-5 py-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
-      <div className="flex items-start bg- justify-between gap-4">
-        <div className="flex items-start  gap-3 min-w-0">
+    <div className="rounded-[22px] border border-[#DDE3EA] bg-white px-5 py-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex min-w-0 items-start gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#EAF7F1] text-[#2F915C]">
             {icon}
           </div>
 
           <div className="min-w-0">
-            <h3 className="text-[20px] font-semibold leading-tight text-[#1F2A37] truncate">
+            <h3 className="truncate text-[18px] font-semibold leading-tight text-[#1F2A37]">
               {title}
             </h3>
-            
+
+            {subtitle && (
+              <div className="mt-1 text-sm text-[#667085]">
+                {subtitle}
+              </div>
+            )}
           </div>
         </div>
 
-        {status && (
-          <span className="shrink-0 rounded-full bg-[#E7F7EF] px-3 py-1 text-xs font-semibold text-[#22A06B]">
-            {status}
-          </span>
-        )}
+        {status && <div className="shrink-0">{status}</div>}
       </div>
 
-      {subtitle && (
-              <p className="mt-1 text-base text-[#667085]">{subtitle}</p>
-            )}
+      {summaryChips && <div className="mt-3 flex flex-wrap gap-2">{summaryChips}</div>}
 
       {(metaLeft || metaRight) && (
-        <div className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
-          <div>{metaLeft}</div>
-          <div>{metaRight}</div>
+        <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+          <div className="space-y-2">{metaLeft}</div>
+          <div className="space-y-2">{metaRight}</div>
         </div>
       )}
 
-      {children && <div className="mt-4 space-y-2">{children}</div>}
+      {children && <div className="mt-4">{children}</div>}
 
-      {(footerLeft || actionLabel) && (
-        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-sm text-[#7B8BA3]">{footerLeft}</div>
-
-          {/* <button
-            type="button"
-            className="inline-flex items-center justify-center self-start rounded-full bg-[#E7F1EE] px-4 py-2 text-sm font-semibold text-[#138A72] transition hover:bg-[#dcebe6]"
-          >
-            {actionLabel}
-          </button> */}
+      {footerLeft && (
+        <div className="mt-4 border-t border-[#EAECF0] pt-3 text-sm text-[#667085]">
+          {footerLeft}
         </div>
       )}
     </div>
@@ -152,9 +196,9 @@ export function HealthCategoryHistoryPage() {
     }
   };
   const changeRecordsTab = (nextTab: string) => {
-  setSearch("");
-  setTab(nextTab);
-};
+    setSearch("");
+    setTab(nextTab);
+  };
 
   useEffect(() => {
     if (tab) {
@@ -163,10 +207,10 @@ export function HealthCategoryHistoryPage() {
   }, [tab]);
 
   useEffect(() => {
-  if (category && category !== tab) {
-    setTab(category);
-  }
-}, [category]);
+    if (category && category !== tab) {
+      setTab(category);
+    }
+  }, [category]);
 
   const filteredRecords = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -309,26 +353,26 @@ export function HealthCategoryHistoryPage() {
       }
 
       if (tab === "procedures") {
-  const hasProcedureData = !!item.procedureName;
+        const hasProcedureData = !!item.procedureName;
 
-  if (!hasProcedureData) return false;
+        if (!hasProcedureData) return false;
 
-  if (!q) return true;
+        if (!q) return true;
 
-  // Search across relevant procedure fields
-  return [
-    item.procedureName,
-    item.procedureType,
-    item.indication,
-    item.outcome,
-    item.notes,
-    item.facilityName,
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase()
-    .includes(q.toLowerCase());
-}
+        // Search across relevant procedure fields
+        return [
+          item.procedureName,
+          item.procedureType,
+          item.indication,
+          item.outcome,
+          item.notes,
+          item.facilityName,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(q.toLowerCase());
+      }
 
       return true;
     });
@@ -336,125 +380,233 @@ export function HealthCategoryHistoryPage() {
 
   const renderRecordCard = (item: any) => {
     if (tab === "vitals") {
-      const vitalsSummary = [
-        item.bloodPressure
-          ? `BP ${item.bloodPressure.systolic}/${item.bloodPressure.diastolic}`
-          : null,
-        item.heartRate ? `HR ${item.heartRate} bpm` : null,
-        item.temperature?.value
-          ? `Temp ${item.temperature.value}°${item.temperature.unit || "C"}`
-          : null,
-      ]
-        .filter(Boolean)
-        .join(" • ");
+      
+       
+
+      const vitalsSubtitle = (
+        <div className="space-y-1 flex justify-between w-full">
+          {item.bloodPressure && (
+            <div>
+              <span className="font-medium text-[#344054]">BP:</span>{" "}
+              <span className="font-semibold text-[#B42318]">
+                {item.bloodPressure.systolic}/{item.bloodPressure.diastolic}
+              </span>
+            </div>
+          )}
+
+          {item.heartRate && (
+            <div>
+              <span className="font-medium text-[#344054]">HR:</span>{" "}
+              <span className="font-semibold text-[#1D2939]">
+                {item.heartRate} bpm
+              </span>
+            </div>
+          )}
+
+          {item.temperature?.value && (
+            <div>
+              <span className="font-medium text-[#344054]">Temp:</span>{" "}
+              <span className="font-semibold text-[#DC6803]">
+                {item.temperature.value}°{item.temperature.unit || "C"}
+              </span>
+            </div>
+          )}
+        </div>
+      );
+
+      
+
+      const bloodPressure = item.bloodPressure
+  ? `${item.bloodPressure.systolic}/${item.bloodPressure.diastolic}`
+  : "—";
+
+const vitalsChips = (
+  <>
+    {item?.bloodPressure && (
+      <SummaryChip
+        label="BP"
+        value={bloodPressure}
+        tone="red"
+      />
+    )}
+    {item?.heartRate && (
+      <SummaryChip
+        label="HR"
+        value={`${item.heartRate} bpm`}
+        tone="blue"
+      />
+    )}
+    {item?.temperature?.value && (
+      <SummaryChip
+        label="Temp"
+        value={`${item.temperature.value}°${item.temperature.unit || "C"}`}
+        tone="amber"
+      />
+    )}
+    {item?.oxygenSaturation && (
+      <SummaryChip
+        label="SpO₂"
+        value={`${item.oxygenSaturation}%`}
+        tone="green"
+      />
+    )}
+  </>
+);
+
+
 
       return (
         <RecordShell
-          key={item.id}
-          icon={<HeartPulse size={18} />}
-          title="Vital Record"
-          subtitle={vitalsSummary || "Patient vital signs"}
-          status="Recorded"
-          metaLeft={
-            <>
-              <InfoRow label="Measured" value={formatDate(item.measuredAt)} />
-              <InfoRow label="Respiratory Rate" value={item.respiratoryRate} />
-            </>
-          }
-          metaRight={
-            <>
-              <InfoRow
-                label="Oxygen Saturation"
-                value={item.oxygenSaturation ? `${item.oxygenSaturation}%` : ""}
-              />
-              <InfoRow
-                label="Blood Glucose"
-                value={
-                  item.bloodGlucose?.value
-                    ? `${item.bloodGlucose.value} ${item.bloodGlucose.unit || ""}`
-                    : ""
-                }
-              />
-            </>
-          }
-          footerLeft={
-            item.notes ? `Notes: ${item.notes}` : "Vitals history entry"
-          }
-          actionLabel="View Vital"
-        >
-          <div className="flex flex-wrap gap-2 text-sm text-[#475467]">
-            {item.weight?.value && (
-              <span>
-                Weight: {item.weight.value} {item.weight.unit}
-              </span>
-            )}
-            {item.height?.value && (
-              <span>
-                Height: {item.height.value} {item.height.unit}
-              </span>
-            )}
-          </div>
-        </RecordShell>
-      );
+  key={item.id}
+  icon={<HeartPulse size={18} />}
+  title="Vital Record"
+  subtitle={formatDate(item.measuredAt) || "Patient vital signs"}
+  summaryChips={vitalsChips}
+  status={<StatusBadge value="Recorded" tone="green" />}
+  metaLeft={
+    <>
+      <InfoRow label="Measured" value={formatDate(item.measuredAt)} />
+
+      {/* <InfoRow label="Blood Pressure" value={bloodPressure} /> */}
+      {/* <InfoRow label="Heart Rate" value={item.heartRate ? `${item.heartRate} bpm` : "—"} /> */}
+      <InfoRow label="Respiratory Rate" value={item.respiratoryRate} />
+    </>
+  }
+  metaRight={
+    <>
+      <InfoRow
+        label="Blood Glucose"
+        value={
+          item.bloodGlucose?.value
+            && `${item.bloodGlucose.value} ${item.bloodGlucose.unit || ""}`}
+      />
+      <InfoRow
+        label="Oxygen Saturation"
+        value={item.oxygenSaturation && `${item.oxygenSaturation}%` }
+      />
+    </>
+  }
+  footerLeft={item.notes ? `Notes: ${item.notes}` : "Vitals history entry"}
+>
+  <div className="flex flex-wrap gap-2 text-sm text-[#475467]">
+    {item.weight?.value && (
+      <SummaryChip
+        label="Weight"
+        value={`${item.weight.value} ${item.weight.unit || ""}`}
+        tone="neutral"
+      />
+    )}
+    {item.height?.value && (
+      <SummaryChip
+        label="Height"
+        value={`${item.height.value} ${item.height.unit || ""}`}
+        tone="neutral"
+      />
+    )}
+  </div>
+</RecordShell>)
     }
 
     if (tab === "medications") {
-      const subtitle = [
-        item.dosage?.value
-          ? `${item.dosage.value}${item.dosage.unit ? ` ${item.dosage.unit}` : ""}`
-          : null,
-        item.frequency,
-        item.route,
-      ]
-        .filter(Boolean)
-        .join(" • ");
+
+      const medicationChips = (
+  <>
+    {item.dosage?.value && (
+      <SummaryChip
+        label="Dose"
+        value={`${item.dosage.value} ${item.dosage.unit || ""}`}
+        tone="blue"
+      />
+    )}
+    {item.frequency && (
+      <SummaryChip label="Frequency:" value={item.frequency} tone="purple" />
+    )}
+    {item.route && (
+      <SummaryChip label="Route:" value={item.route} tone="neutral" />
+    )}
+  </>
+);
+
+
+      const medicationSubtitle = (
+        <div className="flex flex-wrap gap-2">
+          {item.dosage?.value && (
+            <span className="rounded-full bg-blue-50 px-2.5 py-1 text-sm font-semibold text-blue-700">
+              {item.dosage.value} {item.dosage.unit || ""}
+            </span>
+          )}
+
+          {item.frequency && (
+            <span className="rounded-full bg-purple-50 px-2.5 py-1 text-sm font-semibold text-purple-700">
+              {item.frequency}
+            </span>
+          )}
+
+          {item.route && (
+            <span className="rounded-full bg-gray-100 px-2.5 py-1 text-sm font-semibold text-gray-700">
+              {item.route}
+            </span>
+          )}
+        </div>
+      );
 
       return (
         <RecordShell
-          key={item.id}
-          icon={<Pill size={18} />}
-          title={item.medicationName}
-          subtitle={subtitle || "Medication entry"}
-          status={item.medicationStatus || "Active"}
-          metaLeft={
-            <>
-              <InfoRow
-                label="Prescribed by"
-                value={
-                  item.prescribedByName || item.prescriberName || "Unknown"
-                }
-              />
-              <InfoRow label="Started" value={formatDate(item.prescribedAt)} />
-            </>
-          }
-          metaRight={
-            <>
-              <InfoRow label="Generic" value={item.genericName} />
-              <InfoRow label="Brand" value={item.brandName} />
-            </>
-          }
-          footerLeft={
-            item.indication
-              ? `Indication: ${item.indication}`
-              : item.notes || "Medication history entry"
-          }
-          actionLabel="Request Refill"
-        >
-          {item.notes && <p className="text-sm text-[#667085]">{item.notes}</p>}
-        </RecordShell>
+  key={item.id}
+  icon={<Pill size={18} />}
+  title={item.medicationName}
+  subtitle={item.indication || "Medication entry"}
+  summaryChips={medicationChips}
+  status={
+    <StatusBadge
+      value={item.medicationStatus || "Active"}
+      tone={item.medicationStatus === "active" ? "green" : "gray"}
+    />
+  }
+  metaLeft={
+    <>
+      <InfoRow label="Form" value={item.form || "—"} />
+      <InfoRow
+        label="Prescribed by"
+        value={item.prescribedByFullName || item.prescriberName || "Unknown"}
+      />
+      <InfoRow label="Started" value={formatDate(item.prescribedAt)} />
+    </>
+  }
+  metaRight={
+    <>
+      <InfoRow label="Generic" value={item.genericName || "—"} />
+      <InfoRow label="Brand" value={item.brandName || "—"} />
+      <InfoRow label="Facility" value={item.facilityName || "—"} />
+    </>
+  }
+  footerLeft={item.notes || "Medication history entry"}
+/>
       );
     }
 
     if (tab === "allergies") {
+      const allergySubtitle = (
+        <div className="flex flex-wrap gap-2">
+          {item.allergyType && (
+            <span className="rounded-full bg-gray-100 px-2.5 py-1 text-sm text-gray-700">
+              {item.allergyType}
+            </span>
+          )}
+
+          {item.reaction && (
+            <span className="rounded-full bg-red-50 px-2.5 py-1 text-sm font-semibold text-red-700">
+              {item.reaction}
+            </span>
+          )}
+        </div>
+      );
       return (
         <RecordShell
           key={item.id}
           icon={<AlertCircle size={18} />}
           title={item.allergen}
-          subtitle={
-            [item.allergyType, item.reaction].filter(Boolean).join(" • ") ||
-            "Allergy record"
-          }
+          subtitle={allergySubtitle || "Allergy record"}
           status={item.clinicalStatus || "Active"}
           metaLeft={
             <>
@@ -475,15 +627,27 @@ export function HealthCategoryHistoryPage() {
     }
 
     if (tab === "diagnoses") {
+      const diagnosisSubtitle = (
+        <div className="flex flex-wrap gap-2">
+          {item.diagnosisType && (
+            <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-sm text-indigo-700">
+              {item.diagnosisType}
+            </span>
+          )}
+
+          {item.icd10Code && (
+            <span className="rounded-full bg-gray-100 px-2.5 py-1 text-sm font-mono text-gray-700">
+              {item.icd10Code}
+            </span>
+          )}
+        </div>
+      );
       return (
         <RecordShell
           key={item.id}
           icon={<Stethoscope size={18} />}
           title={item.diagnosisName}
-          subtitle={
-            [item.diagnosisType, item.icd10Code].filter(Boolean).join(" • ") ||
-            "Diagnosis entry"
-          }
+          subtitle={diagnosisSubtitle || "Diagnosis entry"}
           status={item.clinicalStatus || "Recorded"}
           metaLeft={
             <>
@@ -504,15 +668,27 @@ export function HealthCategoryHistoryPage() {
     }
 
     if (tab === "immunizations") {
+      const immunizationSubtitle = (
+        <div className="flex flex-wrap gap-2">
+          {item.series && (
+            <span className="rounded-full bg-blue-50 px-2.5 py-1 text-sm text-blue-700">
+              {item.series}
+            </span>
+          )}
+
+          {item.doseNumber && (
+            <span className="rounded-full bg-green-50 px-2.5 py-1 text-sm font-semibold text-green-700">
+              Dose {item.doseNumber}
+            </span>
+          )}
+        </div>
+      );
       return (
         <RecordShell
           key={item.id}
           icon={<Syringe size={18} />}
           title={item.vaccineName}
-          subtitle={
-            [item.series, item.doseNumber ? `Dose ${item.doseNumber}` : null]
-              .filter(Boolean)
-              .join(" • ") || "Immunization entry"
+          subtitle={immunizationSubtitle || "Immunization entry"
           }
           status={item.immunizationStatus || "Completed"}
           metaLeft={
@@ -537,55 +713,81 @@ export function HealthCategoryHistoryPage() {
     }
 
     if (tab === "procedures") {
-  return (
-    <RecordShell
-      key={item.id}
-      icon={<FlaskConical size={18} />}   // Consider changing icon to something more suitable like Scalpel or Activity
-      title={item.procedureName || "Unknown Procedure"}
-      subtitle={
-        [item.procedureType, item.outcome]
-          .filter(Boolean)
-          .join(" • ") || "Surgical Procedure"
-      }
-      status={item.clinicalStatus || item.outcome || "Completed"}
-      metaLeft={
-        <>
-          <InfoRow 
-            label="Performed" 
-            value={item.performedAt ? formatDate(item.performedAt) : "—"} 
-          />
-          <InfoRow 
-            label="Indication" 
-            value={item.indication || "—"} 
-          />
-        </>
-      }
-      metaRight={
-        <>
-          <InfoRow 
-            label="Performed By" 
-            value={item.performedBy?.organizationName || "—"} 
-          />
-          <InfoRow 
-            label="Facility" 
-            value={item.facilityName || item.performedBy?.organizationName || "—"} 
-          />
-        </>
-      }
-      footerLeft={item.notes || "No additional notes"}
-      actionLabel="View Details"
-    />
-  );
-}
+      const procedureSubtitle = (
+        <div className="flex flex-wrap gap-2">
+          {item.procedureType && (
+            <span className="rounded-full bg-purple-50 px-2.5 py-1 text-sm text-purple-700">
+              {item.procedureType}
+            </span>
+          )}
+
+          {item.outcome && (
+            <span className="rounded-full bg-green-50 px-2.5 py-1 text-sm font-semibold text-green-700">
+              {item.outcome}
+            </span>
+          )}
+        </div>
+      );
+      return (
+        <RecordShell
+          key={item.id}
+          icon={<FlaskConical size={18} />} // Consider changing icon to something more suitable like Scalpel or Activity
+          title={item.procedureName || "Unknown Procedure"}
+          subtitle={procedureSubtitle ||
+            "Surgical Procedure"
+          }
+          status={item.clinicalStatus || item.outcome || "Completed"}
+          metaLeft={
+            <>
+              <InfoRow
+                label="Performed"
+                value={item.performedAt ? formatDate(item.performedAt) : "—"}
+              />
+              <InfoRow label="Indication" value={item.indication || "—"} />
+            </>
+          }
+          metaRight={
+            <>
+              <InfoRow
+                label="Performed By"
+                value={item.performedBy?.organizationName || "—"}
+              />
+              <InfoRow
+                label="Facility"
+                value={
+                  item.facilityName || item.performedBy?.organizationName || "—"
+                }
+              />
+            </>
+          }
+          footerLeft={item.notes || "No additional notes"}
+          actionLabel="View Details"
+        />
+      );
+    }
 
     if (tab === "lab") {
+      const labSubtitle = (
+        <div className="flex flex-wrap gap-2">
+          {item.resultValue && (
+            <span className="rounded-full bg-blue-50 px-2.5 py-1 text-sm font-semibold text-blue-700">
+              {item.resultValue} {item.unit || ""}
+            </span>
+          )}
+
+          {item.interpretation && (
+            <span className="rounded-full bg-amber-50 px-2.5 py-1 text-sm font-semibold text-amber-700">
+              {item.interpretation}
+            </span>
+          )}
+        </div>
+      );
       return (
         <RecordShell
           key={item.id}
           icon={<FlaskConical size={18} />}
           title={item.testName}
-          subtitle={
-            [item.resultValue, item.unit].filter(Boolean).join(" ") ||
+          subtitle={labSubtitle ||
             "Lab result"
           }
           status={item.interpretation || "Completed"}
@@ -714,5 +916,3 @@ export function HealthCategoryHistoryPage() {
     </div>
   );
 }
-
-

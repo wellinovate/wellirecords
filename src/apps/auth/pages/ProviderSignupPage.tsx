@@ -421,31 +421,26 @@ export function ProviderSignupPage() {
     setLoading(true);
     try {
       const payload = {
-        accountType: "user",
-        role: individualForm.providerRole,
-        fullName: individualForm.fullName,
+        accountType: "organization",
+        organizationName: individualForm.fullName,
+        organizationType: "individaul_provider",
         email: individualForm.email,
         phone: individualForm.phone,
         country: individualForm.country,
         state: individualForm.state,
         city: individualForm.city,
+        contactPersonName: individualForm.fullName,
+        contactPersonRole: individualForm.providerRole,
+        role: individualForm.providerRole,
         password: individualForm.password,
       };
 
       console.log("Individual provider signup payload:", payload);
 
-      // Replace this with a dedicated backend function later
-      const resp = await signUpProvider(
-        individualForm.providerRole,
-        individualForm.fullName,
-        individualForm.email,
-        individualForm.phone,
-        individualForm.country,
-        individualForm.password,
-      );
+      const resp = await signUpProvider(payload);
 
       if (resp === "Account created successfully") {
-        navigate("/auth/provider/login");
+        navigate("/auth/login");
       }
     } catch (error: any) {
       console.log("Individual provider signup error:", error);

@@ -523,7 +523,7 @@ export default function PatientSignupPage() {
                   </div>
                 </div>
 
-                <div className="pt-1 col-span-2">
+                {/* <div className="pt-1 col-span-2">
                   <label className="flex items-start gap-2 text-sm leading-6 text-[#173A71]">
                     <input
                       type="checkbox"
@@ -536,7 +536,7 @@ export default function PatientSignupPage() {
                       Privacy Policy.
                     </span>
                   </label>
-                </div>
+                </div> */}
 
                 <div className="pt-1 text-center col-span-2 w-full">
                   <button

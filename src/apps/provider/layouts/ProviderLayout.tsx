@@ -6,36 +6,29 @@ import { useNetwork } from "@/shared/hooks/useNetwork";
 import { ROLE_METADATA } from "@/shared/rbac/permissions";
 import { useRBAC } from "@/shared/rbac/useRBAC";
 import { WelliMateWidget } from "@/shared/ui/WelliMateWidget";
-import { WelliRecordLogo } from "@/shared/ui/WelliRecordLogo";
 import {
   Activity,
   Bell,
   CalendarClock,
   ChevronDown,
   ChevronRight,
-  Crown,
-  FileEdit,
+  ClipboardList,
   FlaskConical,
-  GitBranch,
   HeartPulse,
   LayoutDashboard,
   LifeBuoy,
+  ListOrdered,
   Lock,
   LogOut,
   Menu,
   MessageSquare,
   MoreHorizontal,
   Pill,
-  ScrollText,
-  Settings2,
-  Sparkles,
   Stethoscope,
   UserCog,
   Users,
   Video,
-  WifiOff,
-  X,
-  TelescopeIcon
+  WifiOff
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -47,18 +40,41 @@ const ALL_NAV = [
     icon: LayoutDashboard,
     roles: ["*"],
   },
+  {
+    to: "/provider/front-desk",
+    label: "Front Desk",
+    icon: ClipboardList,
+    roles: ["*"],
+  },
+  {
+    to: "/provider/appointments",
+    label: "Appointments",
+    icon: CalendarClock,
+    roles: ["*"],
+  },
+  {
+    to: "/provider/queue",
+    label: "Queue",
+    icon: ListOrdered,
+    roles: ["*"],
+  },
   { to: "/provider/patients", label: "Patients", icon: Users, roles: ["*"] },
-  { to: "/provider/doctors", label: "Doctors", icon: Stethoscope, roles: ["*"] },
-  // {
-  //   to: "/provider/nursing",
-  //   label: "Nursing",
-  //   icon: Stethoscope,
-  //   // roles: ["nurse", "provider_admin"],
-  //   roles: ["*"],
+  {
+    to: "/provider/doctors",
+    label: "Doctors",
+    icon: Stethoscope,
+    roles: ["*"],
+  },
+  
+  {
+    to: "/provider/nursing",
+    label: "Nursing",
+    icon: HeartPulse,
+    // roles: ["nurse", "provider_admin"],
+    roles: ["*"],
 
-  // },
+  },
 
-  { to: "/provider/queue", label: "Queue", icon: CalendarClock, roles: ["*"] },
   {
     to: "/provider/prescriptions",
     label: "Prescriptions",
@@ -181,18 +197,17 @@ export function ProviderLayout() {
   const meta = primaryRole ? ROLE_METADATA[primaryRole] : null;
 
   return (
-    <div
-      className="flex h-screen portal-provider overflow-hidden"
-    >
+    <div className="flex h-screen portal-provider overflow-hidden">
       {/* ─── Desktop / Tablet Sidebar ─── */}
       <aside
         className="sidebar-provider hidden md:flex flex-col w-16 lg:w-64 flex-shrink-0 z-20"
-        // style={{ boxShadow: "2px 0 30px rgba(0,0,0,.3)" }}
+        style={{
+          background: "var(--prov-sidebar-bg)",
+          borderRight: "1px solid var(--prov-border)",
+        }}
       >
         {/* Logo */}
-        <div
-          className="p-3 lg:p-5 border-b border-blue-950 flex flex-col items-center justify-center lg:justify-start"
-        >
+        <div className="p-3 lg:p-5 border-b border-blue-950 flex flex-col items-center justify-center lg:justify-start">
           <Link
             to="/"
             className="flex h-10 w-46 overflow-hidden items-center justify-center rounded-md  text-white shadow-sm cursor-pointer"
@@ -203,8 +218,14 @@ export function ProviderLayout() {
               className=" w-full h- full object-cover"
             />
           </Link>
-          
-          <div className="ml-2 lg:block text-[16px] font-bold border border-blue-800 rounded-lg tracking-widest uppercase mt-2 py-2 px-3 bg-[#01475C] text-white">
+
+          <div className="ml-2 lg:block text-[16px] font-bold border border-blue-800 rounded-lg tracking-widest uppercase mt-2 py-2 px-3 bg-[#01475C] text-white"
+          // className="ml-2 lg:block text-[16px] font-bold rounded-lg tracking-widest uppercase mt-2 py-2 px-3 text-white"
+style={{
+  background: "linear-gradient(180deg, #163B73 0%, #0F2F5E 100%)",
+  border: "1px solid rgba(124, 164, 255, 0.30)",
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
+}}>
             Provider Portal
           </div>
         </div>
@@ -216,12 +237,18 @@ export function ProviderLayout() {
           <button
             onClick={() => setShowOrgDrop((p) => !p)}
             className="flex items-center gap-2 p-2 lg:p-2.5 rounded-xl w-full text-left hover:bg-white/5 justify-center lg:justify-start"
+            // className="ml-2 lg:block text-[16px] font-bold rounded-lg tracking-widest uppercase mt-2 py-2 px-3 text-white"
+            style={{
+              background: "linear-gradient(180deg, #163B73 0%, #0F2F5E 100%)",
+              border: "1px solid rgba(124, 164, 255, 0.30)",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
+            }}
           >
             <div
               className="w-7 h-7 lg:w-8 lg:h-8 rounded-lg flex items-center justify-center text-sm flex-shrink-0"
               style={{
-                background: "var(--prov-surface2)",
-                border: "1px solid var(--prov-border)",
+                background: "linear-gradient(180deg, #1B2A55 0%, #162347 100%)",
+                border: "1px solid rgba(126, 159, 255, 0.12)",
               }}
             >
               {orgApi.getOrgTypeIcon(org?.type ?? "hospital")}
@@ -308,8 +335,14 @@ export function ProviderLayout() {
                   if (!locked) navigate(item.to);
                 }}
                 title={item.label}
-                className={`sidebar-item sidebar-item-provider w-full ${active && !locked ? "active" : ""} justify-center lg:justify-start`}
-                style={locked ? { opacity: 0.38, cursor: "not-allowed" } : {}}
+                className={`sidebar-item sidebar-item-provider text-white w-full ${active && !locked ? "active" : ""} justify-center lg:justify-start`}
+                // style={locked ? { opacity: 0.38, cursor: "not-allowed" } : {}}
+                style={{
+                  background:
+                    "linear-gradient(90deg, rgba(89,190,255,0.28) 0%, rgba(89,190,255,0.18) 45%, rgba(89,190,255,0.10) 100%)",
+                  border: "1px solid rgba(120, 220, 255, 0.22)",
+                  boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.03)",
+                }}
               >
                 <item.icon size={18} />
                 <span className="hidden lg:block flex-1 text-left">
@@ -391,13 +424,22 @@ export function ProviderLayout() {
       </aside>
 
       {/* ─── Main ─── */}
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+      <div
+  className="flex-1 flex flex-col overflow-hidden min-w-0"
+  style={{
+    background: `
+      radial-gradient(circle at 15% 20%, rgba(120,170,255,0.18) 0%, rgba(120,170,255,0.06) 18%, transparent 40%),
+      radial-gradient(circle at 80% 10%, rgba(90,140,255,0.10) 0%, transparent 30%),
+      linear-gradient(180deg, #0B1730 0%, #081225 100%)
+    `
+  }}
+>
         {/* Top bar */}
         <header
           className="h-14 flex items-center justify-between px-4 md:px-6 border-b flex-shrink-0"
           style={{
-            borderColor: "var(--prov-border)",
-            background: "var(--prov-surface)",
+            borderColor: "rgba(120,150,255,0.08)",
+            background: "transparent",
           }}
         >
           <div className="flex items-center gap-3">
@@ -477,36 +519,45 @@ export function ProviderLayout() {
             </span>
           </div>
         )}
-        
 
-        <main className="relative overflow-y-auto ">
+        <main
+  className="relative overflow-y-auto"
+  style={{
+    background: "transparent"
+  }}
+>
           <Outlet />
 
-          
-        {!user?.isVerified && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-    <div className="bg-white rounded-xl p-6 w-[320px] text-center shadow-xl">
-      <Lock size={32} className="mx-auto mb-3 text-red-500" />
+          {!user?.isVerified && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+              <div
+  className="rounded-xl p-6 w-[320px] text-center shadow-xl"
+  style={{
+    background: "linear-gradient(180deg, #0F1C2E 0%, #0B162B 100%)",
+    border: "1px solid rgba(120,150,255,0.10)",
+    color: "#EAF2FF"
+  }}
+>
+                <Lock size={32} className="mx-auto mb-3 text-red-500" />
 
-      <h2 className="text-lg font-bold mb-2 text-gray-800">
-        Verification Required
-      </h2>
+                <h2 className="text-lg font-bold mb-2 text-gray-800">
+                  Verification Required
+                </h2>
 
-      <p className="text-sm text-gray-600 mb-4">
-        Your provider account is not verified yet. Complete
-        verification to unlock full access.
-      </p>
+                <p className="text-sm text-gray-600 mb-4">
+                  Your provider account is not verified yet. Complete
+                  verification to unlock full access.
+                </p>
 
-      <button
-        onClick={() => navigate("/provider/verify")}
-        className="w-full bg-[#2F915C] text-white py-2 rounded-md font-semibold"
-      >
-        Verification in Progress
-      
-      </button>
-    </div>
-  </div>
-)}
+                <button
+                  onClick={() => navigate("/provider/verify")}
+                  className="w-full bg-[#2F915C] text-white py-2 rounded-md font-semibold"
+                >
+                  Verification in Progress
+                </button>
+              </div>
+            </div>
+          )}
         </main>
       </div>
 

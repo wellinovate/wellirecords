@@ -6,20 +6,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Bricolage+Grotesque:wght@400;600;800&display=swap');
 
 /* ─── CSS Variables ─────────────────────────────────────────────────────────── */
-:root {
-  /* Provider Portal — Deep Navy/Teal */
+/* Provider Portal — Deep Navy/Teal */
+/* :root {
   --prov-bg: #050d1a;
   --prov-surface: #01072b;
   --prov-surface2: #0f2545;
   --prov-primary: #041E42;
-  /* Updated to Deep Brand Navy */
   --prov-accent: #38bdf8;
   --prov-accent2: #06b6d4;
   --prov-border: #1e3a5f;
   --prov-text: #e2eaf4;
   --prov-muted: #7ba3c8;
 
-  /* Patient Portal — Navy Blue / Crisp White Brand Identity */
   --pat-bg: #f8fafc;
   --pat-surface: #ffffff;
   --pat-surface2: #f1f5f9;
@@ -31,7 +29,6 @@
   --pat-text: #1e293b;
   --pat-muted: #64748b;
 
-  /* Shared */
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 20px;
@@ -42,13 +39,47 @@
   --shadow-lg: 0 8px 40px rgba(0, 0, 0, .18);
   --shadow-glow-blue: 0 0 30px rgba(4, 30, 66, .15);
   --shadow-glow-green: 0 0 30px rgba(4, 30, 66, .15);
+} */
+
+
+:root {
+  /* 🔵 BACKGROUND SYSTEM */
+  --prov-bg: #0A1624;
+  --prov-surface: #0F1C2E;
+  --prov-surface2: #13243A;
+
+  /* 🧱 BORDERS */
+  --prov-border: rgba(255, 255, 255, 0.06);
+
+  /* 🔷 PRIMARY GRADIENT */
+  --prov-gradient: linear-gradient(135deg, #0B1F3A 0%, #0E5E6F 100%);
+
+  /* 🔹 ACCENT */
+  --prov-accent: #0EA5E9;
+
+  --prov-sidebar-bg:
+    radial-gradient(circle at 78% 82%, rgba(120, 170, 255, 0.22) 0%, rgba(120, 170, 255, 0.10) 14%, rgba(120, 170, 255, 0.00) 32%),
+    radial-gradient(circle at 68% 72%, rgba(160, 210, 255, 0.10) 0%, rgba(160, 210, 255, 0.04) 18%, rgba(160, 210, 255, 0.00) 34%),
+    radial-gradient(circle at 82% 18%, rgba(67, 116, 255, 0.10) 0%, rgba(67, 116, 255, 0.00) 26%),
+    linear-gradient(180deg, #081224 0%, #0A1730 18%, #10244B 58%, #0A1733 100%);
+
+  --prov-surface: #0d1a33;
+  --prov-surface2: #16284a;
+  --prov-border: rgba(126, 159, 255, 0.10);
+  --prov-text-primary: #eef4ff;
+  --prov-text-secondary: #9db2d3;
+
+  /* 🟢 SUCCESS / STATUS */
+  --prov-success: #16A34A;
+  --prov-warning: #F59E0B;
+  --prov-danger: #DC2626;
+
+  /* 📝 TEXT */
+  --prov-text-primary: #E6EDF3;
+  --prov-text-secondary: #9FB3C8;
+  --prov-text-muted: #6B7C93;
 }
 
-/* 
-   Dark mode token overrides for the Patient Portal have been explicitly removed.
-   Per user request, the dashboard must remain a clean, crisp white to ensure 
-   maximum accessibility and simplicity for non-tech-savvy patients.
-*/
 
 /* Ensure card-patient hover glow works on light */
 .card-patient:hover {

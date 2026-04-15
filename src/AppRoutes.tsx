@@ -101,6 +101,8 @@ import UserTypeSelectionLogin from "./apps/auth/pages/UserTypeSelectionLogin";
 import { HealthCategoryHistoryPage } from "./apps/components/HealthCategoryHistoryPage";
 import { HealthHistoryTimelinePage } from "./apps/patient/pages/HealthHistory";
 import BestDoctorsPage from "./apps/provider/pages/BestDoctorsPage";
+import ProviderAppointmentsPage from "./apps/provider/pages/ProviderAppointmentsPage";
+import QueuePage from "./modules/queue/pages/QueuePage";
 
 // ─── Root redirect ────────────────────────────────────────────────────────────
 const ADMIN_ROLES = [
@@ -237,6 +239,8 @@ export function AppRoutes() {
         <Route path="patients" element={<PatientListPage />} />
         <Route path="doctors" element={<BestDoctorsPage />} />
         <Route path="patients/:id" element={<EHRViewerPage />} />
+        <Route path="appointments" element={<ProviderAppointmentsPage />} />
+        <Route path="queue" element={<QueuePage />} />
         <Route path="encounters/new" element={<NewEncounterPage />} />
         <Route path="orders/labs" element={<LabOrdersPage />} />
         <Route path="prescriptions" element={<PrescriptionsPage />} />
@@ -255,6 +259,7 @@ export function AppRoutes() {
         <Route path="front-desk" element={<FrontDeskPage />} />
         <Route path="hmo-desk" element={<HMODeskPage />} />
         <Route path="reports" element={<ReportsPage />} />
+        {/* <Route path="appointments" element={<ProviderAppointmentsPage />} /> */}
         <Route path="queue" element={<AppointmentQueuePage />} />
         <Route path="support" element={<ProviderSupportPage />} />
       </Route>

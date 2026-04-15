@@ -6,7 +6,11 @@ import {
   TriangleAlert,
   ChevronRight,
   FileX2,
+  Eye,
+  Share2,
+  ArrowRightCircle,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 type EncounterItem = {
   id: string;
@@ -89,12 +93,12 @@ export function RecentEncountersCard({
         </h2>
 
         {!isLoading && encounters?.length > 0 && (
-          <button
-            onClick={onViewAll}
+          <Link to="/patient/journeys"
+            // onClick={onViewAll}
             className="text-sm font-semibold text-[#2F915C] hover:underline"
           >
             View All Encounters
-          </button>
+          </Link>
         )}
       </div>
 
@@ -128,7 +132,7 @@ export function RecentEncountersCard({
             return (
               <div
                 key={item.id}
-                className="py-2 flex flex-col xl:flex-row bg-gray-100 xl:items-center gap-2 px-2 rounded-lg hover:bg-gray-50 transition-colors"
+                className="py-2 flex flex-co xl:flex-row bg-gray-100 xl:items-center gap-2 px-2 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-start gap-1 flex-1 min-w-0">
                   <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center flex-shrink-0">
@@ -159,6 +163,9 @@ export function RecentEncountersCard({
                       </span>
                     </div>
 
+                    <div className="flex justify-between">
+                    <div>
+
                     <div className="text-xs text-gray-600">
                       {item.provider ? `Visited ${item.provider}` : item.facility}
                     </div>
@@ -178,29 +185,38 @@ export function RecentEncountersCard({
                         className="text-gray-400 flex-shrink-0"
                       />
                     </div>
+                    </div>
+
+                <div className="flex flex- items-center gap-2">
+  <button
+    onClick={() => onViewDetails(item.id)}
+    title="View Details"
+    className="w-9 h-9 flex items-center justify-center rounded-lg bg-[#148A90] text-white hover:brightness-95"
+  >
+    <Eye size={16} />
+  </button>
+
+  <button
+    onClick={() => onShare(item.id)}
+    title="Share"
+    className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+  >
+    <Share2 size={16} />
+  </button>
+
+  <button
+    onClick={() => onContinueCare(item.id)}
+    title="Continue Care"
+    className="w-9 h-9 flex items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+  >
+    <ArrowRightCircle size={16} />
+  </button>
+</div>
+                    </div>
+
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <button
-                    onClick={() => onViewDetails(item.id)}
-                    className="px-2 py-2 rounded-xl bg-[#148A90] text-white text-[10px] font-semibold"
-                  >
-                    View Details
-                  </button>
-                  <button
-                    onClick={() => onShare(item.id)}
-                    className="px-2 py-2 rounded-xl border border-gray-200 bg-white text-[10px] font-semibold text-gray-700"
-                  >
-                    Share
-                  </button>
-                  <button
-                    onClick={() => onContinueCare(item.id)}
-                    className="px-2 py-2 rounded-xl border border-emerald-200 bg-emerald-50 text-[10px] font-semibold text-emerald-700"
-                  >
-                    Continue Care
-                  </button>
-                </div>
               </div>
             );
           })}

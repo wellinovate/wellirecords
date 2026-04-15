@@ -79,14 +79,14 @@ export default function HospitalDoctorsMembershipPage() {
   };
 
   return (
-    <div className="min-h-screen b-[#07162b] bg-[#E6EFFC] px-6 py-10 text-blue-950">
+    <div className="min-h-screen b-[#07162b] bg-transparent px-6 py-10 text-blue-50">
       <div className="mx-auto max-w-7xl">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-semibold text-blue-900">
+            <h1 className="text-3xl font-semibold text-blue-100">
               Hospital Doctors
             </h1>
-            <p className="mt-1 text-blue-900 font-bold">
+            <p className="mt-1 text-blue-100 font-bold">
               Manage doctors attached to your hospital membership
             </p>
           </div>
@@ -100,7 +100,7 @@ export default function HospitalDoctorsMembershipPage() {
           </button>
         </div>
 
-        <div className="mb-6 text-base font-bold text-blue-900">
+        <div className="mb-6 text-base font-bold text-blue-100">
           {doctors?.length} doctor{doctors?.length !== 1 ? "s" : ""} in membership
         </div>
 

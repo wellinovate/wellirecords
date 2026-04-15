@@ -9,6 +9,7 @@ import {
   Scissors,
 } from "lucide-react";
 import { RecordCardSkeleton } from "../patient/components/RecordCardSkeleton ";
+import { Link } from "react-router-dom";
 
 type RecordCategory = {
   category: string;
@@ -38,10 +39,10 @@ export function SummaryRecordsGrid({
               <RecordCardSkeleton key={index} />
             ))
           : records.map((item) => (
-              <div
+              <Link to="/patient/vault"
                 key={item.category}
                 className="rounded-2xl border border-gray-200 bg-white p-5 hover:shadow-md transition cursor-pointer"
-                onClick={() => onViewCategory(item.category)}
+                // onClick={() => onViewCategory(item.category)}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div>
@@ -72,17 +73,17 @@ export function SummaryRecordsGrid({
                       : "No records yet"}
                   </div>
 
-                  <button
+                  <button 
                     className="text-sm font-semibold text-[#2F915C]"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onViewCategory(item.category);
-                    }}
+                    // onClick={(e) => {
+                    //   e.stopPropagation();
+                    //   onViewCategory(item.category);
+                    // }}
                   >
                     View
                   </button>
                 </div>
-              </div>
+              </Link>
             ))}
       </div>
     </div>

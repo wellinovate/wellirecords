@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { FirstRecordWizard } from "@/apps/patient/components/FirstRecordWizard";
 import { HealthHistoryLoader } from "./Loader/HealthHistoryLoader";
-import { formatDate, InfoRow, RecordShell } from "./HealthCategoryHistoryPage";
+import { formatDate, InfoRow, RecordShell, StatusBadge, SummaryChip } from "./HealthCategoryHistoryPage";
 
 // Keep your existing helper functions: formatDate, InfoRow, RecordShell
 
@@ -275,115 +275,211 @@ export function MedicalRecords({
   }, [currentRecords, tab, search]);
 
   const renderRecordCard = (item: RecordItem) => {
-    if (tab === "vitals") {
-      const vitalsSummary = [
-        item.bloodPressure
-          ? `BP ${item.bloodPressure.systolic}/${item.bloodPressure.diastolic}`
-          : null,
-        item.heartRate ? `HR ${item.heartRate} bpm` : null,
-        item.temperature?.value
-          ? `Temp ${item.temperature.value}°${item.temperature.unit || "C"}`
-          : null,
-      ]
-        .filter(Boolean)
-        .join(" • ");
-
-      return (
-        <RecordShell
-          key={item.id}
-          icon={<HeartPulse size={18} />}
-          title="Vital Record"
-          subtitle={vitalsSummary || "Patient vital signs"}
-          status="Recorded"
-          metaLeft={
-            <>
-              <InfoRow label="Measured" value={formatDate(item.measuredAt)} />
-              <InfoRow label="Respiratory Rate" value={item.respiratoryRate} />
-            </>
-          }
-          metaRight={
-            <>
-              <InfoRow
-                label="Oxygen Saturation"
-                value={item.oxygenSaturation ? `${item.oxygenSaturation}%` : ""}
-              />
-              <InfoRow
-                label="Blood Glucose"
-                value={
-                  item.bloodGlucose?.value
-                    ? `${item.bloodGlucose.value} ${item.bloodGlucose.unit || ""}`
-                    : ""
-                }
-              />
-            </>
-          }
-          footerLeft={
-            item.notes ? `Notes: ${item.notes}` : "Vitals history entry"
-          }
-          actionLabel="View Vital"
-        >
-          <div className="flex flex-wrap gap-2 text-sm text-[#475467]">
-            {item.weight?.value && (
-              <span>
-                Weight: {item.weight.value} {item.weight.unit}
-              </span>
-            )}
-            {item.height?.value && (
-              <span>
-                Height: {item.height.value} {item.height.unit}
-              </span>
-            )}
-          </div>
-        </RecordShell>
-      );
-    }
-
-    if (tab === "medications") {
-      const subtitle = [
-        item.dosage?.value
-          ? `${item.dosage.value}${item.dosage.unit ? ` ${item.dosage.unit}` : ""}`
-          : null,
-        item.frequency,
-        item.route,
-      ]
-        .filter(Boolean)
-        .join(" • ");
-
-      return (
-        <RecordShell
-          key={item.id}
-          icon={<Pill size={18} />}
-          title={item.medicationName}
-          subtitle={subtitle || "Medication entry"}
-          status={item.medicationStatus || "Active"}
-          metaLeft={
-            <>
-              <InfoRow
-                label="Prescribed by"
-                value={
-                  item.prescribedByName || item.prescriberName || "Unknown"
-                }
-              />
-              <InfoRow label="Started" value={formatDate(item.prescribedAt)} />
-            </>
-          }
-          metaRight={
-            <>
-              <InfoRow label="Generic" value={item.genericName} />
-              <InfoRow label="Brand" value={item.brandName} />
-            </>
-          }
-          footerLeft={
-            item.indication
-              ? `Indication: ${item.indication}`
-              : item.notes || "Medication history entry"
-          }
-          actionLabel="Request Refill"
-        >
-          {item.notes && <p className="text-sm text-[#667085]">{item.notes}</p>}
-        </RecordShell>
-      );
-    }
+     if (tab === "vitals") {
+          
+           
+    
+          const vitalsSubtitle = (
+            <div className="space-y-1 flex justify-between w-full">
+              {item.bloodPressure && (
+                <div>
+                  <span className="font-medium text-[#344054]">BP:</span>{" "}
+                  <span className="font-semibold text-[#B42318]">
+                    {item.bloodPressure.systolic}/{item.bloodPressure.diastolic}
+                  </span>
+                </div>
+              )}
+    
+              {item.heartRate && (
+                <div>
+                  <span className="font-medium text-[#344054]">HR:</span>{" "}
+                  <span className="font-semibold text-[#1D2939]">
+                    {item.heartRate} bpm
+                  </span>
+                </div>
+              )}
+    
+              {item.temperature?.value && (
+                <div>
+                  <span className="font-medium text-[#344054]">Temp:</span>{" "}
+                  <span className="font-semibold text-[#DC6803]">
+                    {item.temperature.value}°{item.temperature.unit || "C"}
+                  </span>
+                </div>
+              )}
+            </div>
+          );
+    
+          
+    
+          const bloodPressure = item.bloodPressure
+      ? `${item.bloodPressure.systolic}/${item.bloodPressure.diastolic}`
+      : "—";
+    
+    const vitalsChips = (
+      <>
+        {item?.bloodPressure && (
+          <SummaryChip
+            label="BP"
+            value={bloodPressure}
+            tone="red"
+          />
+        )}
+        {item?.heartRate && (
+          <SummaryChip
+            label="HR"
+            value={`${item.heartRate} bpm`}
+            tone="blue"
+          />
+        )}
+        {item?.temperature?.value && (
+          <SummaryChip
+            label="Temp"
+            value={`${item.temperature.value}°${item.temperature.unit || "C"}`}
+            tone="amber"
+          />
+        )}
+        {item?.oxygenSaturation && (
+          <SummaryChip
+            label="SpO₂"
+            value={`${item.oxygenSaturation}%`}
+            tone="green"
+          />
+        )}
+      </>
+    );
+    
+    
+    
+          return (
+            <RecordShell
+      key={item.id}
+      icon={<HeartPulse size={18} />}
+      title="Vital Record"
+      subtitle={formatDate(item.measuredAt) || "Patient vital signs"}
+      summaryChips={vitalsChips}
+      status={<StatusBadge value="Recorded" tone="green" />}
+      metaLeft={
+        <>
+          <InfoRow label="Measured" value={formatDate(item.measuredAt)} />
+    
+          {/* <InfoRow label="Blood Pressure" value={bloodPressure} /> */}
+          {/* <InfoRow label="Heart Rate" value={item.heartRate ? `${item.heartRate} bpm` : "—"} /> */}
+          <InfoRow label="Respiratory Rate" value={item.respiratoryRate} />
+        </>
+      }
+      metaRight={
+        <>
+          <InfoRow
+            label="Blood Glucose"
+            value={
+              item.bloodGlucose?.value
+                && `${item.bloodGlucose.value} ${item.bloodGlucose.unit || ""}`}
+          />
+          <InfoRow
+            label="Oxygen Saturation"
+            value={item.oxygenSaturation && `${item.oxygenSaturation}%` }
+          />
+        </>
+      }
+      footerLeft={item.notes ? `Notes: ${item.notes}` : "Vitals history entry"}
+    >
+      <div className="flex flex-wrap gap-2 text-sm text-[#475467]">
+        {item.weight?.value && (
+          <SummaryChip
+            label="Weight"
+            value={`${item.weight.value} ${item.weight.unit || ""}`}
+            tone="neutral"
+          />
+        )}
+        {item.height?.value && (
+          <SummaryChip
+            label="Height"
+            value={`${item.height.value} ${item.height.unit || ""}`}
+            tone="neutral"
+          />
+        )}
+      </div>
+    </RecordShell>)
+        }
+    
+        if (tab === "medications") {
+    
+          const medicationChips = (
+      <>
+        {item.dosage?.value && (
+          <SummaryChip
+            label="Dose"
+            value={`${item.dosage.value} ${item.dosage.unit || ""}`}
+            tone="blue"
+          />
+        )}
+        {item.frequency && (
+          <SummaryChip label="Frequency:" value={item.frequency} tone="purple" />
+        )}
+        {item.route && (
+          <SummaryChip label="Route:" value={item.route} tone="neutral" />
+        )}
+      </>
+    );
+    
+    
+          const medicationSubtitle = (
+            <div className="flex flex-wrap gap-2">
+              {item.dosage?.value && (
+                <span className="rounded-full bg-blue-50 px-2.5 py-1 text-sm font-semibold text-blue-700">
+                  {item.dosage.value} {item.dosage.unit || ""}
+                </span>
+              )}
+    
+              {item.frequency && (
+                <span className="rounded-full bg-purple-50 px-2.5 py-1 text-sm font-semibold text-purple-700">
+                  {item.frequency}
+                </span>
+              )}
+    
+              {item.route && (
+                <span className="rounded-full bg-gray-100 px-2.5 py-1 text-sm font-semibold text-gray-700">
+                  {item.route}
+                </span>
+              )}
+            </div>
+          );
+    
+          return (
+            <RecordShell
+      key={item.id}
+      icon={<Pill size={18} />}
+      title={item.medicationName}
+      subtitle={item.indication || "Medication entry"}
+      summaryChips={medicationChips}
+      status={
+        <StatusBadge
+          value={item.medicationStatus || "Active"}
+          tone={item.medicationStatus === "active" ? "green" : "gray"}
+        />
+      }
+      metaLeft={
+        <>
+          <InfoRow label="Form" value={item.form || "—"} />
+          <InfoRow
+            label="Prescribed by"
+            value={item.prescribedByFullName || item.prescriberName || "Unknown"}
+          />
+          <InfoRow label="Started" value={formatDate(item.prescribedAt)} />
+        </>
+      }
+      metaRight={
+        <>
+          <InfoRow label="Generic" value={item.genericName || "—"} />
+          <InfoRow label="Brand" value={item.brandName || "—"} />
+          <InfoRow label="Facility" value={item.facilityName || "—"} />
+        </>
+      }
+      footerLeft={item.notes || "Medication history entry"}
+    />
+          );
+        }
 
     if (tab === "allergies") {
       return (

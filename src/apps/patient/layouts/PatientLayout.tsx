@@ -75,7 +75,7 @@ const patientNav = [
     to: "/patient/appointments",
     label: "Appointments",
     icon: Calendar,
-    premium: false,
+    premium: true,
   },
   // {
   //   to: "/patient/consents",
@@ -84,12 +84,12 @@ const patientNav = [
   //   premium: false,
   // },
 
-  // {
-  //   to: "/patient/find-care",
-  //   label: "Find Care",
-  //   icon: MapPin,
-  //   premium: false,
-  // },
+  {
+    to: "/patient/find-care",
+    label: "Find Care",
+    icon: MapPin,
+    premium: true,
+  },
 
   {
     to: "/patient/telemedicine",

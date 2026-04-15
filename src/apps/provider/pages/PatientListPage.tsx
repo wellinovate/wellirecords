@@ -1,5 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Loader2, CheckCircle2, AlertCircle, AlertCircleIcon, BellDotIcon, DotIcon, DropletsIcon } from "lucide-react";
+import {
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+  AlertCircleIcon,
+  BellDotIcon,
+  DotIcon,
+  DropletsIcon,
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Search,
@@ -611,31 +619,68 @@ export function PatientListPage() {
   }, [search, page, limit]);
 
   return (
-    <>
-      <div className="min-h-screen bg-[#06162d]/20 px-2 py-5 text-white">
-        <div className="mx-auto max-w-[1480px]">
-          <div className="rounded-2xl borde border-[#163761] bg-[#081b35]/10 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
-            <div className="border-b border-[#163761] px-6 py-5">
+  <>
+    <div
+      className="min-h-screen px-2 py-5 text-white"
+      style={{
+        background: `
+          radial-gradient(circle at 18% 12%, rgba(132, 170, 255, 0.16) 0%, rgba(132, 170, 255, 0.05) 18%, transparent 42%),
+          radial-gradient(circle at 72% 30%, rgba(110, 160, 255, 0.08) 0%, rgba(110, 160, 255, 0.025) 20%, transparent 38%),
+          radial-gradient(circle at 50% 80%, rgba(150, 210, 255, 0.05) 0%, rgba(150, 210, 255, 0.015) 18%, transparent 36%),
+          linear-gradient(180deg, #071427 0%, #0A1730 55%, #091426 100%)
+        `,
+      }}
+    >
+      <div className="mx-auto max-w-[1480px]">
+        <div
+          className="rounded-2xl border shadow-[0_20px_60px_rgba(0,0,0,0.35)]"
+          style={{
+            borderColor: "rgba(89, 126, 199, 0.18)",
+            background: `
+              radial-gradient(circle at 20% 0%, rgba(120,170,255,0.08) 0%, rgba(120,170,255,0.02) 18%, transparent 40%),
+              linear-gradient(180deg, rgba(12,25,49,0.92) 0%, rgba(9,20,40,0.94) 100%)
+            `,
+            boxShadow:
+              "0 20px 60px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.03)",
+          }}
+        >
+          <div
+            className="px-6 py-5 border-b"
+            style={{
+              borderColor: "rgba(89, 126, 199, 0.16)",
+            }}
+          >
               <div className="flex flex-col gap-4 md:flex-row xl:items-start xl:justify-between">
                 <div>
                   <div>
-            <h1 className="text-3xl font-semibold text-gray-50">Patients List</h1>
-            <p className="text-gray-300 mt-1">Manage and monitor all registered patients</p>
-          </div>
+                    <h1 className="text-3xl font-semibold text-[#F3F7FF]">
+                      Patients List
+                    </h1>
+                    <p className="mt-1 text-[#9BB0CF]">
+                      Manage and monitor all registered patients
+                    </p>
+                  </div>
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-[15px]">
-                    <span className="text-[#d8e7fb]">
+                    <span className="text-[#D7E5FB]">
                       {patients?.length} Patients
                     </span>
-                    <span className="text-[#2b527e]">•</span>
-                    <span className="text-[#58b8ff]">0 due today</span>
-                    <span className="text-[#2b527e]">•</span>
-                    <span className="text-[#58b8ff]">0 pending review</span>
+                    <span className="text-[#345C8D]">•</span>
+                    <span className="text-[#59B6FF]">0 due today</span>
+                    <span className="text-[#345C8D]">•</span>
+                    <span className="text-[#59B6FF]">0 pending review</span>
                   </div>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
                   <button
-                    className="inline-flex h-10 items-center gap-2 rounded-md border border-[#2e6da5] bg-transparent px-4 text-sm font-medium text-[#7fd0ff] hover:bg-[#0d2d52]"
+                    // className="inline-flex h-10 items-center gap-2 rounded-md border border-[#2e6da5] bg-transparent px-4 text-sm font-medium text-[#7fd0ff] hover:bg-[#0d2d52]"
+                    className="inline-flex h-10 items-center gap-2 rounded-md px-4 text-sm font-medium"
+style={{
+  border: "1px solid rgba(77, 130, 196, 0.45)",
+  background: "rgba(10, 27, 53, 0.28)",
+  color: "#7FD0FF",
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)",
+}}
                     type="button"
                   >
                     <UserPlus size={16} />
@@ -645,7 +690,14 @@ export function PatientListPage() {
 
                   <button
                     onClick={() => setIsRegisterModalOpen(true)}
-                    className="inline-flex h-10 items-center gap-2 rounded-md border border-[#365f8f] bg-[#17365d] px-4 text-sm font-medium text-[#dcecff] hover:bg-[#1a416f]"
+                    // className="inline-flex h-10 items-center gap-2 rounded-md border border-[#365f8f] bg-[#17365d] px-4 text-sm font-medium text-[#dcecff] hover:bg-[#1a416f]"
+                    className="inline-flex h-10 items-center gap-2 rounded-md px-4 text-sm font-medium"
+style={{
+  border: "1px solid rgba(92, 140, 210, 0.35)",
+  background: "linear-gradient(180deg, #1A416F 0%, #17365D 100%)",
+  color: "#DCECFF",
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)",
+}}
                     type="button"
                   >
                     <UserPlus size={16} />
@@ -697,16 +749,32 @@ export function PatientListPage() {
               <PatientsLoadingSkeleton />
             ) : (
               <div className="px-4 py-4">
-                <div className="overflow-hidden rounded-xl border border-[#173a63] bg-[#0a1d39]">
+                <div
+  className="overflow-hidden rounded-xl border"
+  style={{
+    borderColor: "rgba(74, 114, 176, 0.25)",
+    background: `
+      radial-gradient(circle at 50% 10%, rgba(120,170,255,0.06) 0%, rgba(120,170,255,0.015) 24%, transparent 42%),
+      linear-gradient(180deg, #0A1B35 0%, #08172E 100%)
+    `,
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.025)",
+  }}
+>
                   <div className="overflow-x-auto">
                     <table className="min-w-full border-separate border-spacing-0">
                       <thead>
-                        <tr className="bg-[#0d2342]  text-center font-semibold text-[#90adcf]">
+                        <tr
+  className="text-center font-semibold"
+  style={{
+    background: "linear-gradient(180deg, #0D2342 0%, #0B1D39 100%)",
+    color: "#90ADCF",
+  }}
+>
                           <th className="border-b border-[#173a63] px-4 py-3 text-[14px]  text-[#90adcf] text-left">
                             Patient Name
                           </th>
                           <th className="border-b border-[#173a63] px-4 py-3 text-[14px]  text-[#90adcf]">
-                            Patiet ID 
+                            Patiet ID
                           </th>
                           <th className="border-b border-[#173a63] px-4 py-3 text-[14px]  text-[#90adcf]">
                             Gender
@@ -715,7 +783,7 @@ export function PatientListPage() {
                             Phone
                           </th>
                           <th className="border-b border-[#173a63] px-4 py-3 text-[14px] font-medium text-[#90adcf]">
-                            Address 
+                            Address
                           </th>
                           <th className="border-b border-[#173a63] px-4 py-3 text-[14px]  text-[#90adcf]">
                             Last Visit
@@ -724,11 +792,11 @@ export function PatientListPage() {
                             Assigned <br />
                             Doctor
                           </th>
-                          
+
                           <th className="border-b border-[#173a63] px-4 py-3 text-[14px]  text-[#90adcf] text-center">
                             Alert
                           </th>
-                          
+
                           <th className="border-b border-[#173a63] px-4 py-3 text-[12px]  text-[#90adcf]">
                             Action
                           </th>
@@ -744,26 +812,29 @@ export function PatientListPage() {
                                 `/provider/patients/${patient?.patientId}`,
                               )
                             }
-                            className={`cursor-pointer transition   hover:bg-[#102a4d] space-y-  divide-y-4 border-b-2  border-b-white divide-[#132f52]
-                              `}
+                            className="cursor-pointer transition hover:bg-[#102a4d]/70"
+style={{
+  borderBottom: "1px solid rgba(19, 47, 82, 0.9)",
+}}
                             // ${index === 0 ? "divide-y-0" : ""}
-                              >
+                          >
                             <td className="px-4 py-4 align-middle text-left border-b-4 border-[#132f52]  ">
                               <div className="flex items-center gap-3">
                                 <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full   text-[5px] font-semibold text-[#e4e8ec]">
-                                  <img src={patient?.avatar || health_companion_image} alt="" className="w-full h-full object-cover object-center" />
-                                  
+                                  <img
+                                    src={
+                                      patient?.avatar || health_companion_image
+                                    }
+                                    alt=""
+                                    className="w-full h-full object-cover object-center"
+                                  />
                                 </div>
 
                                 <div className="min-w-[150px]">
                                   <div className=" text-[14px] lg:text-[16px] font-semibold text-[#edf5ff]">
-                                    <p>
-
-                                    {patient?.fullName}
-                                    </p>
+                                    <p>{patient?.fullName}</p>
                                     <p className="text-[12px]">
-
-                                    {patient?.email}
+                                      {patient?.email}
                                     </p>
                                   </div>
                                   <div className="text-[11px] text-[#6f8eb3]">
@@ -786,8 +857,7 @@ export function PatientListPage() {
 
                             <td className="px-4 py-3">
                               <div className=" text-[14px] text-[#e7edf5]">
-                              Graham, California
-                               
+                                Graham, California
                               </div>
                             </td>
 
@@ -810,7 +880,8 @@ export function PatientListPage() {
                                   ))
                                 ) : (
                                   <span className="text-[13px] text-center font-semibold text-[#f7fbff]">
-                                  {patient?.encounterStatus?.provider || "Dr Enoch"}  
+                                    {patient?.encounterStatus?.provider ||
+                                      "Dr Enoch"}
                                   </span>
                                 )}
                               </div>
@@ -818,7 +889,10 @@ export function PatientListPage() {
 
                             <td className="px-4 py-3 text-[12px] text-[#cdddf2]">
                               {/* {patient?.assigned} */}
-                              <BellDotIcon size={16} className="inline-block mr-1" />
+                              <BellDotIcon
+                                size={16}
+                                className="inline-block mr-1"
+                              />
                             </td>
 
                             <td className="font-extrabold text-[26px] text-[#58b8ff]">
@@ -843,52 +917,50 @@ export function PatientListPage() {
                   </div>
 
                   {patients.length > 10 && (
-                  <div className="flex flex-col gap-3 border-t border-[#173a63] bg-[#091a33] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="text-[12px] text-[#8aa6c7]">
-                      110 of 1,284
+                    <div className="flex flex-col gap-3 border-t border-[#173a63] bg-[#091a33] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="text-[12px] text-[#8aa6c7]">
+                        110 of 1,284
+                      </div>
+
+                      <div className="flex items-center gap-1 text-[#90adcf]">
+                        <button className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-[#0d2342] hover:bg-[#143258]">
+                          <ChevronsLeft size={14} />
+                        </button>
+                        <button className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-[#0d2342] hover:bg-[#143258]">
+                          <ChevronLeft size={14} />
+                        </button>
+
+                        <button className="inline-flex h-8 min-w-8 items-center justify-center rounded-md border border-[#3a6ea8] bg-[#12355f] px-2 text-[12px] text-white">
+                          1
+                        </button>
+                        <button className="inline-flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-[12px] hover:bg-[#12355f]">
+                          2
+                        </button>
+                        <button className="inline-flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-[12px] hover:bg-[#12355f]">
+                          3
+                        </button>
+                        <button className="inline-flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-[12px] hover:bg-[#12355f]">
+                          4
+                        </button>
+                        <button className="inline-flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-[12px] hover:bg-[#12355f]">
+                          5
+                        </button>
+
+                        <button className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-[#0d2342] hover:bg-[#143258]">
+                          <ChevronRight size={14} />
+                        </button>
+                        <button className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-[#0d2342] hover:bg-[#143258]">
+                          <ChevronsRight size={14} />
+                        </button>
+                      </div>
                     </div>
-
-                    <div className="flex items-center gap-1 text-[#90adcf]">
-                      <button className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-[#0d2342] hover:bg-[#143258]">
-                        <ChevronsLeft size={14} />
-                      </button>
-                      <button className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-[#0d2342] hover:bg-[#143258]">
-                        <ChevronLeft size={14} />
-                      </button>
-
-                      <button className="inline-flex h-8 min-w-8 items-center justify-center rounded-md border border-[#3a6ea8] bg-[#12355f] px-2 text-[12px] text-white">
-                        1
-                      </button>
-                      <button className="inline-flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-[12px] hover:bg-[#12355f]">
-                        2
-                      </button>
-                      <button className="inline-flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-[12px] hover:bg-[#12355f]">
-                        3
-                      </button>
-                      <button className="inline-flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-[12px] hover:bg-[#12355f]">
-                        4
-                      </button>
-                      <button className="inline-flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-[12px] hover:bg-[#12355f]">
-                        5
-                      </button>
-
-                      <button className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-[#0d2342] hover:bg-[#143258]">
-                        <ChevronRight size={14} />
-                      </button>
-                      <button className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-[#0d2342] hover:bg-[#143258]">
-                        <ChevronsRight size={14} />
-                      </button>
-                    </div>
-                  </div>
                   )}
-
                 </div>
               </div>
             )}
           </div>
         </div>
-          {/* <PatientsList  /> */}
-        
+        {/* <PatientsList  /> */}
       </div>
 
       <RegisterPatientModal
