@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
+import { PatientSearchPicker } from "@/apps/components/shared/PatientSearchPicker";
+import { useAuth } from "@/shared/auth/AuthProvider";
 
 type Props = {
   open: boolean;
@@ -21,34 +23,48 @@ export const WalkInModal = ({
   onSubmit,
   organizationId,
 }: Props) => {
-  const [patientId, setPatientId] = useState("");
+   const {  searchPatientRequest, user } =
+      useAuth();
   const [providerId, setProviderId] = useState("");
-  const [visitType, setVisitType] = useState<"consultation" | "follow-up" | "review" | "emergency">("consultation");
-  const [priority, setPriority] = useState<"normal" | "urgent" | "emergency">("normal");
+  const [visitType, setVisitType] = useState<
+    "consultation" | "follow-up" | "review" | "emergency"
+  >("consultation");
+  const [priority, setPriority] = useState<"normal" | "urgent" | "emergency">(
+    "normal"
+  );
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState<{
+    id: string;
+    name: string;
+    avatar?: string;
+    raw: any;
+  } | null>(null);
+  console.log("🚀 ~ WalkInModal ~ selectedPatient:", selectedPatient)
 
   if (!open) return null;
 
   const handleSubmit = async () => {
-    if (!patientId.trim()) return;
+    if (!selectedPatient?.id) return;
 
     try {
       setSubmitting(true);
+
       await onSubmit({
-        patientId,
+        patientId: selectedPatient.id,
         organizationId,
         providerId: providerId || null,
         visitType,
         priority,
         chiefComplaint,
       });
-      onClose();
-      setPatientId("");
+
+      setSelectedPatient(null);
       setProviderId("");
       setVisitType("consultation");
       setPriority("normal");
       setChiefComplaint("");
+      onClose();
     } finally {
       setSubmitting(false);
     }
@@ -65,12 +81,21 @@ export const WalkInModal = ({
         </div>
 
         <div className="space-y-4">
-          <input
-            value={patientId}
-            onChange={(e) => setPatientId(e.target.value)}
-            placeholder="Patient ID"
-            className="w-full rounded-xl border border-[#163761] bg-[#0b2447] px-3 py-2 outline-none"
+          <PatientSearchPicker
+            open={open}
+            enabled={true}
+            searchPatientRequest={searchPatientRequest}
+            onSelect={setSelectedPatient}
           />
+
+          {selectedPatient && (
+            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+              <p className="text-sm font-medium text-emerald-200">
+                Selected patient
+              </p>
+              <p className="mt-1 text-white">{selectedPatient.name}</p>
+            </div>
+          )}
 
           <input
             value={providerId}
@@ -112,7 +137,7 @@ export const WalkInModal = ({
 
           <button
             onClick={handleSubmit}
-            disabled={submitting || !patientId.trim()}
+            disabled={submitting || !selectedPatient?.id}
             className="w-full rounded-xl bg-blue-600 px-4 py-2 font-medium hover:bg-blue-500 disabled:opacity-60"
           >
             {submitting ? "Saving..." : "Add to Queue"}

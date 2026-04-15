@@ -71,7 +71,7 @@ export function FindCarePage() {
               <Loader2 className="animate-spin text-blue-400" size={28} />
             </div>
           ) : items.length ? (
-            <div className="space-y-4">
+            <div className="space-y-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
               {items.map((item) => (
                 <ProviderSearchCard
                   key={item._id}

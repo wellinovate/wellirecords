@@ -3,6 +3,8 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import { Web3Provider } from "./src/shared/auth/providers";
+import "react-day-picker/style.css";
+
 
 const rootElement = document.getElementById("root");
 if (!rootElement) throw new Error("Could not find root element to mount to");

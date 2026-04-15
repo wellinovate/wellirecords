@@ -12,6 +12,7 @@ import { useAuth } from "@/shared/auth/AuthProvider";
 import { useAppointments } from "@/modules/appointments/hooks";
 import { BookAppointmentModal } from "@/modules/appointments/components/BookAppointmentModal";
 import { formatDateTime } from "@/shared/utils/time";
+import { Link } from "react-router-dom";
 
 export function AppointmentsPage() {
   const { user } = useAuth();
@@ -62,13 +63,13 @@ export function AppointmentsPage() {
           </p>
         </div>
 
-        <button
-          onClick={() => setShowBook(true)}
+        <Link to="/patient/find-care"
+          // onClick={() => setShowBook(true)}
           className="flex items-center gap-2 rounded-xl bg-[#1a6b42] px-4 py-2 text-white"
         >
           <Plus size={16} />
           Book Appointment
-        </button>
+        </Link>
       </div>
 
       <section className="mb-10">

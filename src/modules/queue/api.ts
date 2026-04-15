@@ -1,11 +1,14 @@
 import { api } from "@/shared/lib/api";
 import type { QueueListResponse, StartEncounterResponse } from "./types";
 import { apiUrl } from "@/shared/api/authApi";
+import Cookies from "js-cookie";
+
 
 export const getQueueApi = async (params?: Record<string, any>) => {
   const { data } = await api.get<QueueListResponse>(`${apiUrl}/api/v1/queue`, { params });
   return data;
 };
+const token = Cookies.get("accessToken");
 
 export const createWalkInQueueApi = async (payload: {
   patientId: string;
@@ -15,7 +18,16 @@ export const createWalkInQueueApi = async (payload: {
   priority?: "normal" | "urgent" | "emergency";
   chiefComplaint?: string;
 }) => {
-  const { data } = await api.post(`${apiUrl}/api/v1/queue/walk-in`, payload);
+
+const { data } = await api.post(
+  `${apiUrl}/api/v1/queue/walk-in`,
+  payload,
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
   return data;
 };
 
@@ -36,7 +48,11 @@ export const saveTriageApi = async (
     };
   },
 ) => {
-  const { data } = await api.patch(`${apiUrl}/api/v1/queue/${queueId}/triage`, payload);
+  const { data } = await api.patch(`${apiUrl}/api/v1/queue/${queueId}/triage`, payload,{
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   return data;
 };
 
@@ -62,6 +78,12 @@ export const startEncounterFromQueueApi = async (
   const { data } = await api.post<StartEncounterResponse>(
     `${apiUrl}/api/v1/queue/${queueId}/start-encounter`,
     providerId ? { providerId } : {},
+    {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+
   );
   return data;
 };
