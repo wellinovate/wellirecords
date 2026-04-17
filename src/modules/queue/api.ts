@@ -3,12 +3,12 @@ import type { QueueListResponse, StartEncounterResponse } from "./types";
 import { apiUrl } from "@/shared/api/authApi";
 import Cookies from "js-cookie";
 
+const token = Cookies.get("accessToken");
 
 export const getQueueApi = async (params?: Record<string, any>) => {
   const { data } = await api.get<QueueListResponse>(`${apiUrl}/api/v1/queue`, { params });
   return data;
 };
-const token = Cookies.get("accessToken");
 
 export const createWalkInQueueApi = async (payload: {
   patientId: string;

@@ -43,71 +43,73 @@ export function FindCarePage() {
   };
 
   return (
-    <div className="min-h-screen bg-transparent px-2 py-5 text-white">
-      <div className="mx-auto max-w-[1480px] space-y-5">
-        <div className="rounded-2xl border border-[#163761] bg-[#081b35]/40 px-6 py-5 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
-          <h1 className="text-3xl font-semibold text-gray-50">Find Care</h1>
-          <p className="mt-1 text-sm text-[#9FB3CF]">
-            Search hospitals and providers, then book an appointment.
-          </p>
+  <div className="min-h-screen bg-[linear-gradient(135deg,#DAE5F7_0%,#EEF4FF_45%,#FFFFFF_100%)] px-2 py-5 text-[#163761]">
+    <div className="mx-auto max-w-[1480px] space-y-5">
+      <div className="rounded-[28px] border border-[#D9E6F7] bg-gradient-to-r from-[#DCE9FB] via-[#EEF4FF] to-white px-6 py-6 shadow-[0_18px_50px_rgba(37,99,235,0.08)]">
+        <h1 className="text-3xl font-semibold text-[#163761]">Find Care</h1>
+        <p className="mt-1 text-sm text-[#6B85A3]">
+          Search hospitals and providers, then book an appointment.
+        </p>
 
-          <div className="relative mt-5">
-            <Search
-              size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9FB3CF]"
-            />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search hospital, clinic, doctor, or specialty"
-              className="w-full rounded-2xl border border-[#163761] bg-[#0b2447] py-3 pl-10 pr-4 text-white outline-none placeholder:text-[#7f95b3]"
-            />
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-[#163761] bg-[#081b35]/40 p-5 shadow-[0_20px_60px_rgba(0,0,0,0.22)]">
-          {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="animate-spin text-blue-400" size={28} />
-            </div>
-          ) : items.length ? (
-            <div className="space-y-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
-              {items.map((item) => (
-                <ProviderSearchCard
-                  key={item._id}
-                  item={item}
-                  onSelect={handleSelectProvider}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-2xl border border-dashed border-[#163761] px-6 py-14 text-center">
-              <p className="text-base font-medium text-slate-100">
-                No providers found yet
-              </p>
-              <p className="mt-2 text-sm text-[#9FB3CF]">
-                Try searching by doctor name, specialty, hospital, or clinic.
-              </p>
-            </div>
-          )}
+        <div className="relative mt-5">
+          <Search
+            size={18}
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-[#7EA6D9]"
+          />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search hospital, clinic, doctor, or specialty"
+            className="w-full rounded-2xl border border-[#CFE0F8] bg-white/90 py-3 pl-11 pr-4 text-[#163761] outline-none placeholder:text-[#8AA1C1] shadow-sm transition focus:border-[#60A5FA] focus:ring-4 focus:ring-[#BFDBFE]/40"
+          />
         </div>
       </div>
 
-      {selectedProvider && patientId && (
-        <BookAppointmentModal
-          open={bookingOpen}
-          onClose={() => {
-            setBookingOpen(false);
-            setSelectedProvider(null);
-          }}
-          onSubmit={createAppointment}
-          patientId={patientId}
-          organizationId={selectedProvider.organization?._id || ""}
-          organizationName={selectedProvider.organization?.name || "Unknown Hospital"}
-          providerId={selectedProvider._id}
-          providerName={selectedProvider.fullName || "Unknown Provider"}
-        />
-      )}
+      <div className="rounded-[28px] border border-[#D9E6F7] bg-white/60 p-5 shadow-[0_18px_50px_rgba(37,99,235,0.06)] backdrop-blur-sm">
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="animate-spin text-[#3B82F6]" size={28} />
+          </div>
+        ) : items.length ? (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {items.map((item) => (
+              <ProviderSearchCard
+                key={item._id}
+                item={item}
+                onSelect={handleSelectProvider}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-[24px] border border-dashed border-[#C9D9F1] bg-white/70 px-6 py-14 text-center">
+            <p className="text-base font-semibold text-[#163761]">
+              No providers found yet
+            </p>
+            <p className="mt-2 text-sm text-[#6B85A3]">
+              Try searching by doctor name, specialty, hospital, or clinic.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
-  );
+
+    {selectedProvider && patientId && (
+      <BookAppointmentModal
+        open={bookingOpen}
+        onClose={() => {
+          setBookingOpen(false);
+          setSelectedProvider(null);
+        }}
+        onSubmit={createAppointment}
+        patientId={patientId}
+        organizationId={selectedProvider.organization?._id || ""}
+        organizationName={
+          selectedProvider.organization?.name || "Unknown Hospital"
+        }
+        providerId={selectedProvider._id}
+        providerName={selectedProvider.fullName || "Unknown Provider"}
+      />
+    )}
+  </div>
+);
 }

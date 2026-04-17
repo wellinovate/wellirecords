@@ -97,41 +97,32 @@ export function BookAppointmentModal({
               <h3 className="mt-1 text-[24px] font-semibold tracking-tight text-[#163761]">
                 Book Appointment
               </h3>
-              <p className="mt-1 text-sm text-[#6B7280]">
+              <p className="mt-1 text-base text-[#013b2f] font-semibold">
                 Choose a preferred date and time for your visit.
               </p>
             </div>
 
             <button
               onClick={handleClose}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E5ECF6] bg-white text-[#5B6B7A] transition hover:bg-[#F8FBFF] hover:text-[#163761]"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-[#030405] bg-white text-[#5B6B7A] transition hover:bg-[#F8FBFF] hover:text-[#163761]"
             >
               <X size={17} />
             </button>
           </div>
 
           <div className="mt-2 rounded-[22px] border border-[#E7EEF8] bg-gradient-to-br from-[#F8FBFF] to-[#EEF4FF] p-3">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl bg-white/90 p- shadow-sm">
-                <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#7A8CA5]">
-                  <Hospital size={14} />
-                  Selected Hospital
-                </div>
-                <p className="mt-2 text-sm font-semibold text-[#163761]">
-                  {organizationName}
-                </p>
-              </div>
 
-              <div className="rounded-2xl bg-white/90 p-4 shadow-sm">
-                <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#7A8CA5]">
-                  <Stethoscope size={14} />
-                  Selected Provider
-                </div>
-                <p className="mt-2 text-sm font-semibold text-[#163761]">
-                  {providerName || "Provider not assigned"}
-                </p>
+              <div className="rounded-2xl flex gap-4 items-center">
+            <p className="text-[17px] font-bold uppercase  text-[#00050a]">
+               Book An Appointment  With
+              </p>
+              <span className="text-emerald-700 font-semibold text-xl"> {organizationName}
+              </span>
+                  <Hospital size={26} />
+                
+                
               </div>
-            </div>
+           
           </div>
 
           <div className="mt-6 space-y-5">
