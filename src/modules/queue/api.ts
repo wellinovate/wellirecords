@@ -6,7 +6,13 @@ import Cookies from "js-cookie";
 const token = Cookies.get("accessToken");
 
 export const getQueueApi = async (params?: Record<string, any>) => {
-  const { data } = await api.get<QueueListResponse>(`${apiUrl}/api/v1/queue`, { params });
+  // const { data } = await api.get<QueueListResponse>(`${apiUrl}/api/v1/queue`, { params });
+  const { data } = await api.get<QueueListResponse>(`${apiUrl}/api/v1/queue`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  
   return data;
 };
 

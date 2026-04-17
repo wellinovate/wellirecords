@@ -3,7 +3,7 @@ import { useAuth } from "@/shared/auth/AuthProvider";
 
 export default function ProviderAppointmentsPage() {
   const { user } = useAuth();
-  console.log("🚀 ~ ProviderAppointmentsPage ~ user:", user)
+  // console.log("🚀 ~ ProviderAppointmentsPage ~ user:", user)
 
   const organizationId =
     user?.sub ||

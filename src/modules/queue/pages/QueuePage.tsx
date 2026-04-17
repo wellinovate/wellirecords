@@ -11,6 +11,7 @@ import { SourceBadge } from "../components/SourceBadge";
 import { WaitTimeBadge } from "../components/WaitTimeBadge";
 import { formatDateTime } from "@/shared/utils/time";
 import type { QueueItem } from "../types";
+import { AuthProvider, useAuth } from "@/shared/auth/AuthProvider";
 
 type Props = {
   organizationId: string;
@@ -18,6 +19,7 @@ type Props = {
 };
 
 export default function QueuePage({ organizationId, currentProviderId }: Props) {
+  const {user} = useAuth();
   const navigate = useNavigate();
 
   const [workflowStatus, setWorkflowStatus] = useState("");
@@ -28,7 +30,7 @@ export default function QueuePage({ organizationId, currentProviderId }: Props) 
 
   const params = useMemo(
     () => ({
-      organizationId,
+      organizationId: user?.sub,
       workflowStatus: workflowStatus || undefined,
       source: source || undefined,
       page: 1,
@@ -54,6 +56,13 @@ export default function QueuePage({ organizationId, currentProviderId }: Props) 
       navigate(`/provider/encounters/${encounterId}`);
     }
   };
+
+  const LIVE_QUEUE_STATUSES = ["checked-in", "triage", "waiting", "in-progress"];
+
+  const liveQueueItems = items.filter((item) =>
+    LIVE_QUEUE_STATUSES.includes(item.workflowStatus),
+  );
+  console.log("🚀 ~ QueuePage ~ liveQueueItems:", liveQueueItems)
 
   return (
     <div className="min-h-screen bg-transparent px-2 py-5 text-white">
@@ -95,7 +104,7 @@ export default function QueuePage({ organizationId, currentProviderId }: Props) 
             </div>
           ) : (
             <div className="space-y-4">
-              {items.map((item) => (
+              {liveQueueItems.map((item) => (
                 <div
                   key={item._id}
                   className="rounded-2xl border border-[#163761] bg-[#0b2447]/70 p-4 shadow-[0_8px_30px_rgba(0,0,0,0.18)]"
@@ -125,11 +134,15 @@ export default function QueuePage({ organizationId, currentProviderId }: Props) 
                         </p>
                         <p>
                           <span className="text-[#9FB3CF]">Provider:</span>{" "}
-                          {item.providerId?.fullName || "Unassigned"}
+                          {item.providerId?.fullName || item.organizationId?.contactPersonName }
                         </p>
                         <p>
                           <span className="text-[#9FB3CF]">Checked In:</span>{" "}
                           {formatDateTime(item.checkedInAt)}
+                        </p>
+                        <p>
+                          <span className="text-[#9FB3CF]">Organization:</span>{" "}
+                          {item.organizationId?.organizationName}
                         </p>
                       </div>
                     </div>
@@ -192,7 +205,7 @@ export default function QueuePage({ organizationId, currentProviderId }: Props) 
                 </div>
               ))}
 
-              {!items.length && (
+              {!liveQueueItems.length && (
                 <div className="rounded-2xl border border-dashed border-[#163761] px-6 py-12 text-center text-[#9FB3CF]">
                   No queue items found
                 </div>
