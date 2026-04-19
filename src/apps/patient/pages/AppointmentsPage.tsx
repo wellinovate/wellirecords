@@ -151,81 +151,84 @@ export function AppointmentsPage() {
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {upcoming.map((apt) => {
-  const statusUI = getStatusBadge(apt.status);
+         <div className="space-y-4">
+  {upcoming.map((apt) => {
+    const statusUI = getStatusBadge(apt.status);
 
-  return (
-    <div
-      key={apt._id}
-      className="overflow-hidden rounded-[24px] border border-[#D9E6F7] bg-white/95 shadow-[0_8px_30px_rgba(37,99,235,0.06)]"
-    >
-      <div className={`h-1.5 w-full ${statusUI.bar}`} />
+    return (
+      <div
+        key={apt._id}
+        className="overflow-hidden rounded-[24px] border border-[#D9E6F7] bg-white/95 shadow-[0_8px_30px_rgba(37,99,235,0.06)]"
+      >
+        <div className="flex">
+          <div className={`w-1.5 flex-shrink-0 ${statusUI.bar}`} />
 
-      <div className="p-5">
-        <div className="flex items-start gap-4">
-          <div
-            className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl ${statusUI.iconWrap}`}
-          >
-            {apt.providerId ? (
-              <Building2 size={22} className={statusUI.icon} />
-            ) : (
-              <Video size={22} className={statusUI.icon} />
-            )}
-          </div>
-
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-base font-bold text-[#163761]">
-                {apt?.organizationId?.organizationName || "Unknown Organization"}
-              </h3>
-
-              <span
-                className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${statusUI.badge}`}
+          <div className="flex-1 p-5">
+            <div className="flex items-start gap-4">
+              <div
+                className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl ${statusUI.iconWrap}`}
               >
-                {statusUI.label}
-              </span>
-            </div>
+                {apt.providerId ? (
+                  <Building2 size={22} className={statusUI.icon} />
+                ) : (
+                  <Video size={22} className={statusUI.icon} />
+                )}
+              </div>
 
-            {!!apt.providerId?.fullName && (
-              <p className="mt-1 text-sm font-semibold text-[#315DA8]">
-                {apt.providerId.fullName}
-              </p>
-            )}
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-base font-bold text-[#163761]">
+                    {apt?.organizationId?.organizationName ||
+                      "Unknown Organization"}
+                  </h3>
 
-            {!!apt?.organizationId?.accountId?.email && (
-              <p className="mt-1 text-xs text-[#7A8CA5]">
-                {apt.organizationId.accountId.email}
-              </p>
-            )}
+                  <span
+                    className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${statusUI.badge}`}
+                  >
+                    {statusUI.label}
+                  </span>
+                </div>
 
-            <p className="mt-2 text-sm text-[#5B6B7A]">
-              {apt.reasonForVisit || "No reason added"}
-            </p>
+                {!!apt.providerId?.fullName && (
+                  <p className="mt-1 text-sm font-semibold text-[#315DA8]">
+                    {apt.providerId.fullName}
+                  </p>
+                )}
 
-            <div className="mt-3 flex flex-wrap items-center gap-3">
-              <span className="flex items-center gap-1 text-xs font-semibold text-[#6B7280]">
-                <Calendar size={12} />
-                {formatDateTime(apt.scheduledFor)}
-              </span>
+                {!!apt?.organizationId?.accountId?.email && (
+                  <p className="mt-1 text-xs text-[#7A8CA5]">
+                    {apt.organizationId.accountId.email}
+                  </p>
+                )}
+
+                <p className="mt-2 text-sm text-[#5B6B7A]">
+                  {apt.reasonForVisit || "No reason added"}
+                </p>
+
+                <div className="mt-3 flex flex-wrap items-center gap-3">
+                  <span className="flex items-center gap-1 text-xs font-semibold text-[#6B7280]">
+                    <Calendar size={12} />
+                    {formatDateTime(apt.scheduledFor)}
+                  </span>
+                </div>
+              </div>
+
+              {apt.status === "booked" && (
+                <button
+                  onClick={() => cancelAppointment(apt._id)}
+                  className="flex items-center gap-1 rounded-xl border border-[#FECDD3] bg-white px-3 py-2 text-xs font-bold text-[#E11D48] transition hover:bg-[#FFF1F2]"
+                >
+                  <X size={13} />
+                  Cancel
+                </button>
+              )}
             </div>
           </div>
-
-          {apt.status === "booked" && (
-            <button
-              onClick={() => cancelAppointment(apt._id)}
-              className="flex items-center gap-1 rounded-xl border border-[#FECDD3] bg-white px-3 py-2 text-xs font-bold text-[#E11D48] transition hover:bg-[#FFF1F2]"
-            >
-              <X size={13} />
-              Cancel
-            </button>
-          )}
         </div>
       </div>
-    </div>
-  );
-})}
-          </div>
+    );
+  })}
+</div>
         )}
       </section>
 

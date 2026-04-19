@@ -570,20 +570,23 @@ export function PatientSettingsPage() {
           </div>
         </div>
 
-        <div className="flex gap-2 w-full md:w-auto">
-          <Link
-            to="/patient/billing"
-            className="btn bg-white border shadow-sm hover:bg-gray-50 text-gray-700 gap-2 flex-1 md:flex-none justify-center"
-          >
-            <CreditCard size={16} className="text-gray-500" /> Billing
-          </Link>
-          <button
-            onClick={handleSignOut}
-            className="btn bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 gap-2 flex-1 md:flex-none justify-center"
-          >
-            <LogOut size={16} /> Sign Out
-          </button>
-        </div>
+      <div className="flex w-full gap-2 md:w-auto">
+  <Link
+    to="/patient/billing"
+    className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 md:flex-none"
+  >
+    <CreditCard size={16} className="text-gray-500" />
+    Billing
+  </Link>
+
+  <button
+    onClick={handleSignOut}
+    className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-red-100 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-100 md:flex-none"
+  >
+    <LogOut size={16} />
+    Sign Out
+  </button>
+</div>
       </div>
 
       <div className="grid lg:grid-cols-4 gap-6">
@@ -618,262 +621,248 @@ export function PatientSettingsPage() {
               {loadingProfile ? (
                 <ProfileSkeleton />
               ) : (
-                <>
-                  <div className="card-patient p-6">
-                    <h2 className="font-bold text-base mb-6 border-b pb-2 text-gray-900 border-gray-100">
-                      Personal Information
-                    </h2>
+               <>
+  <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+    <h2 className="mb-6 border-b border-gray-100 pb-2 text-base font-bold text-gray-900">
+      Personal Information
+    </h2>
 
-                    <div className="grid md:grid-cols-2 gap-5">
-                      <div>
-                        <label className="block text-sm font-semibold mb-1 text-gray-700">
-                          Full Name
-                        </label>
-                        <input
-                          value={form.fullName}
-                          onChange={updateField("fullName")}
-                          className="input input-light"
-                          placeholder="Enter full name"
-                        />
-                      </div>
+    <div className="grid gap-5 md:grid-cols-2">
+      <div>
+        <label className="mb-1 block text-sm font-semibold text-gray-700">
+          Full Name
+        </label>
+        <input
+          value={form.fullName}
+          onChange={updateField("fullName")}
+          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          placeholder="Enter full name"
+        />
+      </div>
 
-                      <div>
-                        <label className="block text-sm font-semibold mb-1 text-gray-700">
-                          Member ID
-                        </label>
-                        <input
-                          value={profile?.wrId || ""}
-                          className="input input-light bg-gray-50 text-gray-500"
-                          readOnly
-                        />
-                      </div>
+      <div>
+        <label className="mb-1 block text-sm font-semibold text-gray-700">
+          Member ID
+        </label>
+        <input
+          value={profile?.wrId || ""}
+          className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-500 outline-none"
+          readOnly
+        />
+      </div>
 
-                      <div>
-                        <label className="block text-sm font-semibold mb-1 text-gray-700">
-                          First Name
-                        </label>
-                        <input
-                          value={form.firstName}
-                          onChange={updateField("firstName")}
-                          className="input input-light"
-                          placeholder="Enter first name"
-                        />
-                      </div>
+      <div>
+        <label className="mb-1 block text-sm font-semibold text-gray-700">
+          First Name
+        </label>
+        <input
+          value={form.firstName}
+          onChange={updateField("firstName")}
+          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          placeholder="Enter first name"
+        />
+      </div>
 
-                      <div>
-                        <label className="block text-sm font-semibold mb-1 text-gray-700">
-                          Middle Name
-                        </label>
-                        <input
-                          value={form.middleName}
-                          onChange={updateField("middleName")}
-                          className="input input-light"
-                          placeholder="Enter middle name"
-                        />
-                      </div>
+      <div>
+        <label className="mb-1 block text-sm font-semibold text-gray-700">
+          Middle Name
+        </label>
+        <input
+          value={form.middleName}
+          onChange={updateField("middleName")}
+          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          placeholder="Enter middle name"
+        />
+      </div>
 
-                      <div>
-                        <label className="block text-sm font-semibold mb-1 text-gray-700">
-                          Last Name
-                        </label>
-                        <input
-                          value={form.lastName}
-                          onChange={updateField("lastName")}
-                          className="input input-light"
-                          placeholder="Enter last name"
-                        />
-                      </div>
+      <div>
+        <label className="mb-1 block text-sm font-semibold text-gray-700">
+          Last Name
+        </label>
+        <input
+          value={form.lastName}
+          onChange={updateField("lastName")}
+          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          placeholder="Enter last name"
+        />
+      </div>
 
-                      <div>
-                        <label className="block text-sm font-semibold mb-1 text-gray-700">
-                          Date of Birth
-                        </label>
-                        <input
-                          type="date"
-                          value={form.dateOfBirth}
-                          onChange={updateField("dateOfBirth")}
-                          className="input input-light"
-                        />
-                      </div>
+      <div>
+        <label className="mb-1 block text-sm font-semibold text-gray-700">
+          Date of Birth
+        </label>
+        <input
+          type="date"
+          value={form.dateOfBirth}
+          onChange={updateField("dateOfBirth")}
+          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+        />
+      </div>
 
-                      <div>
-                        <label className="block text-sm font-semibold mb-1 text-gray-700">
-                          Email Address
-                        </label>
-                        <input
-                          value={profile?.email || ""}
-                          className="input input-light bg-gray-50 text-gray-500"
-                          type="email"
-                          readOnly
-                        />
-                      </div>
+      <div>
+        <label className="mb-1 block text-sm font-semibold text-gray-700">
+          Email Address
+        </label>
+        <input
+          value={profile?.email || ""}
+          className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-500 outline-none"
+          type="email"
+          readOnly
+        />
+      </div>
 
-                      <div>
-                        <label className="block text-sm font-semibold mb-1 text-gray-700">
-                          Phone Number
-                        </label>
+      <div>
+        <label className="mb-1 block text-sm font-semibold text-gray-700">
+          Phone Number
+        </label>
 
-                        <input
-                          value={
-                            canEditPhone ? form.phone : profile?.phone || ""
-                          }
-                          onChange={
-                            canEditPhone ? updateField("phone") : undefined
-                          }
-                          className={`input input-light ${
-                            canEditPhone ? "" : "bg-gray-50 text-gray-500"
-                          }`}
-                          type="tel"
-                          readOnly={!canEditPhone}
-                          placeholder={canEditPhone ? "Enter phone number" : ""}
-                        />
+        <input
+          value={canEditPhone ? form.phone : profile?.phone || ""}
+          onChange={canEditPhone ? updateField("phone") : undefined}
+          className={`w-full rounded-lg px-4 py-2.5 text-sm outline-none transition ${
+            canEditPhone
+              ? "border border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              : "border border-gray-200 bg-gray-50 text-gray-500"
+          }`}
+          type="tel"
+          readOnly={!canEditPhone}
+          placeholder={canEditPhone ? "Enter phone number" : ""}
+        />
 
-                        {!canEditPhone && (
-                          <p className="mt-1 text-[11px] text-gray-400">
-                            Phone number cannot be changed once set.
-                          </p>
-                        )}
-                      </div>
+        {!canEditPhone && (
+          <p className="mt-1 text-[11px] text-gray-400">
+            Phone number cannot be changed once set.
+          </p>
+        )}
+      </div>
 
-                      <div>
-                        <label className="block text-sm font-semibold mb-1 text-gray-700">
-                          Gender
-                        </label>
+      <div>
+        <label className="mb-1 block text-sm font-semibold text-gray-700">
+          Gender
+        </label>
 
-                        {canEditGender ? (
-                          <select
-                            value={form.gender}
-                            onChange={updateField("gender")}
-                            className="input input-light"
-                          >
-                            <option value="">Select gender</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
-                          </select>
-                        ) : (
-                          <>
-                            <input
-                              value={profile?.gender || ""}
-                              className="input input-light bg-gray-50 text-gray-500"
-                              readOnly
-                            />
-                            <p className="mt-1 text-[11px] text-gray-400">
-                              Gender cannot be changed once set.
-                            </p>
-                          </>
-                        )}
-                      </div>
+        {canEditGender ? (
+          <select
+            value={form.gender}
+            onChange={updateField("gender")}
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          >
+            <option value="">Select gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        ) : (
+          <>
+            <input
+              value={profile?.gender || ""}
+              className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-500 outline-none"
+              readOnly
+            />
+            <p className="mt-1 text-[11px] text-gray-400">
+              Gender cannot be changed once set.
+            </p>
+          </>
+        )}
+      </div>
 
-                      <div>
-                        <label className="block text-sm font-semibold mb-1 text-gray-700">
-                          Avatar URL
-                        </label>
-                        <input
-                          value={form.avatar}
-                          onChange={updateField("avatar")}
-                          className="input input-light"
-                          placeholder="Paste image URL"
-                        />
-                      </div>
+      <div>
+        <label className="mb-1 block text-sm font-semibold text-gray-700">
+          Avatar URL
+        </label>
+        <input
+          value={form.avatar}
+          onChange={updateField("avatar")}
+          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          placeholder="Paste image URL"
+        />
+      </div>
 
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-semibold mb-3 text-gray-700">
-                          Emergency Contacts
-                        </label>
+      <div className="md:col-span-2">
+        <label className="mb-3 block text-sm font-semibold text-gray-700">
+          Emergency Contacts
+        </label>
 
-                        <div className="space-y-4">
-                          {form.emergencyContacts.length === 0 && (
-                            <div className="text-sm text-gray-500 border border-dashed border-gray-300 rounded-xl p-4">
-                              No emergency contacts added yet.
-                            </div>
-                          )}
+        <div className="space-y-4">
+          {form.emergencyContacts.length === 0 && (
+            <div className="rounded-xl border border-dashed border-gray-300 p-4 text-sm text-gray-500">
+              No emergency contacts added yet.
+            </div>
+          )}
 
-                          {form.emergencyContacts.map((contact, index) => (
-                            <div
-                              key={index}
-                              className="grid md:grid-cols-3 gap-3 border border-gray-200 rounded-xl p-4 bg-white"
-                            >
-                              <input
-                                value={contact.name}
-                                onChange={(e) =>
-                                  updateEmergencyContact(
-                                    index,
-                                    "name",
-                                    e.target.value,
-                                  )
-                                }
-                                className="input input-light"
-                                placeholder="Full name"
-                              />
-                              <input
-                                value={contact.relationship}
-                                onChange={(e) =>
-                                  updateEmergencyContact(
-                                    index,
-                                    "relationship",
-                                    e.target.value,
-                                  )
-                                }
-                                className="input input-light"
-                                placeholder="Relationship"
-                              />
-                              <div className="flex gap-2">
-                                <input
-                                  value={contact.phone}
-                                  onChange={(e) =>
-                                    updateEmergencyContact(
-                                      index,
-                                      "phone",
-                                      e.target.value,
-                                    )
-                                  }
-                                  className="input input-light flex-1"
-                                  placeholder="Phone number"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => removeEmergencyContact(index)}
-                                  className="px-3 rounded-lg border border-red-200 text-red-600 hover:bg-red-50"
-                                >
-                                  Remove
-                                </button>
-                              </div>
-                            </div>
-                          ))}
+          {form.emergencyContacts.map((contact, index) => (
+            <div
+              key={index}
+              className="grid gap-3 rounded-xl border border-gray-200 bg-white p-4 md:grid-cols-3"
+            >
+              <input
+                value={contact.name}
+                onChange={(e) =>
+                  updateEmergencyContact(index, "name", e.target.value)
+                }
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                placeholder="Full name"
+              />
+              <input
+                value={contact.relationship}
+                onChange={(e) =>
+                  updateEmergencyContact(index, "relationship", e.target.value)
+                }
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                placeholder="Relationship"
+              />
+              <div className="flex gap-2">
+                <input
+                  value={contact.phone}
+                  onChange={(e) =>
+                    updateEmergencyContact(index, "phone", e.target.value)
+                  }
+                  className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  placeholder="Phone number"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeEmergencyContact(index)}
+                  className="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          ))}
 
-                          <button
-                            type="button"
-                            onClick={addEmergencyContact}
-                            className="btn btn-sm bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
-                          >
-                            Add Emergency Contact
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+          <button
+            type="button"
+            onClick={addEmergencyContact}
+            className="inline-flex items-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+          >
+            Add Emergency Contact
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-                  <div className="flex justify-end pt-0">
-                    <button
-                      onClick={save}
-                      disabled={!hasChanges || saving}
-                      className="btn btn-patient gap-2 px-8 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {saving ? (
-                        "Saving..."
-                      ) : saved ? (
-                        <>
-                          <CheckCircle size={16} /> Saved Successfully
-                        </>
-                      ) : (
-                        <>
-                          <Save size={16} /> Save Changes
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </>
+  <div className="flex justify-end pt-0">
+    <button
+      onClick={save}
+      disabled={!hasChanges || saving}
+      className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-8 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      {saving ? (
+        "Saving..."
+      ) : saved ? (
+        <>
+          <CheckCircle size={16} /> Saved Successfully
+        </>
+      ) : (
+        <>
+          <Save size={16} /> Save Changes
+        </>
+      )}
+    </button>
+  </div>
+</>
               )}
 
               <DataPortabilitySection />
