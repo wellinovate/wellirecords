@@ -300,37 +300,42 @@ function VaultOnboarding({ onAddRecord }: { onAddRecord: () => void }) {
           What kinds of records can you store?
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {SHOWCASE_TYPES.map(({ label, link, icon: Icon, color, example }) => (
-            <Link
-              to={`/patient/vault/${link}`}
-              key={label}
-              className="card-patient p-4 cursor-pointer hover:shadow-md transition-all"
-            >
-              <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center mb-3"
-                style={{ background: `${color}15` }}
-              >
-                <Icon size={18} style={{ color }} />
-              </div>
-              <div
-                className="font-semibold text-sm mb-1"
-                style={{ color: "#1a2e1e" }}
-              >
-                {label}
-              </div>
-              <div
-                className="text-xs leading-tight"
-                style={{ color: "#9ca3af" }}
-              >
-                {example}
-              </div>
-            </Link>
-          ))}
-        </div>
+  {SHOWCASE_TYPES.map(({ label, link, icon: Icon, color, example }) => (
+    <Link
+      to={`/patient/vault/${link}`}
+      key={label}
+      className="card-patient p-4 cursor-pointer hover:shadow-md transition-all rounded-2xl border border-gray-200 bg-white"
+      style={{
+        borderLeft: `4px solid ${color}`,
+      }}
+    >
+      <div
+        className="w-9 h-9 rounded-xl flex items-center justify-center mb-3"
+        style={{ background: `${color}15` }}
+      >
+        <Icon size={18} style={{ color }} />
+      </div>
+
+      <div
+        className="font-semibold text-sm mb-1"
+        style={{ color: "#1a2e1e" }}
+      >
+        {label}
+      </div>
+
+      <div
+        className="text-xs leading-tight"
+        style={{ color: "#6b7280" }}
+      >
+        {example}
+      </div>
+    </Link>
+  ))}
+</div>
       </div>
 
       {/* Trust indicators */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="hidden md:grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[
           {
             icon: Lock,

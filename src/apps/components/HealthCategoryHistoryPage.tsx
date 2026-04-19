@@ -96,6 +96,9 @@ export function RecordShell({
   footerLeft,
   actionLabel = "View Details",
   children,
+  accentColor = "#2F915C",
+  iconBg = "#EAF7F1",
+  iconColor = "#2F915C",
 }: {
   icon: React.ReactNode;
   title: string;
@@ -107,12 +110,26 @@ export function RecordShell({
   footerLeft?: React.ReactNode;
   actionLabel?: string;
   children?: React.ReactNode;
+  accentColor?: string;
+  iconBg?: string;
+  iconColor?: string;
 }) {
   return (
-    <div className="rounded-[22px] border border-[#DDE3EA] bg-white px-5 py-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
+    <div
+      className="rounded-[22px] border border-[#DDE3EA] bg-white px-5 py-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
+      style={{
+        borderLeft: `4px solid ${accentColor}`,
+      }}
+    >
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#EAF7F1] text-[#2F915C]">
+          <div
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
+            style={{
+              backgroundColor: iconBg,
+              color: iconColor,
+            }}
+          >
             {icon}
           </div>
 
@@ -132,7 +149,9 @@ export function RecordShell({
         {status && <div className="shrink-0">{status}</div>}
       </div>
 
-      {summaryChips && <div className="mt-3 flex flex-wrap gap-2">{summaryChips}</div>}
+      {summaryChips && (
+        <div className="mt-3 flex flex-wrap gap-2">{summaryChips}</div>
+      )}
 
       {(metaLeft || metaRight) && (
         <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
@@ -463,12 +482,12 @@ const vitalsChips = (
   subtitle={formatDate(item.measuredAt) || "Patient vital signs"}
   summaryChips={vitalsChips}
   status={<StatusBadge value="Recorded" tone="green" />}
+  accentColor="#10B981"
+  iconBg="#EAF7F1"
+  iconColor="#2F915C"
   metaLeft={
     <>
       <InfoRow label="Measured" value={formatDate(item.measuredAt)} />
-
-      {/* <InfoRow label="Blood Pressure" value={bloodPressure} /> */}
-      {/* <InfoRow label="Heart Rate" value={item.heartRate ? `${item.heartRate} bpm` : "—"} /> */}
       <InfoRow label="Respiratory Rate" value={item.respiratoryRate} />
     </>
   }
@@ -477,12 +496,13 @@ const vitalsChips = (
       <InfoRow
         label="Blood Glucose"
         value={
-          item.bloodGlucose?.value
-            && `${item.bloodGlucose.value} ${item.bloodGlucose.unit || ""}`}
+          item.bloodGlucose?.value &&
+          `${item.bloodGlucose.value} ${item.bloodGlucose.unit || ""}`
+        }
       />
       <InfoRow
         label="Oxygen Saturation"
-        value={item.oxygenSaturation && `${item.oxygenSaturation}%` }
+        value={item.oxygenSaturation && `${item.oxygenSaturation}%`}
       />
     </>
   }
@@ -563,6 +583,9 @@ const vitalsChips = (
       tone={item.medicationStatus === "active" ? "green" : "gray"}
     />
   }
+  accentColor="#3B82F6"
+  iconBg="#EFF6FF"
+  iconColor="#2563EB"
   metaLeft={
     <>
       <InfoRow label="Form" value={item.form || "—"} />
@@ -603,26 +626,29 @@ const vitalsChips = (
       );
       return (
         <RecordShell
-          key={item.id}
-          icon={<AlertCircle size={18} />}
-          title={item.allergen}
-          subtitle={allergySubtitle || "Allergy record"}
-          status={item.clinicalStatus || "Active"}
-          metaLeft={
-            <>
-              <InfoRow label="Severity" value={item.severity} />
-              <InfoRow label="Verification" value={item.verificationStatus} />
-            </>
-          }
-          metaRight={
-            <>
-              <InfoRow label="Type" value={item.allergyType} />
-              <InfoRow label="Reaction" value={item.reaction} />
-            </>
-          }
-          footerLeft={item.notes || "Allergy history entry"}
-          actionLabel="View Allergy"
-        />
+  key={item.id}
+  icon={<AlertCircle size={18} />}
+  title={item.allergen}
+  subtitle={allergySubtitle || "Allergy record"}
+  status={item.clinicalStatus || "Active"}
+  accentColor="#EF4444"
+  iconBg="#FEF2F2"
+  iconColor="#DC2626"
+  metaLeft={
+    <>
+      <InfoRow label="Severity" value={item.severity} />
+      <InfoRow label="Verification" value={item.verificationStatus} />
+    </>
+  }
+  metaRight={
+    <>
+      <InfoRow label="Type" value={item.allergyType} />
+      <InfoRow label="Reaction" value={item.reaction} />
+    </>
+  }
+  footerLeft={item.notes || "Allergy history entry"}
+  actionLabel="View Allergy"
+/>
       );
     }
 
@@ -644,26 +670,29 @@ const vitalsChips = (
       );
       return (
         <RecordShell
-          key={item.id}
-          icon={<Stethoscope size={18} />}
-          title={item.diagnosisName}
-          subtitle={diagnosisSubtitle || "Diagnosis entry"}
-          status={item.clinicalStatus || "Recorded"}
-          metaLeft={
-            <>
-              <InfoRow label="Diagnosed" value={formatDate(item.diagnosedAt)} />
-              <InfoRow label="ICD-10" value={item.icd10Code} />
-            </>
-          }
-          metaRight={
-            <>
-              <InfoRow label="Type" value={item.diagnosisType} />
-              <InfoRow label="Status" value={item.clinicalStatus} />
-            </>
-          }
-          footerLeft={item.notes || "Diagnosis history entry"}
-          actionLabel="View Diagnosis"
-        />
+  key={item.id}
+  icon={<Stethoscope size={18} />}
+  title={item.diagnosisName}
+  subtitle={diagnosisSubtitle || "Diagnosis entry"}
+  status={item.clinicalStatus || "Recorded"}
+  accentColor="#6366F1"
+  iconBg="#EEF2FF"
+  iconColor="#4F46E5"
+  metaLeft={
+    <>
+      <InfoRow label="Diagnosed" value={formatDate(item.diagnosedAt)} />
+      <InfoRow label="ICD-10" value={item.icd10Code} />
+    </>
+  }
+  metaRight={
+    <>
+      <InfoRow label="Type" value={item.diagnosisType} />
+      <InfoRow label="Status" value={item.clinicalStatus} />
+    </>
+  }
+  footerLeft={item.notes || "Diagnosis history entry"}
+  actionLabel="View Diagnosis"
+/>
       );
     }
 
@@ -685,30 +714,32 @@ const vitalsChips = (
       );
       return (
         <RecordShell
-          key={item.id}
-          icon={<Syringe size={18} />}
-          title={item.vaccineName}
-          subtitle={immunizationSubtitle || "Immunization entry"
-          }
-          status={item.immunizationStatus || "Completed"}
-          metaLeft={
-            <>
-              <InfoRow
-                label="Administered"
-                value={formatDate(item.administeredAt)}
-              />
-              <InfoRow label="Code" value={item.vaccineCode} />
-            </>
-          }
-          metaRight={
-            <>
-              <InfoRow label="Manufacturer" value={item.manufacturer} />
-              <InfoRow label="Dose Number" value={item.doseNumber} />
-            </>
-          }
-          footerLeft={item.notes || "Immunization history entry"}
-          actionLabel="View Vaccine"
-        />
+  key={item.id}
+  icon={<Syringe size={18} />}
+  title={item.vaccineName}
+  subtitle={immunizationSubtitle || "Immunization entry"}
+  status={item.immunizationStatus || "Completed"}
+  accentColor="#14B8A6"
+  iconBg="#F0FDFA"
+  iconColor="#0F766E"
+  metaLeft={
+    <>
+      <InfoRow
+        label="Administered"
+        value={formatDate(item.administeredAt)}
+      />
+      <InfoRow label="Code" value={item.vaccineCode} />
+    </>
+  }
+  metaRight={
+    <>
+      <InfoRow label="Manufacturer" value={item.manufacturer} />
+      <InfoRow label="Dose Number" value={item.doseNumber} />
+    </>
+  }
+  footerLeft={item.notes || "Immunization history entry"}
+  actionLabel="View Vaccine"
+/>
       );
     }
 
@@ -730,39 +761,38 @@ const vitalsChips = (
       );
       return (
         <RecordShell
-          key={item.id}
-          icon={<FlaskConical size={18} />} // Consider changing icon to something more suitable like Scalpel or Activity
-          title={item.procedureName || "Unknown Procedure"}
-          subtitle={procedureSubtitle ||
-            "Surgical Procedure"
-          }
-          status={item.clinicalStatus || item.outcome || "Completed"}
-          metaLeft={
-            <>
-              <InfoRow
-                label="Performed"
-                value={item.performedAt ? formatDate(item.performedAt) : "—"}
-              />
-              <InfoRow label="Indication" value={item.indication || "—"} />
-            </>
-          }
-          metaRight={
-            <>
-              <InfoRow
-                label="Performed By"
-                value={item.performedBy?.organizationName || "—"}
-              />
-              <InfoRow
-                label="Facility"
-                value={
-                  item.facilityName || item.performedBy?.organizationName || "—"
-                }
-              />
-            </>
-          }
-          footerLeft={item.notes || "No additional notes"}
-          actionLabel="View Details"
-        />
+  key={item.id}
+  icon={<FlaskConical size={18} />}
+  title={item.procedureName || "Unknown Procedure"}
+  subtitle={procedureSubtitle || "Surgical Procedure"}
+  status={item.clinicalStatus || item.outcome || "Completed"}
+  accentColor="#8B5CF6"
+  iconBg="#F5F3FF"
+  iconColor="#7C3AED"
+  metaLeft={
+    <>
+      <InfoRow
+        label="Performed"
+        value={item.performedAt ? formatDate(item.performedAt) : "—"}
+      />
+      <InfoRow label="Indication" value={item.indication || "—"} />
+    </>
+  }
+  metaRight={
+    <>
+      <InfoRow
+        label="Performed By"
+        value={item.performedBy?.organizationName || "—"}
+      />
+      <InfoRow
+        label="Facility"
+        value={item.facilityName || item.performedBy?.organizationName || "—"}
+      />
+    </>
+  }
+  footerLeft={item.notes || "No additional notes"}
+  actionLabel="View Details"
+/>
       );
     }
 
@@ -784,28 +814,29 @@ const vitalsChips = (
       );
       return (
         <RecordShell
-          key={item.id}
-          icon={<FlaskConical size={18} />}
-          title={item.testName}
-          subtitle={labSubtitle ||
-            "Lab result"
-          }
-          status={item.interpretation || "Completed"}
-          metaLeft={
-            <>
-              <InfoRow label="Resulted" value={formatDate(item.resultedAt)} />
-              <InfoRow label="Category" value={item.category} />
-            </>
-          }
-          metaRight={
-            <>
-              <InfoRow label="Specimen" value={item.specimen} />
-              <InfoRow label="Interpretation" value={item.interpretation} />
-            </>
-          }
-          footerLeft={item.notes || "Lab history entry"}
-          actionLabel="View Result"
-        />
+  key={item.id}
+  icon={<FlaskConical size={18} />}
+  title={item.testName}
+  subtitle={labSubtitle || "Lab result"}
+  status={item.interpretation || "Completed"}
+  accentColor="#F59E0B"
+  iconBg="#FFFBEB"
+  iconColor="#D97706"
+  metaLeft={
+    <>
+      <InfoRow label="Resulted" value={formatDate(item.resultedAt)} />
+      <InfoRow label="Category" value={item.category} />
+    </>
+  }
+  metaRight={
+    <>
+      <InfoRow label="Specimen" value={item.specimen} />
+      <InfoRow label="Interpretation" value={item.interpretation} />
+    </>
+  }
+  footerLeft={item.notes || "Lab history entry"}
+  actionLabel="View Result"
+/>
       );
     }
 
