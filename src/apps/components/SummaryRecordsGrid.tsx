@@ -31,60 +31,74 @@ export function SummaryRecordsGrid({
 }: Props) {
   return (
     <div>
-      <h2 className="text-[22px] font-bold text-gray-900 mb-4">Health Record</h2>
+      <h2 className="mb-4 text-[22px] font-bold text-gray-900">Health Record</h2>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {loading
           ? Array.from({ length: 6 }).map((_, index) => (
               <RecordCardSkeleton key={index} />
             ))
-          : records.map((item) => (
-              <Link to="/patient/vault"
-                key={item.category}
-                className="rounded-2xl border border-gray-200 bg-white p-5 hover:shadow-md transition cursor-pointer"
-                // onClick={() => onViewCategory(item.category)}
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <div className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                      {formatLabel(item.category)}
+          : records.map((item) => {
+              const accent = getCategoryAccent(item.category);
+
+              return (
+                <Link
+                  to="/patient/vault"
+                  key={item.category}
+                  className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-[1px] hover:shadow-md"
+                  // onClick={() => onViewCategory(item.category)}
+                >
+                  {/* left accent */}
+                  <span
+                    className={`absolute inset-y-0 left-0 w-[5px] ${accent.border}`}
+                  />
+
+                  <div className="flex items-start justify-between mb-4 pl-2">
+                    <div>
+                      <div className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                        {formatLabel(item.category)}
+                      </div>
+
+                      <div className="mt-1 text-3xl font-black text-gray-900">
+                        {item.recordCount}
+                      </div>
+
+                      <div className="text-sm text-gray-400">
+                        {item.recordCount === 1 ? "record" : "records"}
+                      </div>
                     </div>
-                    <div className="text-3xl font-black text-gray-900 mt-1">
-                      {item.recordCount}
-                    </div>
-                    <div className="text-sm text-gray-400">
-                      {item.recordCount === 1 ? "record" : "records"}
+
+                    <div
+                      className={`flex h-11 w-11 items-center justify-center rounded-2xl ${accent.softBg}`}
+                    >
+                      {getCategoryIcon(item.category)}
                     </div>
                   </div>
 
-                  <div className="w-11 h-11 rounded-2xl bg-gray-50 flex items-center justify-center">
-                    {getCategoryIcon(item.category)}
-                  </div>
-                </div>
-
-                <div className="text-sm text-gray-700 mb-3">
-                  {getCategorySummary(item)}
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="text-[11px] text-gray-400">
-                    {item.lastUpdatedAt
-                      ? `Updated ${new Date(item.lastUpdatedAt).toLocaleDateString()}`
-                      : "No records yet"}
+                  <div className="mb-3 pl-2 text-sm text-gray-700">
+                    {getCategorySummary(item)}
                   </div>
 
-                  <button 
-                    className="text-sm font-semibold text-[#2F915C]"
-                    // onClick={(e) => {
-                    //   e.stopPropagation();
-                    //   onViewCategory(item.category);
-                    // }}
-                  >
-                    View
-                  </button>
-                </div>
-              </Link>
-            ))}
+                  <div className="flex items-center justify-between pl-2">
+                    <div className="text-[11px] text-gray-400">
+                      {item.lastUpdatedAt
+                        ? `Updated ${new Date(item.lastUpdatedAt).toLocaleDateString()}`
+                        : "No records yet"}
+                    </div>
+
+                    <button
+                      className={`text-sm font-semibold ${accent.text}`}
+                      // onClick={(e) => {
+                      //   e.stopPropagation();
+                      //   onViewCategory(item.category);
+                      // }}
+                    >
+                      View
+                    </button>
+                  </div>
+                </Link>
+              );
+            })}
       </div>
     </div>
   );
@@ -137,22 +151,89 @@ const getCategorySummary = (item: RecordCategory) => {
   }
 };
 
+const getCategoryAccent = (category: string) => {
+  switch (category) {
+    case "vitals":
+      return {
+        border: "bg-blue-500",
+        softBg: "bg-blue-50",
+        text: "text-blue-600",
+      };
+
+    case "medications":
+      return {
+        border: "bg-violet-500",
+        softBg: "bg-violet-50",
+        text: "text-violet-600",
+      };
+
+    case "allergies":
+      return {
+        border: "bg-emerald-600",
+        softBg: "bg-emerald-50",
+        text: "text-emerald-700",
+      };
+
+    case "diagnoses":
+      return {
+        border: "bg-red-500",
+        softBg: "bg-red-50",
+        text: "text-red-600",
+      };
+
+    case "lab_results":
+      return {
+        border: "bg-blue-500",
+        softBg: "bg-blue-50",
+        text: "text-blue-600",
+      };
+
+    case "immunizations":
+      return {
+        border: "bg-red-400",
+        softBg: "bg-red-50",
+        text: "text-red-500",
+      };
+
+    case "procedures":
+      return {
+        border: "bg-pink-500",
+        softBg: "bg-pink-50",
+        text: "text-pink-600",
+      };
+
+    default:
+      return {
+        border: "bg-gray-300",
+        softBg: "bg-gray-50",
+        text: "text-gray-600",
+      };
+  }
+};
+
 const getCategoryIcon = (category: string) => {
   switch (category) {
     case "vitals":
-      return <HeartPulse size={18} className="text-rose-500" />;
+      return <TestTube size={18} className="text-blue-500" />;
+
     case "medications":
-      return <Pill size={18} className="text-blue-500" />;
+      return <Pill size={18} className="text-violet-500" />;
+
     case "allergies":
-      return <ShieldAlert size={18} className="text-amber-500" />;
+      return <ShieldAlert size={18} className="text-emerald-600" />;
+
     case "lab_results":
-      return <TestTube size={18} className="text-violet-500" />;
+      return <TestTube size={18} className="text-blue-500" />;
+
     case "diagnoses":
-      return <Stethoscope size={18} className="text-emerald-600" />;
+      return <HeartPulse size={18} className="text-red-500" />;
+
     case "immunizations":
-      return <Syringe size={18} className="text-teal-500" />;
+      return <HeartPulse size={18} className="text-red-400" />;
+
     case "procedures":
-      return <Scissors size={18} className="text-slate-500" />;
+      return <Scissors size={18} className="text-pink-500" />;
+
     default:
       return <HeartPulse size={18} className="text-gray-400" />;
   }

@@ -128,6 +128,7 @@ export function MedicationRecordForm({
       adherence: form.adherence,
       notes: form.notes.trim() || undefined,
     };
+    console.log("🚀 ~ handleSubmit ~ payload:", payload?.duration)
 
     try {
       setSubmitting(true);

@@ -49,7 +49,7 @@ function formatDose(med: MedicationRecord) {
 }
 
 function formatSubtitle(med: MedicationRecord) {
-  return [formatDose(med), med.frequency, med.route]
+  return [formatDose(med)]
     .filter(Boolean)
     .join(" · ");
 }
@@ -249,23 +249,39 @@ export function MedicationsPage() {
 
         <div className="grid grid-cols-2 gap-2 text-xs mb-3">
           <div>
+            {med.genericName &&
             <span style={{ color: "#94a3b8" }}>Generic: </span>
+            }
             <span style={{ color: "#475569" }}>
-              {med.genericName || "—"}
+              {med.genericName}
             </span>
           </div>
 
           <div>
+             {med.brandName &&
             <span style={{ color: "#94a3b8" }}>Brand: </span>
+            }
             <span style={{ color: "#475569" }}>
-              {med.brandName || "—"}
+              {med.brandName}
             </span>
           </div>
 
+          <div>
+            <span style={{ color: "#94a3b8" }}>Duration: </span>
+            <span style={{ color: "#475569" }}>
+              {med?.duration}
+            </span>
+          </div>
+          <div>
+            <span style={{ color: "#94a3b8" }}>Frequency: </span>
+            <span style={{ color: "#475569" }}>
+              {med?.frequency}
+            </span>
+          </div>
           <div>
             <span style={{ color: "#94a3b8" }}>Prescribed By: </span>
             <span style={{ color: "#475569" }}>
-              {med?.prescribedByName ?? med?.prescribedByEmail}
+              {med?.prescribedByName ?? med?.prescribedByContactPersonName}
             </span>
           </div>
 

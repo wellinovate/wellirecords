@@ -93,7 +93,8 @@ export function RecentEncountersCard({
         </h2>
 
         {!isLoading && encounters?.length > 0 && (
-          <Link to="/patient/journeys"
+          <Link
+            to="/patient/journeys"
             // onClick={onViewAll}
             className="text-sm font-semibold text-[#2F915C] hover:underline"
           >
@@ -108,7 +109,7 @@ export function RecentEncountersCard({
           <EncounterSkeletonRow />
           <EncounterSkeletonRow />
         </div>
-      ) : encounters.length === 0 ? (
+      ) : encounters?.length === 0 ? (
         <div className="px-4 py-1">
           <div className="flex flex-col items-center justify-center text-center rounded-2xl border border-dashed border-gray-200 bg-gray-50 py-2 px-6">
             <div className="w-14 h-14 rounded-2xl bg-white border border-gray-200 flex items-center justify-center mb-1">
@@ -125,13 +126,13 @@ export function RecentEncountersCard({
         </div>
       ) : (
         <div className="divide-y divide-gray-100 px-1 rounded-lg space-y-1">
-          {encounters.map((item) => {
-            const Icon = encounterIcons[item.encounterType];
-            const statusClass = statusStyles[item.status];
+          {encounters?.map((item) => {
+            const Icon = encounterIcons[item?.encounterType];
+            const statusClass = statusStyles[item?.status];
 
             return (
               <div
-                key={item.id}
+                key={item?.id}
                 className="py-2 flex flex-co xl:flex-row bg-gray-100 xl:items-center gap-2 px-2 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-start gap-1 flex-1 min-w-0">
@@ -142,7 +143,7 @@ export function RecentEncountersCard({
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2 mb-1">
                       <span className="text-xs text-gray-500">
-                        {new Date(item.date).toLocaleDateString(undefined, {
+                        {new Date(item?.date).toLocaleDateString(undefined, {
                           month: "short",
                           day: "numeric",
                           year: "numeric",
@@ -150,73 +151,72 @@ export function RecentEncountersCard({
                       </span>
 
                       <h3 className="text-[15px] font-semibold text-gray-900">
-                        {item.title}
+                        {item?.title}
                       </h3>
 
                       <span
                         className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${statusClass}`}
                       >
-                        {item.status === "attention"
+                        {item?.status === "attention"
                           ? "Attention Needed"
-                          : item.status.charAt(0).toUpperCase() +
-                            item.status.slice(1)}
+                          : item?.status.charAt(0).toUpperCase() +
+                            item?.status.slice(1)}
                       </span>
                     </div>
 
                     <div className="flex justify-between">
-                    <div>
+                      <div>
+                        <div className="text-xs text-gray-600">
+                          {item?.provider
+                            ? `Visited ${item?.provider}`
+                            : item?.facility}
+                        </div>
 
-                    <div className="text-xs text-gray-600">
-                      {item.provider ? `Visited ${item.provider}` : item.facility}
+                        <div className="text-[10px] text-gray-500 mt-1">
+                          {new Date(item?.date).toLocaleTimeString([], {
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })}{" "}
+                          | {item?.facility}
+                        </div>
+
+                        <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                          <span className="truncate">{item?.summary}</span>
+                          <ChevronRight
+                            size={14}
+                            className="text-gray-400 flex-shrink-0"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex flex- items-center gap-2">
+                        <button
+                          onClick={() => onViewDetails(item?.id)}
+                          title="View Details"
+                          className="w-9 h-9 flex items-center justify-center rounded-lg bg-[#148A90] text-white hover:brightness-95"
+                        >
+                          <Eye size={16} />
+                        </button>
+
+                        <button
+                          onClick={() => onShare(item?.id)}
+                          title="Share"
+                          className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+                        >
+                          <Share2 size={16} />
+                        </button>
+
+                        <button
+                          onClick={() => onContinueCare(item?.id)}
+                          title="Continue Care"
+                          className="w-9 h-9 flex items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                        >
+                          <ArrowRightCircle size={16} />
+                        </button>
+                      </div>
                     </div>
-
-                    <div className="text-[10px] text-gray-500 mt-1">
-                      {new Date(item.date).toLocaleTimeString([], {
-                        hour: "numeric",
-                        minute: "2-digit",
-                      })}{" "}
-                      | {item.facility}
-                    </div>
-
-                    <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                      <span className="truncate">{item.summary}</span>
-                      <ChevronRight
-                        size={14}
-                        className="text-gray-400 flex-shrink-0"
-                      />
-                    </div>
-                    </div>
-
-                <div className="flex flex- items-center gap-2">
-  <button
-    onClick={() => onViewDetails(item.id)}
-    title="View Details"
-    className="w-9 h-9 flex items-center justify-center rounded-lg bg-[#148A90] text-white hover:brightness-95"
-  >
-    <Eye size={16} />
-  </button>
-
-  <button
-    onClick={() => onShare(item.id)}
-    title="Share"
-    className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
-  >
-    <Share2 size={16} />
-  </button>
-
-  <button
-    onClick={() => onContinueCare(item.id)}
-    title="Continue Care"
-    className="w-9 h-9 flex items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-  >
-    <ArrowRightCircle size={16} />
-  </button>
-</div>
-                    </div>
-
                   </div>
                 </div>
-
               </div>
             );
           })}

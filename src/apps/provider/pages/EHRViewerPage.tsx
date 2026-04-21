@@ -11,6 +11,7 @@ import PatientProfile from "@/apps/components/shared/PatientProfile";
 import { SharedDashboardSection } from "@/apps/components/shared/SharedDashboardSection";
 import { VitalRecordForm } from "@/apps/components/VitalRecordForm";
 import { TimelineNode } from "@/apps/patient/pages/HealthHistory";
+import { mapApiEncounterToUi, RecordsResponse } from "@/apps/patient/pages/PatientOverview";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { TAB_CONFIG } from "@/shared/utils/data";
 import {
@@ -29,7 +30,6 @@ import {
   getUsersEncountersByProvider,
   getUsersRecordByProvider,
   LabResultItem,
-  mapApiEncounterToUi,
   MedicationItem,
   PatientDetailResponse,
   ProcedureItem,
@@ -405,16 +405,36 @@ export function EHRViewerPage() {
             "🚀 ~ fetchDashboardData ~ encounterResult:",
             encounterResult.items,
           );
+
+          const rawItems = Array.isArray(encounterResult?.items)
+        ? encounterResult.items
+        : [];
+
+        const twoWeeksAgo = new Date();
+      twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
           // console.log("isArray?", Array.isArray(encounterResult));
           // console.log("type:", typeof encounterResult);
           // console.log("value:", encounterResult);
           // const formattedEncounters = encounterResult.map(mapApiEncounterToUi);
-          const formattedEncounters =
-            Object.values(encounterResult).map(mapApiEncounterToUi);
-          setRecentEncounters(formattedEncounters);
-          setRecentEncounter(encounterResult);
-          const data = result?.data ?? result ?? {};
-          setRecords(data);
+          const formattedEncounters = rawItems
+                  .filter((item: any) => item?.visibilityToPatient !== false)
+                  .filter((item: any) => {
+                    const encounterDate = new Date(
+                      item?.startedAt || item?.createdAt || item?.updatedAt,
+                    );
+                    return !Number.isNaN(encounterDate.getTime()) && encounterDate >= twoWeeksAgo;
+                  })
+                  .sort((a: any, b: any) => {
+                    const dateA = new Date(a?.startedAt || a?.createdAt || a?.updatedAt).getTime();
+                    const dateB = new Date(b?.startedAt || b?.createdAt || b?.updatedAt).getTime();
+                    return dateB - dateA;
+                  })
+                  .map(mapApiEncounterToUi);
+          
+                setRecentEncounters(formattedEncounters);
+          
+                const data: RecordsResponse = result?.data ?? result ?? {};
+                setRecords(data);
         } catch (err: any) {
           setError(err?.message || "Failed to load dashboard data");
         } finally {
@@ -645,7 +665,7 @@ export function EHRViewerPage() {
                 {/* Left Column */}
                 <SharedDashboardSection
                   alerts={[]}
-                  recentEncounters={ recentEncounters || recentEncounterList }
+                  recentEncounters={ recentEncounters  }
                   recordList={recordList}
                   loading={loading}
                   routeBase={`/provider/patients/${patientId}`}
@@ -659,46 +679,66 @@ export function EHRViewerPage() {
                 />
               </div>
             )}
-            {tab === "Encounters Timeline" &&
-              (loadingEncounters ? (
-                <div className="rounded-xl border border-[#173a63] bg-[#0a1d39] p-6 text-sm text-[#8fb0d5]">
-                  Loading encounters...
-                </div>
-              ) : encountersError ? (
-                <div className="rounded-xl border border-[#173a63] bg-[#0a1d39] p-6 text-sm text-red-300">
-                  {encountersError}
-                </div>
-              ) : encounters.length === 0 ? (
-                <div className="rounded-xl border border-[#173a63] bg-[#0a1d39] p-6 text-sm text-[#8fb0d5]">
-                  No encounters found for this patient.
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="space-y-5">
-                    {encounters.map((encounter, index) => {
-                      const isExpanded = expandedId === encounter.id;
-                      const detail = encounterDetails[encounter.id];
-                      const isLoadingDetail = loadingDetailId === encounter.id;
+           {tab === "Encounters Timeline" && (
+  <div className="space-y-4">
+    <div className="flex items-center justify-between">
+      <div>
+        <h3 className="text-lg font-semibold text-[#eef5ff]">
+          Encounters Timeline
+        </h3>
+        <p className="text-sm text-[#8fb0d5]">
+          View recent visits and create a new encounter for this patient.
+        </p>
+      </div>
 
-                      return (
-                        <TimelineNode
-                          key={encounter.id}
-                          user={user}
-                          encounter={encounter}
-                          expanded={isExpanded}
-                          encounterDetail={detail}
-                          loadingDetail={isLoadingDetail}
-                          onToggle={() => handleViewMore(encounter.id)}
-                          // 🔥 THIS is the important part
-                          onAdd={(type) =>
-                            handleAddRecordFromEncounter(encounter, type)
-                          }
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
+      <button
+        type="button"
+        onClick={() => {
+          setSelectedEncounter(null);
+          setActiveCreateTab("Encounters");
+        }}
+        className="inline-flex h-10 items-center rounded-md border border-[#2d527b] bg-[#12355f] px-4 text-sm font-medium text-[#dbeafe] transition hover:bg-[#17426f]"
+      >
+        Add Encounter
+      </button>
+    </div>
+
+    {loadingEncounters ? (
+      <div className="rounded-xl border border-[#173a63] bg-[#0a1d39] p-6 text-sm text-[#8fb0d5]">
+        Loading encounters...
+      </div>
+    ) : encountersError ? (
+      <div className="rounded-xl border border-[#173a63] bg-[#0a1d39] p-6 text-sm text-red-300">
+        {encountersError}
+      </div>
+    ) : encounters.length === 0 ? (
+      <div className="rounded-xl border border-[#173a63] bg-[#0a1d39] p-6 text-sm text-[#8fb0d5]">
+        No encounters found for this patient.
+      </div>
+    ) : (
+      <div className="space-y-5">
+        {encounters.map((encounter) => {
+          const isExpanded = expandedId === encounter.id;
+          const detail = encounterDetails[encounter.id];
+          const isLoadingDetail = loadingDetailId === encounter.id;
+
+          return (
+            <TimelineNode
+              key={encounter.id}
+              user={user}
+              encounter={encounter}
+              expanded={isExpanded}
+              encounterDetail={detail}
+              loadingDetail={isLoadingDetail}
+              onToggle={() => handleViewMore(encounter.id)}
+              onAdd={(type) => handleAddRecordFromEncounter(encounter, type)}
+            />
+          );
+        })}
+      </div>
+    )}
+  </div>
+)}
           </div>
           {/* Replace your current Medical Records block with this: */}
           {tab === "Medical Records" && (
@@ -840,7 +880,7 @@ export function EHRViewerPage() {
                     onClose={handleCloseCreateModal}
                     onSuccess={async () => {
                       await loadEncounters();
-                      setTab("Encounters");
+                      setTab("Encounters Timeline");
                       handleCloseCreateModal();
                     }}
                   />

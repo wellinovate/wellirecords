@@ -5,8 +5,8 @@ import { useAuth } from "@/shared/auth/AuthProvider";
 import {
   getUsersEncounters,
   getUsersRecord,
-  mapApiEncounterToUi,
-  UiEncounter,
+  // mapApiEncounterToUi,
+  // UiEncounter,
 } from "@/shared/utils/utilityFunction";
 import { RecentEncountersCard } from "@/apps/components/RecentEncountersCard";
 import { DashboardAlerts } from "@/apps/components/DashboardAlerts";
@@ -19,7 +19,103 @@ type RecordCategory = {
   summaryMetric: Record<string, any>;
 };
 
-type RecordsResponse = Record<string, RecordCategory>;
+export type RecordsResponse = Record<string, RecordCategory>;
+
+type ApiEncounter = {
+  id: string;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  startedAt?: string | null;
+  endedAt?: string | null;
+  encounterTitle?: string | null;
+  encounterType?: string | null;
+  status?: string | null;
+  organizationName?: string | null;
+  organizationPersonName?: string | null;
+  chiefComplaint?: string | null;
+  reasonForVisit?: string | null;
+  notes?: string | null;
+  visibilityToPatient?: boolean;
+};
+
+type UiEncounter = {
+  id: string;
+  date: string;
+  title: string;
+  encounterType: "outpatient" | "lab" | "emergency" | "cardiology";
+  status: "completed" | "ongoing" | "attention";
+  facility: string;
+  provider?: string;
+  summary: string;
+};
+
+const mapEncounterStatus = (
+  status?: string | null,
+  endedAt?: string | null,
+): UiEncounter["status"] => {
+  const normalized = (status || "").toLowerCase();
+
+  if (
+    normalized === "completed" ||
+    normalized === "closed" ||
+    normalized === "done" ||
+    !!endedAt
+  ) {
+    return "completed";
+  }
+
+  if (
+    normalized === "in-progress" ||
+    normalized === "ongoing" ||
+    normalized === "active" ||
+    normalized === "open"
+  ) {
+    return "ongoing";
+  }
+
+  if (
+    normalized === "cancelled" ||
+    normalized === "failed" ||
+    normalized === "requires-followup" ||
+    normalized === "attention"
+  ) {
+    return "attention";
+  }
+
+  return "ongoing";
+};
+
+const mapEncounterType = (
+  type?: string | null,
+): UiEncounter["encounterType"] => {
+  const normalized = (type || "").toLowerCase();
+
+  if (normalized === "lab") return "lab";
+  if (normalized === "emergency") return "emergency";
+  if (normalized === "cardiology") return "cardiology";
+
+  return "outpatient";
+};
+
+export const mapApiEncounterToUi = (item: ApiEncounter): UiEncounter => {
+  const date =
+    item.startedAt || item.createdAt || item.updatedAt || new Date().toISOString();
+
+  return {
+    id: item.id,
+    date,
+    title: item.encounterTitle?.trim() || "Medical Visit",
+    encounterType: mapEncounterType(item.encounterType),
+    status: mapEncounterStatus(item.status, item.endedAt),
+    facility: item.organizationName?.trim() || "Unknown facility",
+    provider: item.organizationPersonName?.trim() || undefined,
+    summary:
+      item.chiefComplaint?.trim() ||
+      item.reasonForVisit?.trim() ||
+      item.notes?.trim() ||
+      "No summary available",
+  };
+};
 
 export type EncounterItem = {
   id: string;
@@ -117,36 +213,50 @@ export function PatientOverview() {
     "there";
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      setLoading(true);
-      setError("");
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    setError("");
 
-      try {
-        const result = await getUsersRecord(1, 10);
-        const encounterResult = await getUsersEncounters();
-        // console.log(
-        //   "🚀 ~ fetchDashboardData ~ encounterResult:",
-        //   encounterResult.items,
-        // );
-        // console.log("isArray?", Array.isArray(encounterResult));
-        // console.log("type:", typeof encounterResult);
-        // console.log("value:", encounterResult);
-        // const formattedEncounters = encounterResult.map(mapApiEncounterToUi);
-        const formattedEncounters =
-          Object.values(encounterResult).map(mapApiEncounterToUi);
-        setRecentEncounters(formattedEncounters);
-        const data: RecordsResponse = result?.data ?? result ?? {};
-        setRecords(data);
-      } catch (err: any) {
-        setError(err?.message || "Failed to load dashboard data");
-      } finally {
-        setLoading(false);
-      }
-    };
+    try {
+      const result = await getUsersRecord(1, 10);
+      const encounterResult = await getUsersEncounters();
 
-    fetchDashboardData();
-  }, []);
+      const rawItems = Array.isArray(encounterResult?.items)
+        ? encounterResult.items
+        : [];
 
+      const twoWeeksAgo = new Date();
+      twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+
+      const formattedEncounters = rawItems
+        .filter((item: any) => item?.visibilityToPatient !== false)
+        .filter((item: any) => {
+          const encounterDate = new Date(
+            item?.startedAt || item?.createdAt || item?.updatedAt,
+          );
+          return !Number.isNaN(encounterDate.getTime()) && encounterDate >= twoWeeksAgo;
+        })
+        .sort((a: any, b: any) => {
+          const dateA = new Date(a?.startedAt || a?.createdAt || a?.updatedAt).getTime();
+          const dateB = new Date(b?.startedAt || b?.createdAt || b?.updatedAt).getTime();
+          return dateB - dateA;
+        })
+        .map(mapApiEncounterToUi);
+
+      setRecentEncounters(formattedEncounters);
+
+      const data: RecordsResponse = result?.data ?? result ?? {};
+      setRecords(data);
+    } catch (err: any) {
+      setError(err?.message || "Failed to load dashboard data");
+      setRecentEncounters([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchDashboardData();
+}, []);
   const recordList = useMemo(() => Object.values(records || {}), [records]);
   const hasSummaryRecords = recordList.length > 0;
 
