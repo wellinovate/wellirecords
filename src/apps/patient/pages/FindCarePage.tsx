@@ -51,7 +51,7 @@ export function FindCarePage() {
           Search hospitals and providers, then book an appointment.
         </p>
 
-        <div className="relative mt-5">
+        <div className="relative mt-2">
           <Search
             size={18}
             className="absolute left-4 top-1/2 -translate-y-1/2 text-[#7EA6D9]"
@@ -65,7 +65,7 @@ export function FindCarePage() {
         </div>
       </div>
 
-      <div className="rounded-[28px] border border-[#D9E6F7] bg-white/60 p-5 shadow-[0_18px_50px_rgba(37,99,235,0.06)] backdrop-blur-sm">
+      <div className="rounded-[28px] border border-[#D9E6F7]  p shadow-[0_18px_50px_rgba(37,99,235,0.06)] backdrop-blur-sm">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="animate-spin text-[#3B82F6]" size={28} />

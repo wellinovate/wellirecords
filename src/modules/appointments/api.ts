@@ -6,16 +6,14 @@ import Cookies from "js-cookie";
 const token = Cookies.get("accessToken");
 
 export const getAppointmentsApi = async (params?: Record<string, any>) => {
-  const { data } = await api.get<AppointmentListResponse>(
+   const { data } = await api.get<AppointmentListResponse>(
     `${apiUrl}/api/v1/appointments`,
-    // {
-    //   params,
-    // },
     {
+      params,
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    },
+    }
   );
   return data;
 };

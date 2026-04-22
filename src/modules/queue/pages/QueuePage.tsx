@@ -11,7 +11,8 @@ import { SourceBadge } from "../components/SourceBadge";
 import { WaitTimeBadge } from "../components/WaitTimeBadge";
 import { formatDateTime } from "@/shared/utils/time";
 import type { QueueItem } from "../types";
-import { AuthProvider, useAuth } from "@/shared/auth/AuthProvider";
+import { useAuth } from "@/shared/auth/AuthProvider";
+import { EncounterRecordForm } from "@/apps/components/EncounterRecordForm";
 
 type Props = {
   organizationId: string;
@@ -19,7 +20,7 @@ type Props = {
 };
 
 export default function QueuePage({ organizationId, currentProviderId }: Props) {
-  const {user} = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [workflowStatus, setWorkflowStatus] = useState("");
@@ -27,6 +28,14 @@ export default function QueuePage({ organizationId, currentProviderId }: Props) 
   const [walkInOpen, setWalkInOpen] = useState(false);
   const [triageOpen, setTriageOpen] = useState(false);
   const [selectedQueueItem, setSelectedQueueItem] = useState<QueueItem | null>(null);
+  const [activeCreateTab, setActiveCreateTab] = useState<string | null>(null);
+  const [selectedEncounter, setSelectedEncounter] = useState<{
+    encounterId?: string;
+    patientId?: string;
+    queueId?: string;
+    organizationId?: string;
+    providerId?: string;
+  } | null>(null);
 
   const params = useMemo(
     () => ({
@@ -36,7 +45,7 @@ export default function QueuePage({ organizationId, currentProviderId }: Props) 
       page: 1,
       limit: 30,
     }),
-    [organizationId, workflowStatus, source],
+    [user?.sub, workflowStatus, source],
   );
 
   const {
@@ -49,12 +58,33 @@ export default function QueuePage({ organizationId, currentProviderId }: Props) 
     completeVisit,
   } = useQueue(params);
 
-  const handleStartEncounter = async (queueId: string) => {
-    const res = await startEncounter(queueId, currentProviderId);
+  const handleStartEncounter = async (item: QueueItem) => {
+    const res = await startEncounter(item._id, currentProviderId);
     const encounterId = res?.data?.encounter?._id;
+
     if (encounterId) {
-      navigate(`/provider/encounters/${encounterId}`);
+      setSelectedEncounter({
+        encounterId,
+        patientId: item.patientId?._id,
+        queueId: item._id,
+        organizationId: item.organizationId?._id,
+        providerId: currentProviderId || item.providerId?._id,
+      });
+      setActiveCreateTab("Encounters");
     }
+  };
+
+  const handleOpenEncounter = (item: QueueItem) => {
+    if (!item.encounterId?._id) return;
+
+    setSelectedEncounter({
+      encounterId: item.encounterId._id,
+      patientId: item.patientId?._id,
+      queueId: item._id,
+      organizationId: item.organizationId?._id,
+      providerId: currentProviderId || item.providerId?._id,
+    });
+    setActiveCreateTab("Encounters");
   };
 
   const LIVE_QUEUE_STATUSES = ["checked-in", "triage", "waiting", "in-progress"];
@@ -62,7 +92,11 @@ export default function QueuePage({ organizationId, currentProviderId }: Props) 
   const liveQueueItems = items.filter((item) =>
     LIVE_QUEUE_STATUSES.includes(item.workflowStatus),
   );
-  console.log("🚀 ~ QueuePage ~ liveQueueItems:", liveQueueItems)
+
+  const handleCloseCreateModal = () => {
+    setActiveCreateTab(null);
+    setSelectedEncounter(null);
+  };
 
   return (
     <div className="min-h-screen bg-transparent px-2 py-5 text-white">
@@ -134,7 +168,7 @@ export default function QueuePage({ organizationId, currentProviderId }: Props) 
                         </p>
                         <p>
                           <span className="text-[#9FB3CF]">Provider:</span>{" "}
-                          {item.providerId?.fullName || item.organizationId?.contactPersonName }
+                          {item.providerId?.fullName || item.organizationId?.contactPersonName}
                         </p>
                         <p>
                           <span className="text-[#9FB3CF]">Checked In:</span>{" "}
@@ -174,7 +208,7 @@ export default function QueuePage({ organizationId, currentProviderId }: Props) 
 
                       {["checked-in", "triage", "waiting"].includes(item.workflowStatus) && (
                         <button
-                          onClick={() => handleStartEncounter(item._id)}
+                          onClick={() => handleStartEncounter(item)}
                           className="inline-flex items-center gap-2 rounded-xl bg-purple-600 px-3 py-2 text-sm font-medium hover:bg-purple-500"
                         >
                           <Play size={16} />
@@ -185,7 +219,7 @@ export default function QueuePage({ organizationId, currentProviderId }: Props) 
                       {item.workflowStatus === "in-progress" && item.encounterId?._id && (
                         <>
                           <button
-                            onClick={() => navigate(`/provider/encounters/${item.encounterId?._id}`)}
+                            onClick={() => handleOpenEncounter(item)}
                             className="rounded-xl bg-blue-600 px-3 py-2 text-sm font-medium hover:bg-blue-500"
                           >
                             Open Encounter
@@ -204,6 +238,33 @@ export default function QueuePage({ organizationId, currentProviderId }: Props) 
                   </div>
                 </div>
               ))}
+
+              {activeCreateTab === "Encounters" && selectedEncounter && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-6">
+    <div className="relative max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-2xl border border-[#163761] bg-[#081b35] shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
+      <button
+        onClick={handleCloseCreateModal}
+        className="absolute right-4 top-4 z-10 rounded-lg bg-white/10 px-3 py-1 text-sm text-white hover:bg-white/20"
+      >
+        Close
+      </button>
+
+      <div className="p-4 md:p-6">
+        <EncounterRecordForm
+          encounterId={selectedEncounter.encounterId}
+          patientId={selectedEncounter.patientId}
+          queueId={selectedEncounter.queueId}
+          organizationId={selectedEncounter.organizationId}
+          providerId={selectedEncounter.providerId}
+          onClose={handleCloseCreateModal}
+          onSuccess={async () => {
+            handleCloseCreateModal();
+          }}
+        />
+      </div>
+    </div>
+  </div>
+)}
 
               {!liveQueueItems.length && (
                 <div className="rounded-2xl border border-dashed border-[#163761] px-6 py-12 text-center text-[#9FB3CF]">
