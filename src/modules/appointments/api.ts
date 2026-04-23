@@ -6,14 +6,14 @@ import Cookies from "js-cookie";
 const token = Cookies.get("accessToken");
 
 export const getAppointmentsApi = async (params?: Record<string, any>) => {
-   const { data } = await api.get<AppointmentListResponse>(
+  const { data } = await api.get<AppointmentListResponse>(
     `${apiUrl}/api/v1/appointments`,
     {
       params,
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    }
+    },
   );
   return data;
 };
@@ -51,7 +51,9 @@ export const checkInAppointmentApi = async (appointmentId: string) => {
 
 export const markAppointmentNoShowApi = async (appointmentId: string) => {
   const { data } = await api.post(
-    `${apiUrl}/api/v1/appointments/${appointmentId}/no-show`, {},{
+    `${apiUrl}/api/v1/appointments/${appointmentId}/no-show`,
+    {},
+    {
       headers: {
         Authorization: `Bearer ${token}`,
       },

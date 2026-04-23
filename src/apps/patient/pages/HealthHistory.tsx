@@ -618,7 +618,7 @@ function EncounterDetailContent({ detail }: { detail: any }) {
       )}
 
       {/* Records Sections */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
         {records.vitals?.length > 0 && (
           <div>
             <div className="mb-3 flex items-center gap-2 text-lg font-semibold text-[#1F2A37]">
@@ -858,7 +858,7 @@ export function TimelineNode({
         </div>
 
         {expanded && (
-          <div className="mt-5 space-y-4 border-t border-[#E6EBF2] pt-5">
+          <div className="mt-3 space-y-4 border-t border-[#E6EBF2] pt-3">
             {loadingDetail ? (
               <p className="text-sm text-[#667085]">Loading details...</p>
             ) : encounterDetail ? (

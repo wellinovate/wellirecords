@@ -8,11 +8,12 @@ const token = Cookies.get("accessToken");
 export const getQueueApi = async (params?: Record<string, any>) => {
   // const { data } = await api.get<QueueListResponse>(`${apiUrl}/api/v1/queue`, { params });
   const { data } = await api.get<QueueListResponse>(`${apiUrl}/api/v1/queue`, {
+    params,
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
-  
+
   return data;
 };
 
@@ -24,16 +25,11 @@ export const createWalkInQueueApi = async (payload: {
   priority?: "normal" | "urgent" | "emergency";
   chiefComplaint?: string;
 }) => {
-
-const { data } = await api.post(
-  `${apiUrl}/api/v1/queue/walk-in`,
-  payload,
-  {
+  const { data } = await api.post(`${apiUrl}/api/v1/queue/walk-in`, payload, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
-  }
-);
+  });
   return data;
 };
 
@@ -54,11 +50,15 @@ export const saveTriageApi = async (
     };
   },
 ) => {
-  const { data } = await api.patch(`${apiUrl}/api/v1/queue/${queueId}/triage`, payload,{
-    headers: {
-      Authorization: `Bearer ${token}`,
+  const { data } = await api.patch(
+    `${apiUrl}/api/v1/queue/${queueId}/triage`,
+    payload,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     },
-  });
+  );
   return data;
 };
 
@@ -73,7 +73,9 @@ export const updateQueueStatusApi = async (
     | "cancelled"
     | "no-show",
 ) => {
-  const { data } = await api.patch(`${apiUrl}/api/v1/queue/${queueId}/status`, { workflowStatus });
+  const { data } = await api.patch(`${apiUrl}/api/v1/queue/${queueId}/status`, {
+    workflowStatus,
+  });
   return data;
 };
 
@@ -85,11 +87,10 @@ export const startEncounterFromQueueApi = async (
     `${apiUrl}/api/v1/queue/${queueId}/start-encounter`,
     providerId ? { providerId } : {},
     {
-    headers: {
-      Authorization: `Bearer ${token}`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     },
-  }
-
   );
   return data;
 };

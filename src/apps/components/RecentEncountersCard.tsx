@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 import {
   CalendarDays,
   Droplets,
@@ -10,7 +10,8 @@ import {
   Share2,
   ArrowRightCircle,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import EncounterShareModal from "./shared/EncounterShareModal";
 
 type EncounterItem = {
   id: string;
@@ -31,6 +32,13 @@ type Props = {
   onShare: (id: string) => void;
   onContinueCare: (id: string) => void;
 };
+
+type ShareOption =
+  | "provider"
+  | "caregiver"
+  | "secure-link"
+  | "qr-code"
+  | "pdf";
 
 const statusStyles = {
   completed: "bg-emerald-100 text-emerald-700",
@@ -81,147 +89,208 @@ export function RecentEncountersCard({
   onShare,
   onContinueCare,
 }: Props) {
+  const navigate = useNavigate();
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [selectedEncounterId, setSelectedEncounterId] = useState<string | null>(
+    null,
+  );
+
+  const selectedEncounter = useMemo(
+    () => encounters?.find((e) => e.id === selectedEncounterId),
+    [encounters, selectedEncounterId],
+  );
+
+  const openShareModal = (id: string) => {
+    setSelectedEncounterId(id);
+    setShareModalOpen(true);
+  };
+
+  const closeShareModal = () => {
+    setShareModalOpen(false);
+    setSelectedEncounterId(null);
+  };
+
+  const handleShareOption = (option: ShareOption, encounterId: string) => {
+    const encounter = encounters.find((e) => e.id === encounterId);
+    if (!encounter) return;
+
+    switch (option) {
+      case "provider":
+        navigate(`/patient/journeys/${encounterId}/share/provider`);
+        break;
+
+      case "caregiver":
+        navigate(`/patient/journeys/${encounterId}/share/caregiver`);
+        break;
+
+      case "secure-link":
+        navigate(`/patient/journeys/${encounterId}/share/link`);
+        break;
+
+      case "qr-code":
+        navigate(`/patient/journeys/${encounterId}/share/qr`);
+        break;
+
+      case "pdf":
+        navigate(`/patient/journeys/${encounterId}/summary/pdf`);
+        break;
+
+      default:
+        break;
+    }
+
+    onShare(encounterId);
+    closeShareModal();
+  };
+
   return (
-    <div
-      className={`flex-1 rounded-2xl border min-h-48 overflow-hidden ${
-        !isLoading && encounters?.length === 0 ? "max-h-48" : ""
-      } border-gray-200 bg-white py-3`}
-    >
-      <div className="flex items-center justify-between mb-2 px-4">
-        <h2 className="text-[14px] font-bold text-gray-900">
-          Recent Medical Visit
-        </h2>
+    <>
+      <div
+        className={`flex-1 rounded-2xl border min-h-48 overflow-hidden ${
+          !isLoading && encounters?.length === 0 ? "max-h-48" : ""
+        } border-gray-200 bg-white py-3`}
+      >
+        <div className="flex items-center justify-between mb-2 px-4">
+          <h2 className="text-[14px] font-bold text-gray-900">
+            Recent Medical Visit
+          </h2>
 
-        {!isLoading && encounters?.length > 0 && (
-          <Link
-            to="/patient/journeys"
-            // onClick={onViewAll}
-            className="text-sm font-semibold text-[#2F915C] hover:underline"
-          >
-            View All Encounters
-          </Link>
-        )}
-      </div>
-
-      {isLoading ? (
-        <div className="px-1 rounded-lg space-y-1">
-          <EncounterSkeletonRow />
-          <EncounterSkeletonRow />
-          <EncounterSkeletonRow />
+          {!isLoading && encounters?.length > 0 && (
+            <Link
+              to="/patient/journeys"
+              className="text-sm font-semibold text-[#2F915C] hover:underline"
+            >
+              View All Medical Treatment
+            </Link>
+          )}
         </div>
-      ) : encounters?.length === 0 ? (
-        <div className="px-4 py-1">
-          <div className="flex flex-col items-center justify-center text-center rounded-2xl border border-dashed border-gray-200 bg-gray-50 py-2 px-6">
-            <div className="w-14 h-14 rounded-2xl bg-white border border-gray-200 flex items-center justify-center mb-1">
-              <FileX2 size={24} className="text-gray-400" />
-            </div>
 
-            <h3 className="text-sm font-semibold text-gray-900">
-              No recent record
-            </h3>
-            <p className="text-xs text-gray-500 mt-1 max-w-xs">
-              Your recent encounters will appear here once they are available.
-            </p>
+        {isLoading ? (
+          <div className="px-1 rounded-lg space-y-1">
+            <EncounterSkeletonRow />
+            <EncounterSkeletonRow />
           </div>
-        </div>
-      ) : (
-        <div className="divide-y divide-gray-100 px-1 rounded-lg space-y-1">
-          {encounters?.map((item) => {
-            const Icon = encounterIcons[item?.encounterType];
-            const statusClass = statusStyles[item?.status];
+        ) : encounters?.length === 0 ? (
+          <div className="px-4 py-1">
+            <div className="flex flex-col items-center justify-center text-center rounded-2xl border border-dashed border-gray-200 bg-gray-50 py-2 px-6">
+              <div className="w-14 h-14 rounded-2xl bg-white border border-gray-200 flex items-center justify-center mb-1">
+                <FileX2 size={24} className="text-gray-400" />
+              </div>
 
-            return (
-              <div
-                key={item?.id}
-                className="py-2 flex flex-co xl:flex-row bg-gray-100 xl:items-center gap-2 px-2 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-start gap-1 flex-1 min-w-0">
-                  <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center flex-shrink-0">
-                    <Icon size={18} className="text-[#2F915C]" />
-                  </div>
+              <h3 className="text-sm font-semibold text-gray-900">
+                No recent record
+              </h3>
+              <p className="text-xs text-gray-500 mt-1 max-w-xs">
+                Your recent encounters will appear here once they are available.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-100 px-1 rounded-lg space-y-1">
+            {encounters?.map((item) => {
+              const Icon = encounterIcons[item?.encounterType];
+              const statusClass = statusStyles[item?.status];
 
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2 mb-1">
-                      <span className="text-xs text-gray-500">
-                        {new Date(item?.date).toLocaleDateString(undefined, {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </span>
-
-                      <h3 className="text-[15px] font-semibold text-gray-900">
-                        {item?.title}
-                      </h3>
-
-                      <span
-                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${statusClass}`}
-                      >
-                        {item?.status === "attention"
-                          ? "Attention Needed"
-                          : item?.status.charAt(0).toUpperCase() +
-                            item?.status.slice(1)}
-                      </span>
+              return (
+                <div
+                  key={item?.id}
+                  className="py-2 flex flex-co xl:flex-row bg-gray-100 xl:items-center gap-2 px-2 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-start gap-1 flex-1 min-w-0">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center flex-shrink-0">
+                      <Icon size={18} className="text-[#2F915C]" />
                     </div>
 
-                    <div className="flex justify-between">
-                      <div>
-                        <div className="text-xs text-gray-600">
-                          {item?.provider
-                            ? `Visited ${item?.provider}`
-                            : item?.facility}
-                        </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                        <span className="text-xs text-gray-500">
+                          {new Date(item?.date).toLocaleDateString(undefined, {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </span>
 
-                        <div className="text-[10px] text-gray-500 mt-1">
-                          {new Date(item?.date).toLocaleTimeString([], {
-                            hour: "numeric",
-                            minute: "2-digit",
-                          })}{" "}
-                          | {item?.facility}
-                        </div>
+                        <h3 className="text-[15px] font-semibold text-gray-900">
+                          {item?.title}
+                        </h3>
 
-                        <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                          <span className="truncate">{item?.summary}</span>
-                          <ChevronRight
-                            size={14}
-                            className="text-gray-400 flex-shrink-0"
-                          />
-                        </div>
+                        <span
+                          className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${statusClass}`}
+                        >
+                          {item?.status === "attention"
+                            ? "Attention Needed"
+                            : item?.status.charAt(0).toUpperCase() +
+                              item?.status.slice(1)}
+                        </span>
                       </div>
 
-                      <div className="flex flex- items-center gap-2">
-                        <button
-                          onClick={() => onViewDetails(item?.id)}
-                          title="View Details"
-                          className="w-9 h-9 flex items-center justify-center rounded-lg bg-[#148A90] text-white hover:brightness-95"
-                        >
-                          <Eye size={16} />
-                        </button>
+                      <div className="flex justify-between">
+                        <div>
+                          <div className="text-xs text-gray-600">
+                            {item?.provider
+                              ? `Visited ${item?.provider}`
+                              : item?.facility}
+                          </div>
 
-                        <button
-                          onClick={() => onShare(item?.id)}
-                          title="Share"
-                          className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
-                        >
-                          <Share2 size={16} />
-                        </button>
+                          <div className="text-[10px] text-gray-500 mt-1">
+                            {new Date(item?.date).toLocaleTimeString([], {
+                              hour: "numeric",
+                              minute: "2-digit",
+                            })}{" "}
+                            | {item?.facility}
+                          </div>
 
-                        <button
-                          onClick={() => onContinueCare(item?.id)}
-                          title="Continue Care"
-                          className="w-9 h-9 flex items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                        >
-                          <ArrowRightCircle size={16} />
-                        </button>
+                          <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                            <span className="truncate">{item?.summary}</span>
+                            <ChevronRight
+                              size={14}
+                              className="text-gray-400 flex-shrink-0"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => navigate("/patient/journeys")}
+                            title="View Details"
+                            className="w-9 h-9 flex items-center justify-center rounded-lg bg-[#148A90] text-white hover:brightness-95"
+                          >
+                            <Eye size={16} />
+                          </button>
+
+                          <button
+                            onClick={() => openShareModal(item?.id)}
+                            title="Share securely"
+                            className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+                          >
+                            <Share2 size={16} />
+                          </button>
+
+                          <button
+                            onClick={() => navigate("/patient/find-care")}
+                            title="Continue Care"
+                            className="w-9 h-9 flex items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                          >
+                            <ArrowRightCircle size={16} />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <EncounterShareModal
+        open={shareModalOpen}
+        encounterId={selectedEncounterId}
+        onClose={closeShareModal}
+        onSelect={handleShareOption}
+      />
+    </>
   );
 }

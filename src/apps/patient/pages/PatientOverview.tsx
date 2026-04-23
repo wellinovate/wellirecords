@@ -280,30 +280,28 @@ export function PatientOverview() {
         </div>
 
         <div className="flex gap-2 flex-shrink-0">
-          <button
-            onClick={() => navigate("/patient/vault")}
-            className="btn btn-patient-outline gap-2"
-            style={{ background: "var(--pat-surface)" }}
-          >
-            <UploadCloud size={16} />
-            <span className="hidden sm:inline">Upload Record</span>
-            <span className="sm:hidden">Upload</span>
-          </button>
+  <button
+    onClick={() => navigate("/patient/vault")}
+    className="inline-flex items-center gap-2 rounded-lg border border-[#365f8f] bg-[#102849] px-4 py-2 text-sm font-medium text-[#dcecff] transition hover:bg-[#143258]"
+  >
+    <UploadCloud size={16} />
+    <span className="hidden sm:inline">Upload Record</span>
+    <span className="sm:hidden">Upload</span>
+  </button>
 
-          <button
-            onClick={() => navigate("/patient/vault")}
-            className="btn btn-patient gap-2"
-          >
-            <FolderHeart size={16} />
-            <Link to="/patient/vault" className="hidden sm:inline">
-              {" "}
-              Your Health Record
-            </Link>
-            <Link to="/" className="sm:hidden">
-              Vault
-            </Link>
-          </button>
-        </div>
+  <button
+    onClick={() => navigate("/patient/vault")}
+    className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white shadow-[0_8px_20px_rgba(47,107,255,0.28)] transition hover:from-[#037269] hover:to-[#046839]"
+    style={{
+          background:
+            "linear-gradient(135deg,#0d3d22 0%,#1a6b42 60%,#2d9d63 100%)",
+        }}
+  >
+    <FolderHeart size={16} />
+    <span className="hidden sm:inline">Your Health Record</span>
+    <span className="sm:hidden">Vault</span>
+  </button>
+</div>
       </div>
 
       <div className="space-y-6">

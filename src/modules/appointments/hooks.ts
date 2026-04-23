@@ -19,15 +19,26 @@ export const useAppointments = (params?: Record<string, any>) => {
   });
 
   const fetchAppointments = useCallback(async () => {
-    setLoading(true);
     try {
+      setLoading(true);
+
       const res = await getAppointmentsApi(params);
+
       setItems(res.items || []);
       setMeta({
         total: res.total || 0,
         page: res.page || 1,
         limit: res.limit || 20,
         totalPages: res.totalPages || 1,
+      });
+    } catch (error) {
+      console.error("Failed to fetch appointments:", error);
+      setItems([]);
+      setMeta({
+        total: 0,
+        page: 1,
+        limit: 20,
+        totalPages: 1,
       });
     } finally {
       setLoading(false);
@@ -36,7 +47,7 @@ export const useAppointments = (params?: Record<string, any>) => {
 
   useEffect(() => {
     fetchAppointments();
-  }, []);
+  }, [fetchAppointments]);
 
   const createAppointment = async (payload: {
     patientId: string;
