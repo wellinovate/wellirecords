@@ -25,28 +25,33 @@ import { SourceBadge } from "@/modules/queue/components/SourceBadge";
 import { WaitTimeBadge } from "@/modules/queue/components/WaitTimeBadge";
 
 import type { QueueItem } from "@/modules/queue/types";
+import { getLocalDateString } from "@/modules/appointments/pages/AppointmentsPage";
 
-export  function FrontDeskPage() {
+export function FrontDeskPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
   const organizationId =
-    user?.sub ||
-    user?.organization?._id ||
-    user?.profile?.organizationId;
+    user?.sub || user?.organization?._id || user?.profile?.organizationId;
 
   const currentProviderId =
     user?.sub || user?._id || user?.userId || user?.profile?._id;
 
   const [walkInOpen, setWalkInOpen] = useState(false);
   const [triageOpen, setTriageOpen] = useState(false);
-  const [selectedQueueItem, setSelectedQueueItem] = useState<QueueItem | null>(null);
+  const [selectedQueueItem, setSelectedQueueItem] = useState<QueueItem | null>(
+    null,
+  );
+
+  const today = getLocalDateString();
 
   const appointmentParams = useMemo(
     () => ({
       organizationId,
       page: 1,
       limit: 10,
+      dateFrom: `${today}T00:00:00`,
+      dateTo: `${today}T23:59:59.999`,
     }),
     [organizationId],
   );
@@ -123,9 +128,12 @@ export  function FrontDeskPage() {
         <div className="rounded-2xl border border-[#163761] bg-[#081b35]/40 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
           <div className="flex flex-col gap-4 border-b border-[#163761] px-6 py-5 xl:flex-row xl:items-center xl:justify-between">
             <div>
-              <h1 className="text-3xl font-semibold text-gray-50">Front Desk</h1>
+              <h1 className="text-3xl font-semibold text-gray-50">
+                Front Desk
+              </h1>
               <p className="mt-1 text-sm text-[#9FB3CF]">
-                Manage arrivals, appointments, walk-ins, and queue flow from one place.
+                Manage arrivals, appointments, walk-ins, and queue flow from one
+                place.
               </p>
             </div>
 
@@ -186,7 +194,9 @@ export  function FrontDeskPage() {
           <section className="rounded-2xl border border-[#163761] bg-[#081b35]/40 shadow-[0_20px_60px_rgba(0,0,0,0.22)]">
             <div className="flex items-center justify-between border-b border-[#163761] px-6 py-4">
               <div>
-                <h2 className="text-xl font-semibold text-gray-50">Today's Appointments</h2>
+                <h2 className="text-xl font-semibold text-gray-50">
+                  Today's Appointments
+                </h2>
                 <p className="text-sm text-[#9FB3CF]">
                   Check in booked patients and manage no-shows
                 </p>
@@ -288,7 +298,9 @@ export  function FrontDeskPage() {
           <section className="rounded-2xl border border-[#163761] bg-[#081b35]/40 shadow-[0_20px_60px_rgba(0,0,0,0.22)]">
             <div className="flex items-center justify-between border-b border-[#163761] px-6 py-4">
               <div>
-                <h2 className="text-xl font-semibold text-gray-50">Live Queue</h2>
+                <h2 className="text-xl font-semibold text-gray-50">
+                  Live Queue
+                </h2>
                 <p className="text-sm text-[#9FB3CF]">
                   Handle walk-ins and move patients through flow
                 </p>
@@ -320,7 +332,8 @@ export  function FrontDeskPage() {
                             {item.patientId?.fullName || "Unknown Patient"}
                           </h3>
                           <p className="text-sm text-[#9FB3CF]">
-                            {item.patientId?.wrId || "No WR-ID"} • {item.visitType}
+                            {item.patientId?.wrId || "No WR-ID"} •{" "}
+                            {item.visitType}
                           </p>
                         </div>
 
@@ -381,25 +394,28 @@ export  function FrontDeskPage() {
                           </button>
                         )}
 
-                        {item.workflowStatus === "in-progress" && item.encounterId?._id && (
-                          <>
-                            <button
-                              onClick={() =>
-                                navigate(`/provider/encounters/${item.encounterId?._id}`)
-                              }
-                              className="rounded-xl bg-blue-600 px-3 py-2 text-sm font-medium hover:bg-blue-500"
-                            >
-                              Open Encounter
-                            </button>
+                        {item.workflowStatus === "in-progress" &&
+                          item.encounterId?._id && (
+                            <>
+                              <button
+                                onClick={() =>
+                                  navigate(
+                                    `/provider/encounters/${item.encounterId?._id}`,
+                                  )
+                                }
+                                className="rounded-xl bg-blue-600 px-3 py-2 text-sm font-medium hover:bg-blue-500"
+                              >
+                                Open Encounter
+                              </button>
 
-                            <button
-                              onClick={() => completeVisit(item._id)}
-                              className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-medium hover:bg-emerald-500"
-                            >
-                              Complete Visit
-                            </button>
-                          </>
-                        )}
+                              <button
+                                onClick={() => completeVisit(item._id)}
+                                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-medium hover:bg-emerald-500"
+                              >
+                                Complete Visit
+                              </button>
+                            </>
+                          )}
                       </div>
                     </div>
                   </div>
@@ -447,7 +463,9 @@ function SummaryCard({
     <div className="rounded-2xl border border-[#163761] bg-[#0b2447]/70 p-4">
       <div className="mb-3 flex items-center justify-between">
         <span className="text-sm text-[#9FB3CF]">{title}</span>
-        <span className="rounded-lg bg-blue-500/10 p-2 text-blue-300">{icon}</span>
+        <span className="rounded-lg bg-blue-500/10 p-2 text-blue-300">
+          {icon}
+        </span>
       </div>
       <div className="text-3xl font-semibold text-white">{value}</div>
       <p className="mt-2 text-xs text-[#9FB3CF]">{hint}</p>

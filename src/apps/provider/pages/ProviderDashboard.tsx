@@ -26,6 +26,7 @@ import { SourceBadge } from "@/modules/queue/components/SourceBadge";
 import { WaitTimeBadge } from "@/modules/queue/components/WaitTimeBadge";
 
 import type { QueueItem } from "@/modules/queue/types";
+import { getLocalDateString } from "@/modules/appointments/pages/AppointmentsPage";
 
 function Card({
   children,
@@ -173,11 +174,14 @@ export function ProviderDashboard() {
   const [triageOpen, setTriageOpen] = useState(false);
   const [selectedQueueItem, setSelectedQueueItem] = useState<QueueItem | null>(null);
 
-  const appointmentParams = useMemo(
-    () => ({
+  const today = getLocalDateString();
+
+  const appointmentParams = useMemo(() => ({
       organizationId,
       page: 1,
       limit: 8,
+      dateFrom: `${today}T00:00:00` ,
+      dateTo: `${today}T23:59:59.999`,
     }),
     [organizationId],
   );

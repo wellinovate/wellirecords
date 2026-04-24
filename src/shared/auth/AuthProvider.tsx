@@ -83,10 +83,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // setUser(res.data.account + " " + res.data.profile.fullName);
     const { account, profile } = res.data;
+    // console.log("🚀 ~ signIn ~ account:", account)
+    // console.log("🚀 ~ signIn ~ profile:", profile)
 
     setUser({
       ...account,
       fullName: profile?.fullName || "",
+      sub: profile?._id,
+      wrOrgId: profile?.wrOrgId
     });
     localStorage.setItem(
       "ui_user",

@@ -19,7 +19,10 @@ export type DashboardAlertItem = {
 type Props = {
   alerts: DashboardAlertItem[];
   onNavigate: (path: string) => void;
+  className: string;
+  variant?: "light" | "dark";
 };
+
 
 const alertStyles = {
   warning: {
@@ -42,9 +45,22 @@ const alertStyles = {
   },
 };
 
-export function DashboardAlerts({ alerts, onNavigate }: Props) {
+export function DashboardAlerts({ alerts, onNavigate, className,variant }: Props) {
   return (
-    <div className={`rounded-2xl ${alerts?.length === 0 ? "max-h-48": " "} flex-1 border bg-white py-2 px-5`}>
+    // <div className={`rounded-2xl ${alerts?.length === 0 ? "max-h-48": " "} flex-1 border bg-white py-2 px-5 ${className ? "bg-radial-gradient(circle at 72% 18%, rgba(116,167,255,0.08) 0%, rgba(116,167,255,0.02) 22%, transparent 40%), linear-gradient(180deg, #0B1730 0%, #091427 100%)":" bg-white" }`}>
+    <div
+  className={`rounded-2xl ${
+    alerts?.length === 0 ? "max-h-48" : ""
+  } flex-1 border py-2 px-5 ${className ?? ""}`}
+  style={
+    variant === "dark"
+      ? {
+          background:
+            "radial-gradient(circle at 72% 18%, rgba(116,167,255,0.08) 0%, rgba(116,167,255,0.02) 22%, transparent 40%), linear-gradient(180deg, #0B1730 0%, #091427 100%)",
+        }
+      : { background: "#ffffff" }
+  }
+>
       <div className="flex items-center justify-between mb-1">
         <h2 className="text-base font-bold text-gray-900">Alerts</h2>
         <span className="text-xs font-medium text-gray-400">
@@ -54,16 +70,25 @@ export function DashboardAlerts({ alerts, onNavigate }: Props) {
 
       {alerts?.length === 0 ? (
         <div className="py-3">
-          <div className="flex flex-col items-center justify-center text-center rounded-2xl border border-dashed border-gray-200 bg-gray-50 py-2 px-6">
+          <div className="flex flex-col items-center justify-center text-center rounded-2xl border border-dashed border-gray-200 bg-gray-50 py-2 px-6"
+          style={
+    variant === "dark"
+      ? {
+          background:
+            "radial-gradient(circle at 72% 18%, rgba(116,167,255,0.08) 0%, rgba(116,167,255,0.02) 22%, transparent 40%), linear-gradient(180deg, #0B1730 0%, #091427 100%)",
+        }
+      : { background: "#ffffff" }
+  }
+          >
             <div className="w-12 h-12 rounded-xl bg-white border border-gray-200 flex items-center justify-center mb-1">
               <FileText size={20} className="text-gray-400" />
             </div>
 
-            <h3 className="text-sm font-semibold text-gray-900">
+            <h3 className="text-sm font-semibold text-gray-100">
               No alerts
             </h3>
 
-            <p className="text-xs text-gray-500 mt-1 max-w-xs">
+            <p className="text-xs text-gray-100 mt-1 max-w-xs">
               You're all caught up. No actions needed right now.
             </p>
           </div>

@@ -87,6 +87,7 @@ export function RecentEncountersCard({
   onViewAll,
   onViewDetails,
   onShare,
+  variant,
   onContinueCare,
 }: Props) {
   const navigate = useNavigate();
@@ -149,6 +150,14 @@ export function RecentEncountersCard({
         className={`flex-1 rounded-2xl border min-h-48 overflow-hidden ${
           !isLoading && encounters?.length === 0 ? "max-h-48" : ""
         } border-gray-200 bg-white py-3`}
+         style={
+    variant === "dark"
+      ? {
+          background:
+            "radial-gradient(circle at 72% 18%, rgba(116,167,255,0.08) 0%, rgba(116,167,255,0.02) 22%, transparent 40%), linear-gradient(180deg, #0B1730 0%, #091427 100%)",
+        }
+      : { background: "#ffffff" }
+  }
       >
         <div className="flex items-center justify-between mb-2 px-4">
           <h2 className="text-[14px] font-bold text-gray-900">

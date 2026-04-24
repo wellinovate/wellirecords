@@ -726,6 +726,7 @@ export function EHRViewerPage() {
             <TimelineNode
               key={encounter.id}
               user={user}
+              variant="dark"
               encounter={encounter}
               expanded={isExpanded}
               encounterDetail={detail}

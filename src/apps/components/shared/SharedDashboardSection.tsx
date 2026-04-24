@@ -28,7 +28,7 @@ export function SharedDashboardSection({
   return (
     <div className=" w-full ">
       <div className="flex lg:flex-row flex-col gap-4 w-full">
-        <DashboardAlerts alerts={alerts} onNavigate={navigate} />
+        <DashboardAlerts alerts={alerts} onNavigate={navigate} className={true} variant="dark" />
 
         <RecentEncountersCard
           encounters={recentEncounters}
@@ -36,6 +36,7 @@ export function SharedDashboardSection({
           onViewAll={() => navigate(`${routeBase}/encounters`)}
           onViewDetails={(id) => navigate(`${routeBase}/encounters/${id}`)}
           onShare={onShareEncounter}
+          variant="dark"
           onContinueCare={onContinueCare}
         />
       </div>

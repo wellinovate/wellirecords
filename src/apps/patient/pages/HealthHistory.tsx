@@ -700,6 +700,7 @@ export function TimelineNode({
   expanded,
   user,
   encounterDetail,
+  variant,
   loadingDetail,
   onToggle,
   onAdd,
@@ -722,7 +723,16 @@ export function TimelineNode({
         <div className="h-2.5 w-2.5 rounded-full bg-white" />
       </div>
 
-      <div className="rounded-[24px] border border-[#27634a]/40 bg-[#F9FBFD] p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
+      <div className="rounded-[24px] border border-[#27634a]/40 bg-[#F9FBFD] p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
+      style={
+    variant === "dark"
+      ? {
+          background:
+            "radial-gradient(circle at 72% 18%, rgba(116,167,255,0.08) 0%, rgba(116,167,255,0.02) 22%, transparent 40%), linear-gradient(180deg, #0B1730 0%, #091427 100%)",
+            color: "#ffffff",
+        }
+      : { background: "#ffffff" }
+  }>
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 flex-1">
             <div className="mb-2 flex flex-wrap items-center gap-2">
@@ -749,7 +759,16 @@ export function TimelineNode({
               </span>
             </div>
 
-            <h3 className="text-xl font-semibold text-[#1F2A37]">
+            <h3 className="text-xl font-semibold text-[#1F2A37]"
+            style={
+    variant === "dark"
+      ? {
+          
+            color: "#ffffff",
+        }
+      : { background: "#ffffff" }
+  }
+            >
               {encounter.encounterName ||
                 encounter.reasonForVisit ||
                 encounter.chiefComplaint ||
