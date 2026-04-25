@@ -375,6 +375,7 @@ const renderRecordCard = (item: any, recordType: string) => {
           key={item.id}
           icon={<HeartPulse size={18} />}
           title="Vital Signs"
+          variant="dark"
           subtitle={vitalsSummary || "Patient vital signs"}
           status="Recorded"
           metaLeft={
@@ -429,6 +430,7 @@ const renderRecordCard = (item: any, recordType: string) => {
       return (
         <RecordShell
           key={item.id}
+          variant="dark"
           icon={<Pill size={18} />}
           title={item.medicationName}
           subtitle={subtitle || "Medication entry"}
@@ -465,6 +467,7 @@ const renderRecordCard = (item: any, recordType: string) => {
           key={item.id}
           icon={<AlertCircle size={18} />}
           title={item.allergen}
+          variant="dark"
           subtitle={
             [item.allergyType, item.reaction].filter(Boolean).join(" • ") ||
             "Allergy record"
@@ -493,6 +496,7 @@ const renderRecordCard = (item: any, recordType: string) => {
           key={item.id}
           icon={<Stethoscope size={18} />}
           title={item.diagnosisName}
+          variant="dark"
           subtitle={
             [item.diagnosisType, item.icd10Code].filter(Boolean).join(" • ") ||
             "Diagnosis entry"
@@ -521,6 +525,7 @@ const renderRecordCard = (item: any, recordType: string) => {
           key={item.id}
           icon={<Stethoscope size={18} />}
           title={item.procedureName || "Unknown Procedure"}
+          variant="dark"
           subtitle={
             [item.procedureType, item.outcome]
               .filter(Boolean)
@@ -562,6 +567,7 @@ const renderRecordCard = (item: any, recordType: string) => {
           key={item.id}
           icon={<FlaskConical size={18} />}
           title={item.testName}
+          variant="dark"
           subtitle={
             [item.resultValue, item.unit].filter(Boolean).join(" ") ||
             "Lab result"
@@ -591,6 +597,7 @@ const renderRecordCard = (item: any, recordType: string) => {
           icon={<Activity size={18} />}
           title="Record"
           subtitle="Health entry"
+          variant="dark"
           status="Saved"
           footerLeft="Record entry"
           actionLabel="View Record"
@@ -600,99 +607,126 @@ const renderRecordCard = (item: any, recordType: string) => {
 };
 
 // ==================== ENCOUNTER DETAIL CONTENT ====================
-function EncounterDetailContent({ detail }: { detail: any }) {
+function EncounterDetailContent({ detail, variant }: any ) {
   const records = detail?.records || {};
 
+  const isDark = variant === "dark";
+
+const cardClass = isDark
+  ? "border border-[#163761] text-white"
+  : "border border-[#E6EBF2] bg-white text-[#1F2A37]";
+
+const cardStyle = isDark
+  ? {
+      background:
+        "radial-gradient(circle at 72% 18%, rgba(116,167,255,0.08) 0%, rgba(116,167,255,0.02) 22%, transparent 40%), linear-gradient(180deg, #0B1730 0%, #091427 100%)",
+    }
+  : undefined;
+
+const titleText = isDark ? "text-white" : "text-[#1F2A37]";
+const mutedText = isDark ? "text-[#9FB3CF]" : "text-[#516173]";
+const iconText = isDark ? "text-[#D7E6FA]" : "text-[#1F2A37]";
+
   return (
-    <div className="space-y-6">
-      {/* Clinical Notes */}
-      {detail?.encounter?.notes && (
-        <div className="rounded-2xl border border-[#E6EBF2] bg-white p-4">
-          <div className="mb-2 text-sm font-semibold text-[#1F2A37]">
-            Clinical Notes
+  <div className="space-y-6">
+    {detail?.encounter?.notes && (
+      <div className={`rounded-2xl p-4 ${cardClass}`} style={cardStyle}>
+        <div className={`mb-2 text-sm font-semibold ${titleText}`}>
+          Clinical Notes
+        </div>
+        <p className={`whitespace-pre-line text-sm leading-6 ${mutedText}`}>
+          {detail.encounter.notes}
+        </p>
+      </div>
+    )}
+
+    <div className="grid grid-cols-2 gap-1 md:grid-cols-3">
+      {records.vitals?.length > 0 && (
+        <div>
+          <div className={`mb-3 flex items-center gap-2 text-lg font-semibold ${titleText}`}>
+            <Activity size={20} className={iconText} />
+            Vitals
           </div>
-          <p className="whitespace-pre-line text-sm leading-6 text-[#516173]">
-            {detail.encounter.notes}
-          </p>
+          <div className="space-y-3">
+            {records.vitals.map((item: any) =>
+              renderRecordCard(item, "vitals", variant)
+            )}
+          </div>
         </div>
       )}
 
-      {/* Records Sections */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
-        {records.vitals?.length > 0 && (
-          <div>
-            <div className="mb-3 flex items-center gap-2 text-lg font-semibold text-[#1F2A37]">
-              <Activity size={20} />
-              Vitals
-            </div>
-            <div className="space-y-3">
-              {records.vitals.map((item: any) => renderRecordCard(item, "vitals"))}
-            </div>
+      {records.diagnoses?.length > 0 && (
+        <div>
+          <div className={`mb-3 flex items-center gap-2 text-lg font-semibold ${titleText}`}>
+            <ClipboardList size={20} className={iconText} />
+            Diagnoses
           </div>
-        )}
+          <div className="space-y-3">
+            {records.diagnoses.map((item: any) =>
+              renderRecordCard(item, "diagnoses", variant)
+            )}
+          </div>
+        </div>
+      )}
 
-        {records.diagnoses?.length > 0 && (
-          <div>
-            <div className="mb-3 flex items-center gap-2 text-lg font-semibold text-[#1F2A37]">
-              <ClipboardList size={20} />
-              Diagnoses
-            </div>
-            <div className="space-y-3">
-              {records.diagnoses.map((item: any) => renderRecordCard(item, "diagnoses"))}
-            </div>
+      {records.medications?.length > 0 && (
+        <div>
+          <div className={`mb-3 flex items-center gap-2 text-lg font-semibold ${titleText}`}>
+            <Pill size={20} className={iconText} />
+            Medications
           </div>
-        )}
+          <div className="space-y-3">
+            {records.medications.map((item: any) =>
+              renderRecordCard(item, "medications", variant)
+            )}
+          </div>
+        </div>
+      )}
 
-        {records.medications?.length > 0 && (
-          <div>
-            <div className="mb-3 flex items-center gap-2 text-lg font-semibold text-[#1F2A37]">
-              <Pill size={20} />
-              Medications
-            </div>
-            <div className="space-y-3">
-              {records.medications.map((item: any) => renderRecordCard(item, "medications"))}
-            </div>
+      {records.procedures?.length > 0 && (
+        <div>
+          <div className={`mb-3 flex items-center gap-2 text-lg font-semibold ${titleText}`}>
+            <Stethoscope size={20} className={iconText} />
+            Procedures
           </div>
-        )}
+          <div className="space-y-3">
+            {records.procedures.map((item: any) =>
+              renderRecordCard(item, "procedures", variant)
+            )}
+          </div>
+        </div>
+      )}
 
-        {records.procedures?.length > 0 && (
-          <div>
-            <div className="mb-3 flex items-center gap-2 text-lg font-semibold text-[#1F2A37]">
-              <Stethoscope size={20} />
-              Procedures
-            </div>
-            <div className="space-y-3">
-              {records.procedures.map((item: any) => renderRecordCard(item, "procedures"))}
-            </div>
+      {records.allergies?.length > 0 && (
+        <div>
+          <div className={`mb-3 flex items-center gap-2 text-lg font-semibold ${titleText}`}>
+            <AlertTriangle size={20} className={iconText} />
+            Allergies
           </div>
-        )}
+          <div className="space-y-3">
+            {records.allergies.map((item: any) =>
+              renderRecordCard(item, "allergies", variant)
+            )}
+          </div>
+        </div>
+      )}
 
-        {records.allergies?.length > 0 && (
-          <div>
-            <div className="mb-3 flex items-center gap-2 text-lg font-semibold text-[#1F2A37]">
-              <AlertTriangle size={20} />
-              Allergies
-            </div>
-            <div className="space-y-3">
-              {records.allergies.map((item: any) => renderRecordCard(item, "allergies"))}
-            </div>
+      {records.labResults?.length > 0 && (
+        <div>
+          <div className={`mb-3 flex items-center gap-2 text-lg font-semibold ${titleText}`}>
+            <FlaskConical size={20} className={iconText} />
+            Lab Results
           </div>
-        )}
-
-        {records.labResults?.length > 0 && (
-          <div>
-            <div className="mb-3 flex items-center gap-2 text-lg font-semibold text-[#1F2A37]">
-              <FlaskConical size={20} />
-              Lab Results
-            </div>
-            <div className="space-y-3">
-              {records.labResults.map((item: any) => renderRecordCard(item, "lab"))}
-            </div>
+          <div className="space-y-3">
+            {records.labResults.map((item: any) =>
+              renderRecordCard(item, "lab", variant)
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
-  );
+  </div>
+);
 }
 
 export function TimelineNode({
@@ -716,180 +750,204 @@ export function TimelineNode({
     encounter.startedAt || encounter.scheduledAt,
   );
 
-  return (
-    <div className="relative pl-3">
-      <div className="absolute left-[11px] top-2 h-full w-px bg-[#075fc4]" />
-      <div className="absolute left-0 top-2 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-[#0456a8] shadow-sm">
-        <div className="h-2.5 w-2.5 rounded-full bg-white" />
-      </div>
+  const isDark = variant === "dark";
 
-      <div className="rounded-[24px] border border-[#27634a]/40 bg-[#F9FBFD] p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
+return (
+  <div className="relative pl-3">
+    <div
+      className={`absolute left-[11px] top-2 h-full w-px ${
+        isDark ? "bg-[#163761]" : "bg-[#075fc4]"
+      }`}
+    />
+
+    <div
+      className={`absolute left-0 top-2 flex h-6 w-6 items-center justify-center rounded-full border-2 shadow-sm ${
+        isDark
+          ? "border-[#163761] bg-[#0b2447]"
+          : "border-white bg-[#0456a8]"
+      }`}
+    >
+      <div className={isDark ? "h-2.5 w-2.5 rounded-full bg-blue-300" : "h-2.5 w-2.5 rounded-full bg-white"} />
+    </div>
+
+    <div
+      className={`rounded-[24px] border p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)] ${
+        isDark
+          ? "border-[#163761] text-white"
+          : "border-[#27634a]/40 bg-[#F9FBFD] text-[#1F2A37]"
+      }`}
       style={
-    variant === "dark"
-      ? {
-          background:
-            "radial-gradient(circle at 72% 18%, rgba(116,167,255,0.08) 0%, rgba(116,167,255,0.02) 22%, transparent 40%), linear-gradient(180deg, #0B1730 0%, #091427 100%)",
-            color: "#ffffff",
-        }
-      : { background: "#ffffff" }
-  }>
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="min-w-0 flex-1">
-            <div className="mb-2 flex flex-wrap items-center gap-2">
-              <span
-                className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${
-                  statusStyles[
-                    encounter.status as
-                      | "completed"
-                      | "ongoing"
-                      | "cancelled"
-                      | "follow-up"
-                  ] || "bg-[#EEF4FF] text-[#3662E3]"
-                }`}
-              >
-                {encounter.status}
-              </span>
-
-              <span
-                className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${
-                  typeStyles[encounter.encounterType]
-                }`}
-              >
-                {encounter.encounterType}
-              </span>
-            </div>
-
-            <h3 className="text-xl font-semibold text-[#1F2A37]"
-            style={
-    variant === "dark"
-      ? {
-          
-            color: "#ffffff",
-        }
-      : { background: "#ffffff" }
-  }
+        isDark
+          ? {
+              background:
+                "radial-gradient(circle at 72% 18%, rgba(116,167,255,0.08) 0%, rgba(116,167,255,0.02) 22%, transparent 40%), linear-gradient(180deg, #0B1730 0%, #091427 100%)",
+            }
+          : undefined
+      }
+    >
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${
+                statusStyles[
+                  encounter.status as
+                    | "completed"
+                    | "ongoing"
+                    | "cancelled"
+                    | "follow-up"
+                ] || "bg-[#EEF4FF] text-[#3662E3]"
+              }`}
             >
-              {encounter.encounterName ||
-                encounter.reasonForVisit ||
-                encounter.chiefComplaint ||
-                "Encounter"}
-            </h3>
+              {encounter.status}
+            </span>
 
-            <p className="mt-1 text-sm text-[#667085]">
-              {encounter.chiefComplaint ||
-                encounter.reasonForVisit ||
-                "No summary available"}
-            </p>
-
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              <div className="flex items-start gap-2 text-sm text-[#667085]">
-                <CalendarDays size={16} className="mt-0.5 text-[#8CA0B3]" />
-                <div>
-                  <p className="font-medium text-[#8CA0B3]">Date</p>
-                  <p className="text-[#475467]">
-                    {dateTime.date} · {dateTime.time}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-2 text-sm text-[#667085]">
-                <Building2 size={16} className="mt-0.5 text-[#8CA0B3]" />
-                <div>
-                  <p className="font-medium text-[#8CA0B3]">Facility</p>
-                  <p className="text-[#475467]">
-                    {encounter.organizationFullName ||
-                      encounter.organizationName ||
-                      "Unknown facility"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-2 text-sm text-[#667085]">
-                <Stethoscope size={16} className="mt-0.5 text-[#8CA0B3]" />
-                <div>
-                  <p className="font-medium text-[#8CA0B3]">Reason</p>
-                  <p className="text-[#475467]">
-                    {encounter.reasonForVisit ||
-                      encounter.chiefComplaint ||
-                      "No reason provided"}
-                  </p>
-                </div>
-              </div>
-            </div>
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${
+                typeStyles[encounter.encounterType]
+              }`}
+            >
+              {encounter.encounterType}
+            </span>
           </div>
 
-          <div>
-            <button
-              type="button"
-              onClick={onToggle}
-              className="inline-flex items-center gap-2 self-start rounded-full bg-[#E9F1EF] px-4 py-2 text-sm font-semibold text-[#138A72] transition hover:bg-[#DCEAE6]"
-            >
-              {expanded ? "Hide Details" : "View Details"}
-              {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            </button>
-            {/* 🔥 ACTION BAR */}
-            {user?.role === "organization" && user?.wrOrgId && (
+          <h3
+            className={`text-xl font-semibold ${
+              isDark ? "text-white" : "text-[#1F2A37]"
+            }`}
+          >
+            {encounter.encounterName ||
+              encounter.reasonForVisit ||
+              encounter.chiefComplaint ||
+              "Encounter"}
+          </h3>
 
-            <div className="grid grid-cols-2 gap-2 text-green-700 mt-1">
-              <button
-                onClick={() => onAdd("Vitals", encounter)}
-                className="text-[#E8F7EF] px-3 py-2 text-sm font-semibold bg-[#01475c] transition hover:bg-[#025a75] rounded-xl"
-              >
-                + Vital
-              </button>
+          <p
+            className={`mt-1 text-sm ${
+              isDark ? "text-[#9FB3CF]" : "text-[#667085]"
+            }`}
+          >
+            {encounter.chiefComplaint ||
+              encounter.reasonForVisit ||
+              "No summary available"}
+          </p>
 
-              <button
-                onClick={() => onAdd("Medications", encounter)}
-                className="text-[#E8F7EF] px-3 py-2 text-sm font-semibold bg-[#01475c] transition hover:bg-[#025a75] rounded-xl"
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {[
+              {
+                Icon: CalendarDays,
+                label: "Date",
+                value: `${dateTime.date} · ${dateTime.time}`,
+              },
+              {
+                Icon: Building2,
+                label: "Facility",
+                value:
+                  encounter.organizationFullName ||
+                  encounter.organizationName ||
+                  "Unknown facility",
+              },
+              {
+                Icon: Stethoscope,
+                label: "Reason",
+                value:
+                  encounter.reasonForVisit ||
+                  encounter.chiefComplaint ||
+                  "No reason provided",
+              },
+            ].map(({ Icon, label, value }) => (
+              <div
+                key={label}
+                className={`flex items-start gap-2 text-sm ${
+                  isDark ? "text-[#D7E6FA]" : "text-[#667085]"
+                }`}
               >
-                + Medication
-              </button>
-
-              <button
-                onClick={() => onAdd("Diagnoses", encounter)}
-                className="text-[#E8F7EF] px-3 py-2 text-sm font-semibold bg-[#01475c] transition hover:bg-[#025a75] rounded-xl"
-              >
-                + Diagnosis
-              </button>
-
-              <button
-                onClick={() => onAdd("Lab Results", encounter)}
-                className="text-[#E8F7EF] px-3 py-2 text-sm font-semibold bg-[#01475c] transition hover:bg-[#025a75] rounded-xl"
-              >
-                + Lab
-              </button>
-
-              <button
-                onClick={() => onAdd("Allergies", encounter)}
-                className="text-[#E8F7EF] px-3 py-2 text-sm font-semibold bg-[#01475c] transition hover:bg-[#025a75] rounded-xl"
-              >
-                + Allergy
-              </button>
-              <button
-                onClick={() => onAdd("Procedures", encounter)}
-                className="text-[#E8F7EF] px-3 py-2 text-sm font-semibold bg-[#01475c] transition hover:bg-[#025a75] rounded-xl"
-              >
-                + Procedure
-              </button>
-            </div>
-            )} 
+                <Icon
+                  size={16}
+                  className={`mt-0.5 ${
+                    isDark ? "text-[#9FB3CF]" : "text-[#8CA0B3]"
+                  }`}
+                />
+                <div>
+                  <p
+                    className={`font-medium ${
+                      isDark ? "text-[#9FB3CF]" : "text-[#8CA0B3]"
+                    }`}
+                  >
+                    {label}
+                  </p>
+                  <p className={isDark ? "text-[#D7E6FA]" : "text-[#475467]"}>
+                    {value}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {expanded && (
-          <div className="mt-3 space-y-4 border-t border-[#E6EBF2] pt-3">
-            {loadingDetail ? (
-              <p className="text-sm text-[#667085]">Loading details...</p>
-            ) : encounterDetail ? (
-              <EncounterDetailContent detail={encounterDetail} />
-            ) : (
-              <p className="text-sm text-[#98A2B3]">No detail available</p>
-            )}
-          </div>
-        )}
+        <div>
+          <button
+            type="button"
+            onClick={onToggle}
+            className={`inline-flex items-center gap-2 self-start rounded-full px-4 py-2 text-sm font-semibold transition ${
+              isDark
+                ? "border border-[#163761] bg-[#0b2447] text-[#D7E6FA] hover:bg-[#102a4d]"
+                : "bg-[#E9F1EF] text-[#138A72] hover:bg-[#DCEAE6]"
+            }`}
+          >
+            {expanded ? "Hide Details" : "View Details"}
+            {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
+
+          {user?.role === "organization" && user?.wrOrgId && (
+            <div className="mt-1 grid grid-cols-2 gap-2">
+              {[
+                ["Vitals", "+ Vital"],
+                ["Medications", "+ Medication"],
+                ["Diagnoses", "+ Diagnosis"],
+                ["Lab Results", "+ Lab"],
+                ["Allergies", "+ Allergy"],
+                ["Procedures", "+ Procedure"],
+              ].map(([type, label]) => (
+                <button
+                  key={type}
+                  onClick={() => onAdd(type, encounter)}
+                  className={`rounded-xl px-3 py-2 text-sm font-semibold transition ${
+                    isDark
+                      ? "border border-[#163761] bg-[#0b2447] text-[#D7E6FA] hover:bg-[#102a4d]"
+                      : "bg-[#01475c] text-[#E8F7EF] hover:bg-[#025a75]"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+
+      {expanded && (
+        <div
+          className={`mt-3 space-y-4 border-t pt-3 ${
+            isDark ? "border-[#163761]" : "border-[#E6EBF2]"
+          }`}
+        >
+          {loadingDetail ? (
+            <p className={`text-sm ${isDark ? "text-[#9FB3CF]" : "text-[#667085]"}`}>
+              Loading details...
+            </p>
+          ) : encounterDetail ? (
+            <EncounterDetailContent detail={encounterDetail} variant="dark"  />
+          ) : (
+            <p className={`text-sm ${isDark ? "text-[#9FB3CF]" : "text-[#98A2B3]"}`}>
+              No detail available
+            </p>
+          )}
+        </div>
+      )}
     </div>
-  );
+  </div>
+);
 }
 
 export function HealthHistoryTimelinePage() {

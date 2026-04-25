@@ -28,10 +28,18 @@ export function SummaryRecordsGrid({
   loading,
   records,
   onViewCategory,
+  variant = "light",
 }: Props) {
+  const isDark = variant === "dark";
   return (
     <div>
-      <h2 className="mb-4 text-[22px] font-bold text-gray-900">Health Record</h2>
+      <h2
+        className={`mb-4 text-[22px] font-bold ${
+          isDark ? "text-white" : "text-gray-900"
+        }`}
+      >
+        Health Record
+      </h2>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {loading
@@ -45,53 +53,86 @@ export function SummaryRecordsGrid({
                 <Link
                   to="/patient/vault"
                   key={item.category}
-                  className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-[1px] hover:shadow-md"
-                  // onClick={() => onViewCategory(item.category)}
+                  className={`group relative overflow-hidden rounded-2xl border p-5 transition hover:-translate-y-[1px] hover:shadow-md ${
+                    isDark
+                      ? "border-[#163761] text-white"
+                      : "border-gray-200 bg-white text-black"
+                  }`}
+                  style={
+                    isDark
+                      ? {
+                          background:
+                            "radial-gradient(circle at 72% 18%, rgba(116,167,255,0.08) 0%, rgba(116,167,255,0.02) 22%, transparent 40%), linear-gradient(180deg, #0B1730 0%, #091427 100%)",
+                        }
+                      : undefined
+                  }
                 >
-                  {/* left accent */}
                   <span
                     className={`absolute inset-y-0 left-0 w-[5px] ${accent.border}`}
                   />
 
-                  <div className="flex items-start justify-between mb-4 pl-2">
+                  <div className="mb-4 flex items-start justify-between pl-2">
                     <div>
-                      <div className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                      <div
+                        className={`text-xs font-bold uppercase tracking-wider ${
+                          isDark ? "text-[#9FB3CF]" : "text-gray-400"
+                        }`}
+                      >
                         {formatLabel(item.category)}
                       </div>
 
-                      <div className="mt-1 text-3xl font-black text-gray-900">
+                      <div
+                        className={`mt-1 text-3xl font-black ${
+                          isDark ? "text-white" : "text-gray-900"
+                        }`}
+                      >
                         {item.recordCount}
                       </div>
 
-                      <div className="text-sm text-gray-400">
+                      <div
+                        className={`text-sm ${
+                          isDark ? "text-[#9FB3CF]" : "text-gray-400"
+                        }`}
+                      >
                         {item.recordCount === 1 ? "record" : "records"}
                       </div>
                     </div>
 
                     <div
-                      className={`flex h-11 w-11 items-center justify-center rounded-2xl ${accent.softBg}`}
+                      className={`flex h-11 w-11 items-center justify-center rounded-2xl border ${
+                        isDark
+                          ? "border-[#163761] bg-[#0b2447]"
+                          : `${accent.softBg} border-transparent`
+                      }`}
                     >
                       {getCategoryIcon(item.category)}
                     </div>
                   </div>
 
-                  <div className="mb-3 pl-2 text-sm text-gray-700">
+                  <div
+                    className={`mb-3 pl-2 text-sm ${
+                      isDark ? "text-[#D7E6FA]" : "text-gray-700"
+                    }`}
+                  >
                     {getCategorySummary(item)}
                   </div>
 
                   <div className="flex items-center justify-between pl-2">
-                    <div className="text-[11px] text-gray-400">
+                    <div
+                      className={`text-[11px] ${
+                        isDark ? "text-[#9FB3CF]" : "text-gray-400"
+                      }`}
+                    >
                       {item.lastUpdatedAt
-                        ? `Updated ${new Date(item.lastUpdatedAt).toLocaleDateString()}`
+                        ? `Updated ${new Date(
+                            item.lastUpdatedAt,
+                          ).toLocaleDateString()}`
                         : "No records yet"}
                     </div>
 
                     <button
                       className={`text-sm font-semibold ${accent.text}`}
-                      // onClick={(e) => {
-                      //   e.stopPropagation();
-                      //   onViewCategory(item.category);
-                      // }}
+                      type="button"
                     >
                       View
                     </button>

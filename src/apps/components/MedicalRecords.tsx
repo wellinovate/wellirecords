@@ -63,7 +63,23 @@ export function MedicalRecords({
   loadingLabResults,
   loadingProcedures,
   onAddRecord,
-}: MedicalRecordsProps) {
+  variant = "light",
+}: MedicalRecordsProps & {
+  variant?: "light" | "dark";
+}) {
+
+  const isDark = variant === "dark";
+
+const textClass = {
+  heading: isDark ? "text-white" : "text-[#1F2A37]",
+  muted: isDark ? "text-[#9FB3CF]" : "text-[#667085]",
+  input: isDark
+    ? "border border-[#163761] bg-[#0b2447] text-white placeholder:text-[#9FB3CF]"
+    : "input input-light",
+  emptyCard: isDark
+    ? "rounded-2xl border border-[#163761] bg-[#0b2447]/60 p-8 text-center"
+    : "card-patient p-8 text-center",
+};
   
   
   const [search, setSearch] = useState("");
@@ -355,6 +371,7 @@ export function MedicalRecords({
             <RecordShell
       key={item.id}
       icon={<HeartPulse size={18} />}
+      variant={variant}
       title="Vital Record"
       subtitle={formatDate(item.measuredAt) || "Patient vital signs"}
       summaryChips={vitalsChips}
@@ -451,6 +468,7 @@ export function MedicalRecords({
       key={item.id}
       icon={<Pill size={18} />}
       title={item.medicationName}
+      variant={variant}
       subtitle={item.indication || "Medication entry"}
       summaryChips={medicationChips}
       status={
@@ -487,6 +505,7 @@ export function MedicalRecords({
           key={item.id}
           icon={<AlertCircle size={18} />}
           title={item.allergen}
+          variant={variant}
           subtitle={
             [item.allergyType, item.reaction].filter(Boolean).join(" • ") ||
             "Allergy record"
@@ -516,6 +535,7 @@ export function MedicalRecords({
           key={item.id}
           icon={<Stethoscope size={18} />}
           title={item.diagnosisName}
+          variant={variant}
           subtitle={
             [item.diagnosisType, item.icd10Code].filter(Boolean).join(" • ") ||
             "Diagnosis entry"
@@ -545,6 +565,7 @@ export function MedicalRecords({
           key={item.id}
           icon={<Syringe size={18} />}
           title={item.vaccineName}
+          variant={variant}
           subtitle={
             [item.series, item.doseNumber ? `Dose ${item.doseNumber}` : null]
               .filter(Boolean)
@@ -578,6 +599,7 @@ export function MedicalRecords({
           key={item.id}
           icon={<FlaskConical size={18} />} // Consider changing icon to something more suitable like Scalpel or Activity
           title={item.procedureName || "Unknown Procedure"}
+          variant={variant}
           subtitle={
             [item.procedureType, item.outcome].filter(Boolean).join(" • ") ||
             "Surgical Procedure"
@@ -618,6 +640,7 @@ export function MedicalRecords({
           key={item.id}
           icon={<FlaskConical size={18} />}
           title={item.testName}
+          variant={variant}
           subtitle={
             [item.resultValue, item.unit].filter(Boolean).join(" ") ||
             "Lab result"
@@ -644,6 +667,7 @@ export function MedicalRecords({
     return (
       <RecordShell
         key={item.id}
+        variant={variant}
         icon={<Activity size={18} />}
         title="Record"
         subtitle="Health entry"
@@ -670,10 +694,12 @@ export function MedicalRecords({
                   type="button"
                   onClick={() => changeRecordsTab(key)}
                   className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap transition border ${
-                    isActive
-                      ? "bg-[#2F915C] text-white border-[#2F915C]"
-                      : "bg-white text-[#5B6470] border-[#DDE3EA] hover:bg-[#F8FAFC]"
-                  }`}
+  isActive
+    ? "bg-[#2F915C] text-white border-[#2F915C]"
+    : isDark
+    ? "bg-[#0b2447] text-[#D7E6FA] border-[#163761] hover:bg-[#102a4d]"
+    : "bg-white text-[#5B6470] border-[#DDE3EA] hover:bg-[#F8FAFC]"
+}`}
                 >
                   <Icon size={15} />
                   <span>{label}</span>
@@ -687,17 +713,24 @@ export function MedicalRecords({
       {/* Header with Search + Add Button */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="font-display text-xl font-bold">{title}</h1>
+          <h1 className={`font-display text-xl font-bold ${textClass.heading}`}>
+  {title}
+</h1>
         </div>
 
         <div className="relative">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search
+  size={16}
+  className={`absolute left-3 top-1/2 -translate-y-1/2 ${
+    isDark ? "text-[#9FB3CF]" : "text-gray-400"
+  }`}
+/>
           <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="input input-light w-full pl-10"
-            placeholder={`Search ${title.toLowerCase()}...`}
-          />
+  value={search}
+  onChange={(e) => setSearch(e.target.value)}
+  className={`w-full rounded-xl px-4 py-2 pl-10 outline-none ${textClass.input}`}
+  placeholder={`Search ${title.toLowerCase()}...`}
+/>
         </div>
 
          {onAddRecord && (
@@ -716,9 +749,11 @@ export function MedicalRecords({
         {isLoading  ? (
           <HealthHistoryLoader title={title} />
         ) : filteredRecords.length === 0 ? (
-          <div className="card-patient p-8 text-center">
-            <p className="font-semibold text-[#5a7a63]">No records found</p>
-          </div>
+          <div className={textClass.emptyCard}>
+  <p className={`font-semibold ${isDark ? "text-[#D7E6FA]" : "text-[#5a7a63]"}`}>
+    No records found
+  </p>
+</div>
         ) : (
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
             {filteredRecords.map((item) => renderRecordCard(item))}

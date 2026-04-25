@@ -46,96 +46,149 @@ const alertStyles = {
 };
 
 export function DashboardAlerts({ alerts, onNavigate, className,variant }: Props) {
-  return (
-    // <div className={`rounded-2xl ${alerts?.length === 0 ? "max-h-48": " "} flex-1 border bg-white py-2 px-5 ${className ? "bg-radial-gradient(circle at 72% 18%, rgba(116,167,255,0.08) 0%, rgba(116,167,255,0.02) 22%, transparent 40%), linear-gradient(180deg, #0B1730 0%, #091427 100%)":" bg-white" }`}>
-    <div
-  className={`rounded-2xl ${
-    alerts?.length === 0 ? "max-h-48" : ""
-  } flex-1 border py-2 px-5 ${className ?? ""}`}
-  style={
-    variant === "dark"
-      ? {
-          background:
-            "radial-gradient(circle at 72% 18%, rgba(116,167,255,0.08) 0%, rgba(116,167,255,0.02) 22%, transparent 40%), linear-gradient(180deg, #0B1730 0%, #091427 100%)",
-        }
-      : { background: "#ffffff" }
-  }
->
-      <div className="flex items-center justify-between mb-1">
-        <h2 className="text-base font-bold text-gray-900">Alerts</h2>
-        <span className="text-xs font-medium text-gray-400">
-          {alerts?.length} active
-        </span>
-      </div>
+return (
+  <div
+    className={`rounded-2xl ${
+      alerts?.length === 0 ? "max-h-48" : ""
+    } flex-1 py-2 px-5 ${
+      variant === "dark"
+        ? "border border-[#163761] text-white"
+        : "border border-gray-200 bg-white text-black"
+    } ${className ?? ""}`}
+    style={
+      variant === "dark"
+        ? {
+            background:
+              "radial-gradient(circle at 72% 18%, rgba(116,167,255,0.08) 0%, rgba(116,167,255,0.02) 22%, transparent 40%), linear-gradient(180deg, #0B1730 0%, #091427 100%)",
+          }
+        : undefined
+    }
+  >
+    <div className="mb-1 flex items-center justify-between">
+      <h2
+        className={`text-base font-bold ${
+          variant === "dark" ? "text-white" : "text-gray-900"
+        }`}
+      >
+        Alerts
+      </h2>
 
-      {alerts?.length === 0 ? (
-        <div className="py-3">
-          <div className="flex flex-col items-center justify-center text-center rounded-2xl border border-dashed border-gray-200 bg-gray-50 py-2 px-6"
-          style={
-    variant === "dark"
-      ? {
-          background:
-            "radial-gradient(circle at 72% 18%, rgba(116,167,255,0.08) 0%, rgba(116,167,255,0.02) 22%, transparent 40%), linear-gradient(180deg, #0B1730 0%, #091427 100%)",
-        }
-      : { background: "#ffffff" }
-  }
-          >
-            <div className="w-12 h-12 rounded-xl bg-white border border-gray-200 flex items-center justify-center mb-1">
-              <FileText size={20} className="text-gray-400" />
-            </div>
-
-            <h3 className="text-sm font-semibold text-gray-100">
-              No alerts
-            </h3>
-
-            <p className="text-xs text-gray-100 mt-1 max-w-xs">
-              You're all caught up. No actions needed right now.
-            </p>
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {alerts.map((alert) => {
-            const config = alertStyles[alert?.type];
-            const Icon = config?.icon;
-
-            return (
-              <div
-                key={alert?.id}
-                className="rounded-2xl border p-4 flex items-start gap-3"
-                style={{
-                  background: config?.bg,
-                  borderColor: config?.border,
-                }}
-              >
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: "#fff" }}
-                >
-                  <Icon size={18} style={{ color: config?.iconColor }} />
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold text-gray-900">
-                    {alert?.title}
-                  </div>
-                  <div className="text-sm text-gray-600 mt-0.5">
-                    {alert?.message}
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => onNavigate(alert.ctaLink)}
-                  className="inline-flex items-center gap-1 text-sm font-semibold text-[#2F915C]"
-                >
-                  {alert?.ctaLabel}
-                  <ArrowRight size={14} />
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      <span
+        className={`text-xs font-medium ${
+          variant === "dark" ? "text-[#9FB3CF]" : "text-gray-400"
+        }`}
+      >
+        {alerts?.length} active
+      </span>
     </div>
-  );
+
+    {alerts?.length === 0 ? (
+      <div className="py-3">
+        <div
+          className={`flex flex-col items-center justify-center rounded-2xl border border-dashed px-6 py-2 text-center ${
+            variant === "dark"
+              ? "border-[#163761] bg-[#0b2447]/60"
+              : "border-gray-200 bg-gray-50"
+          }`}
+        >
+          <div
+            className={`mb-1 flex h-12 w-12 items-center justify-center rounded-xl border ${
+              variant === "dark"
+                ? "border-[#163761] bg-[#102a4d]"
+                : "border-gray-200 bg-white"
+            }`}
+          >
+            <FileText
+              size={20}
+              className={variant === "dark" ? "text-[#9FB3CF]" : "text-gray-400"}
+            />
+          </div>
+
+          <h3
+            className={`text-sm font-semibold ${
+              variant === "dark" ? "text-white" : "text-gray-900"
+            }`}
+          >
+            No alerts
+          </h3>
+
+          <p
+            className={`mt-1 max-w-xs text-xs ${
+              variant === "dark" ? "text-[#9FB3CF]" : "text-gray-500"
+            }`}
+          >
+            You're all caught up. No actions needed right now.
+          </p>
+        </div>
+      </div>
+    ) : (
+      <div className="space-y-3">
+        {alerts.map((alert) => {
+          const config = alertStyles[alert?.type];
+          const Icon = config?.icon;
+
+          return (
+            <div
+              key={alert?.id}
+              className={`flex items-start gap-3 rounded-2xl border p-4 ${
+                variant === "dark"
+                  ? "border-[#163761] bg-[#0b2447]/60"
+                  : "border-gray-200"
+              }`}
+              style={
+                variant === "dark"
+                  ? undefined
+                  : {
+                      background: config?.bg,
+                      borderColor: config?.border,
+                    }
+              }
+            >
+              <div
+                className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border ${
+                  variant === "dark"
+                    ? "border-[#163761] bg-[#102a4d]"
+                    : "border-gray-100 bg-white"
+                }`}
+              >
+                <Icon
+                  size={18}
+                  style={{ color: variant === "dark" ? "#9FB3CF" : config?.iconColor }}
+                />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <div
+                  className={`text-sm font-semibold ${
+                    variant === "dark" ? "text-white" : "text-gray-900"
+                  }`}
+                >
+                  {alert?.title}
+                </div>
+
+                <div
+                  className={`mt-0.5 text-sm ${
+                    variant === "dark" ? "text-[#9FB3CF]" : "text-gray-600"
+                  }`}
+                >
+                  {alert?.message}
+                </div>
+              </div>
+
+              <button
+                onClick={() => onNavigate(alert.ctaLink)}
+                className={`inline-flex items-center gap-1 text-sm font-semibold ${
+                  variant === "dark" ? "text-emerald-300" : "text-[#2F915C]"
+                }`}
+              >
+                {alert?.ctaLabel}
+                <ArrowRight size={14} />
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    )}
+  </div>
+);
 }

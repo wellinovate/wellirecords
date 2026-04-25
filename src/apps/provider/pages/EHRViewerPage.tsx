@@ -758,6 +758,7 @@ export function EHRViewerPage() {
                 loadingLabResults={loadingLabResults}
                 loadingProcedures={loadingProcedures}
                 onAddRecord={(type) => handleOpenCreateModal(type)}
+                variant="dark"
               />
             </div>
           )}

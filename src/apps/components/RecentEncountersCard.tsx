@@ -33,12 +33,7 @@ type Props = {
   onContinueCare: (id: string) => void;
 };
 
-type ShareOption =
-  | "provider"
-  | "caregiver"
-  | "secure-link"
-  | "qr-code"
-  | "pdf";
+type ShareOption = "provider" | "caregiver" | "secure-link" | "qr-code" | "pdf";
 
 const statusStyles = {
   completed: "bg-emerald-100 text-emerald-700",
@@ -149,15 +144,20 @@ export function RecentEncountersCard({
       <div
         className={`flex-1 rounded-2xl border min-h-48 overflow-hidden ${
           !isLoading && encounters?.length === 0 ? "max-h-48" : ""
-        } border-gray-200 bg-white py-3`}
-         style={
-    variant === "dark"
-      ? {
-          background:
-            "radial-gradient(circle at 72% 18%, rgba(116,167,255,0.08) 0%, rgba(116,167,255,0.02) 22%, transparent 40%), linear-gradient(180deg, #0B1730 0%, #091427 100%)",
+        }  bg-white py-3 ${
+          variant === "dark"
+            ? "border border-[#163761] text-white"
+            : "border border-gray-200 bg-white text-black"
+        } `}
+        style={
+          variant === "dark"
+            ? {
+                background:
+                  "radial-gradient(circle at 72% 18%, rgba(116,167,255,0.08) 0%, rgba(116,167,255,0.02) 22%, transparent 40%), linear-gradient(180deg, #0B1730 0%, #091427 100%)",
+                color: "#ffffff",
+              }
+            : { background: "#ffffff" }
         }
-      : { background: "#ffffff" }
-  }
       >
         <div className="flex items-center justify-between mb-2 px-4">
           <h2 className="text-[14px] font-bold text-gray-900">
@@ -182,7 +182,9 @@ export function RecentEncountersCard({
         ) : encounters?.length === 0 ? (
           <div className="px-4 py-1">
             <div className="flex flex-col items-center justify-center text-center rounded-2xl border border-dashed border-gray-200 bg-gray-50 py-2 px-6">
-              <div className="w-14 h-14 rounded-2xl bg-white border border-gray-200 flex items-center justify-center mb-1">
+              <div
+                className={`w-14 h-14 rounded-2xl bg-white border border-gray-200 flex items-center justify-center mb-1`}
+              >
                 <FileX2 size={24} className="text-gray-400" />
               </div>
 
@@ -195,100 +197,149 @@ export function RecentEncountersCard({
             </div>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100 px-1 rounded-lg space-y-1">
+          <div
+  className={`rounded-lg px-1 space-y-1 ${
+    variant === "dark" ? "divide-y divide-[#163761]" : "divide-y divide-gray-100"
+  }`}
+>
             {encounters?.map((item) => {
               const Icon = encounterIcons[item?.encounterType];
               const statusClass = statusStyles[item?.status];
 
               return (
-                <div
-                  key={item?.id}
-                  className="py-2 flex flex-co xl:flex-row bg-gray-100 xl:items-center gap-2 px-2 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-start gap-1 flex-1 min-w-0">
-                    <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center flex-shrink-0">
-                      <Icon size={18} className="text-[#2F915C]" />
-                    </div>
+  <div
+    key={item?.id}
+    className={`flex flex-col gap-2 rounded-lg px-2 py-2 transition-colors xl:flex-row xl:items-center ${
+      variant === "dark"
+        ? "border border-[#163761] text-white hover:border-[#22528d]"
+        : "border border-gray-200 bg-white text-black hover:bg-gray-50"
+    }`}
+    style={
+      variant === "dark"
+        ? {
+            background:
+              "radial-gradient(circle at 72% 18%, rgba(116,167,255,0.08) 0%, rgba(116,167,255,0.02) 22%, transparent 40%), linear-gradient(180deg, #0B1730 0%, #091427 100%)",
+          }
+        : undefined
+    }
+  >
+    <div className="flex min-w-0 flex-1 items-start gap-2">
+      <div
+        className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl ${
+          variant === "dark"
+            ? "border border-[#163761] bg-[#0b2447]"
+            : "bg-slate-50"
+        }`}
+      >
+        <Icon size={18} className="text-[#2F915C]" />
+      </div>
 
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2 mb-1">
-                        <span className="text-xs text-gray-500">
-                          {new Date(item?.date).toLocaleDateString(undefined, {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
-                        </span>
+      <div className="min-w-0 flex-1">
+        <div className="mb-1 flex flex-wrap items-center gap-2">
+          <span
+            className={`text-xs ${
+              variant === "dark" ? "text-[#9FB3CF]" : "text-gray-500"
+            }`}
+          >
+            {new Date(item?.date).toLocaleDateString(undefined, {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })}
+          </span>
 
-                        <h3 className="text-[15px] font-semibold text-gray-900">
-                          {item?.title}
-                        </h3>
+          <h3
+            className={`text-[15px] font-semibold ${
+              variant === "dark" ? "text-white" : "text-gray-900"
+            }`}
+          >
+            {item?.title}
+          </h3>
 
-                        <span
-                          className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${statusClass}`}
-                        >
-                          {item?.status === "attention"
-                            ? "Attention Needed"
-                            : item?.status.charAt(0).toUpperCase() +
-                              item?.status.slice(1)}
-                        </span>
-                      </div>
+          <span
+            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${statusClass}`}
+          >
+            {item?.status === "attention"
+              ? "Attention Needed"
+              : item?.status.charAt(0).toUpperCase() + item?.status.slice(1)}
+          </span>
+        </div>
 
-                      <div className="flex justify-between">
-                        <div>
-                          <div className="text-xs text-gray-600">
-                            {item?.provider
-                              ? `Visited ${item?.provider}`
-                              : item?.facility}
-                          </div>
+        <div className="flex justify-between gap-3">
+          <div className="min-w-0">
+            <div
+              className={`text-xs ${
+                variant === "dark" ? "text-[#D7E6FA]" : "text-gray-600"
+              }`}
+            >
+              {item?.provider ? `Visited ${item?.provider}` : item?.facility}
+            </div>
 
-                          <div className="text-[10px] text-gray-500 mt-1">
-                            {new Date(item?.date).toLocaleTimeString([], {
-                              hour: "numeric",
-                              minute: "2-digit",
-                            })}{" "}
-                            | {item?.facility}
-                          </div>
+            <div
+              className={`mt-1 text-[10px] ${
+                variant === "dark" ? "text-[#9FB3CF]" : "text-gray-500"
+              }`}
+            >
+              {new Date(item?.date).toLocaleTimeString([], {
+                hour: "numeric",
+                minute: "2-digit",
+              })}{" "}
+              | {item?.facility}
+            </div>
 
-                          <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                            <span className="truncate">{item?.summary}</span>
-                            <ChevronRight
-                              size={14}
-                              className="text-gray-400 flex-shrink-0"
-                            />
-                          </div>
-                        </div>
+            <div
+              className={`mt-1 flex items-center gap-1 text-xs ${
+                variant === "dark" ? "text-[#9FB3CF]" : "text-gray-500"
+              }`}
+            >
+              <span className="truncate">{item?.summary}</span>
+              <ChevronRight
+                size={14}
+                className={`flex-shrink-0 ${
+                  variant === "dark" ? "text-[#9FB3CF]" : "text-gray-400"
+                }`}
+              />
+            </div>
+          </div>
 
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => navigate("/patient/journeys")}
-                            title="View Details"
-                            className="w-9 h-9 flex items-center justify-center rounded-lg bg-[#148A90] text-white hover:brightness-95"
-                          >
-                            <Eye size={16} />
-                          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              onClick={() => navigate("/patient/journeys")}
+              title="View Details"
+              className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#148A90] text-white hover:brightness-95"
+            >
+              <Eye size={16} />
+            </button>
 
-                          <button
-                            onClick={() => openShareModal(item?.id)}
-                            title="Share securely"
-                            className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
-                          >
-                            <Share2 size={16} />
-                          </button>
+            <button
+              onClick={() => openShareModal(item?.id)}
+              title="Share securely"
+              className={`flex h-9 w-9 items-center justify-center rounded-lg ${
+                variant === "dark"
+                  ? "border border-[#163761] bg-[#0b2447] text-[#D7E6FA] hover:bg-[#102a4d]"
+                  : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              <Share2 size={16} />
+            </button>
 
-                          <button
-                            onClick={() => navigate("/patient/find-care")}
-                            title="Continue Care"
-                            className="w-9 h-9 flex items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                          >
-                            <ArrowRightCircle size={16} />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
+            <button
+              onClick={() => navigate("/patient/find-care")}
+              title="Continue Care"
+              className={`flex h-9 w-9 items-center justify-center rounded-lg ${
+                variant === "dark"
+                  ? "border border-emerald-400/20 bg-emerald-400/10 text-emerald-300 hover:bg-emerald-400/15"
+                  : "border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+              }`}
+            >
+              <ArrowRightCircle size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
             })}
           </div>
         )}

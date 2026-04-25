@@ -24,7 +24,7 @@ export function SharedDashboardSection({
   onShareEncounter,
   onContinueCare,
 }: SharedDashboardSectionProps) {
-  console.log("🚀 ~ SharedDashboardSection ~ recentEncounters:", recentEncounters)
+  // console.log("🚀 ~ SharedDashboardSection ~ recentEncounters:", recentEncounters)
   return (
     <div className=" w-full ">
       <div className="flex lg:flex-row flex-col gap-4 w-full">
@@ -43,6 +43,7 @@ export function SharedDashboardSection({
 
       <SummaryRecordsGrid
         loading={loading}
+        variant="dark"
         records={recordList}
         onViewCategory={(category) =>
           navigate(`${routeBase}/records/${category}`)

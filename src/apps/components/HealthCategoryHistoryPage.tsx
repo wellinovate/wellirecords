@@ -99,6 +99,7 @@ export function RecordShell({
   accentColor = "#2F915C",
   iconBg = "#EAF7F1",
   iconColor = "#2F915C",
+  variant = "light",
 }: {
   icon: React.ReactNode;
   title: string;
@@ -113,33 +114,56 @@ export function RecordShell({
   accentColor?: string;
   iconBg?: string;
   iconColor?: string;
+  variant?: "light" | "dark";
 }) {
+  const isDark = variant === "dark";
+
   return (
     <div
-      className="rounded-[22px] border border-[#DDE3EA] bg-white px-5 py-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
+      className={`rounded-[22px] px-5 py-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)] ${
+        isDark
+          ? "border border-[#163761] text-white"
+          : "border border-[#DDE3EA] bg-white text-[#1F2A37]"
+      }`}
       style={{
         borderLeft: `4px solid ${accentColor}`,
+        ...(isDark
+          ? {
+              background:
+                "radial-gradient(circle at 72% 18%, rgba(116,167,255,0.08) 0%, rgba(116,167,255,0.02) 22%, transparent 40%), linear-gradient(180deg, #0B1730 0%, #091427 100%)",
+            }
+          : {}),
       }}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-start gap-3">
           <div
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
+              isDark ? "border border-[#163761]" : ""
+            }`}
             style={{
-              backgroundColor: iconBg,
-              color: iconColor,
+              backgroundColor: isDark ? "#102a4d" : iconBg,
+              color: isDark ? iconColor : iconColor,
             }}
           >
             {icon}
           </div>
 
           <div className="min-w-0">
-            <h3 className="truncate text-[18px] font-semibold leading-tight text-[#1F2A37]">
+            <h3
+              className={`truncate text-[18px] font-semibold leading-tight ${
+                isDark ? "text-white" : "text-[#1F2A37]"
+              }`}
+            >
               {title}
             </h3>
 
             {subtitle && (
-              <div className="mt-1 text-sm text-[#667085]">
+              <div
+                className={`mt-1 text-sm ${
+                  isDark ? "text-[#9FB3CF]" : "text-[#667085]"
+                }`}
+              >
                 {subtitle}
               </div>
             )}
@@ -154,16 +178,30 @@ export function RecordShell({
       )}
 
       {(metaLeft || metaRight) && (
-        <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+        <div
+          className={`mt-4 grid gap-3 text-sm sm:grid-cols-2 ${
+            isDark ? "text-[#D7E6FA]" : "text-[#344054]"
+          }`}
+        >
           <div className="space-y-2">{metaLeft}</div>
           <div className="space-y-2">{metaRight}</div>
         </div>
       )}
 
-      {children && <div className="mt-4">{children}</div>}
+      {children && (
+        <div className={isDark ? "mt-4 text-[#D7E6FA]" : "mt-4"}>
+          {children}
+        </div>
+      )}
 
       {footerLeft && (
-        <div className="mt-4 border-t border-[#EAECF0] pt-3 text-sm text-[#667085]">
+        <div
+          className={`mt-4 border-t pt-3 text-sm ${
+            isDark
+              ? "border-[#163761] text-[#9FB3CF]"
+              : "border-[#EAECF0] text-[#667085]"
+          }`}
+        >
           {footerLeft}
         </div>
       )}
