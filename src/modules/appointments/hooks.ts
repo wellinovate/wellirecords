@@ -8,7 +8,12 @@ import {
 } from "./api";
 import type { Appointment } from "./types";
 
-export const useAppointments = (params?: Record<string, any>) => {
+export const useAppointments = (
+  params?: Record<string, any>,
+  options?: { enabled?: boolean }
+) => {
+  const enabled = options?.enabled ?? true;
+
   const [items, setItems] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(false);
   const [meta, setMeta] = useState({
@@ -19,6 +24,8 @@ export const useAppointments = (params?: Record<string, any>) => {
   });
 
   const fetchAppointments = useCallback(async () => {
+    if (!enabled || !params) return;
+
     try {
       setLoading(true);
 
@@ -43,7 +50,7 @@ export const useAppointments = (params?: Record<string, any>) => {
     } finally {
       setLoading(false);
     }
-  }, [params]);
+  }, [enabled, params]);
 
   useEffect(() => {
     fetchAppointments();

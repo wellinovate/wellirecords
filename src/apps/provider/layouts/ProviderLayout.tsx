@@ -28,7 +28,7 @@ import {
   UserCog,
   Users,
   Video,
-  WifiOff
+  WifiOff,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -65,14 +65,13 @@ const ALL_NAV = [
     icon: Stethoscope,
     roles: ["*"],
   },
-  
+
   {
     to: "/provider/nursing",
     label: "Nursing",
     icon: HeartPulse,
     // roles: ["nurse", "provider_admin"],
     roles: ["*"],
-
   },
 
   {
@@ -219,13 +218,15 @@ export function ProviderLayout() {
             />
           </Link>
 
-          <div className="ml-2 lg:block text-[16px] font-bold border border-blue-800 rounded-lg tracking-widest uppercase mt-2 py-2 px-3 bg-[#01475C] text-white"
-          // className="ml-2 lg:block text-[16px] font-bold rounded-lg tracking-widest uppercase mt-2 py-2 px-3 text-white"
-style={{
-  background: "linear-gradient(180deg, #163B73 0%, #0F2F5E 100%)",
-  border: "1px solid rgba(124, 164, 255, 0.30)",
-  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
-}}>
+          <div
+            className="ml-2 lg:block text-[16px] font-bold border border-blue-800 rounded-lg tracking-widest uppercase mt-2 py-2 px-3 bg-[#01475C] text-white"
+            // className="ml-2 lg:block text-[16px] font-bold rounded-lg tracking-widest uppercase mt-2 py-2 px-3 text-white"
+            style={{
+              background: "linear-gradient(180deg, #163B73 0%, #0F2F5E 100%)",
+              border: "1px solid rgba(124, 164, 255, 0.30)",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
+            }}
+          >
             Provider Portal
           </div>
         </div>
@@ -425,15 +426,15 @@ style={{
 
       {/* ─── Main ─── */}
       <div
-  className="flex-1 flex flex-col overflow-hidden min-w-0"
-  style={{
-    background: `
+        className="flex-1 flex flex-col overflow-hidden min-w-0"
+        style={{
+          background: `
       radial-gradient(circle at 15% 20%, rgba(120,170,255,0.18) 0%, rgba(120,170,255,0.06) 18%, transparent 40%),
       radial-gradient(circle at 80% 10%, rgba(90,140,255,0.10) 0%, transparent 30%),
       linear-gradient(180deg, #0B1730 0%, #081225 100%)
-    `
-  }}
->
+    `,
+        }}
+      >
         {/* Top bar */}
         <header
           className="h-14 flex items-center justify-between px-4 md:px-6 border-b flex-shrink-0"
@@ -521,23 +522,24 @@ style={{
         )}
 
         <main
-  className="relative overflow-y-auto"
-  style={{
-    background: "transparent"
-  }}
->
+          className="relative overflow-y-auto"
+          style={{
+            background: "transparent",
+          }}
+        >
           <Outlet />
 
           {!user?.isVerified && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
               <div
-  className="rounded-xl p-6 w-[320px] text-center shadow-xl"
-  style={{
-    background: "linear-gradient(180deg, #0F1C2E 0%, #0B162B 100%)",
-    border: "1px solid rgba(120,150,255,0.10)",
-    color: "#EAF2FF"
-  }}
->
+                className="rounded-xl p-6 w-[320px] text-center shadow-xl"
+                style={{
+                  background:
+                    "linear-gradient(180deg, #0F1C2E 0%, #0B162B 100%)",
+                  border: "1px solid rgba(120,150,255,0.10)",
+                  color: "#EAF2FF",
+                }}
+              >
                 <Lock size={32} className="mx-auto mb-3 text-red-500" />
 
                 <h2 className="text-lg font-bold mb-2 text-gray-800">

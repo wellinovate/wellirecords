@@ -90,6 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ...account,
       fullName: profile?.fullName || "",
       sub: profile?._id,
+      wrId: profile?.wrId || "",
       wrOrgId: profile?.wrOrgId
     });
     localStorage.setItem(

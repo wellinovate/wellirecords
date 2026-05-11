@@ -17,25 +17,31 @@ export function FindCarePage() {
   const [bookingOpen, setBookingOpen] = useState(false);
 
   const searchParams = useMemo(
-    () => ({
-      search,
-      page: 1,
-      limit: 20,
-    }),
-    [search],
-  );
+  () => ({
+    search,
+    page: 1,
+    limit: 20,
+  }),
+  [search],
+);
 
-  const { items, loading } = useProviderSearch(searchParams);
+const appointmentParams = useMemo(() => {
+  if (!patientId) return undefined;
 
-  const { createAppointment } = useAppointments(
-    patientId
-      ? {
-          patientId,
-          page: 1,
-          limit: 10,
-        }
-      : undefined,
-  );
+  return {
+    patientId,
+    page: 1,
+    limit: 10,
+  };
+}, [patientId]);
+
+const { createAppointment } = useAppointments(appointmentParams, {
+  enabled: Boolean(patientId),
+});
+
+const { items, loading } = useProviderSearch(searchParams);
+
+
 
   const handleSelectProvider = (item: ProviderSearchItem) => {
     setSelectedProvider(item);
