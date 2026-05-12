@@ -130,7 +130,7 @@ const BOTTOM_NAV = [
 
 export function PatientLayout() {
   const { user, signOut } = useAuth();
-  console.log("🚀 ~ PatientLayout ~ user:", user)
+  // console.log("🚀 ~ PatientLayout ~ user:", user)
   const navigate = useNavigate();
   const location = useLocation();
   const { isOnline } = useNetwork();
@@ -146,6 +146,7 @@ export function PatientLayout() {
     signOut();
     navigate("/auth");
   };
+  
   const navTo = (path: string) => {
     navigate(path);
     setDrawerOpen(false);

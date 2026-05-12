@@ -186,7 +186,7 @@ function TrustRing({ score = 90 }: { score?: number }) {
 
 export function DataSovereigntyCenterPage() {
   const { user } = useAuth();
-  console.log("🚀 ~ DataSovereigntyCenterPageXXXXXXXXXXX ~ user:", user);
+  // console.log("🚀 ~ DataSovereigntyCenterPageXXXXXXXXXXX ~ user:", user);
 
   const patientId = user?.sub;
 
