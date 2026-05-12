@@ -4,15 +4,17 @@ import {
   MOCK_ACCESS_GRANTS,
   MOCK_ACCESS_REQUESTS,
 } from "@/shared/api/mockConsentData";
+import Cookies from "js-cookie";
 import { apiUrl } from "./authApi";
 
-const API_BASE = apiUrl
 
-const USE_MOCK_FALLBACK =
-  import.meta.env.VITE_USE_MOCK_FALLBACK === "true";
+const token = Cookies.get("accessToken");
 
-const USE_MOCK_WHEN_EMPTY =
-  import.meta.env.VITE_USE_MOCK_WHEN_EMPTY === "true";
+const API_BASE = apiUrl;
+
+const USE_MOCK_FALLBACK = import.meta.env.VITE_USE_MOCK_FALLBACK === "true";
+
+const USE_MOCK_WHEN_EMPTY = import.meta.env.VITE_USE_MOCK_WHEN_EMPTY === "true";
 
 export type AccessGrantStatus =
   | "pending"
@@ -115,10 +117,19 @@ export type CreateGrantPayload = {
   granteeType: "provider" | "organization";
   granteeUserId?: string;
   granteeOrganizationId?: string;
-  accessScope: AccessScope;
+  accessScope: "single-record" | "category" | "encounter" | "full-record" | "custom";
   category?: string | null;
-  duration: "24h" | "7d" | "30d" | "permanent";
-  purpose?: string;
+  // category?: 
+  //   | "vitals"
+  //   | "medications"
+  //   | "allergies"
+  //   | "diagnoses"
+  //   | "lab-results"
+  //   | "procedures"
+  //   | "immunizations"
+  //   | null;
+  durationDays: number;
+  purpose?: string | null;
 };
 
 function shouldUseMock<T>(data: T[]) {
@@ -138,7 +149,10 @@ function filterMockByPatient<T extends { patientId?: string }>(
   return exact.length > 0 ? exact : items;
 }
 
-function createMockGrant(patientId: string, payload: CreateGrantPayload): AccessGrant {
+function createMockGrant(
+  patientId: string,
+  payload: CreateGrantPayload,
+): AccessGrant {
   const now = new Date();
 
   let expiresAt: string | null = null;
@@ -212,29 +226,34 @@ let mockRequests = [...MOCK_ACCESS_REQUESTS];
 let mockAudit = [...MOCK_ACCESS_AUDIT];
 
 export const consentApi = {
-  async getMyGrants(patientId: string): Promise<AccessGrant[]> {
+  async getMyGrants(patientId: string) {
+    console.log("🚀 ~ patientId:", patientId)
     try {
       const res = await axios.get(
-        `${API_BASE}/patients/${patientId}/access-grants`,
+        `${API_BASE}/api/v1/access-grants/patients/${patientId}/access-grants`,
         {
-          withCredentials: true,
-        },
+      // params,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
       );
 
       const data = res.data?.data ?? [];
 
-      if (shouldUseMock(data)) {
-        return filterMockByPatient(mockGrants, patientId);
-      }
+      // if (shouldUseMock(data)) {
+      //   return filterMockByPatient(mockGrants, patientId);
+      // }
 
       return data;
     } catch (error) {
-      if (USE_MOCK_FALLBACK) {
-        console.warn("Using mock grants because backend failed:", error);
-        return filterMockByPatient(mockGrants, patientId);
-      }
+      // if (USE_MOCK_FALLBACK) {
+      //   console.warn("Using mock grants because backend failed:", error);
+      //   return filterMockByPatient(mockGrants, patientId);
+      // }
 
-      throw error;
+      // throw error;
+      console.log("🚀 ~ error:", error)
     }
   },
 
@@ -268,68 +287,84 @@ export const consentApi = {
     patientId: string,
     payload: CreateGrantPayload,
   ): Promise<AccessGrant> {
+    console.log("🚀 ~ payload:", payload)
     try {
       const res = await axios.post(
-        `${API_BASE}/patients/${patientId}/access-grants`,
+        `${API_BASE}/api/v1/access-grants/patients/${patientId}/access-grants`,
         payload,
         {
-          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
       );
 
+      if(res.data.success === false) {
+        console.log(`API error: ${res.status} ${res.statusText}`);
+      }   
+
       return res.data.data;
     } catch (error) {
-      if (USE_MOCK_FALLBACK) {
-        console.warn("Creating mock grant because backend failed:", error);
+      // if (USE_MOCK_FALLBACK) {
+      //   console.warn("Creating mock grant because backend failed:", error);
 
-        const grant = createMockGrant(patientId, payload);
-        mockGrants = [grant, ...mockGrants];
+      //   const grant = createMockGrant(patientId, payload);
+      //   mockGrants = [grant, ...mockGrants];
 
-        return grant;
-      }
+      //   return grant;
+      // }
+      console.log("🚀 ~ error:", error)
 
       throw error;
     }
   },
 
-  async revokeGrant(grantId: string): Promise<AccessGrant> {
+  async revokeGrant(grantId: string) {
+    console.log("🚀 ~ grantId:", grantId)
     try {
       const res = await axios.patch(
-        `${API_BASE}/access-grants/${grantId}/revoke`,
+        `${API_BASE}/api/v1/access-grants/${grantId}/revoke`,
         {},
         {
-          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
       );
+      if(res.data.success === false) {
+        console.log(`API error: ${res.status} ${res.statusText}`);
+        return;
+      }
 
       return res.data.data;
     } catch (error) {
-      if (USE_MOCK_FALLBACK) {
-        console.warn("Revoking mock grant because backend failed:", error);
+      // if (USE_MOCK_FALLBACK) {
+      //   console.warn("Revoking mock grant because backend failed:", error);
 
-        let updatedGrant: AccessGrant | null = null;
+      //   let updatedGrant: AccessGrant | null = null;
 
-        mockGrants = mockGrants.map((grant) => {
-          if (grant._id !== grantId) return grant;
+      //   mockGrants = mockGrants.map((grant) => {
+      //     if (grant._id !== grantId) return grant;
 
-          updatedGrant = {
-            ...grant,
-            status: "revoked",
-            revokedAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          };
+      //     updatedGrant = {
+      //       ...grant,
+      //       status: "revoked",
+      //       revokedAt: new Date().toISOString(),
+      //       updatedAt: new Date().toISOString(),
+      //     };
 
-          return updatedGrant;
-        });
+      //     return updatedGrant;
+      //   });
 
-        if (!updatedGrant) {
-          throw new Error("Mock grant not found");
-        }
+      //   if (!updatedGrant) {
+      //     throw new Error("Mock grant not found");
+      //   }
 
-        return updatedGrant;
-      }
+      //   return updatedGrant;
+      // }
 
-      throw error;
+      // throw error;
+      console.log("🚀 ~ error:", error)
     }
   },
 
@@ -433,7 +468,10 @@ export const consentApi = {
       return res.data.data;
     } catch (error) {
       if (USE_MOCK_FALLBACK) {
-        console.warn("Using mock emergency access because backend failed:", error);
+        console.warn(
+          "Using mock emergency access because backend failed:",
+          error,
+        );
 
         return {
           enabled,
@@ -488,7 +526,7 @@ export const consentApi = {
 };
 
 export const auditApi = {
-  async getAuditLog(patientId: string): Promise<AccessAudit[]> {
+  async getAuditLog(patientId: string) {
     try {
       const res = await axios.get(
         `${API_BASE}/patients/${patientId}/access-audit`,
@@ -499,18 +537,19 @@ export const auditApi = {
 
       const data = res.data?.data ?? [];
 
-      if (shouldUseMock(data)) {
-        return filterMockByPatient(mockAudit, patientId);
-      }
+      // if (shouldUseMock(data)) {
+      //   return filterMockByPatient(mockAudit, patientId);
+      // }
 
       return data;
     } catch (error) {
-      if (USE_MOCK_FALLBACK) {
-        console.warn("Using mock audit because backend failed:", error);
-        return filterMockByPatient(mockAudit, patientId);
-      }
+      // if (USE_MOCK_FALLBACK) {
+      //   console.warn("Using mock audit because backend failed:", error);
+      //   return filterMockByPatient(mockAudit, patientId);
+      // }
 
-      throw error;
+      // throw error;
+      console.log("🚀 ~ error:", error)
     }
   },
 };

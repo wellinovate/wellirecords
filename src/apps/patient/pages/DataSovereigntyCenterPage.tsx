@@ -34,7 +34,11 @@ type ConsentScope = "full-record" | "category" | "encounter";
 type ConsentDuration = "24h" | "7d" | "30d" | "permanent";
 type ActiveTab = "active" | "requests" | "audit" | "export";
 
-const SCOPE_OPTIONS: { value: ConsentScope; label: string; category?: string | null }[] = [
+const SCOPE_OPTIONS: {
+  value: ConsentScope;
+  label: string;
+  category?: string | null;
+}[] = [
   { value: "full-record", label: "Full History", category: null },
   { value: "category", label: "Labs Only", category: "lab-results" },
   { value: "category", label: "Medications", category: "medications" },
@@ -43,7 +47,11 @@ const SCOPE_OPTIONS: { value: ConsentScope; label: string; category?: string | n
   { value: "category", label: "Allergies", category: "allergies" },
 ];
 
-const DURATION_OPTIONS: { value: ConsentDuration; label: string; aiNote?: string }[] = [
+const DURATION_OPTIONS: {
+  value: ConsentDuration;
+  label: string;
+  aiNote?: string;
+}[] = [
   { value: "24h", label: "24 hours", aiNote: "Recommended" },
   { value: "7d", label: "7 days" },
   { value: "30d", label: "30 days" },
@@ -64,14 +72,20 @@ function timeAgo(iso?: string | null) {
 
 function getGrantName(grant: AccessGrant) {
   if (
-    grant.granteeOrganizationId &&
-    typeof grant.granteeOrganizationId === "object"
+    grant.granteeOrganizationId 
+    // && typeof grant.granteeOrganizationId === "object"
   ) {
-    return grant.granteeOrganizationId.organizationName || "Unknown organization";
+    return (
+      grant.granteeOrganizationId?.organizationName || "Unknown organization"
+    );
   }
 
   if (grant.granteeUserId && typeof grant.granteeUserId === "object") {
-    return grant.granteeUserId.fullName || grant.granteeUserId.email || "Unknown provider";
+    return (
+      grant.granteeUserId.fullName ||
+      grant.granteeUserId.email ||
+      "Unknown provider"
+    );
   }
 
   return "Unknown grantee";
@@ -85,7 +99,9 @@ function getGrantSubtitle(grant: AccessGrant) {
         ? grant.category || "Category"
         : grant.accessScope;
 
-  const expiry = grant.expiresAt ? `Expires ${timeAgo(grant.expiresAt)}` : "No expiry";
+  const expiry = grant.expiresAt
+    ? `Expires ${timeAgo(grant.expiresAt)}`
+    : "No expiry";
 
   return `${grant.granteeType} · ${scope} · ${expiry}`;
 }
@@ -166,11 +182,13 @@ function TrustRing({ score = 90 }: { score?: number }) {
   );
 }
 
+
+
 export function DataSovereigntyCenterPage() {
   const { user } = useAuth();
-  console.log("🚀 ~ DataSovereigntyCenterPage ~ user:", user)
+  console.log("🚀 ~ DataSovereigntyCenterPageXXXXXXXXXXX ~ user:", user);
 
-  const patientId = user?.sub || user?.userId || "";
+  const patientId = user?.sub;
 
   const [tab, setTab] = useState<ActiveTab>("active");
 
@@ -184,14 +202,18 @@ export function DataSovereigntyCenterPage() {
   const [showNew, setShowNew] = useState(false);
   const [newScope, setNewScope] = useState<ConsentScope>("category");
   const [newCategory, setNewCategory] = useState<string | null>("lab-results");
-  const [newDuration, setNewDuration] = useState<ConsentDuration>("24h");
-  const [granteeType, setGranteeType] = useState<"provider" | "organization">("provider");
+  const [newDuration, setNewDuration] = useState<number>(1);
+  const [granteeType, setGranteeType] = useState<"provider" | "organization">(
+    "provider",
+  );
   const [granteeId, setGranteeId] = useState("");
   const [purpose, setPurpose] = useState("");
 
   const [requestActionId, setRequestActionId] = useState<string | null>(null);
-const [requestApprovalDuration, setRequestApprovalDuration] =
-  useState<ConsentDuration>("24h");
+  const [requestApprovalDuration, setRequestApprovalDuration] =
+    useState<ConsentDuration>("24h");
+
+
 
   const [emergencyMode, setEmergencyMode] = useState(false);
 
@@ -199,19 +221,40 @@ const [requestApprovalDuration, setRequestApprovalDuration] =
   const [isExporting, setIsExporting] = useState(false);
 
   const activeGrants = useMemo(
-    () => grants.filter((grant) => grant.status === "active"),
+    () => grants?.filter((grant) => grant?.status === "active"),
     [grants],
   );
 
   const pendingReqs = useMemo(
-    () => requests.filter((request) => request.status === "pending"),
+    () => requests?.filter((request) => request?.status === "pending"),
     [requests],
   );
 
-  const recordsViewed30d = audit.length;
+  const DURATION_OPTIONS = [
+  {
+    label: "24 Hours",
+    value: 1,
+    aiNote: "Emergency",
+  },
+  {
+    label: "7 Days",
+    value: 7,
+    aiNote: "Suggested",
+  },
+  {
+    label: "30 Days",
+    value: 30,
+  },
+  {
+    label: "90 Days",
+    value: 90,
+  },
+] as const;
+
+  const recordsViewed30d = audit?.length;
 
   const flaggedCount = useMemo(() => {
-    return audit.filter((entry) => {
+    return audit?.filter((entry) => {
       const hour = new Date(entry.createdAt).getHours();
       return hour < 6 || hour > 22;
     }).length;
@@ -257,9 +300,13 @@ const [requestApprovalDuration, setRequestApprovalDuration] =
 
       const updatedGrant = await consentApi.revokeGrant(grantId);
 
-      setGrants((current) =>
-        current.map((grant) => (grant._id === grantId ? updatedGrant : grant)),
-      );
+      if(updatedGrant){
+
+        setGrants((current) =>
+          current.map((grant) => (grant._id === grantId ? updatedGrant : grant)),
+        );
+      }
+
     } catch (error) {
       console.error("Failed to revoke grant:", error);
     } finally {
@@ -280,8 +327,8 @@ const [requestApprovalDuration, setRequestApprovalDuration] =
         granteeType,
         accessScope: newScope,
         category: newScope === "category" ? newCategory : null,
-        duration: newDuration,
-        purpose,
+        durationDays: Number(newDuration),
+        purpose: purpose.trim() || null,
         ...(granteeType === "provider"
           ? { granteeUserId: granteeId.trim() }
           : { granteeOrganizationId: granteeId.trim() }),
@@ -289,66 +336,70 @@ const [requestApprovalDuration, setRequestApprovalDuration] =
 
       const createdGrant = await consentApi.createGrant(patientId, payload);
 
-      setGrants((current) => [createdGrant, ...current]);
-      setShowNew(false);
+      if (createdGrant) {
+        setGrants((current) => [createdGrant, ...current]);
+        setShowNew(false);
+  
+        setGranteeId("");
+        setPurpose("");
+        setNewScope("category");
+        setNewCategory("lab-results");
+        setNewDuration(1);
+         
+      }
 
-      setGranteeId("");
-      setPurpose("");
-      setNewScope("category");
-      setNewCategory("lab-results");
-      setNewDuration("24h");
     } catch (error) {
       console.error("Failed to create grant:", error);
     }
   }
 
   async function handleApproveRequest(requestId: string) {
-  try {
-    setRequestActionId(requestId);
+    try {
+      setRequestActionId(requestId);
 
-    const approvedGrant = await consentApi.approveRequest(
-      requestId,
-      requestApprovalDuration,
-    );
+      const approvedGrant = await consentApi.approveRequest(
+        requestId,
+        requestApprovalDuration,
+      );
 
-    setRequests((current) =>
-      current.map((request) =>
-        request._id === requestId
-          ? {
-              ...request,
-              status: "active",
-              reviewedAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            }
-          : request,
-      ),
-    );
+      setRequests((current) =>
+        current.map((request) =>
+          request._id === requestId
+            ? {
+                ...request,
+                status: "active",
+                reviewedAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              }
+            : request,
+        ),
+      );
 
-    setGrants((current) => [approvedGrant, ...current]);
-  } catch (error) {
-    console.error("Failed to approve request:", error);
-  } finally {
-    setRequestActionId(null);
+      setGrants((current) => [approvedGrant, ...current]);
+    } catch (error) {
+      console.error("Failed to approve request:", error);
+    } finally {
+      setRequestActionId(null);
+    }
   }
-}
 
-async function handleDenyRequest(requestId: string) {
-  try {
-    setRequestActionId(requestId);
+  async function handleDenyRequest(requestId: string) {
+    try {
+      setRequestActionId(requestId);
 
-    const deniedRequest = await consentApi.denyRequest(requestId);
+      const deniedRequest = await consentApi.denyRequest(requestId);
 
-    setRequests((current) =>
-      current.map((request) =>
-        request._id === requestId ? deniedRequest : request,
-      ),
-    );
-  } catch (error) {
-    console.error("Failed to deny request:", error);
-  } finally {
-    setRequestActionId(null);
+      setRequests((current) =>
+        current.map((request) =>
+          request._id === requestId ? deniedRequest : request,
+        ),
+      );
+    } catch (error) {
+      console.error("Failed to deny request:", error);
+    } finally {
+      setRequestActionId(null);
+    }
   }
-}
 
   async function handleEmergencyToggle() {
     const nextValue = !emergencyMode;
@@ -386,6 +437,11 @@ async function handleDenyRequest(requestId: string) {
     }
   }
 
+  const GRANTEE_TYPE_LABELS = {
+    provider: "Individual Provider",
+    organization: "Organization",
+  };
+
   if (loading) {
     return (
       <div className="mx-auto flex min-h-[60vh] max-w-5xl items-center justify-center px-4">
@@ -407,8 +463,8 @@ async function handleDenyRequest(requestId: string) {
           </h1>
 
           <p className="max-w-2xl text-sm leading-relaxed text-slate-600">
-            Control who can view your health records, how long they can access them,
-            and what category of history they are allowed to see.
+            Control who can view your health records, how long they can access
+            them, and what category of history they are allowed to see.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
@@ -441,7 +497,7 @@ async function handleDenyRequest(requestId: string) {
             </div>
 
             <div className="mb-1 font-mono text-lg font-bold tracking-wider">
-              {user?.wrId || "WR-8921-XKA9"}
+              {user?.wrId || "WR-8921-XXXX"}
             </div>
 
             <div className="mb-3 text-[10px] text-white/60">
@@ -470,7 +526,9 @@ async function handleDenyRequest(requestId: string) {
             : "border-slate-200"
         }`}
       >
-        <div className={`h-1.5 w-full ${emergencyMode ? "bg-red-500" : "bg-slate-200"}`} />
+        <div
+          className={`h-1.5 w-full ${emergencyMode ? "bg-red-500" : "bg-slate-200"}`}
+        />
 
         <div className={emergencyMode ? "bg-red-50 p-5" : "bg-white p-5"}>
           <div className="flex items-start justify-between gap-4">
@@ -543,27 +601,29 @@ async function handleDenyRequest(requestId: string) {
       </div>
 
       <div className="mb-6 flex w-full gap-1 overflow-x-auto rounded-xl border border-emerald-100 bg-emerald-50/70 p-1 sm:w-fit">
-        {(["active", "requests", "audit", "export"] as ActiveTab[]).map((item) => {
-          const active = tab === item;
+        {(["active", "requests", "audit", "export"] as ActiveTab[]).map(
+          (item) => {
+            const active = tab === item;
 
-          return (
-            <button
-              key={item}
-              onClick={() => setTab(item)}
-              className={`whitespace-nowrap rounded-lg px-4 py-2 text-sm font-bold capitalize transition ${
-                active
-                  ? "bg-emerald-700 text-white shadow-sm"
-                  : "text-emerald-700 hover:bg-white"
-              }`}
-            >
-              {item === "requests"
-                ? `Requests${pendingReqs.length > 0 ? ` (${pendingReqs.length})` : ""}`
-                : item === "active"
-                  ? "Security Status"
-                  : item}
-            </button>
-          );
-        })}
+            return (
+              <button
+                key={item}
+                onClick={() => setTab(item)}
+                className={`whitespace-nowrap rounded-lg px-4 py-2 text-sm font-bold capitalize transition ${
+                  active
+                    ? "bg-emerald-700 text-white shadow-sm"
+                    : "text-emerald-700 hover:bg-white"
+                }`}
+              >
+                {item === "requests"
+                  ? `Requests${pendingReqs.length > 0 ? ` (${pendingReqs.length})` : ""}`
+                  : item === "active"
+                    ? "Security Status"
+                    : item}
+              </button>
+            );
+          },
+        )}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -587,31 +647,36 @@ async function handleDenyRequest(requestId: string) {
                   </div>
 
                   <p className="text-sm text-emerald-800">
-                    {activeGrants.length} active provider access grant
-                    {activeGrants.length === 1 ? "" : "s"}. Every access should be
-                    logged, timestamped, and revocable.
+                    {activeGrants?.length} active provider access grant
+                    {activeGrants?.length === 1 ? "" : "s"}. Every access should
+                    be logged, timestamped, and revocable.
                   </p>
 
                   <div className="mt-4 flex flex-wrap gap-4">
                     {[
                       {
                         label: "Active Grants",
-                        value: activeGrants.length,
+                        value: activeGrants?.length,
                         className: "text-emerald-600",
                       },
                       {
                         label: "Records Viewed",
-                        value: recordsViewed30d,
+                        value: recordsViewed30d || 0,
                         className: "text-emerald-800",
                       },
                       {
                         label: "Flagged Events",
-                        value: flaggedCount,
-                        className: flaggedCount > 0 ? "text-red-500" : "text-emerald-600",
+                        value: flaggedCount || 0,
+                        className:
+                          flaggedCount > 0
+                            ? "text-red-500"
+                            : "text-emerald-600",
                       },
                     ].map((stat) => (
                       <div key={stat.label}>
-                        <div className={`text-2xl font-black ${stat.className}`}>
+                        <div
+                          className={`text-2xl font-black ${stat.className}`}
+                        >
                           {stat.value}
                         </div>
                         <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">
@@ -633,8 +698,9 @@ async function handleDenyRequest(requestId: string) {
                     </div>
 
                     <p className="mt-0.5 text-xs text-orange-700">
-                      Some access events happened outside normal operating hours.
-                      Review the audit log and revoke access where needed.
+                      Some access events happened outside normal operating
+                      hours. Review the audit log and revoke access where
+                      needed.
                     </p>
 
                     <button
@@ -652,16 +718,19 @@ async function handleDenyRequest(requestId: string) {
               </h2>
 
               <div className="space-y-3">
-                {activeGrants.length === 0 ? (
+                {activeGrants?.length === 0 ? (
                   <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center">
                     <Lock className="mx-auto mb-3 h-8 w-8 text-slate-400" />
-                    <div className="font-bold text-slate-800">No active access grants</div>
+                    <div className="font-bold text-slate-800">
+                      No active access grants
+                    </div>
                     <p className="mt-1 text-sm text-slate-500">
-                      No provider currently has active access to your health records.
+                      No provider currently has active access to your health
+                      records.
                     </p>
                   </div>
                 ) : (
-                  activeGrants.map((grant) => {
+                  activeGrants?.map((grant) => {
                     const name = getGrantName(grant);
                     const initials = getInitials(name);
 
@@ -696,12 +765,16 @@ async function handleDenyRequest(requestId: string) {
                           <div className="mt-1 flex flex-wrap items-center gap-3 text-[11px] text-slate-400">
                             <span className="flex items-center gap-1">
                               <Eye className="h-2.5 w-2.5" />
-                              View: {grant.permissions.view ? "Allowed" : "Blocked"}
+                              View:{" "}
+                              {grant.permissions.view ? "Allowed" : "Blocked"}
                             </span>
 
                             <span className="flex items-center gap-1">
                               <DownloadCloud className="h-2.5 w-2.5" />
-                              Download: {grant.permissions.download ? "Allowed" : "Blocked"}
+                              Download:{" "}
+                              {grant.permissions.download
+                                ? "Allowed"
+                                : "Blocked"}
                             </span>
 
                             <span className="flex items-center gap-1">
@@ -734,149 +807,154 @@ async function handleDenyRequest(requestId: string) {
           )}
 
           {tab === "requests" && (
-  <>
-    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <h2 className="text-lg font-bold text-slate-950">
-          Pending Access Requests
-        </h2>
-        <p className="mt-1 text-sm text-slate-500">
-          Review who is asking to access your health records before approving.
-        </p>
-      </div>
-
-      {pendingReqs.length > 0 && (
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-slate-500">
-            Approval duration:
-          </span>
-
-          <select
-            value={requestApprovalDuration}
-            onChange={(event) =>
-              setRequestApprovalDuration(event.target.value as ConsentDuration)
-            }
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-          >
-            <option value="24h">24 hours</option>
-            <option value="7d">7 days</option>
-            <option value="30d">30 days</option>
-            <option value="permanent">Permanent</option>
-          </select>
-        </div>
-      )}
-    </div>
-
-    {pendingReqs.length === 0 ? (
-      <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center">
-        <ShieldCheck className="mx-auto mb-3 h-8 w-8 text-emerald-500" />
-        <div className="font-bold text-slate-800">No pending requests</div>
-        <p className="mt-1 text-sm text-slate-500">
-          Providers who request access will appear here.
-        </p>
-      </div>
-    ) : (
-      <div className="space-y-3">
-        {pendingReqs.map((request) => {
-          const name = getGrantName(request);
-          const initials = getInitials(name);
-          const isLoading = requestActionId === request._id;
-
-          return (
-            <div
-              key={request._id}
-              className="rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm"
-            >
-              <div className="flex items-start gap-4">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-600 to-orange-500 text-sm font-black text-white">
-                  {initials || "RQ"}
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-sm font-bold text-amber-950">
-                      {name}
-                    </h3>
-
-                    <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-800">
-                      Pending
-                    </span>
-                  </div>
-
-                  <p className="mt-1 text-sm text-amber-800">
-                    Requested{" "}
-                    <span className="font-bold">
-                      {request.accessScope === "full-record"
-                        ? "Full History"
-                        : request.accessScope === "category"
-                          ? request.category || "Category"
-                          : request.accessScope}
-                    </span>{" "}
-                    access.
+            <>
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-lg font-bold text-slate-950">
+                    Pending Access Requests
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Review who is asking to access your health records before
+                    approving.
                   </p>
-
-                  {request.purpose && (
-                    <p className="mt-2 rounded-xl border border-amber-200 bg-white/70 px-3 py-2 text-xs leading-relaxed text-amber-800">
-                      <span className="font-bold">Purpose:</span>{" "}
-                      {request.purpose}
-                    </p>
-                  )}
-
-                  <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-amber-700/70">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      Requested {timeAgo(request.createdAt)}
-                    </span>
-
-                    <span className="flex items-center gap-1">
-                      <Eye className="h-3 w-3" />
-                      View permission requested
-                    </span>
-
-                    {request.permissions.download && (
-                      <span className="flex items-center gap-1">
-                        <DownloadCloud className="h-3 w-3" />
-                        Download requested
-                      </span>
-                    )}
-                  </div>
                 </div>
+
+                {pendingReqs?.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-slate-500">
+                      Approval duration:
+                    </span>
+
+                    <select
+                      value={requestApprovalDuration}
+                      onChange={(event) =>
+                        setRequestApprovalDuration(
+                          event.target.value as ConsentDuration,
+                        )
+                      }
+                      className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                    >
+                      <option value="24h">24 hours</option>
+                      <option value="7d">7 days</option>
+                      <option value="30d">30 days</option>
+                      <option value="permanent">Permanent</option>
+                    </select>
+                  </div>
+                )}
               </div>
 
-              <div className="mt-4 flex flex-col gap-2 border-t border-amber-200 pt-4 sm:flex-row sm:justify-end">
-                <button
-                  onClick={() => handleDenyRequest(request._id)}
-                  disabled={isLoading}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-bold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <X className="h-4 w-4" />
-                  )}
-                  Reject
-                </button>
+              {pendingReqs?.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center">
+                  <ShieldCheck className="mx-auto mb-3 h-8 w-8 text-emerald-500" />
+                  <div className="font-bold text-slate-800">
+                    No pending requests
+                  </div>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Providers who request access will appear here.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {pendingReqs.map((request) => {
+                    const name = getGrantName(request);
+                    const initials = getInitials(name);
+                    const isLoading = requestActionId === request._id;
 
-                <button
-                  onClick={() => handleApproveRequest(request._id)}
-                  disabled={isLoading}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-bold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <ShieldCheck className="h-4 w-4" />
-                  )}
-                  Approve for {requestApprovalDuration}
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    )}
-  </>
-)}
+                    return (
+                      <div
+                        key={request._id}
+                        className="rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm"
+                      >
+                        <div className="flex items-start gap-4">
+                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-600 to-orange-500 text-sm font-black text-white">
+                            {initials || "RQ"}
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className="text-sm font-bold text-amber-950">
+                                {name}
+                              </h3>
+
+                              <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-800">
+                                Pending
+                              </span>
+                            </div>
+
+                            <p className="mt-1 text-sm text-amber-800">
+                              Requested{" "}
+                              <span className="font-bold">
+                                {request.accessScope === "full-record"
+                                  ? "Full History"
+                                  : request.accessScope === "category"
+                                    ? request.category || "Category"
+                                    : request.accessScope}
+                              </span>{" "}
+                              access.
+                            </p>
+
+                            {request.purpose && (
+                              <p className="mt-2 rounded-xl border border-amber-200 bg-white/70 px-3 py-2 text-xs leading-relaxed text-amber-800">
+                                <span className="font-bold">Purpose:</span>{" "}
+                                {request.purpose}
+                              </p>
+                            )}
+
+                            <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-amber-700/70">
+                              <span className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                Requested {timeAgo(request.createdAt)}
+                              </span>
+
+                              <span className="flex items-center gap-1">
+                                <Eye className="h-3 w-3" />
+                                View permission requested
+                              </span>
+
+                              {request.permissions.download && (
+                                <span className="flex items-center gap-1">
+                                  <DownloadCloud className="h-3 w-3" />
+                                  Download requested
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 flex flex-col gap-2 border-t border-amber-200 pt-4 sm:flex-row sm:justify-end">
+                          <button
+                            onClick={() => handleDenyRequest(request._id)}
+                            disabled={isLoading}
+                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-bold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {isLoading ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <X className="h-4 w-4" />
+                            )}
+                            Reject
+                          </button>
+
+                          <button
+                            onClick={() => handleApproveRequest(request._id)}
+                            disabled={isLoading}
+                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-bold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {isLoading ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <ShieldCheck className="h-4 w-4" />
+                            )}
+                            Approve for {requestApprovalDuration}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
 
           {tab === "audit" && (
             <>
@@ -885,10 +963,12 @@ async function handleDenyRequest(requestId: string) {
               </h2>
 
               <div className="space-y-3">
-                {audit.length === 0 ? (
+                {audit?.length === 0 ? (
                   <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center">
                     <Activity className="mx-auto mb-3 h-8 w-8 text-slate-400" />
-                    <div className="font-bold text-slate-800">No audit activity yet</div>
+                    <div className="font-bold text-slate-800">
+                      No audit activity yet
+                    </div>
                     <p className="mt-1 text-sm text-slate-500">
                       Provider access events will appear here.
                     </p>
@@ -954,8 +1034,8 @@ async function handleDenyRequest(requestId: string) {
               </h2>
 
               <p className="mb-6 text-sm text-slate-600">
-                Export your health record securely. For MVP, support PDF and JSON.
-                Add FHIR later when your schema is mature enough.
+                Export your health record securely. For MVP, support PDF and
+                JSON. Add FHIR later when your schema is mature enough.
               </p>
 
               <div className="mb-6 space-y-3">
@@ -984,7 +1064,9 @@ async function handleDenyRequest(requestId: string) {
                         type="radio"
                         name="exportFormat"
                         checked={exportFormat === format.id}
-                        onChange={() => setExportFormat(format.id as "fhir" | "pdf")}
+                        onChange={() =>
+                          setExportFormat(format.id as "fhir" | "pdf")
+                        }
                         className="accent-emerald-600"
                       />
 
@@ -992,7 +1074,9 @@ async function handleDenyRequest(requestId: string) {
                         <div className="text-sm font-semibold text-slate-900">
                           {format.label}
                         </div>
-                        <div className="text-xs text-slate-500">{format.desc}</div>
+                        <div className="text-xs text-slate-500">
+                          {format.desc}
+                        </div>
                       </div>
 
                       <Icon className="h-5 w-5 text-slate-400" />
@@ -1040,19 +1124,20 @@ async function handleDenyRequest(requestId: string) {
                   className: "text-slate-950",
                 },
                 {
-                  value: activeGrants.length,
+                  value: activeGrants?.length,
                   label: "Active Grants",
                   className: "text-emerald-700",
                 },
                 {
-                  value: pendingReqs.length,
+                  value: pendingReqs?.length,
                   label: "Pending Requests",
                   className: "text-amber-600",
                 },
                 {
                   value: flaggedCount,
                   label: "Flagged Events",
-                  className: flaggedCount > 0 ? "text-red-500" : "text-slate-500",
+                  className:
+                    flaggedCount > 0 ? "text-red-500" : "text-slate-500",
                 },
               ].map((stat, index) => (
                 <React.Fragment key={stat.label}>
@@ -1126,8 +1211,7 @@ async function handleDenyRequest(requestId: string) {
             <div className="mb-4 flex items-start gap-2 rounded-xl border border-blue-100 bg-blue-50 p-3 text-sm text-blue-800">
               <Link className="mt-0.5 h-4 w-4 shrink-0" />
               <p>
-                Grant access to a provider or organization. Do not use one-time
-                links for full medical history in the MVP.
+                Grant access to a provider or organization.
               </p>
             </div>
 
@@ -1138,7 +1222,7 @@ async function handleDenyRequest(requestId: string) {
                 </label>
 
                 <div className="grid grid-cols-2 gap-2">
-                  {(["individual provider", "organization"] as const).map((type) => (
+                  {(["provider", "organization"] as const).map((type) => (
                     <button
                       key={type}
                       onClick={() => setGranteeType(type)}
@@ -1148,7 +1232,7 @@ async function handleDenyRequest(requestId: string) {
                           : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                       }`}
                     >
-                      {type}
+                      {GRANTEE_TYPE_LABELS[type]}
                     </button>
                   ))}
                 </div>
@@ -1156,7 +1240,9 @@ async function handleDenyRequest(requestId: string) {
 
               <div>
                 <label className="mb-2 block text-sm font-semibold text-slate-800">
-                  {granteeType === "provider" ? "Provider User ID" : "Organization ID"}
+                  {granteeType === "provider"
+                    ? "Provider User ID"
+                    : "Organization ID"}
                 </label>
 
                 <input
@@ -1180,7 +1266,8 @@ async function handleDenyRequest(requestId: string) {
                   {SCOPE_OPTIONS.map((scope) => {
                     const active =
                       newScope === scope.value &&
-                      (scope.value !== "category" || newCategory === scope.category);
+                      (scope.value !== "category" ||
+                        newCategory === scope.category);
 
                     return (
                       <button
@@ -1209,24 +1296,24 @@ async function handleDenyRequest(requestId: string) {
 
                 <div className="grid grid-cols-2 gap-2">
                   {DURATION_OPTIONS.map((duration) => (
-                    <button
-                      key={duration.value}
-                      onClick={() => setNewDuration(duration.value)}
-                      className={`relative rounded-lg border p-2 text-xs font-bold transition ${
-                        newDuration === duration.value
-                          ? "border-emerald-600 bg-emerald-600 text-white"
-                          : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                      }`}
-                    >
-                      {duration.label}
+  <button
+    key={duration.value}
+    onClick={() => setNewDuration(duration.value)}
+    className={`relative rounded-lg border p-2 text-xs font-bold transition ${
+      newDuration === duration.value
+        ? "border-emerald-600 bg-emerald-600 text-white"
+        : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+    }`}
+  >
+    {duration.label}
 
-                      {duration.aiNote && (
-                        <span className="absolute -right-2 -top-2 rounded-full bg-blue-500 px-1.5 py-0.5 text-[9px] text-white shadow">
-                          {duration.aiNote}
-                        </span>
-                      )}
-                    </button>
-                  ))}
+    {duration.aiNote && (
+      <span className="absolute -right-2 -top-2 rounded-full bg-blue-500 px-1.5 py-0.5 text-[9px] text-white shadow">
+        {duration.aiNote}
+      </span>
+    )}
+  </button>
+))}
                 </div>
               </div>
 

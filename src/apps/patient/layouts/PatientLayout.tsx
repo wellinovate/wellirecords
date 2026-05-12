@@ -71,6 +71,12 @@ const patientNav = [
     icon: Baby,
     premium: true,
   },
+  {
+    to: "/patient/consents",
+    label: "My Consents",
+    icon: Shield,
+    premium: true,
+  },
 
   {
     to: "/patient/appointments",
@@ -78,12 +84,7 @@ const patientNav = [
     icon: Calendar,
     premium: true,
   },
-  {
-    to: "/patient/consents",
-    label: "My Consents",
-    icon: Shield,
-    premium: true,
-  },
+  
 
   {
     to: "/patient/find-care",

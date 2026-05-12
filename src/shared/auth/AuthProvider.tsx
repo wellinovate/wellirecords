@@ -1,3 +1,5 @@
+import { authApi, SearchPatientResponse } from "@/shared/api/authApi";
+import { AuthUser, UserRole } from "@/shared/types/types";
 import React, {
   createContext,
   useContext,
@@ -5,9 +7,6 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { AuthUser, UserRole } from "@/shared/types/types";
-import { authApi, SearchPatientResponse } from "@/shared/api/authApi";
-import axios from "axios";
 import {
   getAuthFromToken,
   getCurrentUser,
@@ -89,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser({
       ...account,
       fullName: profile?.fullName || "",
-      sub: profile?._id,
+      sub: account._id || account.id,
       wrId: profile?.wrId || "",
       wrOrgId: profile?.wrOrgId
     });

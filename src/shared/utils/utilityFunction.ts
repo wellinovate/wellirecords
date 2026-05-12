@@ -11,6 +11,7 @@ type JwtPayload = {
   accountType: string;
   role: string;
   orgId: string;
+  wrId: string;
   wrOrgId: string;
   isVerified: string;
   exp: number;
@@ -30,6 +31,7 @@ export function getAuthFromToken(token: string) {
         email: decoded.email,
         fullName: decoded.fullName,
         wrOrgId: decoded.orgId,
+        wrId: decoded.wrId,
         accountType: decoded.accountType,
         role: decoded.role,
         isVerified: decoded.isVerified,
