@@ -10,12 +10,12 @@ const rootElement = document.getElementById("root");
 if (!rootElement) throw new Error("Could not find root element to mount to");
 
 ReactDOM.createRoot(rootElement).render(
-  <React.StrictMode>
-    <Web3Provider>
-      <BrowserRouter>
+  // <React.StrictMode>
+   <BrowserRouter> 
         <App />
       </BrowserRouter>
-    </Web3Provider>
-   </React.StrictMode>
+  //  </React.StrictMode>
 );
 
+// </Web3Provider>
+    // <Web3Provider>

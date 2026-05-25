@@ -8,10 +8,10 @@ import { toast } from "react-toastify";
 // Moved from authService
 const STORAGE_KEY = "welli_auth_user";
 
-export const apiUrl: string = import.meta.env.VITE_API_BASE_URL 
-console.log("🚀 ~ apiUrl:", apiUrl)
+// export const apiUrl: string = import.meta.env.VITE_API_BASE_URL 
+// console.log("🚀 ~ apiUrl:", apiUrl)
 // || "https://wellirecord.onrender.com";
-// export const apiUrl: string = "http://localhost:3001";
+export const apiUrl: string = "http://localhost:3001";
 
 type IdentifierType = "wrId" | "email" | "phone" | "qr";
 
@@ -180,9 +180,27 @@ export const authApi = {
   }
     );
 
+      const data = await response.data;
+      console.log("🚀 ~ data:", data)
+      return data;
+    } catch (err: any) {
+      console.log(err);
+    }
+  },
+
+  async verifyLoginCodeApi(challengeToken: string, code: string) {
+    try {
+      const response = await axios.post(`${apiUrl}/api/v1/auth/login/verify-code`, {
+        challengeToken: challengeToken,
+        code: code
+      },
+      {
+    timeout: 30000, // 30 seconds
+  }
+    );
+
       if (response.status === 200) {
         const data = await response.data;
-        // document.cookie = `accessToken=${data.accessToken}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
         Cookies.set("accessToken", data.accessToken, {
             expires: 1, // days
             secure: true, // only over HTTPS (important in prod)

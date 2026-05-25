@@ -48,6 +48,7 @@ type AuthContextValue = {
   createEncounter: (payload: any) => any;
   createProcedure: (payload: any) => any;
   signIn: (email: string, password: string) => AuthUser | null;
+  verifyLoginCodeApi:(challengeToken: string, code: string) => AuthUser | null;
   handleGoogleCredentials: (
     response: GoogleCredentialResponse,
   ) => AuthUser | null;
@@ -80,14 +81,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = async (email: string, password: string) => {
     const res = await authApi.signIn(email, password);
 
+    return res;
+  };
+  const verifyLoginCodeApi = async (challengeToken: string, code: string) => {
+    const res = await authApi.verifyLoginCodeApi(challengeToken, code);
+
     // setUser(res.data.account + " " + res.data.profile.fullName);
     const { account, profile } = res.data;
     // console.log("🚀 ~ signIn ~ account:", account)
     // console.log("🚀 ~ signIn ~ profile:", profile)
 
+      // console.log("🚀 ~ verifyLoginCodeApi ~ profile?.fullName:", profile?.fullName)
     setUser({
       ...account,
-      fullName: profile?.fullName || "",
+      fullName: profile?.fullName,
+      // isVerified: account.isVerified,
       sub: account._id || account.id,
       wrId: profile?.wrId || "",
       wrOrgId: profile?.wrOrgId
@@ -272,6 +280,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isPatient: user?.userType === "PATIENT",
       isProvider: user?.userType === "ORG_USER",
       signIn,
+      verifyLoginCodeApi,
       handleGoogleCredentials,
       searchPatientRequest,
       searchDoctorRequest,

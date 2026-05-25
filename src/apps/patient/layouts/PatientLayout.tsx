@@ -474,7 +474,7 @@ export function PatientLayout() {
 
             <div className="flex flex-col">
               <h1 className="text-sm md:text-base font-semibold text-gray-900">
-                Hello, {user?.fullName || "User"} 👋
+                Hello, {user?.fullName || user?.profile?.fullName || "User"} 👋
               </h1>
               <p className="text-xs text-gray-500 hidden md:block">
                 Welcome to your dashboard
@@ -518,7 +518,7 @@ export function PatientLayout() {
                 />
                 <div className="hidden md:flex text-left space-x-2">
                   <p className="text-sm font-medium text-gray-800">
-                    {user?.fullName || "User"}
+                    {user?.fullName || user?.profile?.fullName || "User"}
                   </p>
                   <p className="text-xs text-gray-500">
                     <ChevronDown size={18} />

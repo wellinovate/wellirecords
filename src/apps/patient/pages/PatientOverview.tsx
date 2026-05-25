@@ -1,16 +1,14 @@
-import { FolderHeart, Shield, UploadCloud } from "lucide-react";
-import React, { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { DashboardAlerts } from "@/apps/components/DashboardAlerts";
+import { RecentEncountersCard } from "@/apps/components/RecentEncountersCard";
+import { SummaryRecordsGrid } from "@/apps/components/SummaryRecordsGrid";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import {
   getUsersEncounters,
   getUsersRecord,
-  // mapApiEncounterToUi,
-  // UiEncounter,
 } from "@/shared/utils/utilityFunction";
-import { RecentEncountersCard } from "@/apps/components/RecentEncountersCard";
-import { DashboardAlerts } from "@/apps/components/DashboardAlerts";
-import { SummaryRecordsGrid } from "@/apps/components/SummaryRecordsGrid";
+import { FolderHeart, Shield, UploadCloud } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 type RecordCategory = {
   category: string;
@@ -99,7 +97,10 @@ const mapEncounterType = (
 
 export const mapApiEncounterToUi = (item: ApiEncounter): UiEncounter => {
   const date =
-    item.startedAt || item.createdAt || item.updatedAt || new Date().toISOString();
+    item.startedAt ||
+    item.createdAt ||
+    item.updatedAt ||
+    new Date().toISOString();
 
   return {
     id: item.id,
@@ -137,46 +138,6 @@ export type DashboardAlertItem = {
   ctaLink: string;
 };
 
-const DUMMY_RECENT_ENCOUNTERS: EncounterItem[] = [
-  // {
-  //   id: "enc-001",
-  //   date: "2026-04-28T09:00:00.000Z",
-  //   title: "Follow-up Appointment",
-  //   encounterType: "outpatient",
-  //   status: "completed",
-  //   facility: "Bayview Medical Center",
-  //   provider: "Dr. Jane Smith, Internal Medicine",
-  //   summary: "Follow-up for blood pressure review and medication adherence.",
-  // },
-  // {
-  //   id: "enc-002",
-  //   date: "2026-04-28T10:30:00.000Z",
-  //   title: "Blood Test",
-  //   encounterType: "lab",
-  //   status: "completed",
-  //   facility: "Quest Diagnostics",
-  //   summary: "Complete Blood Count (CBC) ordered and processed.",
-  // },
-  // {
-  //   id: "enc-003",
-  //   date: "2026-04-20T08:15:00.000Z",
-  //   title: "EKG",
-  //   encounterType: "cardiology",
-  //   status: "ongoing",
-  //   facility: "City Heart Clinic",
-  //   summary: "Irregular heartbeat observed. Awaiting cardiology review.",
-  // },
-  // {
-  //   id: "enc-004",
-  //   date: "2026-04-14T21:00:00.000Z",
-  //   title: "Emergency Room Visit",
-  //   encounterType: "emergency",
-  //   status: "attention",
-  //   facility: "Greenfield ER",
-  //   summary: "Chest pain visit requires follow-up and discharge review.",
-  // },
-];
-
 const DUMMY_ALERTS: DashboardAlertItem[] = [
   // {
   //   id: "alert-001",
@@ -213,50 +174,57 @@ export function PatientOverview() {
     "there";
 
   useEffect(() => {
-  const fetchDashboardData = async () => {
-    setLoading(true);
-    setError("");
+    const fetchDashboardData = async () => {
+      setLoading(true);
+      setError("");
 
-    try {
-      const result = await getUsersRecord(1, 10);
-      const encounterResult = await getUsersEncounters();
+      try {
+        const result = await getUsersRecord(1, 10);
+        const encounterResult = await getUsersEncounters();
 
-      const rawItems = Array.isArray(encounterResult?.items)
-        ? encounterResult.items
-        : [];
+        const rawItems = Array.isArray(encounterResult?.items)
+          ? encounterResult.items
+          : [];
 
-      const twoWeeksAgo = new Date();
-      twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+        const twoWeeksAgo = new Date();
+        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
-      const formattedEncounters = rawItems
-        .filter((item: any) => item?.visibilityToPatient !== false)
-        .filter((item: any) => {
-          const encounterDate = new Date(
-            item?.startedAt || item?.createdAt || item?.updatedAt,
-          );
-          return !Number.isNaN(encounterDate.getTime()) && encounterDate >= twoWeeksAgo;
-        })
-        .sort((a: any, b: any) => {
-          const dateA = new Date(a?.startedAt || a?.createdAt || a?.updatedAt).getTime();
-          const dateB = new Date(b?.startedAt || b?.createdAt || b?.updatedAt).getTime();
-          return dateB - dateA;
-        })
-        .map(mapApiEncounterToUi);
+        const formattedEncounters = rawItems
+          .filter((item: any) => item?.visibilityToPatient !== false)
+          .filter((item: any) => {
+            const encounterDate = new Date(
+              item?.startedAt || item?.createdAt || item?.updatedAt,
+            );
+            return (
+              !Number.isNaN(encounterDate.getTime()) &&
+              encounterDate >= twoWeeksAgo
+            );
+          })
+          .sort((a: any, b: any) => {
+            const dateA = new Date(
+              a?.startedAt || a?.createdAt || a?.updatedAt,
+            ).getTime();
+            const dateB = new Date(
+              b?.startedAt || b?.createdAt || b?.updatedAt,
+            ).getTime();
+            return dateB - dateA;
+          })
+          .map(mapApiEncounterToUi);
 
-      setRecentEncounters(formattedEncounters);
+        setRecentEncounters(formattedEncounters);
 
-      const data: RecordsResponse = result?.data ?? result ?? {};
-      setRecords(data);
-    } catch (err: any) {
-      setError(err?.message || "Failed to load dashboard data");
-      setRecentEncounters([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+        const data: RecordsResponse = result?.data ?? result ?? {};
+        setRecords(data);
+      } catch (err: any) {
+        setError(err?.message || "Failed to load dashboard data");
+        setRecentEncounters([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  fetchDashboardData();
-}, []);
+    fetchDashboardData();
+  }, []);
   const recordList = useMemo(() => Object.values(records || {}), [records]);
   const hasSummaryRecords = recordList.length > 0;
 
@@ -280,28 +248,28 @@ export function PatientOverview() {
         </div>
 
         <div className="flex gap-2 flex-shrink-0">
-  <button
-    onClick={() => navigate("/patient/vault")}
-    className="inline-flex items-center gap-2 rounded-lg border border-[#365f8f] bg-[#102849] px-4 py-2 text-sm font-medium text-[#dcecff] transition hover:bg-[#143258]"
-  >
-    <UploadCloud size={16} />
-    <span className="hidden sm:inline">Upload Record</span>
-    <span className="sm:hidden">Upload</span>
-  </button>
+          <button
+            onClick={() => navigate("/patient/vault")}
+            className="inline-flex items-center gap-2 rounded-lg border border-[#365f8f] bg-[#102849] px-4 py-2 text-sm font-medium text-[#dcecff] transition hover:bg-[#143258]"
+          >
+            <UploadCloud size={16} />
+            <span className="hidden sm:inline">Upload Record</span>
+            <span className="sm:hidden">Upload</span>
+          </button>
 
-  <button
-    onClick={() => navigate("/patient/vault")}
-    className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white shadow-[0_8px_20px_rgba(47,107,255,0.28)] transition hover:from-[#037269] hover:to-[#046839]"
-    style={{
-          background:
-            "linear-gradient(135deg,#0d3d22 0%,#1a6b42 60%,#2d9d63 100%)",
-        }}
-  >
-    <FolderHeart size={16} />
-    <span className="hidden sm:inline">Your Health Record</span>
-    <span className="sm:hidden">Vault</span>
-  </button>
-</div>
+          <button
+            onClick={() => navigate("/patient/vault")}
+            className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white shadow-[0_8px_20px_rgba(47,107,255,0.28)] transition hover:from-[#037269] hover:to-[#046839]"
+            style={{
+              background:
+                "linear-gradient(135deg,#0d3d22 0%,#1a6b42 60%,#2d9d63 100%)",
+            }}
+          >
+            <FolderHeart size={16} />
+            <span className="hidden sm:inline">Your Health Record</span>
+            <span className="sm:hidden">Vault</span>
+          </button>
+        </div>
       </div>
 
       <div className="space-y-6">
