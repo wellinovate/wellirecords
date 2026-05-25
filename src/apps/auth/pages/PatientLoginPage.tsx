@@ -165,6 +165,7 @@ export function PatientLoginPage() {
       );
 
       const payload = res?.data || res;
+      console.log("🚀 ~ handleSubmitCredentials ~ payload:", payload)
 
       if (!payload?.requiresOtp || !payload?.challengeToken) {
         throw new Error("Login verification could not be started.");

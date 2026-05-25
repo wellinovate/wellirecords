@@ -746,6 +746,7 @@ export function TimelineNode({
   loadingDetail?: boolean;
   onToggle: () => void;
 }) {
+  console.log("🚀 ~ TimelineNode ~ user:", user)
   const dateTime = formatEncounterDateTime(
     encounter.startedAt || encounter.scheduledAt,
   );
@@ -899,7 +900,7 @@ return (
             {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
           </button>
 
-          {user?.role === "organization" && user?.wrOrgId && (
+          {user?.accountType === "organization" && user?.wrOrgId && (
             <div className="mt-1 grid grid-cols-2 gap-2">
               {[
                 ["Vitals", "+ Vital"],

@@ -20,6 +20,7 @@ type JwtPayload = {
 export function getAuthFromToken(token: string) {
   try {
     const decoded = jwtDecode<JwtPayload>(token);
+    console.log("🚀 ~ getAuthFromToken ~ decoded:", decoded)
 
     const isExpired = decoded.exp * 1000 < Date.now();
 
@@ -30,7 +31,7 @@ export function getAuthFromToken(token: string) {
         sub: decoded.sub,
         email: decoded.email,
         fullName: decoded.fullName,
-        wrOrgId: decoded.orgId,
+        wrOrgId: decoded.wrOrgId,
         wrId: decoded.wrId,
         accountType: decoded.accountType,
         role: decoded.role,

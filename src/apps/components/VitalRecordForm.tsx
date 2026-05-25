@@ -149,6 +149,11 @@ export function VitalRecordForm({
   const [showMore, setShowMore] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [bpInput, setBpInput] = useState(
+  form.bloodPressure.systolic && form.bloodPressure.diastolic
+    ? `${form.bloodPressure.systolic}/${form.bloodPressure.diastolic}`
+    : ""
+);
 
   const bmiPreview = useMemo(() => {
     return calculatePreviewBmi(
@@ -175,6 +180,8 @@ export function VitalRecordForm({
     e.preventDefault();
     setError("");
 
+    const [systolic, diastolic] = bpInput.split("/");
+
     const payload = {
       patientId,
       providerId: providerId || undefined,
@@ -192,13 +199,21 @@ export function VitalRecordForm({
         ? new Date(form.measuredAt).toISOString()
         : undefined,
 
-      bloodPressure:
-        form.bloodPressure.systolic || form.bloodPressure.diastolic
-          ? {
-              systolic: toNullableNumber(form.bloodPressure.systolic),
-              diastolic: toNullableNumber(form.bloodPressure.diastolic),
-            }
-          : undefined,
+        bloodPressure:
+      systolic || diastolic
+        ? {
+            systolic: toNullableNumber(systolic),
+            diastolic: toNullableNumber(diastolic),
+          }
+        : undefined,
+
+      // bloodPressure:
+      //   form.bloodPressure.systolic || form.bloodPressure.diastolic
+      //     ? {
+      //         systolic: toNullableNumber(form.bloodPressure.systolic),
+      //         diastolic: toNullableNumber(form.bloodPressure.diastolic),
+      //       }
+      //     : undefined,
 
       heartRate: toNullableNumber(form.heartRate),
       respiratoryRate: toNullableNumber(form.respiratoryRate),
@@ -321,25 +336,18 @@ export function VitalRecordForm({
               </label>
 
               <input
-                type="text"
-                placeholder="BP (120/80)"
-                value={
-                  form.bloodPressure.systolic && form.bloodPressure.diastolic
-                    ? `${form.bloodPressure.systolic}/${form.bloodPressure.diastolic}`
-                    : ""
-                }
-                onChange={(e) => {
-                  const [sys, dia] = e.target.value.split("/");
-                  setForm((prev) => ({
-                    ...prev,
-                    bloodPressure: {
-                      systolic: sys || "",
-                      diastolic: dia || "",
-                    },
-                  }));
-                }}
-                className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] focus:border-[#3793e0] focus:outline-none"
-              />
+  type="text"
+  placeholder="BP (120/80)"
+  value={bpInput}
+  onChange={(e) => {
+    const value = e.target.value;
+    // Allow digits and an optional single slash
+    if (/^\d{0,3}\/?\d{0,3}$/.test(value)) {
+      setBpInput(value);
+    }
+  }}
+  className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] px-4 text-sm text-[#dcecff] focus:border-[#3793e0] focus:outline-none"
+/>
             </div>
 
             <div>

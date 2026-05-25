@@ -173,7 +173,7 @@ function SmallActionButton({
 export function EHRViewerPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
-  // console.log("🚀 ~ EHRViewerPage ~ user:", user);
+  console.log("🚀 ~ EHRViewerPage ~ user:", user);
   const navigate = useNavigate();
 
   const [patient, setPatient] = useState<PatientDetailResponse | null>(null);
