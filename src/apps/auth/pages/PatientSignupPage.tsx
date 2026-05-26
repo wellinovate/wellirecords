@@ -238,7 +238,7 @@ export default function PatientSignupPage() {
       role: form.role,
       authProvider: "local",
     };
-    console.log("🚀 ~ handleSubmit ~ payload:", payload);
+    // console.log("🚀 ~ handleSubmit ~ payload:", payload);
 
     try {
       setLoading(true);
