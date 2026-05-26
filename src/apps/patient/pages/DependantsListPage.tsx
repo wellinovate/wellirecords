@@ -5,7 +5,10 @@ import { dependantApi } from '@/shared/api/dependantApi';
 import {
   Baby, Plus, ShieldCheck, Activity, AlertCircle, ChevronRight,
   Syringe, Droplets, Dna, CalendarClock, Ruler, Weight,
-  CalendarPlus, TriangleAlert,
+  CalendarPlus, TriangleAlert, TrendingUp, Heart, Pill, Lock,
+  Share2, QrCode, Zap, Watch, Smartphone, Wallet, Truck,
+  Users, Clock, CheckCircle, XCircle, ArrowRight, Smartphone as Mobile,
+  BarChart3, Sparkles, MapPin, Star, Shield,
 } from 'lucide-react';
 import { AddChildProfileModal } from '../components/AddChildProfileModal';
 import { BookingModal, BookingProvider } from './BookingModal';
@@ -97,6 +100,84 @@ const PEDIATRIC_PROVIDER: BookingProvider = {
   availability: {},
 };
 
+// Mock health data
+const MOCK_HEALTH_METRICS = {
+  totalFamilyMembers: 3,
+  upcomingAppointments: 2,
+  vaccinationsDue: 1,
+  aiWellnessScore: 87,
+  wellnessScoreTrend: 'up' as const,
+};
+
+const MOCK_ACCESS_RECORDS = [
+  {
+    id: 'access_1',
+    name: 'Dr. Adebayo',
+    role: 'Pediatrician',
+    accessExpiresIn: '24 hrs',
+    lastAccessed: '2 hours ago',
+  },
+  {
+    id: 'access_2',
+    name: 'Babcock Hospital',
+    role: 'Hospital System',
+    accessExpiresIn: 'Permanent',
+    lastAccessed: '1 day ago',
+  },
+];
+
+const MOCK_MEDICAL_ACTIVITY = [
+  { type: 'vaccination', title: 'Yellow Fever Vaccination', date: '2024-05-20', icon: Syringe, status: 'completed' },
+  { type: 'visit', title: 'Pediatric Checkup', date: '2024-05-15', icon: Activity, status: 'completed' },
+  { type: 'lab', title: 'Lab Results Uploaded', date: '2024-05-10', icon: BarChart3, status: 'completed' },
+  { type: 'prescription', title: 'Prescription Created', date: '2024-05-05', icon: Pill, status: 'pending' },
+];
+
+const MOCK_EMERGENCY_INFO = {
+  bloodGroup: 'O+',
+  genotype: 'AA',
+  emergencyContact: 'Adekunle Awobodu',
+  emergencyPhone: '+234 803 456 7890',
+  preferredHospital: 'Babcock Hospital',
+  chronicConditions: ['Mild Asthma'],
+  allergies: ['Penicillin', 'Shellfish'],
+};
+
+const MOCK_ECOSYSTEM = [
+  {
+    id: 'wellibit',
+    name: 'WelliBit Wearable',
+    icon: Watch,
+    status: 'synced',
+    lastSync: '2 hours ago',
+    color: 'from-blue-500 to-cyan-500',
+  },
+  {
+    id: 'welbio',
+    name: 'WelliBio Lab',
+    icon: Smartphone,
+    status: 'connected',
+    lastSync: '1 day ago',
+    color: 'from-purple-500 to-pink-500',
+  },
+  {
+    id: 'wallet',
+    name: 'WelliWallet',
+    icon: Wallet,
+    status: 'active',
+    balance: '₦5,250',
+    color: 'from-green-500 to-emerald-500',
+  },
+  {
+    id: 'track',
+    name: 'WelliTrack',
+    icon: Truck,
+    status: 'active',
+    deliveries: '2 in progress',
+    color: 'from-orange-500 to-amber-500',
+  },
+];
+
 export function FamilyManagementPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -104,52 +185,203 @@ export function FamilyManagementPage() {
   const children = [];
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bookingChild, setBookingChild] = useState<string | null>(null);
+  const [showEmergencyModal, setShowEmergencyModal] = useState(false);
 
   return (
     <div className="animate-fade-in space-y-8">
-      {/* Header */}
+      {/* ─────────────────────────────────────────────────────────────────
+          PAGE HEADER
+          ───────────────────────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b" style={{ borderColor: 'var(--pat-border)' }}>
         <div>
-          <h1 className="font-display font-bold text-2xl mb-1" style={{ color: 'var(--pat-text)' }}>
+          <h1 className="font-display font-bold text-3xl mb-2" style={{ color: 'var(--pat-text)' }}>
             Family &amp; Dependants
           </h1>
-          <p className="text-sm" style={{ color: 'var(--pat-muted)' }}>
-            Manage health profiles and medical histories for your children and elderly parents.
+          <p className="text-sm max-w-lg" style={{ color: 'var(--pat-muted)' }}>
+            Manage secure health profiles, medical histories, emergency records, and AI-powered health insights for your loved ones.
           </p>
         </div>
         <button
-          // onClick={() => setIsModalOpen(true)}
-          disabled={true} // Temporarily disable until modal form is ready
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md cursor-none"
-          style={{ background: 'var(--pat-primary)' }}
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md whitespace-nowrap cursor-pointer"
+          style={{ background: 'var(--pat-primary)', color: '#ffffff' }}
         >
-          <Plus size={16} />
+          <Plus size={18} />
           Add Family Member
         </button>
       </div>
 
       {children.length === 0 ? (
-        /* ── Empty State ── */
-        <div className="rounded-2xl border-2 border-dashed p-14 text-center" style={{ borderColor: 'var(--pat-border)', background: 'var(--pat-surface)' }}>
-          <div className="w-20 h-20 rounded-full mx-auto flex items-center justify-center mb-6" style={{ background: 'rgba(4,30,66,0.06)', color: 'var(--pat-primary)' }}>
-            <Baby size={38} />
+        <>
+          {/* ── Health Overview Cards (Empty State) ── */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Total Members */}
+            <div
+              className="rounded-2xl border p-6 transition-all hover:shadow-lg"
+              style={{ background: 'var(--pat-surface)', borderColor: 'var(--pat-border)' }}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'rgba(59, 130, 246, 0.1)' }}>
+                  <Users size={24} style={{ color: '#3b82f6' }} />
+                </div>
+                <TrendingUp size={16} style={{ color: '#10b981' }} />
+              </div>
+              <div className="text-3xl font-bold mb-1" style={{ color: 'var(--pat-text)' }}>0</div>
+              <div className="text-xs font-medium" style={{ color: 'var(--pat-muted)' }}>Total Family Members</div>
+            </div>
+
+            {/* Appointments */}
+            <div
+              className="rounded-2xl border p-6 transition-all hover:shadow-lg"
+              style={{ background: 'var(--pat-surface)', borderColor: 'var(--pat-border)' }}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'rgba(139, 92, 246, 0.1)' }}>
+                  <CalendarClock size={24} style={{ color: '#8b5cf6' }} />
+                </div>
+                <TrendingUp size={16} style={{ color: '#10b981' }} />
+              </div>
+              <div className="text-3xl font-bold mb-1" style={{ color: 'var(--pat-text)' }}>0</div>
+              <div className="text-xs font-medium" style={{ color: 'var(--pat-muted)' }}>Upcoming Appointments</div>
+            </div>
+
+            {/* Vaccinations */}
+            <div
+              className="rounded-2xl border p-6 transition-all hover:shadow-lg"
+              style={{ background: 'var(--pat-surface)', borderColor: 'var(--pat-border)' }}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'rgba(34, 197, 94, 0.1)' }}>
+                  <Syringe size={24} style={{ color: '#22c55e' }} />
+                </div>
+                <TrendingUp size={16} style={{ color: '#10b981' }} />
+              </div>
+              <div className="text-3xl font-bold mb-1" style={{ color: 'var(--pat-text)' }}>0</div>
+              <div className="text-xs font-medium" style={{ color: 'var(--pat-muted)' }}>Vaccinations Due</div>
+            </div>
+
+            {/* AI Wellness Score */}
+            <div
+              className="rounded-2xl border p-6 transition-all hover:shadow-lg"
+              style={{ background: 'var(--pat-surface)', borderColor: 'var(--pat-border)' }}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'rgba(236, 72, 153, 0.1)' }}>
+                  <Heart size={24} style={{ color: '#ec4899' }} />
+                </div>
+                <TrendingUp size={16} style={{ color: '#10b981' }} />
+              </div>
+              <div className="text-3xl font-bold mb-1" style={{ color: 'var(--pat-text)' }}>–</div>
+              <div className="text-xs font-medium" style={{ color: 'var(--pat-muted)' }}>AI Wellness Score</div>
+            </div>
           </div>
-          <h3 className="font-display font-bold text-xl mb-2" style={{ color: 'var(--pat-text)' }}>No family profiles yet</h3>
-          <p className="text-sm max-w-xs mx-auto mb-8" style={{ color: 'var(--pat-muted)' }}>
-            Create a digital health record for a child or elderly parent to track their health history, vaccinations, and medical notes.
-          </p>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            disabled={true} // Temporarily disable until modal form is ready
-            className="px-6 py-2.5 rounded-xl font-bold text-sm text-white mx-auto transition-opacity hover:opacity-90 cursor-none"
-            style={{ background: 'var(--pat-primary)' }}
-          >
-            Add First Family Member
-          </button>
-        </div>
+
+          {/* ── Empty State ── */}
+          <div className="rounded-2xl border-2 border-dashed p-14 text-center" style={{ borderColor: 'var(--pat-border)', background: 'var(--pat-surface)' }}>
+            <div className="w-24 h-24 rounded-full mx-auto flex items-center justify-center mb-6" style={{ background: 'rgba(4,30,66,0.06)' }}>
+              <Baby size={48} style={{ color: 'var(--pat-primary)' }} />
+            </div>
+            <h3 className="font-display font-bold text-2xl mb-2" style={{ color: 'var(--pat-text)' }}>No family profiles yet</h3>
+            <p className="text-sm max-w-md mx-auto mb-8" style={{ color: 'var(--pat-muted)' }}>
+              Create secure digital health profiles for your children, parents, and dependants. Manage appointments, records, medications, and emergency information in one place.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="px-8 py-3 rounded-xl font-bold text-sm transition-all border hover:-translate-y-0.5 hover:shadow-md cursor-pointer"
+                style={{ borderColor: 'var(--pat-border)', color: 'var(--pat-text)' }}
+              >
+                <span className="flex items-center gap-2">
+                  <Plus size={16} />
+                  Add Child
+                </span>
+              </button>
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="px-8 py-3 rounded-xl font-bold text-sm transition-all border hover:-translate-y-0.5 hover:shadow-md cursor-pointer"
+                style={{ borderColor: 'var(--pat-border)', color: 'var(--pat-text)' }}
+              >
+                <span className="flex items-center gap-2">
+                  <Plus size={16} />
+                  Add Parent
+                </span>
+              </button>
+            </div>
+          </div>
+        </>
       ) : (
-        /* ── Children Grid ── */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <>
+          {/* ─────────────────────────────────────────────────────────────────
+              HEALTH OVERVIEW CARDS
+              ───────────────────────────────────────────────────────────────── */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Total Members */}
+            <div
+              className="rounded-2xl border p-6 transition-all hover:shadow-lg"
+              style={{ background: 'var(--pat-surface)', borderColor: 'var(--pat-border)' }}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'rgba(59, 130, 246, 0.1)' }}>
+                  <Users size={24} style={{ color: '#3b82f6' }} />
+                </div>
+                <TrendingUp size={16} style={{ color: '#10b981' }} />
+              </div>
+              <div className="text-3xl font-bold mb-1" style={{ color: 'var(--pat-text)' }}>{children.length}</div>
+              <div className="text-xs font-medium" style={{ color: 'var(--pat-muted)' }}>Total Family Members</div>
+            </div>
+
+            {/* Appointments */}
+            <div
+              className="rounded-2xl border p-6 transition-all hover:shadow-lg"
+              style={{ background: 'var(--pat-surface)', borderColor: 'var(--pat-border)' }}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'rgba(139, 92, 246, 0.1)' }}>
+                  <CalendarClock size={24} style={{ color: '#8b5cf6' }} />
+                </div>
+                <TrendingUp size={16} style={{ color: '#10b981' }} />
+              </div>
+              <div className="text-3xl font-bold mb-1" style={{ color: 'var(--pat-text)' }}>{MOCK_HEALTH_METRICS.upcomingAppointments}</div>
+              <div className="text-xs font-medium" style={{ color: 'var(--pat-muted)' }}>Upcoming Appointments</div>
+            </div>
+
+            {/* Vaccinations Due */}
+            <div
+              className="rounded-2xl border p-6 transition-all hover:shadow-lg"
+              style={{ background: 'var(--pat-surface)', borderColor: 'var(--pat-border)' }}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'rgba(34, 197, 94, 0.1)' }}>
+                  <Syringe size={24} style={{ color: '#22c55e' }} />
+                </div>
+                <TrendingUp size={16} style={{ color: '#10b981' }} />
+              </div>
+              <div className="text-3xl font-bold mb-1" style={{ color: 'var(--pat-text)' }}>{MOCK_HEALTH_METRICS.vaccinationsDue}</div>
+              <div className="text-xs font-medium" style={{ color: 'var(--pat-muted)' }}>Vaccinations Due</div>
+            </div>
+
+            {/* AI Wellness Score */}
+            <div
+              className="rounded-2xl border p-6 transition-all hover:shadow-lg"
+              style={{ background: 'var(--pat-surface)', borderColor: 'var(--pat-border)' }}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'rgba(236, 72, 153, 0.1)' }}>
+                  <Heart size={24} style={{ color: '#ec4899' }} />
+                </div>
+                <TrendingUp size={16} style={{ color: '#10b981' }} />
+              </div>
+              <div className="text-3xl font-bold mb-1" style={{ color: 'var(--pat-text)' }}>{MOCK_HEALTH_METRICS.aiWellnessScore}</div>
+              <div className="text-xs font-medium" style={{ color: 'var(--pat-muted)' }}>AI Wellness Score</div>
+            </div>
+          </div>
+
+          {/* ─────────────────────────────────────────────────────────────────
+              FAMILY MEMBER CARDS GRID
+              ───────────────────────────────────────────────────────────────── */}
+          <div>
+            <h2 className="font-display font-bold text-xl mb-4" style={{ color: 'var(--pat-text)' }}>Family Members</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {children.map(child => {
             const ageYears = new Date().getFullYear() - new Date(child.profile.dateOfBirth).getFullYear();
             const vacDone = child.vaccinations.filter(v => v.status === 'Completed').length;
@@ -371,7 +603,7 @@ export function FamilyManagementPage() {
                     className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-black transition-all hover:-translate-y-0.5 hover:shadow-md mb-4"
                     style={{
                       background: 'var(--pat-primary)',
-                      color: '#fff',
+                      color: '#ffffff',
                     }}
                   >
                     <CalendarPlus size={14} />
@@ -395,7 +627,315 @@ export function FamilyManagementPage() {
               </div>
             );
           })}
-        </div>
+            </div>
+          </div>
+
+          {/* ─────────────────────────────────────────────────────────────────
+              AI HEALTH INSIGHTS PANEL
+              ───────────────────────────────────────────────────────────────── */}
+          <div
+            className="rounded-2xl border p-6"
+            style={{ background: 'var(--pat-surface)', borderColor: 'var(--pat-border)' }}
+          >
+            <div className="flex items-center gap-2 mb-6">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'rgba(236, 72, 153, 0.1)' }}>
+                <Sparkles size={20} style={{ color: '#ec4899' }} />
+              </div>
+              <h2 className="font-display font-bold text-xl" style={{ color: 'var(--pat-text)' }}>AI Health Insights</h2>
+            </div>
+
+            <div className="space-y-4">
+              <div className="rounded-xl border p-4" style={{ borderColor: 'var(--pat-border)', background: 'var(--pat-bg)' }}>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(34, 197, 94, 0.1)' }}>
+                    <Pill size={16} style={{ color: '#22c55e' }} />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-sm mb-1" style={{ color: 'var(--pat-text)' }}>Medication Adherence</div>
+                    <div className="text-xs mb-2" style={{ color: 'var(--pat-muted)' }}>Family adherence: 92% over last 30 days</div>
+                    <div className="flex h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--pat-bg)' }}>
+                      <div className="bg-emerald-500" style={{ width: '92%' }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border p-4" style={{ borderColor: 'var(--pat-border)', background: 'var(--pat-bg)' }}>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(139, 92, 246, 0.1)' }}>
+                    <Activity size={16} style={{ color: '#8b5cf6' }} />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-sm mb-1" style={{ color: 'var(--pat-text)' }}>Activity & Sleep</div>
+                    <div className="text-xs" style={{ color: 'var(--pat-muted)' }}>
+                      Average sleep: 8.2 hours/night • Activity: 85% goal met
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border p-4 bg-amber-50" style={{ borderColor: 'rgba(245, 158, 11, 0.3)' }}>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(245, 158, 11, 0.1)' }}>
+                    <AlertCircle size={16} style={{ color: '#f59e0b' }} />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-sm mb-1 text-amber-900">Abnormal Trend Detected</div>
+                    <div className="text-xs text-amber-800">
+                      Slight elevation in blood pressure readings over past week. Schedule a checkup.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ─────────────────────────────────────────────────────────────────
+              MEDICAL ACTIVITY TIMELINE
+              ───────────────────────────────────────────────────────────────── */}
+          <div
+            className="rounded-2xl border p-6"
+            style={{ background: 'var(--pat-surface)', borderColor: 'var(--pat-border)' }}
+          >
+            <div className="flex items-center gap-2 mb-6">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'rgba(59, 130, 246, 0.1)' }}>
+                <Clock size={20} style={{ color: '#3b82f6' }} />
+              </div>
+              <h2 className="font-display font-bold text-xl" style={{ color: 'var(--pat-text)' }}>Medical Activity Timeline</h2>
+            </div>
+
+            <div className="space-y-1">
+              {MOCK_MEDICAL_ACTIVITY.map((activity, idx) => {
+                const ActivityIcon = activity.icon;
+                const isCompleted = activity.status === 'completed';
+                return (
+                  <div key={idx} className="flex gap-4 pb-4" style={{ borderBottom: idx < MOCK_MEDICAL_ACTIVITY.length - 1 ? '1px solid var(--pat-border)' : 'none' }}>
+                    {/* Timeline dot */}
+                    <div className="flex flex-col items-center gap-1 flex-shrink-0 mt-1">
+                      <div
+                        className="w-8 h-8 rounded-full flex items-center justify-center border-2"
+                        style={{
+                          background: isCompleted ? 'rgba(16, 185, 129, 0.1)' : 'rgba(229, 231, 235, 0.5)',
+                          borderColor: isCompleted ? '#10b981' : 'var(--pat-border)',
+                        }}
+                      >
+                        {isCompleted ? (
+                          <CheckCircle size={16} style={{ color: '#10b981' }} />
+                        ) : (
+                          <Clock size={16} style={{ color: 'var(--pat-muted)' }} />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 pb-2">
+                      <div className="font-semibold text-sm" style={{ color: 'var(--pat-text)' }}>
+                        {activity.title}
+                      </div>
+                      <div className="text-xs mt-1" style={{ color: 'var(--pat-muted)' }}>
+                        {new Date(activity.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ─────────────────────────────────────────────────────────────────
+              EMERGENCY INFORMATION PANEL
+              ───────────────────────────────────────────────────────────────── */}
+          <div
+            className="rounded-2xl border p-6"
+            style={{ background: 'var(--pat-surface)', borderColor: 'var(--pat-border)' }}
+          >
+            <div className="flex items-center justify-between gap-2 mb-6">
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'rgba(239, 68, 68, 0.1)' }}>
+                  <AlertCircle size={20} style={{ color: '#ef4444' }} />
+                </div>
+                <h2 className="font-display font-bold text-xl" style={{ color: 'var(--pat-text)' }}>Emergency Information</h2>
+              </div>
+              <button
+                onClick={() => setShowEmergencyModal(!showEmergencyModal)}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all hover:shadow-md"
+                style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}
+              >
+                <QrCode size={14} />
+                Generate QR Code
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Blood Group */}
+              <div className="rounded-xl border p-4" style={{ borderColor: 'var(--pat-border)', background: 'var(--pat-bg)' }}>
+                <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--pat-muted)' }}>Blood Group</div>
+                <div className="text-lg font-bold" style={{ color: 'var(--pat-text)' }}>{MOCK_EMERGENCY_INFO.bloodGroup}</div>
+              </div>
+
+              {/* Genotype */}
+              <div className="rounded-xl border p-4" style={{ borderColor: 'var(--pat-border)', background: 'var(--pat-bg)' }}>
+                <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--pat-muted)' }}>Genotype</div>
+                <div className="text-lg font-bold" style={{ color: 'var(--pat-text)' }}>{MOCK_EMERGENCY_INFO.genotype}</div>
+              </div>
+
+              {/* Emergency Contact */}
+              <div className="rounded-xl border p-4 sm:col-span-2" style={{ borderColor: 'var(--pat-border)', background: 'var(--pat-bg)' }}>
+                <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--pat-muted)' }}>Emergency Contact</div>
+                <div className="text-sm font-bold" style={{ color: 'var(--pat-text)' }}>{MOCK_EMERGENCY_INFO.emergencyContact}</div>
+                <div className="text-xs mt-1" style={{ color: 'var(--pat-muted)' }}>{MOCK_EMERGENCY_INFO.emergencyPhone}</div>
+              </div>
+
+              {/* Preferred Hospital */}
+              <div className="rounded-xl border p-4" style={{ borderColor: 'var(--pat-border)', background: 'var(--pat-bg)' }}>
+                <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--pat-muted)' }}>Preferred Hospital</div>
+                <div className="flex items-center gap-2">
+                  <MapPin size={16} style={{ color: 'var(--pat-primary)' }} />
+                  <div className="text-sm font-semibold" style={{ color: 'var(--pat-text)' }}>{MOCK_EMERGENCY_INFO.preferredHospital}</div>
+                </div>
+              </div>
+
+              {/* Allergies Count */}
+              <div className="rounded-xl border p-4" style={{ borderColor: 'var(--pat-border)', background: 'var(--pat-bg)' }}>
+                <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--pat-muted)' }}>Allergies</div>
+                <div className="flex flex-wrap gap-2">
+                  {MOCK_EMERGENCY_INFO.allergies.map((allergy, idx) => (
+                    <span
+                      key={idx}
+                      className="text-xs px-2 py-1 rounded-full font-semibold"
+                      style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}
+                    >
+                      {allergy}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm transition-all hover:-translate-y-0.5"
+                style={{ background: 'var(--pat-primary)', color: '#fff' }}
+              >
+                <QrCode size={16} />
+                Generate Emergency QR
+              </button>
+              <button
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm transition-all border"
+                style={{ borderColor: 'var(--pat-border)', color: 'var(--pat-text)' }}
+              >
+                <Share2 size={16} />
+                Share Emergency Access
+              </button>
+            </div>
+          </div>
+
+          {/* ─────────────────────────────────────────────────────────────────
+              ACCESS & PERMISSIONS SECTION
+              ───────────────────────────────────────────────────────────────── */}
+          <div
+            className="rounded-2xl border p-6"
+            style={{ background: 'var(--pat-surface)', borderColor: 'var(--pat-border)' }}
+          >
+            <div className="flex items-center gap-2 mb-6">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'rgba(139, 92, 246, 0.1)' }}>
+                <Lock size={20} style={{ color: '#8b5cf6' }} />
+              </div>
+              <h2 className="font-display font-bold text-xl" style={{ color: 'var(--pat-text)' }}>Access &amp; Permissions</h2>
+            </div>
+
+            <div className="space-y-3">
+              {MOCK_ACCESS_RECORDS.map((record) => (
+                <div
+                  key={record.id}
+                  className="flex items-center justify-between p-4 rounded-xl border"
+                  style={{ borderColor: 'var(--pat-border)', background: 'var(--pat-bg)' }}
+                >
+                  <div className="flex-1">
+                    <div className="font-semibold text-sm" style={{ color: 'var(--pat-text)' }}>
+                      {record.name}
+                    </div>
+                    <div className="text-xs mt-1 flex items-center gap-2" style={{ color: 'var(--pat-muted)' }}>
+                      <span>{record.role}</span>
+                      <span>•</span>
+                      <span>Expires in {record.accessExpiresIn}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 ml-4">
+                    <button
+                      className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:shadow-md border"
+                      style={{ borderColor: 'var(--pat-border)', color: 'var(--pat-text)' }}
+                    >
+                      Extend
+                    </button>
+                    <button
+                      className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:shadow-md text-red-600 border border-red-200 bg-red-50"
+                    >
+                      Revoke
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-2 mt-4 p-3 rounded-lg" style={{ background: 'rgba(16, 185, 129, 0.08)', borderLeft: '3px solid #10b981' }}>
+              <Shield size={16} style={{ color: '#10b981' }} />
+              <span className="text-xs" style={{ color: '#047857' }}>
+                All access records are blockchain-verified and auditable.
+              </span>
+            </div>
+          </div>
+
+          {/* ─────────────────────────────────────────────────────────────────
+              CONNECTED ECOSYSTEM
+              ───────────────────────────────────────────────────────────────── */}
+          <div
+            className="rounded-2xl border p-6"
+            style={{ background: 'var(--pat-surface)', borderColor: 'var(--pat-border)' }}
+          >
+            <div className="flex items-center gap-2 mb-6">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'rgba(34, 197, 94, 0.1)' }}>
+                <Zap size={20} style={{ color: '#22c55e' }} />
+              </div>
+              <h2 className="font-display font-bold text-xl" style={{ color: 'var(--pat-text)' }}>Connected Ecosystem</h2>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {MOCK_ECOSYSTEM.map((service) => {
+                const ServiceIcon = service.icon;
+                const isActive = service.status === 'connected' || service.status === 'synced' || service.status === 'active';
+                return (
+                  <div
+                    key={service.id}
+                    className="rounded-xl border p-4 hover:shadow-lg transition-all cursor-pointer group"
+                    style={{ borderColor: 'var(--pat-border)', background: 'var(--pat-bg)' }}
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white bg-gradient-to-br ${service.color}`}>
+                        <ServiceIcon size={18} />
+                      </div>
+                      <div
+                        className="w-2 h-2 rounded-full"
+                        style={{ background: isActive ? '#22c55e' : '#d1d5db' }}
+                      />
+                    </div>
+                    <div className="font-semibold text-sm mb-1" style={{ color: 'var(--pat-text)' }}>
+                      {service.name}
+                    </div>
+                    <div className="text-xs mb-3" style={{ color: 'var(--pat-muted)' }}>
+                      {service.lastSync && <span>Synced {service.lastSync}</span>}
+                      {service.balance && <span>{service.balance}</span>}
+                      {service.deliveries && <span>{service.deliveries}</span>}
+                    </div>
+                    <div className="flex items-center gap-1 text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--pat-primary)' }}>
+                      View <ArrowRight size={12} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </>
       )}
 
       {/* Add Family Member Modal */}
