@@ -15,7 +15,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   medications: "Medication Records",
   allergies: "Allergy Records",
   diagnoses: "Diagnosis Records",
-  immunizations: "Immunization Records",
+  // immunizations: "Immunization Records",
   "lab-results": "Lab Results Records",
   procedures: "Procedures / Surgeries Records",
   "clinical-notes": "Clinical Notes Records",

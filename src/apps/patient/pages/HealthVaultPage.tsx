@@ -62,7 +62,7 @@ const FILTER_TYPES = [
   "Vaccination",
   "Procedures / Surgeries",
   "Clinical Note",
-  "Immunizations",
+  // "Immunizations",
 ];
 
 /* ─── Record-type showcase for the onboarding empty state ─────── */
@@ -103,13 +103,13 @@ const SHOWCASE_TYPES = [
     color: "#3b82f6",
     example: "Blood work, urinalysis, HIV, HBA1C…",
   },
-  {
-    label: "Immunizations",
-    link: "immunizations",
-    icon: Activity,
-    color: "#ef4444",
-    example: "Hypertension, diabetes, asthma…",
-  },
+  // {
+  //   label: "Immunizations",
+  //   link: "immunizations",
+  //   icon: Activity,
+  //   color: "#ef4444",
+  //   example: "Hypertension, diabetes, asthma…",
+  // },
   {
     label: "Procedures / Surgeries",
     link: "procedures",

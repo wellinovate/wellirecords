@@ -601,7 +601,8 @@ export function DataSovereigntyCenterPage() {
       </div>
 
       <div className="mb-6 flex w-full gap-1 overflow-x-auto rounded-xl border border-emerald-100 bg-emerald-50/70 p-1 sm:w-fit">
-        {(["active", "requests", "audit", "export"] as ActiveTab[]).map(
+        {/* {(["active", "requests", "audit", "export"] as ActiveTab[]).map( */}
+        {(["active", "audit", "export"] as ActiveTab[])?.map(
           (item) => {
             const active = tab === item;
 
@@ -974,7 +975,7 @@ export function DataSovereigntyCenterPage() {
                     </p>
                   </div>
                 ) : (
-                  audit.map((entry) => {
+                  audit?.map((entry) => {
                     const hour = new Date(entry.createdAt).getHours();
                     const flagged = hour < 6 || hour > 22;
 

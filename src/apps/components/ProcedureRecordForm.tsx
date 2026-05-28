@@ -3,9 +3,9 @@ import { Plus, X } from "lucide-react";
 import { useAuth } from "@/shared/auth/AuthProvider";
 
 type ProcedureRecordFormProps = {
-  patientId: string;
+  patientId?: string;
   encounterId?: string;
-  onClose: () => void;
+  onClose?: () => void;
   onSuccess?: (data: any) => void;
 };
 

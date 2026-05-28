@@ -214,7 +214,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   medications: "Medication Records",
   allergies: "Allergy Records",
   diagnoses: "Diagnosis Records",
-  immunizations: "Immunization Records",
+  // immunizations: "Immunization Records",
   "lab-results": "Lab Results Records",
   procedures: "Procedures / Surgeries Records",
   "clinical-notes": "Clinical Notes Records",
@@ -225,7 +225,7 @@ const CATEGORY_TABS = [
   { key: "medications", label: "Medications", icon: Pill },
   { key: "allergies", label: "Allergies", icon: AlertCircle },
   { key: "diagnoses", label: "Diagnoses", icon: Stethoscope },
-  { key: "immunizations", label: "Immunizations", icon: Syringe },
+  // { key: "immunizations", label: "Immunizations", icon: Syringe },
   { key: "procedures", label: "Procedures", icon: Syringe },
   { key: "lab", label: "Lab Results", icon: FlaskConical },
 ];
@@ -368,25 +368,25 @@ export function HealthCategoryHistoryPage() {
           .includes(q);
       }
 
-      if (tab === "immunizations") {
-        const hasImmunizationData = item.vaccineName;
+      // if (tab === "immunizations") {
+      //   const hasImmunizationData = item.vaccineName;
 
-        if (!hasImmunizationData) return false;
-        if (!q) return true;
+      //   if (!hasImmunizationData) return false;
+      //   if (!q) return true;
 
-        return [
-          item.vaccineName,
-          item.vaccineCode,
-          item.manufacturer,
-          item.series,
-          item.immunizationStatus,
-          item.notes,
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase()
-          .includes(q);
-      }
+      //   return [
+      //     item.vaccineName,
+      //     item.vaccineCode,
+      //     item.manufacturer,
+      //     item.series,
+      //     item.immunizationStatus,
+      //     item.notes,
+      //   ]
+      //     .filter(Boolean)
+      //     .join(" ")
+      //     .toLowerCase()
+      //     .includes(q);
+      // }
 
       if (tab === "lab") {
         const hasLabData = item.testName;
@@ -918,13 +918,15 @@ const vitalsChips = (
         </div>
 
         <button
-          className="btn btn-patient gap-2"
-          onClick={() => setWizardOpen(true)}
-        >
-          <UploadCloud size={16} />
-          Upload New
-        </button>
+  className="flex items-center gap-2 bg-blue-900 text-white px-4 py-2 rounded hover:bg-blue-800 transition"
+  onClick={() => setWizardOpen(true)}
+>
+  <UploadCloud size={16} />
+  Upload New
+</button>
       </div>
+
+      
 
       <div className="mb-6 space-y-4">
         <div className="relative">

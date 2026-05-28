@@ -3,11 +3,11 @@ import { Activity, HeartPulse, Thermometer, Plus, X } from "lucide-react";
 import { useAuth } from "@/shared/auth/AuthProvider";
 
 type VitalRecordFormProps = {
-  patientId: string;
+  patientId?: string;
   organizationId?: string | null;
   providerId?: string | null;
   encounterId?: string | null;
-  onClose: () => void;
+  onClose?: () => void;
   onSuccess?: (data: any) => void;
 };
 
@@ -185,7 +185,6 @@ export function VitalRecordForm({
     const payload = {
       patientId,
       providerId: providerId || undefined,
-      organizationId: organizationId || undefined,
       encounterId: encounterId || undefined,
 
       source: form.source,

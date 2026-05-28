@@ -93,18 +93,18 @@ const patientNav = [
     premium: true,
   },
 
-  {
-    to: "/patient/telemedicine",
-    label: "Telemedicine",
-    icon: Video,
-    premium: false,
-  },
-  {
-    to: "/patient/messages",
-    label: "Messages",
-    icon: MessageSquare,
-    premium: false,
-  },
+  // {
+  //   to: "/patient/telemedicine",
+  //   label: "Telemedicine",
+  //   icon: Video,
+  //   premium: false,
+  // },
+  // {
+  //   to: "/patient/messages",
+  //   label: "Messages",
+  //   icon: MessageSquare,
+  //   premium: false,
+  // },
   // {
   //   to: "/patient/emergency-card",
   //   label: "Emergency Card",

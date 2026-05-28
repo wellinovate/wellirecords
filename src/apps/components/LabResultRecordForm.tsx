@@ -4,9 +4,9 @@ import {  uploadFile } from "@/shared/utils/utilityFunction";
 import { useAuth } from "@/shared/auth/AuthProvider";
 
 type LabResultRecordFormProps = {
-  encounterId: string | undefined;
-  patientId: string;
-  onClose: () => void;
+  encounterId?: string | undefined;
+  patientId?: string;
+  onClose?: () => void;
   onSuccess?: (data: any) => void;
 };
 

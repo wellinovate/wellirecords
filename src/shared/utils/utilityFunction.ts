@@ -6,6 +6,7 @@ import { jwtDecode } from "jwt-decode";
 
 type JwtPayload = {
   sub: string;
+  profileId: string;
   email: string;
   fullName: string;
   accountType: string;
@@ -31,6 +32,7 @@ export function getAuthFromToken(token: string) {
         sub: decoded.sub,
         email: decoded.email,
         fullName: decoded.fullName,
+        profileId: decoded.profileId,
         wrOrgId: decoded.wrOrgId,
         wrId: decoded.wrId,
         accountType: decoded.accountType,

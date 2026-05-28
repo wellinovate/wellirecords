@@ -519,14 +519,14 @@ export function PatientSettingsPage() {
     disabled?: boolean;
   }[] = [
     { id: "profile", label: "Profile", icon: User },
-    { id: "notifications", label: "Notifications", icon: Bell, disabled: true },
-    { id: "wearables", label: "Wearables", icon: Watch, disabled: true },
     {
       id: "identity",
       label: "Identity & Security",
       icon: ShieldCheck,
-      disabled: true,
+      disabled: false,
     },
+    { id: "notifications", label: "Notifications", icon: Bell, disabled: true },
+    // { id: "wearables", label: "Wearables", icon: Watch, disabled: true },
   ];
 
   return (

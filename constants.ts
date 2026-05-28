@@ -105,5 +105,5 @@ export const CLINICAL_MODULES = {
   DIAGNOSES: "diagnoses",
   LAB_RESULTS: "lab-results",
   PROCEDURES: "procedures",
-  IMMUNIZATIONS: "immunizations",
+  // IMMUNIZATIONS: "immunizations",
 };

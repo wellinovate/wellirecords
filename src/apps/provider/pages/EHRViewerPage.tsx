@@ -813,7 +813,7 @@ export function EHRViewerPage() {
                 {activeCreateTab === "Vitals" && (
                   <VitalRecordForm
                     patientId={patientId}
-                    organizationId={user?.data?.account?.id}
+                    organizationId={user?.sub ?? user?.data?.account?.id}
                     encounterId={selectedEncounter?.id}
                     onClose={handleCloseCreateModal}
                     onSuccess={(data) => {

@@ -4,9 +4,9 @@ import { Plus, X } from "lucide-react";
 import { useAuth } from "@/shared/auth/AuthProvider";
 
 type MedicationRecordFormProps = {
-  encounterId: string | undefined;
-  patientId: string;
-  onClose: () => void;
+  encounterId?: string | undefined;
+  patientId?: string;
+  onClose?: () => void;
   onSuccess?: (data: any) => void;
 };
 
