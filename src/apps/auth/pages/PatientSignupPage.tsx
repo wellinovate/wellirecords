@@ -441,15 +441,20 @@ export default function PatientSignupPage() {
                   <option value="Female">Female</option>
                 </InputField>
 
-                <InputField
-                  label="Phone Number"
-                  required // ← Changed from optional to required
-                  placeholder="+234 801 234 5678"
-                  type="tel"
-                  value={form.phone}
-                  onChange={update("phone")}
-                  error={errors.phone}
-                />
+                <div className="relative w-full group">
+                  <InputField
+                    label="Phone Number"
+                    placeholder="Enter your phone number"
+                    type="tel"
+                    value={form.phone}
+                    onChange={update("phone")}
+                    required
+                    error={errors.phone}
+                  />
+                  <div className="absolute left-0 top-full mt-1 w-max rounded bg-blue-100 px-2 py-1 text-xs text-blue-700 shadow-lg opacity-0 group-focus-within:opacity-100 transition-opacity">
+                    Please enter a phone number that can receive the OTP code.
+                  </div>
+                </div>
 
                 {/* Create Password */}
                 <InputField
