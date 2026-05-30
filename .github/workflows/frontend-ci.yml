@@ -56,7 +56,7 @@ jobs:
       # 7. Auto-merge staging into main
       - name: Merge staging into main
         if: success()
-        uses: devops-infra/action-pull-request@v0.4.0
+        uses: devops-infra/action-pull-request@v0.5.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           source_branch: staging
