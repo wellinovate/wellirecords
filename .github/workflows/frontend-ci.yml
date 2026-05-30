@@ -1,34 +1,65 @@
 name: Frontend CI
 
 on:
-  pull_request:
-    branches:
-      - main
-      - staging
   push:
     branches:
-      - main
       - staging
 
 jobs:
-  build:
+  test-build-health-merge:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout code
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2. Node setup
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
+      # 3. Install dependencies
       - name: Install dependencies
         run: npm ci
 
-      # - name: Run lint
-        # run: npm run lint
-
+      # 4. Build frontend
       - name: Build app
         run: npm run build
+
+      # 5. Start server in background (adjust if using Vite, CRA, or Next.js)
+      - name: Start frontend server
+        run: |
+          npm run start &         # your dev or preview server
+          echo "Waiting for frontend server..."
+          for i in {1..15}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/ || true)
+            if [ "$STATUS" -eq 200 ]; then
+              echo "Frontend is up!"
+              break
+            fi
+            echo "Waiting 2s..."
+            sleep 2
+          done
+
+      # 6. Health check for homepage
+      - name: Health check
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/)
+          if [ "$STATUS" -ne 200 ]; then
+            echo "Homepage health check failed!"
+            exit 1
+          fi
+
+      # 7. Auto-merge staging into main
+      - name: Merge staging into main
+        if: success()
+        uses: devops-infra/action-pull-request@v0.4.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          source_branch: staging
+          target_branch: main
+          title: "Auto-merge frontend staging → main after health check"
+          body: "Merged automatically as homepage health check passed"
