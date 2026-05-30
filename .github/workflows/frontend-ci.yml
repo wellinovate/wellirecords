@@ -29,27 +29,29 @@ jobs:
       - name: Build app
         run: npm run build
 
-      # 5. Start server in background (adjust if using Vite, CRA, or Next.js)
+      # Start server in background
       - name: Start frontend server
         run: |
-          npm run start &         # your dev or preview server
+          npm run start > frontend.log 2>&1 &
           echo "Waiting for frontend server..."
-          for i in {1..15}; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/ || true)
+          for i in {1..30}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5173/ || true)
             if [ "$STATUS" -eq 200 ]; then
-              echo "Frontend is up!"
+              echo "Frontend server is up!"
               break
             fi
             echo "Waiting 2s..."
             sleep 2
           done
 
-      # 6. Health check for homepage
+      # Health check
       - name: Health check
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/)
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5173/)
           if [ "$STATUS" -ne 200 ]; then
             echo "Homepage health check failed!"
+            echo "------ Frontend Logs ------"
+            cat frontend.log
             exit 1
           fi
 
