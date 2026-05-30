@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import { apiUrl } from "@/shared/api/authApi";
 import Cookies from "js-cookie";
+import OTPForm from "@/apps/patient/components/OTPInput";
 
 type LoginStep = "credentials" | "otp";
 
@@ -89,13 +90,7 @@ function TextInput({
   );
 }
 
-const loginApi = async (payload: { email: string; password: string }) => {
-  const { data } = await axios.post(`${apiUrl}/api/v1/auth/login`, payload, {
-    withCredentials: true,
-  });
 
-  return data;
-};
 
 
 
@@ -108,6 +103,8 @@ export function PatientLoginPage() {
   const [profileType, setProfileType] = useState("Personal");
 
   const [step, setStep] = useState<LoginStep>("credentials");
+const [isCodeValid, setIsCodeValid] = useState(false);
+const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
 
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -134,7 +131,44 @@ export function PatientLoginPage() {
 
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim());
   const isFormValid = isEmailValid && form.password.trim() !== "";
-  const isCodeValid = /^\d{6}$/.test(code);
+  // const isCodeValid = /^\d{6}$/.test(code);
+
+  useEffect(() => setIsCodeValid(code.length === 6), [code]);
+
+const handleResend = async () => {
+  try {
+    setCode("");         // clear existing OTP
+    setTimeLeft(300);    // reset countdown to 5 minutes
+    setError("");        // clear error messages
+
+    console.log("Resend code triggered");
+
+    // Call backend to resend OTP
+    const response = await fetch(`${apiUrl}/api/v1/auth/resend-verify-code`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email: form.email }), // use the user's email or account identifier
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to resend OTP");
+    }
+
+    // Update challenge token and optionally masked phone
+    setChallengeToken(data.data.challengeToken);
+    setMaskedPhone(data.data.maskedPhone);
+
+    toast.success("OTP resent successfully");
+
+  } catch (err: any) {
+    console.error("Resend OTP error:", err);
+    toast.error(err.message || "Unable to resend OTP");
+  }
+};
 
   const redirectAfterLogin = (accountType?: string) => {
     localStorage.setItem("activeProfileType", profileType);
@@ -253,6 +287,8 @@ export function PatientLoginPage() {
       setVerifying(false);
     }
   };
+
+ 
 
   const handleBackToCredentials = () => {
     setStep("credentials");
@@ -473,63 +509,26 @@ export function PatientLoginPage() {
                     Verify Login
                   </h1>
 
-                  <form onSubmit={handleVerifyCode} className="mt-10">
-                    <div className="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
-                      <h2 className="text-xl font-bold text-slate-900">
-                        Enter login code
-                      </h2>
+                    <form onSubmit={handleVerifyCode}>
+    <OTPForm
+      maskedPhone={maskedPhone}
+      code={code}
+      setCode={setCode}
+      isCodeValid={isCodeValid}
+      verifying={verifying}
+      handleResend={handleResend}
+      timeLeft={timeLeft}
+      setTimeLeft={setTimeLeft}
+    />
 
-                      <p className="mt-2 text-sm leading-6 text-slate-600">
-                        We sent a 6-digit code to{" "}
-                        <span className="font-bold text-[#062B67]">
-                          {maskedPhone}
-                        </span>
-                        . Enter it below to complete your login.
-                      </p>
-
-                      <input
-                        value={code}
-                        onChange={(e) => {
-                          setError("");
-                          const onlyNumbers = e.target.value.replace(/\D/g, "");
-                          setCode(onlyNumbers.slice(0, 6));
-                        }}
-                        maxLength={6}
-                        inputMode="numeric"
-                        autoComplete="one-time-code"
-                        className="mt-6 w-full rounded-xl border border-slate-300 px-4 py-3 text-center text-2xl tracking-widest outline-none focus:border-emerald-500"
-                        placeholder="000000"
-                        disabled={verifying}
-                      />
-
-                      {error && (
-                        <div className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600">
-                          {error}
-                        </div>
-                      )}
-
-                      <button
-                        type="submit"
-                        disabled={verifying || !isCodeValid}
-                        className={`mt-6 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 font-bold text-white transition ${
-                          verifying || !isCodeValid
-                            ? "cursor-not-allowed bg-gray-400"
-                            : "bg-emerald-600 hover:brightness-95"
-                        }`}
-                      >
-                        {verifying ? (
-                          <>
-                            <Loader2 className="h-5 w-5 animate-spin" />
-                            Verifying...
-                          </>
-                        ) : (
-                          "Verify and Login"
-                        )}
-                      </button>
-
-                      
-                    </div>
-                  </form>
+    <button
+      type="submit"
+      disabled={verifying || !isCodeValid}
+      className="mt-6 w-full rounded-xl bg-emerald-600 px-4 py-3 text-white font-bold"
+    >
+      {verifying ? "Verifying..." : "Verify and Login"}
+    </button>
+  </form>
                 </>
               )}
             </div>
