@@ -182,13 +182,17 @@ export function Navbar() {
     <header className="sticky top-0 z-50 border-b border-slate-100 bg-white/95 backdrop-blur overflow-x-hidden">
       <div className="mx-auto flex w-full sm:max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
         {/* Logo */}
-        <div className="flex min-w-0 items-center">
+        <div className="flex items-center min-w-0">
           <Link to="/" className="block">
-            <div className="flex h-8 w-30 items-center justify-center overflow-hidden rounded-md bg-[#0b3870] shadow-sm sm:h-14 sm:w-52 lg:w-64">
+            <div
+              className="flex items-center justify-center overflow-hidden rounded-md shadow-sm
+                    h-8 w-20 sm:h-12 sm:w-44 md:h-14 md:w-52 lg:h-16 lg:w-64
+                    max-w-full"
+            >
               <img
                 src={logos}
                 alt="wellirecord"
-                className="h-full w-full object-cover"
+                className="h-full w-full object-contain"
               />
             </div>
           </Link>
@@ -741,11 +745,17 @@ function Hero() {
             </p>
 
             <div className="mt-8 flex flex-col gap-4 sm:mt-10 sm:max-w-xl sm:flex-row sm:flex-wrap sm:items-center">
-              <Link to="/auth/patient/signup" className="w-full rounded-lg bg-[#2f8f53] px-6 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-[#2E8B57] sm:w-auto sm:px-8 sm:py-4 sm:text-lg">
+              <Link
+                to="/auth/patient/signup"
+                className="w-full rounded-lg bg-[#2f8f53] px-6 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-[#2E8B57] sm:w-auto sm:px-8 sm:py-4 sm:text-lg"
+              >
                 Create Health Vault
               </Link>
 
-              <Link to="/auth/provider/signup" className="w-full rounded-lg border-2 border-[#173f73] bg-white px-6 py-3.5 text-base font-semibold text-[#173f73] transition hover:bg-slate-50 sm:w-auto sm:px-8 sm:py-4 sm:text-lg">
+              <Link
+                to="/auth/provider/signup"
+                className="w-full rounded-lg border-2 border-[#173f73] bg-white px-6 py-3.5 text-base font-semibold text-[#173f73] transition hover:bg-slate-50 sm:w-auto sm:px-8 sm:py-4 sm:text-lg"
+              >
                 For Healthcare Providers
               </Link>
             </div>

@@ -28,15 +28,16 @@ export interface MedicationRecord {
   updatedAt?: string;
 }
 
-const STATUS_CFG: Record<string, { color: string; bg: string; label: string }> = {
-  active: { color: "#10b981", bg: "rgba(16,185,129,0.1)", label: "Active" },
-  completed: {
-    color: "#6b7280",
-    bg: "rgba(107,114,128,0.1)",
-    label: "Completed",
-  },
-  paused: { color: "#f59e0b", bg: "rgba(245,158,11,0.1)", label: "Paused" },
-};
+const STATUS_CFG: Record<string, { color: string; bg: string; label: string }> =
+  {
+    active: { color: "#10b981", bg: "rgba(16,185,129,0.1)", label: "Active" },
+    completed: {
+      color: "#6b7280",
+      bg: "rgba(107,114,128,0.1)",
+      label: "Completed",
+    },
+    paused: { color: "#f59e0b", bg: "rgba(245,158,11,0.1)", label: "Paused" },
+  };
 
 function formatDate(value?: string | null) {
   if (!value) return "—";
@@ -49,9 +50,7 @@ function formatDose(med: MedicationRecord) {
 }
 
 function formatSubtitle(med: MedicationRecord) {
-  return [formatDose(med)]
-    .filter(Boolean)
-    .join(" · ");
+  return [formatDose(med)].filter(Boolean).join(" · ");
 }
 
 function getDisplayStatus(status?: string | null) {
@@ -88,17 +87,17 @@ export function MedicationsPage() {
   const active = useMemo(
     () =>
       record.filter(
-        (m) => (m.medicationStatus || "").toLowerCase() === "active"
+        (m) => (m.medicationStatus || "").toLowerCase() === "active",
       ),
-    [record]
+    [record],
   );
 
   const history = useMemo(
     () =>
       record.filter(
-        (m) => (m.medicationStatus || "").toLowerCase() !== "active"
+        (m) => (m.medicationStatus || "").toLowerCase() !== "active",
       ),
-    [record]
+    [record],
   );
 
   const visibleRecords = tab === "active" ? active : history;
@@ -116,7 +115,7 @@ export function MedicationsPage() {
         </p>
       </div>
 
-      {!!interactionNotice && (
+      {/* {!!interactionNotice && (
         <div
           className="flex items-start gap-2 px-4 py-3 rounded-xl mb-4 text-sm"
           style={{
@@ -133,7 +132,7 @@ export function MedicationsPage() {
             <strong>Medication note:</strong> {interactionNotice}
           </div>
         </div>
-      )}
+      )} */}
 
       <div
         className="flex gap-1 p-1 rounded-xl mb-5 w-fit border"
@@ -196,181 +195,195 @@ export function MedicationsPage() {
       ) : visibleRecords.length === 0 ? (
         <div
           className="rounded-2xl border p-6 text-sm"
-          style={{ background: "#fff", borderColor: "#e2e8f0", color: "#64748b" }}
+          style={{
+            background: "#fff",
+            borderColor: "#e2e8f0",
+            color: "#64748b",
+          }}
         >
           No medication records found.
         </div>
       ) : (
         <div className="space-y-3 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-  {visibleRecords.map((med) => {
-  const statusKey = getDisplayStatus(med.medicationStatus);
-  const st = STATUS_CFG[statusKey];
+          {visibleRecords.map((med) => {
+            const statusKey = getDisplayStatus(med.medicationStatus);
+            const st = STATUS_CFG[statusKey];
 
-  return (
-    <div
-      key={med.id}
-      className="rounded-2xl border border-slate-200 bg-white p-5"
-      style={{
-        borderLeft: "4px solid #0d9488",
-      }}
-    >
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3">
-          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-teal-50">
-            <Pill size={16} className="text-teal-600" />
-          </div>
+            return (
+              <div
+                key={med.id}
+                className="rounded-2xl shadow-slate-100 border h-40 border-slate-200 bg-white py-2 px-5"
+                style={{
+                  borderLeft: "4px solid #0d9488",
+                }}
+              >
+                <div className=" flex items-start justify-between gap-2">
+                  <div className="flex items-start gap-2">
+                    <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-xl bg-teal-50">
+                      <Pill size={16} className="text-teal-600" />
+                    </div>
 
-          <div>
-            <div className="text-base font-black text-slate-800">
-              {med.medicationName}
-            </div>
+                    <div>
+                      <div className="flex justify-between items-center">
+                        <div className="text-[16px] flex items-center gap-3 font-black text-slate-800">
+                          {med.medicationName}
+                          <div className="text-sm text-slate-600">
+                            {formatSubtitle(med)}
+                          </div>
+                        </div>
+                        <div className="font-bold">
+                          <span className="text-slate-400 text-xs">Form: </span>
+                          <span className="text-slate-600 text-xs">
+                            {med.form || "—"}
+                          </span>
+                        </div>
+                      </div>
 
-            <div className="text-sm text-slate-600">
-              {formatSubtitle(med)}
-            </div>
+                      {/* Important clinical chips */}
+                      <div className="mt-1 flex flex-wrap items-center gap-2">
+                        {med?.dose && (
+                          <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                            Dose {med.dose}
+                          </span>
+                        )}
 
-            {/* Important clinical chips */}
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              {med?.dose && (
-                <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-                  Dose {med.dose}
-                </span>
-              )}
+                        {med?.frequency && (
+                          <span className="inline-flex items-center rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700">
+                            Frequency: {med.frequency}
+                          </span>
+                        )}
 
-              {med?.frequency && (
-                <span className="inline-flex items-center rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700">
-                  Frequency: {med.frequency}
-                </span>
-              )}
+                        {med?.route && (
+                          <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+                            Route: {med.route}
+                          </span>
+                        )}
 
-              {med?.route && (
-                <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
-                  Route: {med.route}
-                </span>
-              )}
+                        {med?.duration && (
+                          <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
+                            Duration: {med.duration}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
 
-              {med?.duration && (
-                <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
-                  Duration: {med.duration}
-                </span>
-              )}
-            </div>
-          </div>
+                  <span
+                    className="flex-shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold capitalize"
+                    style={{ background: st.bg, color: st.color }}
+                  >
+                    {st.label}
+                  </span>
+                </div>
+
+
+                <div className="mb-1 grid grid-cols-2 gap-2 text-xs">
+                
+                  <div>
+                    {med.genericName && (
+                      <span className="text-slate-400">Generic: </span>
+                    )}
+                    <span className="text-slate-600">{med.genericName}</span>
+                  </div>
+
+                  
+
+                  <div>
+                    {med.brandName && (
+                      <span className="text-slate-400">Brand: </span>
+                    )}
+                    <span className="text-slate-600">{med.brandName}</span>
+                  </div>
+
+                  <div>
+                    <span className="text-slate-400">Prescribed By: </span>
+                    <span className="text-slate-600">
+                      {med?.duration ??
+                        med?.duration}
+                    </span>
+                  </div>
+                  
+                  <div>
+                    <span className="text-slate-400">Prescribed By: </span>
+                    <span className="text-slate-600">
+                      {med?.prescribedByName ??
+                        med?.prescribedByContactPersonName}
+                    </span>
+                  </div>
+
+
+                  <div>
+                    <span className="text-slate-400">Prescribed At: </span>
+                    <span className="text-slate-600">
+                      {formatDate(med.prescribedAt)}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-slate-400">Adherence: </span>
+                    <span className="capitalize text-slate-600">
+                      {med.adherence || "—"}
+                    </span>
+                  </div>
+
+                  {(med.startDate || med.endDate) && (
+                    <>
+                      <div>
+                        <span className="text-slate-400">Started: </span>
+                        <span className="text-slate-600">
+                          {formatDate(med.startDate)}
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="text-slate-400">Ended: </span>
+                        <span className="text-slate-600">
+                          {formatDate(med.endDate)}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {(med.indication || med.notes) && (
+                  <div className="mb-3 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                    {med.indication && (
+                      <div>
+                        <span className="text-slate-400">Indication: </span>
+                        {med.indication}
+                      </div>
+                    )}
+                    {med.notes && (
+                      <div className={med.indication ? "mt-1" : ""}>
+                        <span className="text-slate-400">Notes: </span>
+                        {med.notes}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* {statusKey === "active" && (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                      <RefreshCw size={11} />
+                      Active medication
+                    </div>
+
+                    <button
+                      className="rounded-xl px-3 py-1.5 text-xs font-bold"
+                      style={{
+                        background: "rgba(13,148,136,0.1)",
+                        color: "#0d9488",
+                      }}
+                    >
+                      Request Refill
+                    </button>
+                  </div>
+                )} */}
+              </div>
+            );
+          })}
         </div>
-
-        <span
-          className="flex-shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold capitalize"
-          style={{ background: st.bg, color: st.color }}
-        >
-          {st.label}
-        </span>
-      </div>
-
-      <div>
-          {med.duration && <>
-          <span className="text-slate-400">Duration: </span>
-            <span style={{ color: "#475569" }}>
-              {med?.duration}
-            </span>
-          </> 
-          
-          }
-          </div>
-
-      <div className="mb-3 grid grid-cols-2 gap-2 text-xs">
-        <div>
-          {med.genericName && (
-            <span className="text-slate-400">Generic: </span>
-          )}
-          <span className="text-slate-600">{med.genericName}</span>
-        </div>
-        
-
-        <div>
-          {med.brandName && <span className="text-slate-400">Brand: </span>}
-          <span className="text-slate-600">{med.brandName}</span>
-        </div>
-
-        
-
-        <div>
-          <span className="text-slate-400">Prescribed By: </span>
-          <span className="text-slate-600">
-            {med?.prescribedByName ?? med?.prescribedByContactPersonName}
-          </span>
-        </div>
-
-        <div>
-          <span className="text-slate-400">Prescribed At: </span>
-          <span className="text-slate-600">{formatDate(med.prescribedAt)}</span>
-        </div>
-
-        <div>
-          <span className="text-slate-400">Form: </span>
-          <span className="text-slate-600">{med.form || "—"}</span>
-        </div>
-
-        <div>
-          <span className="text-slate-400">Adherence: </span>
-          <span className="capitalize text-slate-600">
-            {med.adherence || "—"}
-          </span>
-        </div>
-
-        {(med.startDate || med.endDate) && (
-          <>
-            <div>
-              <span className="text-slate-400">Started: </span>
-              <span className="text-slate-600">{formatDate(med.startDate)}</span>
-            </div>
-
-            <div>
-              <span className="text-slate-400">Ended: </span>
-              <span className="text-slate-600">{formatDate(med.endDate)}</span>
-            </div>
-          </>
-        )}
-      </div>
-
-      {(med.indication || med.notes) && (
-        <div className="mb-3 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600">
-          {med.indication && (
-            <div>
-              <span className="text-slate-400">Indication: </span>
-              {med.indication}
-            </div>
-          )}
-          {med.notes && (
-            <div className={med.indication ? "mt-1" : ""}>
-              <span className="text-slate-400">Notes: </span>
-              {med.notes}
-            </div>
-          )}
-        </div>
-      )}
-
-      {statusKey === "active" && (
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-xs text-slate-500">
-            <RefreshCw size={11} />
-            Active medication
-          </div>
-
-          <button
-            className="rounded-xl px-3 py-1.5 text-xs font-bold"
-            style={{
-              background: "rgba(13,148,136,0.1)",
-              color: "#0d9488",
-            }}
-          >
-            Request Refill
-          </button>
-        </div>
-      )}
-    </div>
-  );
-})}
-</div>
       )}
     </div>
   );

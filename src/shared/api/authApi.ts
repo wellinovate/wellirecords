@@ -8,10 +8,10 @@ import { toast } from "react-toastify";
 // Moved from authService
 const STORAGE_KEY = "welli_auth_user";
 
-// export const apiUrl: string = import.meta.env.VITE_API_BASE_URL 
+export const apiUrl: string = import.meta.env.VITE_API_BASE_URL 
 // console.log("🚀 ~ apiUrl:", apiUrl)
 // || "https://wellirecord.onrender.com";
-export const apiUrl: string = "http://localhost:3001";
+// export const apiUrl: string = "http://localhost:3001";
 
 type IdentifierType = "wrId" | "email" | "phone" | "qr";
 

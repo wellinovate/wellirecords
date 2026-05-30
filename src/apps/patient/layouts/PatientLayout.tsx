@@ -232,7 +232,7 @@ export function PatientLayout() {
                   <button
                     key={item.to}
                     onClick={() => navTo(item.to)}
-                    className={`sidebar-item sidebar-item-patient w-full ${active ? "active" : ""} ${
+                    className={`sidebar-item sidebar-item-patient w-full ${active ? "active " : ""} ${
                       !item.premium
                         ? "opacity-60 grayscale text-gray-400 cursor-not-allowed"
                         : "text-gray-800 font-semibold"
@@ -281,7 +281,7 @@ export function PatientLayout() {
       )}
 
       {/* ─── Desktop / Tablet Sidebar ─── */}
-      <aside className="sidebar-patient hidden md:flex flex-col w-16 lg:w-64 z-20 flex-shrink-0 border bg-[#DAE5F7] border-r-2 border-gray-100">
+      <aside className="sidebar-patient hidden md:flex flex-col w-16 lg:w-64 z-20 flex-shrink-0 border bg-[##FFFFFF] border-r-2 border-gray-100">
         {/* Logo */}
         <div className="p-3 lg:p- b border-b border-slate-200 fle items-center justify-center lg:justify-start">
           <Link
@@ -392,10 +392,10 @@ export function PatientLayout() {
                 onClick={() => navigate(item.to)}
                 disabled={!item.premium}
                 title={item.label}
-                className={`sidebar-item sidebar-item-patient w-full ${active ? "active" : ""} justify-center lg:justify-start ${
+                className={`sidebar-item  sidebar-item-patient rounded-xl w-full ${active ? "active " : ""} justify-center lg:justify-start ${
                   !item.premium
-                    ? "opacity-60 grayscale text-gray-400 cursor-not-allowed"
-                    : "text-gray-800 font-semibold"
+                    ? "opacity-60 grayscale  text-gray-400 cursor-not-allowed"
+                    : "text-[#07335B]  font-semibold"
                 }`}
               >
                 <item.icon size={18} />
@@ -459,7 +459,7 @@ export function PatientLayout() {
       </aside>
 
       {/* ─── Main ─── */}
-      <div className="flex-1 flex flex-col overflow-hidden bg-[#e2e9f3] min-w-0">
+      <div className="flex-1 flex flex-col overflow-hidden bg-[#fbfcfd] min-w-0">
         {/* Top bar */}
         <header className="h-16 flex items-center justify-between px-4 md:px-6 border-b border-gray-100 bg-white">
           {/* LEFT: Greeting */}

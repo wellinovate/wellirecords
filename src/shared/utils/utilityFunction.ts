@@ -21,7 +21,7 @@ type JwtPayload = {
 export function getAuthFromToken(token: string) {
   try {
     const decoded = jwtDecode<JwtPayload>(token);
-    console.log("🚀 ~ getAuthFromToken ~ decoded:", decoded)
+    // console.log("🚀 ~ getAuthFromToken ~ decoded:", decoded)
 
     const isExpired = decoded.exp * 1000 < Date.now();
 
@@ -337,7 +337,7 @@ export async function getUsersRecords(
   );
 
   const data = await res.json();
-  console.log("🚀 ~ getUsersRecord ~ data:", data)
+  // console.log("🚀 ~ getUsersRecord ~ data:", data)
 
   if (!res.ok) {
     throw new Error(data?.message || "Failed to fetch vitals");
