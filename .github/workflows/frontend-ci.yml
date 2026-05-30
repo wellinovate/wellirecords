@@ -29,11 +29,12 @@ jobs:
       - name: Build app
         run: npm run build
 
-      # Start server in background
+      # 5. Start server in background (production build)
       - name: Start frontend server
         run: |
-          npm run start > frontend.log 2>&1 &
-          echo "Waiting for frontend server..."
+          npx serve -s dist -l 5173 > frontend.log 2>&1 &
+          SERVER_PID=$!
+          echo "Waiting for frontend server to be ready..."
           for i in {1..30}; do
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5173/ || true)
             if [ "$STATUS" -eq 200 ]; then
@@ -44,14 +45,17 @@ jobs:
             sleep 2
           done
 
-      # Health check
+      # 6. Health check
       - name: Health check
         run: |
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5173/)
           if [ "$STATUS" -ne 200 ]; then
             echo "Homepage health check failed!"
-            echo "------ Frontend Logs ------"
+            echo "------ Frontend Logs (last 50 lines) ------"
+            tail -n 50 frontend.log
+            echo "------ Full Frontend Logs ------"
             cat frontend.log
+            kill $SERVER_PID || true
             exit 1
           fi
 
