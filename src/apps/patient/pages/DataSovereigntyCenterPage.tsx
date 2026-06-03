@@ -461,7 +461,7 @@ export function DataSovereigntyCenterPage() {
           <div className="mt-6 flex flex-wrap gap-3">
             <button
               onClick={() => setShowNew(true)}
-              className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-800"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#1e3a8a] px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-[#1e3a8a]"
             >
               <Plus className="h-4 w-4" />
               Grant New Access
@@ -469,7 +469,7 @@ export function DataSovereigntyCenterPage() {
 
             <button
               onClick={() => setTab("export")}
-              className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-white px-4 py-2 text-sm font-bold text-emerald-700 shadow-sm transition hover:bg-emerald-50"
+              className="inline-flex items-center gap-2 rounded-xl border border-blue-500 bg-white px-4 py-2 text-sm font-bold text-[#1e3a8a] shadow-sm transition hover:bg-emerald-50"
             >
               <DownloadCloud className="h-4 w-4" />
               Export Records
@@ -477,7 +477,7 @@ export function DataSovereigntyCenterPage() {
           </div>
         </div>
 
-        <div className="flex w-full shrink-0 items-start gap-4 rounded-2xl bg-gradient-to-br from-slate-950 to-emerald-800 p-5 shadow-sm lg:w-80">
+        <div className="flex w-full shrink-0 items-start gap-4 rounded-2xl bg-gradient-to-br from-slate-950 to-blue-900 p-5 shadow-sm lg:w-80">
           <div className="rounded-xl bg-white p-2 shadow-inner">
             <QrCode className="h-14 w-14 text-slate-950" />
           </div>
@@ -603,8 +603,8 @@ export function DataSovereigntyCenterPage() {
                 onClick={() => setTab(item)}
                 className={`whitespace-nowrap rounded-lg px-4 py-2 text-sm font-bold capitalize transition ${
                   active
-                    ? "bg-emerald-700 text-white shadow-sm"
-                    : "text-emerald-700 hover:bg-white"
+                    ? "bg-[#1e3a8a] text-white shadow-sm"
+                    : "text-[#1e3a8a] hover:bg-white"
                 }`}
               >
                 {item === "requests"
@@ -632,9 +632,9 @@ export function DataSovereigntyCenterPage() {
         <div className="space-y-4 lg:col-span-2">
           {tab === "active" && (
             <>
-              <div className="flex items-start gap-5 rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-green-100 p-6">
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/10">
-                  <Shield className="h-8 w-8 text-emerald-600" />
+              <div className="flex items-start gap-5 rounded-2xl border border-sky-200 bg-gradient-to-br from-blue-50 to-blue-100 p-6">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-500/10">
+                  <Shield className="h-8 w-8 text-sky-600" />
                 </div>
 
                 <div className="flex-1">
@@ -643,7 +643,7 @@ export function DataSovereigntyCenterPage() {
                       Your Data Is Protected
                     </span>
 
-                    <span className="rounded-full bg-emerald-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-800">
+                    <span className="rounded-full bg-emerald-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-sky-800">
                       All Clear
                     </span>
                   </div>
