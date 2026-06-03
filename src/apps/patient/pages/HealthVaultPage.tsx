@@ -231,7 +231,7 @@ function VaultOnboarding({ onAddRecord }: { onAddRecord: () => void }) {
         className="rounded-3xl overflow-hidden mb-6"
         style={{
           background:
-            "linear-gradient(135deg,#0d3d22 0%,#1a6b42 60%,#2d9d63 100%)",
+            "linear-gradient(135deg, #1e3a8a 0%,#1e3a8a 60%,#1e3a8a 100%)",
         }}
       >
         <div className="px-8 py-4 relative">
@@ -282,7 +282,7 @@ function VaultOnboarding({ onAddRecord }: { onAddRecord: () => void }) {
               className="flex items-center gap-2 px-6 py-2 rounded-xl font-bold text-sm transition-all"
               style={{
                 background: "#fff",
-                color: "#1a6b42",
+                color: "#1e3a8a",
                 boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
               }}
             >
@@ -339,7 +339,7 @@ function VaultOnboarding({ onAddRecord }: { onAddRecord: () => void }) {
         {[
           {
             icon: Lock,
-            color: "#1a6b42",
+            color: "#1e3a8a",
             title: "End-to-end Encrypted",
             body: "Only you hold the keys to your data",
           },

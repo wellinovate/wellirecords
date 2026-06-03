@@ -442,16 +442,7 @@ export function DataSovereigntyCenterPage() {
     organization: "Organization",
   };
 
-  if (loading) {
-    return (
-      <div className="mx-auto flex min-h-[60vh] max-w-5xl items-center justify-center px-4">
-        <div className="flex items-center gap-3 rounded-2xl border border-emerald-100 bg-white px-5 py-4 text-sm font-semibold text-emerald-700 shadow-sm">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          Loading consent center...
-        </div>
-      </div>
-    );
-  }
+ 
 
   return (
     <div className="mx-auto max-w-5xl animate-in fade-in duration-500">
@@ -627,6 +618,16 @@ export function DataSovereigntyCenterPage() {
         )}
       </div>
 
+
+
+{loading ? (
+      <div className="mx-auto flex min-h-[60vh] max-w-5xl items-center justify-center px-4">
+        <div className="flex items-center gap-3 rounded-2xl border border-emerald-100 bg-white px-5 py-4 text-sm font-semibold text-emerald-700 shadow-sm">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          Loading consent center...
+        </div>
+      </div>
+    ) : (
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
           {tab === "active" && (
@@ -1192,6 +1193,8 @@ export function DataSovereigntyCenterPage() {
           </div>
         </div>
       </div>
+    )}
+
 
       {showNew && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
