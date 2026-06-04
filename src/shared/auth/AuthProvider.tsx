@@ -88,8 +88,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // setUser(res.data.account + " " + res.data.profile.fullName);
     const { account, profile } = res.data;
-    // console.log("🚀 ~ signIn ~ account:", account)
-    // console.log("🚀 ~ signIn ~ profile:", profile)
+    console.log("🚀 ~ signIn ~ account:", account)
+    console.log("🚀 ~ signIn ~ profile:", profile)
 
       // console.log("🚀 ~ verifyLoginCodeApi ~ profile?.fullName:", profile?.fullName)
     setUser({
