@@ -1,5 +1,5 @@
 import {
-    VerificationRequest, Invoice, SubscriptionPlan,
+    AuthUser, UserRole, VerificationRequest, Invoice, SubscriptionPlan,
     ImpersonationLog, FacilityBranch, OrgType
 } from '@/shared/types/types';
 
@@ -97,8 +97,89 @@ export const MOCK_IMPERSONATION_LOGS: ImpersonationLog[] = [
 
 // ─── Platform stats (AdminDashboard) ─────────────────────────────────────────
 
+const PLATFORM_USER_ROLES: UserRole[] = [
+    'patient',
+    'caregiver',
+    'provider_admin',
+    'clinician',
+    'lab_tech',
+    'pharmacist',
+    'super_admin',
+    'security_admin',
+];
+
+export const MOCK_PLATFORM_USERS: AuthUser[] = [
+    {
+        userId: 'usr_pat_001',
+        name: 'Amara Okafor',
+        email: 'amara@patient.com',
+        userType: 'PATIENT',
+        avatar: 'https://api.dicebear.com/8.x/avataaars/svg?seed=amara',
+        loginMethod: 'web2',
+        roles: ['patient'],
+    },
+    {
+        userId: 'usr_pat_002',
+        name: 'Emeka Nwosu',
+        email: 'emeka@patient.com',
+        userType: 'PATIENT',
+        avatar: 'https://api.dicebear.com/8.x/avataaars/svg?seed=emeka',
+        loginMethod: 'web2',
+        roles: ['patient'],
+    },
+    {
+        userId: 'usr_pro_001',
+        name: 'Dr. Fatima Aliyu',
+        email: 'fatima@lagosgeneral.ng',
+        userType: 'ORG_USER',
+        orgId: 'org_hosp_001',
+        orgName: 'Lagos General Hospital',
+        orgType: 'hospital',
+        avatar: 'https://api.dicebear.com/8.x/avataaars/svg?seed=fatima',
+        loginMethod: 'web2',
+        roles: ['clinician'],
+    },
+    {
+        userId: 'usr_pro_002',
+        name: 'Bayo Adewale',
+        email: 'bayo@citylab.ng',
+        userType: 'ORG_USER',
+        orgId: 'org_lab_001',
+        orgName: 'CityLab Diagnostics',
+        orgType: 'lab',
+        avatar: 'https://api.dicebear.com/8.x/avataaars/svg?seed=bayo',
+        loginMethod: 'web2',
+        roles: ['lab_tech'],
+    },
+    {
+        userId: 'usr_adm_001',
+        name: 'Chidi Okonkwo',
+        email: 'chidi@lagosgeneral.ng',
+        userType: 'ORG_USER',
+        orgId: 'org_hosp_001',
+        orgName: 'Lagos General Hospital',
+        orgType: 'hospital',
+        avatar: 'https://api.dicebear.com/8.x/avataaars/svg?seed=chidi',
+        loginMethod: 'web2',
+        roles: ['provider_admin'],
+    },
+    {
+        userId: 'usr_sa_001',
+        name: 'Tolu Adeyemi',
+        email: 'support@wellirecord.com',
+        userType: 'ORG_USER',
+        orgId: 'org_welli_001',
+        orgName: 'WelliRecord HQ',
+        orgType: 'hospital',
+        avatar: 'https://api.dicebear.com/8.x/avataaars/svg?seed=tolu',
+        loginMethod: 'web2',
+        roles: ['super_admin'],
+    },
+];
+
 export const MOCK_PLATFORM_STATS = {
     totalPatients: 14872,
+    totalUsers: MOCK_PLATFORM_USERS.length,
     activeProviders: 312,
     pendingVerifications: MOCK_VERIFICATIONS.filter(v => v.status === 'pending' || v.status === 'more_info_requested').length,
     monthlyActiveUsers: 9231,
@@ -139,6 +220,44 @@ export const adminApi = {
         return MOCK_IMPERSONATION_LOGS;
     },
     getPlatformStats() {
-        return MOCK_PLATFORM_STATS;
+        return {
+            ...MOCK_PLATFORM_STATS,
+            totalUsers: MOCK_PLATFORM_USERS.length,
+            pendingVerifications: MOCK_VERIFICATIONS.filter(v => v.status === 'pending' || v.status === 'more_info_requested').length,
+        };
+    },
+    getUsers(): AuthUser[] {
+        return MOCK_PLATFORM_USERS;
+    },
+    getUserCount(): number {
+        return MOCK_PLATFORM_USERS.length;
+    },
+    deleteUser(userId: string): boolean {
+        const index = MOCK_PLATFORM_USERS.findIndex((user) => user.userId === userId);
+        if (index < 0) return false;
+        MOCK_PLATFORM_USERS.splice(index, 1);
+        return true;
+    },
+    updateUserRole(userId: string, nextRole: UserRole): AuthUser | undefined {
+        const user = MOCK_PLATFORM_USERS.find((user) => user.userId === userId);
+        if (!user) return undefined;
+        user.roles = [nextRole];
+        return user;
+    },
+    addMockUser(overrides?: Partial<AuthUser>): AuthUser {
+        const nextUser: AuthUser = {
+            userId: `usr_${Date.now()}`,
+            name: overrides?.name ?? `Mock User ${MOCK_PLATFORM_USERS.length + 1}`,
+            email: overrides?.email ?? `mock${MOCK_PLATFORM_USERS.length + 1}@wellirecord.com`,
+            userType: overrides?.userType ?? 'PATIENT',
+            avatar: overrides?.avatar ?? `https://api.dicebear.com/8.x/avataaars/svg?seed=mock${MOCK_PLATFORM_USERS.length + 1}`,
+            loginMethod: overrides?.loginMethod ?? 'web2',
+            roles: overrides?.roles ?? ['patient'],
+            orgId: overrides?.orgId,
+            orgName: overrides?.orgName,
+            orgType: overrides?.orgType,
+        };
+        MOCK_PLATFORM_USERS.push(nextUser);
+        return nextUser;
     },
 };

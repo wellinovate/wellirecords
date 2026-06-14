@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Users, Building2, ShieldCheck, CreditCard,
@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { adminApi } from '@/shared/api/adminApi';
 import { billingApi } from '@/shared/api/billingApi';
+import { AuthUser, UserRole } from '@/shared/types/types';
 
 // ─── Helper ───────────────────────────────────────────────────────────────────
 
@@ -71,13 +72,61 @@ function StatusBadge({ status }: { status: string }) {
     );
 }
 
+const ROLE_OPTIONS: UserRole[] = [
+    'patient',
+    'caregiver',
+    'provider_admin',
+    'clinician',
+    'lab_tech',
+    'pharmacist',
+    'super_admin',
+];
+
+function getUserLabel(user: AuthUser) {
+    if (user.roles?.includes('super_admin')) return 'Super Admin';
+    if (user.roles?.includes('provider_admin')) return 'Provider Admin';
+    if (user.roles?.includes('clinician')) return 'Clinician';
+    if (user.roles?.includes('lab_tech')) return 'Lab Tech';
+    if (user.roles?.includes('pharmacist')) return 'Pharmacist';
+    if (user.userType === 'PATIENT') return 'Patient';
+    return user.roles?.[0] ?? 'User';
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function AdminDashboard() {
     const navigate = useNavigate();
+    const [users, setUsers] = useState<AuthUser[]>([]);
+    const [actionInProgress, setActionInProgress] = useState<string | null>(null);
+
+    useEffect(() => {
+        setUsers(adminApi.getUsers());
+    }, []);
+
+    const refreshUsers = () => setUsers(adminApi.getUsers());
     const stats = adminApi.getPlatformStats();
     const rev = billingApi.getRevenueSummary();
     const recent = adminApi.getVerifications().slice(0, 5);
+
+    const handleDeleteUser = (userId: string) => {
+        if (!window.confirm('Delete this account? This action cannot be undone.')) return;
+        setActionInProgress(userId);
+        adminApi.deleteUser(userId);
+        refreshUsers();
+        setActionInProgress(null);
+    };
+
+    const handleRoleChange = (userId: string, nextRole: UserRole) => {
+        setActionInProgress(userId);
+        adminApi.updateUserRole(userId, nextRole);
+        refreshUsers();
+        setActionInProgress(null);
+    };
+
+    const handleAddMockUser = () => {
+        adminApi.addMockUser();
+        refreshUsers();
+    };
 
     return (
         <div className="animate-fade-in space-y-8">
@@ -110,6 +159,8 @@ export function AdminDashboard() {
                     onClick={() => navigate('/admin/verifications')} />
                 <KpiCard label="Monthly Active Users" value={stats.monthlyActiveUsers.toLocaleString()}
                     sub="+9.2% vs last month" trend="up" icon={Activity} accent="#10b981" />
+                <KpiCard label="Total Users" value={stats.totalUsers.toLocaleString()}
+                    sub="Platform users across roles" trend="up" icon={Users} accent="#8b5cf6" />
                 <KpiCard label="Consent Requests Today" value={stats.consentRequestsToday}
                     sub="Across all patients" icon={Eye} accent="#f472b6" />
                 <KpiCard label="MRR" value={formatNaira(rev.mrrKobo)}
@@ -203,6 +254,84 @@ export function AdminDashboard() {
                         {a.label}
                     </button>
                 ))}
+            </div>
+
+            {/* User management */}
+            <div className="rounded-2xl overflow-hidden" style={{ background: '#111827', border: '1px solid rgba(148,163,184,0.12)' }}>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-5 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+                    <div>
+                        <h2 className="font-bold text-sm" style={{ color: '#e5e7eb' }}>Platform Users</h2>
+                        <p className="text-xs mt-1" style={{ color: '#6b7280' }}>{users.length.toLocaleString()} total accounts managed on WelliRecord.</p>
+                    </div>
+                    <button onClick={handleAddMockUser}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors hover:bg-white/10"
+                        style={{ background: '#111827', color: '#e5e7eb', border: '1px solid rgba(255,255,255,0.12)' }}>
+                        <Users size={16} /> Add mock user
+                    </button>
+                </div>
+
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr style={{ background: 'rgba(255,255,255,0.03)' }}>
+                                <th className="p-4 text-xs font-black uppercase tracking-wider" style={{ color: '#9ca3af' }}>User</th>
+                                <th className="p-4 text-xs font-black uppercase tracking-wider" style={{ color: '#9ca3af' }}>Role</th>
+                                <th className="p-4 text-xs font-black uppercase tracking-wider hidden lg:table-cell" style={{ color: '#9ca3af' }}>Organisation</th>
+                                <th className="p-4 text-xs font-black uppercase tracking-wider" style={{ color: '#9ca3af' }}>Status</th>
+                                <th className="p-4 text-xs font-black uppercase tracking-wider text-right" style={{ color: '#9ca3af' }}>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+                            {users.map((user) => {
+                                const currentRole = user.roles?.[0] ?? 'patient';
+                                return (
+                                    <tr key={user.userId} className="hover:bg-white/5 transition-colors">
+                                        <td className="p-4">
+                                            <div className="flex items-center gap-3">
+                                                <img src={user.avatar ?? ''} alt={user.name} className="w-10 h-10 rounded-full object-cover" />
+                                                <div>
+                                                    <div className="text-sm font-semibold" style={{ color: '#e5e7eb' }}>{user.name}</div>
+                                                    <div className="text-xs" style={{ color: '#9ca3af' }}>{user.email ?? user.userId}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="p-4">
+                                            <div className="flex flex-col gap-2">
+                                                <span className="text-sm font-semibold" style={{ color: '#e5e7eb' }}>{getUserLabel(user)}</span>
+                                                <select
+                                                    className="w-full rounded-xl bg-slate-900 text-xs px-3 py-2 outline-none"
+                                                    style={{ border: '1px solid rgba(255,255,255,0.08)', color: '#e5e7eb' }}
+                                                    value={currentRole}
+                                                    onChange={(event) => handleRoleChange(user.userId, event.target.value as UserRole)}
+                                                >
+                                                    {ROLE_OPTIONS.map((roleOption) => (
+                                                        <option key={roleOption} value={roleOption}>{roleOption.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </td>
+                                        <td className="p-4 hidden lg:table-cell">
+                                            <div className="text-sm" style={{ color: '#e5e7eb' }}>{user.orgName ?? 'Unaffiliated'}</div>
+                                        </td>
+                                        <td className="p-4">
+                                            <StatusBadge status={user.userType === 'PATIENT' ? 'approved' : 'approved'} />
+                                        </td>
+                                        <td className="p-4 text-right">
+                                            <button
+                                                onClick={() => handleDeleteUser(user.userId)}
+                                                disabled={actionInProgress === user.userId}
+                                                className="text-sm font-semibold rounded-xl px-3 py-2 transition-colors hover:bg-red-500/10"
+                                                style={{ color: '#f87171' }}
+                                            >
+                                                {actionInProgress === user.userId ? 'Deleting…' : 'Delete'}
+                                            </button>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     );
