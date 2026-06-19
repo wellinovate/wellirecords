@@ -8,10 +8,10 @@ import { toast } from "react-toastify";
 // Moved from authService
 const STORAGE_KEY = "welli_auth_user";
 
-export const apiUrl: string = import.meta.env.VITE_API_BASE_URL 
+// export const apiUrl: string = import.meta.env.VITE_API_BASE_URL 
 // console.log("🚀 ~ apiUrl:", apiUrl)
 // || "https://wellirecord.onrender.com";
-// export const apiUrl: string = "http://localhost:3001";
+export const apiUrl: string = "http://localhost:3001";
 
 type IdentifierType = "wrId" | "email" | "phone" | "qr";
 
@@ -298,23 +298,16 @@ export const authApi = {
         return data;
       }
     } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? "registration failed");
-       console.log("Full error:", err);
+  console.log("========== ERROR ==========");
+  console.log("Full error:", err);
+  console.log("Response:", err.response);
+  console.log("Response data:", err.response?.data);
+  console.log("Status:", err.response?.status);
 
-  
-
-    console.log("Full error:", err);
-
-  console.log("Backend response:", err.response?.data);
-
-  const message =
-    err.response?.data?.message ||
-    err.response?.data?.errors?.[0]?.message ||
-    "Something went wrong";
-
-  console.log("Backend error message:", message);
-
-    }
+  toast.error(
+    err.response?.data?.message ?? "Registration failed"
+  );
+}
   },
 
   async signUpProvider(payload: any) {

@@ -243,14 +243,15 @@ export default function PatientSignupPage() {
     try {
       setLoading(true);
       const resp = await signUpPatient(payload);
+      console.log("🚀 ~ handleSubmit ~ resp:", resp)
 
       //  form.profileType,
       //   form.fullName,
       //   form.email,
       //   form.password,
-      toast.success("Account created successfully");
-
+      
       if (resp === "Account created successfully") {
+        toast.success("Account created successfully");
         navigate("/auth/login");
       }
     } catch (error) {
