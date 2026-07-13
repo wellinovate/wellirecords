@@ -660,6 +660,271 @@ function Solutions() {
   );
 }
 
+function SocialProof() {
+  return (
+    <section
+      id="proof"
+      className="border-t border-slate-100 bg-[#F8FAFC] px-4 py-20 sm:px-6 sm:py-24 lg:px-8"
+    >
+      <style>{`
+        /* ── Pilot Programme block ─────────────────── */
+        .pilot-block {
+          background: #FFFFFF;
+          border: 1px solid #E2E8F0;
+          border-radius: 24px;
+          overflow: hidden;
+          box-shadow: 0 4px 32px rgba(0,0,0,0.06);
+          max-width: 900px;
+          margin: 0 auto;
+        }
+        .pilot-header {
+          background: linear-gradient(135deg, #071B3F 0%, #0c2d66 100%);
+          padding: 40px 48px;
+          position: relative;
+          overflow: hidden;
+        }
+        .pilot-header::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(ellipse 500px 250px at 110% 50%, rgba(16,185,129,0.14), transparent 65%);
+          pointer-events: none;
+        }
+        .pilot-header-eyebrow {
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.2em;
+          text-transform: uppercase;
+          color: #34D399;
+          margin: 0 0 12px;
+        }
+        .pilot-header h2 {
+          font-family: 'Bricolage Grotesque', 'Inter', sans-serif;
+          font-size: clamp(22px, 3.5vw, 32px);
+          font-weight: 700;
+          color: #FFFFFF;
+          line-height: 1.2;
+          letter-spacing: -0.015em;
+          margin: 0 0 10px;
+        }
+        .pilot-header p {
+          font-size: 15px;
+          color: #9FB2D6;
+          margin: 0;
+          line-height: 1.6;
+        }
+        .pilot-body {
+          padding: 40px 48px;
+        }
+        .pilot-what-label {
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          color: #64748B;
+          margin: 0 0 20px;
+        }
+        .pilot-items {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 16px;
+          margin-bottom: 32px;
+        }
+        .pilot-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+        }
+        .pilot-item-icon {
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+          background: rgba(16,185,129,0.08);
+          border: 1px solid rgba(16,185,129,0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex: none;
+          font-size: 16px;
+        }
+        .pilot-item-text strong {
+          display: block;
+          font-size: 14px;
+          font-weight: 600;
+          color: #0F172A;
+          margin-bottom: 2px;
+        }
+        .pilot-item-text span {
+          font-size: 13px;
+          color: #64748B;
+          line-height: 1.5;
+        }
+        .pilot-metric {
+          background: #F0FDF4;
+          border: 1px solid #BBF7D0;
+          border-radius: 14px;
+          padding: 18px 22px;
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          margin-bottom: 32px;
+        }
+        .pilot-metric-icon {
+          font-size: 22px;
+          flex: none;
+        }
+        .pilot-metric-text {
+          font-size: 14px;
+          color: #065F46;
+          line-height: 1.55;
+        }
+        .pilot-metric-text strong {
+          font-weight: 700;
+        }
+        .pilot-footer {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 20px;
+          flex-wrap: wrap;
+          border-top: 1px solid #F1F5F9;
+          padding-top: 28px;
+        }
+        .pilot-footer-note {
+          font-size: 14px;
+          color: #64748B;
+          line-height: 1.6;
+          max-width: 440px;
+        }
+        .pilot-cta-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          background: #071B3F;
+          color: #FFFFFF;
+          font-size: 14px;
+          font-weight: 600;
+          padding: 12px 24px;
+          border-radius: 10px;
+          text-decoration: none;
+          transition: background .15s ease, transform .15s ease, box-shadow .15s ease;
+          white-space: nowrap;
+          flex: none;
+        }
+        .pilot-cta-btn:hover {
+          background: #0c2d66;
+          transform: translateY(-1px);
+          box-shadow: 0 6px 20px rgba(7,27,63,0.25);
+        }
+        .pilot-cta-btn svg {
+          width: 15px;
+          height: 15px;
+          transition: transform .15s ease;
+        }
+        .pilot-cta-btn:hover svg {
+          transform: translateX(2px);
+        }
+        @media (max-width: 600px) {
+          .pilot-header, .pilot-body { padding: 28px 24px; }
+          .pilot-footer { flex-direction: column; align-items: flex-start; }
+        }
+      `}</style>
+
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-12 text-center">
+          <p className="text-xs font-bold uppercase tracking-[0.26em] text-emerald-600 mb-3">
+            Pilot Programme
+          </p>
+          <h2 className="text-3xl font-bold tracking-tight text-[#1F4E79] sm:text-4xl mb-4">
+            Building with anchor facilities in Abuja
+          </h2>
+          <p className="mx-auto max-w-xl text-base text-slate-500 leading-7">
+            In conversation with hospitals, diagnostic centres and HMOs across the FCT.
+          </p>
+        </div>
+
+        <div className="pilot-block">
+          {/* Header */}
+          <div className="pilot-header">
+            <p className="pilot-header-eyebrow">What the pilot includes</p>
+            <h2>A structured first cohort — not a vague promise</h2>
+            <p>
+              A small, deliberate group of anchor facilities in Abuja testing one
+              thing: whether a patient's record, created at one facility, is
+              immediately accessible at the next.
+            </p>
+          </div>
+
+          {/* Body */}
+          <div className="pilot-body">
+            <p className="pilot-what-label">Each pilot partner gets</p>
+
+            <div className="pilot-items">
+              <div className="pilot-item">
+                <div className="pilot-item-icon">🏥</div>
+                <div className="pilot-item-text">
+                  <strong>Free setup &amp; onboarding</strong>
+                  <span>We configure the platform for your facility at no cost during the pilot.</span>
+                </div>
+              </div>
+              <div className="pilot-item">
+                <div className="pilot-item-icon">🔒</div>
+                <div className="pilot-item-text">
+                  <strong>Patient-owned records</strong>
+                  <span>Records belong to the patient — shared with your facility by consent, not by default.</span>
+                </div>
+              </div>
+              <div className="pilot-item">
+                <div className="pilot-item-icon">📋</div>
+                <div className="pilot-item-text">
+                  <strong>NDPA-compliant data handling</strong>
+                  <span>Full compliance with the Nigeria Data Protection Act 2023 built in from day one.</span>
+                </div>
+              </div>
+              <div className="pilot-item">
+                <div className="pilot-item-icon">🤝</div>
+                <div className="pilot-item-text">
+                  <strong>Direct input into the product</strong>
+                  <span>Your clinical team's feedback shapes what we build next.</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Success metric */}
+            <div className="pilot-metric">
+              <span className="pilot-metric-icon">🎯</span>
+              <p className="pilot-metric-text">
+                <strong>How we define success:</strong> a patient seen at one pilot
+                facility can walk into a second pilot facility and have their record
+                available to the receiving clinician — with consent — before the
+                consultation begins.
+              </p>
+            </div>
+
+            {/* Footer */}
+            <div className="pilot-footer">
+              <p className="pilot-footer-note">
+                Named facilities will be listed here once pilot agreements are
+                signed. If you represent a hospital, diagnostic centre or HMO
+                in Abuja and want to be part of the first cohort, reach out.
+              </p>
+              <a
+                href="mailto:inquiry@wellirecord.com?subject=Pilot%20Partner%20Enquiry"
+                className="pilot-cta-btn"
+              >
+                Become a pilot partner
+                <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Partners() {
   return (
     <section id="partners" className="bg-white px-6 py-24 lg:px-8">
@@ -1101,194 +1366,6 @@ function FoundingStory() {
             </p>
           </div>
         </div>
-      </div>
-    </section>
-  );
-}
-
-/* ─────────────────────────────────────────────
-   SOCIAL PROOF  (pilot-ready placeholders)
-───────────────────────────────────────────── */
-const pilotPartners = [
-  { name: "General Hospital", city: "Abuja" },
-  { name: "Pilot Facility", city: "FCT" },
-  { name: "Diagnostic Centre", city: "Abuja" },
-  { name: "HMO Partner", city: "Nigeria" },
-];
-
-function SocialProof() {
-  return (
-    <section
-      id="proof"
-      className="border-t border-slate-100 bg-[#F8FAFC] px-4 py-20 sm:px-6 sm:py-24 lg:px-8"
-    >
-      <style>{`
-        .proof-quote-card {
-          background: #FFFFFF;
-          border: 1px solid #E2E8F0;
-          border-radius: 20px;
-          padding: 40px;
-          position: relative;
-          box-shadow: 0 4px 24px rgba(0,0,0,0.05);
-          max-width: 760px;
-          margin: 0 auto 64px;
-        }
-        .proof-quote-card::before {
-          content: open-quote;
-          font-family: 'Bricolage Grotesque', Georgia, serif;
-          font-size: 96px;
-          line-height: 0.7;
-          color: #10B981;
-          position: absolute;
-          top: 28px;
-          left: 32px;
-          opacity: 0.25;
-        }
-        .proof-quote-card blockquote {
-          font-size: 18px;
-          line-height: 1.7;
-          color: #1E293B;
-          font-weight: 500;
-          margin: 0 0 24px;
-          padding-top: 16px;
-        }
-        .proof-quote-card .attr {
-          display: flex;
-          align-items: center;
-          gap: 14px;
-        }
-        .proof-avatar {
-          width: 44px;
-          height: 44px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, #071B3F 0%, #0a3d8f 100%);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex: none;
-          font-size: 16px;
-          font-weight: 700;
-          color: #FFFFFF;
-        }
-        .proof-attr-text strong {
-          display: block;
-          font-size: 14px;
-          font-weight: 600;
-          color: #0F172A;
-        }
-        .proof-attr-text span {
-          font-size: 13px;
-          color: #64748B;
-        }
-        .proof-pilot-label {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          background: rgba(16,185,129,0.08);
-          border: 1px solid rgba(16,185,129,0.2);
-          border-radius: 999px;
-          padding: 4px 12px;
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: #059669;
-          margin-left: auto;
-        }
-        .proof-partner-row {
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
-          gap: 16px;
-        }
-        .proof-partner-chip {
-          background: #FFFFFF;
-          border: 1px solid #E2E8F0;
-          border-radius: 12px;
-          padding: 18px 28px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 4px;
-          min-width: 160px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-          transition: box-shadow .15s ease, transform .15s ease;
-        }
-        .proof-partner-chip:hover {
-          box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-          transform: translateY(-2px);
-        }
-        .proof-partner-chip strong {
-          font-size: 14px;
-          font-weight: 700;
-          color: #1E293B;
-          text-align: center;
-        }
-        .proof-partner-chip small {
-          font-size: 12px;
-          color: #94A3B8;
-          font-weight: 500;
-        }
-        .proof-partner-chip .dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background: #10B981;
-          margin-bottom: 6px;
-        }
-      `}</style>
-
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-12 text-center">
-          <p className="text-xs font-bold uppercase tracking-[0.26em] text-emerald-600 mb-3">
-            Pilot Partners
-          </p>
-          <h2 className="text-3xl font-bold tracking-tight text-[#1F4E79] sm:text-4xl mb-4">
-            Facilities already in conversation
-          </h2>
-          <p className="mx-auto max-w-xl text-base text-slate-500 leading-7">
-            We're onboarding anchor facilities in Abuja. These relationships
-            are active — names will be confirmed as pilots go live.
-          </p>
-        </div>
-
-        {/* Pilot quote — placeholder ready to swap with real name */}
-        <div className="proof-quote-card">
-          <blockquote>
-            "The idea that a patient's full history — allergies, medications, past diagnoses — could
-            be securely accessible to any of our doctors at the point of care, with the patient's
-            consent, is exactly what we've needed. We're watching this closely."
-          </blockquote>
-          <div className="attr">
-            <div className="proof-avatar">M</div>
-            <div className="proof-attr-text">
-              <strong>Medical Director</strong>
-              <span>Pilot Facility — Abuja, Nigeria · Name confirmed on go-live</span>
-            </div>
-            <span className="proof-pilot-label">
-              <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#10B981", display: "inline-block" }} />
-              Active Pilot
-            </span>
-          </div>
-        </div>
-
-        {/* Partner chips */}
-        <div className="proof-partner-row">
-          {pilotPartners.map((p) => (
-            <div key={p.name} className="proof-partner-chip">
-              <div className="dot" />
-              <strong>{p.name}</strong>
-              <small>{p.city}</small>
-            </div>
-          ))}
-        </div>
-
-        <p className="mt-10 text-center text-xs text-slate-400 tracking-wide">
-          Partner names published upon signed pilot agreement. Interested?{" "}
-          <a href="mailto:inquiry@wellirecord.com" className="text-emerald-600 font-semibold hover:underline">
-            inquiry@wellirecord.com
-          </a>
-        </p>
       </div>
     </section>
   );
