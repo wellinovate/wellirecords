@@ -1429,11 +1429,451 @@ function FoundingStory() {
   );
 }
 
+
 /* ─────────────────────────────────────────────
-   EMERGENCY QR DEMO SIMULATOR
+   EMERGENCY RECORD DEMO
 ───────────────────────────────────────────── */
 function EmergencyDemo() {
-  const [step, setStep] = React.useState<"card" | "scanning" | "portal">("card");
+  const [phase, setPhase] = React.useState<"idle" | "scanning" | "reveal">("idle");
+  const [visibleFields, setVisibleFields] = React.useState<number>(0);
+
+  const handleScan = () => {
+    setPhase("scanning");
+    setVisibleFields(0);
+    setTimeout(() => {
+      setPhase("reveal");
+      // Stagger each field in, 350ms apart
+      [0, 1, 2, 3, 4].forEach((i) =>
+        setTimeout(() => setVisibleFields((v) => Math.max(v, i + 1)), i * 380)
+      );
+    }, 1400);
+  };
+
+  const handleReset = () => {
+    setPhase("idle");
+    setVisibleFields(0);
+  };
+
+  const isPortal = phase === "reveal";
+  const isScanning = phase === "scanning";
+
+  return (
+    <section className="relative overflow-hidden bg-[#04102A] px-4 py-20 sm:px-6 sm:py-24 lg:px-8">
+      {/* Background decoration */}
+      <div className="pointer-events-none absolute inset-0 opacity-5">
+        <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-blue-500 blur-3xl" />
+        <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-indigo-500 blur-3xl" />
+      </div>
+
+      <div className="relative mx-auto max-w-5xl">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <p className="text-xs font-bold uppercase tracking-[0.25em] text-blue-400 mb-3">Interactive Demo</p>
+          <h2
+            className="text-3xl font-extrabold text-white sm:text-4xl tracking-tight"
+            style={{ fontFamily: "Bricolage Grotesque, Inter, sans-serif" }}
+          >
+            What a First Responder Sees
+          </h2>
+          <p className="mt-3 text-slate-400 max-w-xl mx-auto text-sm leading-relaxed">
+            Scan the card below. Watch the emergency screen unlock — allergy warning first,
+            every field in the order a doctor actually needs them.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6 items-stretch">
+          {/* ── LEFT: Physical Card */}
+          <div className="flex flex-col items-center justify-center gap-6 bg-white/5 border border-white/10 rounded-2xl p-8">
+            {/* Card Mockup */}
+            <div
+              className="w-full max-w-[320px] aspect-[1.586/1] bg-gradient-to-br from-[#071B3F] to-[#0c2d66] text-white rounded-2xl shadow-2xl relative overflow-hidden flex flex-col justify-between border border-white/10 p-5"
+              style={{ boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}
+            >
+              <div className="absolute right-0 bottom-0 opacity-[0.06] pointer-events-none translate-x-4 translate-y-4">
+                <Shield size={180} />
+              </div>
+
+              {/* Top Row */}
+              <div className="flex justify-between items-start">
+                <div>
+                  <span
+                    className="font-extrabold text-sm tracking-tight text-white"
+                    style={{ fontFamily: "Bricolage Grotesque, Inter, sans-serif" }}
+                  >
+                    Welli<span className="font-light text-blue-300">Record</span>™
+                  </span>
+                  <p className="text-[7px] text-slate-400 tracking-[0.15em] uppercase font-semibold mt-0.5">
+                    Emergency Health Card
+                  </p>
+                </div>
+                {/* Stylised QR */}
+                <div className={`bg-white p-1.5 rounded-lg transition-all duration-700 ${
+                  isScanning ? "ring-2 ring-blue-400 ring-offset-2 ring-offset-[#071B3F] scale-110" : ""
+                }`}>
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#071B3F" strokeWidth="2.5">
+                    <rect x="2" y="2" width="6" height="6" rx="1" />
+                    <rect x="16" y="2" width="6" height="6" rx="1" />
+                    <rect x="2" y="16" width="6" height="6" rx="1" />
+                    <path d="M16 16h2v2h-2zm4 4h2v2h-2zm0-4h2v2h-2zm-4 4h2v2h-2zm2-2h2v2h-2z" fill="#071B3F" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Patient Name */}
+              <div>
+                <h4 className="text-sm font-bold tracking-wide">Oluwaseun Balogun</h4>
+                <p className="text-[9px] text-slate-400 font-mono mt-0.5">ID: WR-504-2025  ·  DOB 12-May-1991</p>
+              </div>
+
+              {/* Bottom Row */}
+              <div className="flex justify-between items-end border-t border-white/10 pt-2">
+                <div className="flex items-center gap-1">
+                  <span className="text-red-400 font-bold text-[8px] uppercase tracking-wider">⚠ PENICILLIN ALLERGY</span>
+                </div>
+                <p className="text-[7px] text-slate-400">In emergency, scan QR</p>
+              </div>
+            </div>
+
+            {/* Action */}
+            {phase === "idle" && (
+              <button
+                onClick={handleScan}
+                className="inline-flex items-center gap-2 bg-white text-[#071B3F] px-6 py-3 rounded-xl text-sm font-bold hover:bg-blue-50 transition-all shadow-lg hover:shadow-xl active:scale-95"
+              >
+                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2" />
+                  <rect x="7" y="7" width="10" height="10" rx="1" />
+                </svg>
+                Scan Card QR Code
+              </button>
+            )}
+            {isScanning && (
+              <div className="text-center">
+                <div className="relative w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                  <div className="absolute inset-0 border-4 border-t-transparent border-blue-400 rounded-full animate-spin" />
+                  <Shield className="text-blue-300" size={20} />
+                </div>
+                <p className="text-sm font-semibold text-white">Verifying secure link…</p>
+                <p className="text-xs text-slate-500 mt-1">Checking tokens &amp; NDPA audit log</p>
+              </div>
+            )}
+            {isPortal && (
+              <button
+                onClick={handleReset}
+                className="text-xs text-slate-500 hover:text-slate-300 transition underline underline-offset-4"
+              >
+                ← Reset &amp; scan again
+              </button>
+            )}
+          </div>
+
+          {/* ── RIGHT: Responder Portal */}
+          <div
+            className="bg-[#050F26] rounded-2xl border border-white/10 overflow-hidden flex flex-col"
+            style={{ minHeight: 420, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)" }}
+          >
+            {/* Browser chrome */}
+            <div className="flex justify-between items-center px-4 py-3 border-b border-white/10 flex-shrink-0">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
+                <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
+                <div className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
+              </div>
+              <div className="flex items-center gap-2 bg-white/5 rounded-lg px-3 py-1.5">
+                <Lock size={9} className="text-green-400" />
+                <span className="text-[10px] text-slate-400 font-mono tracking-widest">wr.secure-gate.ng</span>
+              </div>
+              <div className="w-16" />
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 p-5 overflow-y-auto">
+              {!isPortal ? (
+                <div className="flex flex-col items-center justify-center h-full text-center py-10">
+                  <Lock
+                    size={42}
+                    className={`mb-4 transition-all ${
+                      isScanning
+                        ? "text-blue-400 animate-pulse"
+                        : "text-slate-600"
+                    }`}
+                  />
+                  <h4 className={`text-sm font-bold transition-colors ${
+                    isScanning ? "text-slate-300" : "text-slate-500"
+                  }`}>
+                    {isScanning ? "Decrypting records…" : "Vault Portal Locked"}
+                  </h4>
+                  <p className="text-xs text-slate-600 mt-2 max-w-xs">
+                    {isScanning
+                      ? "Matching QR token against identity chain…"
+                      : "Scan the emergency QR card to unlock and load triage records."}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {/* FIELD 1 — Critical Allergy (always first) */}
+                  {visibleFields >= 1 && (
+                    <div
+                      className="bg-red-500/10 border border-red-500/25 rounded-xl p-3.5 flex items-start gap-3 animate-fadeInUp"
+                      style={{ animation: "fadeInUp 0.35s ease forwards" }}
+                    >
+                      <div className="w-7 h-7 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0 font-bold text-xs text-white shadow-lg shadow-red-500/30">
+                        !
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-red-400 mb-0.5">Critical Allergy Alert</p>
+                        <p className="text-sm font-bold text-white">Severe Penicillin Allergy — Anaphylaxis Risk</p>
+                        <p className="text-[11px] text-red-300 mt-0.5">Patient carries auto-injector (left jacket pocket)</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* FIELD 2 — Blood Type + Genotype */}
+                  {visibleFields >= 2 && (
+                    <div
+                      className="grid grid-cols-2 gap-3"
+                      style={{ animation: "fadeInUp 0.35s ease forwards" }}
+                    >
+                      <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+                        <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Blood Group</p>
+                        <p className="text-xl font-black text-white">O<span className="text-red-400">−</span></p>
+                        <p className="text-[9px] text-slate-500 mt-0.5">Universal donor</p>
+                      </div>
+                      <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+                        <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Genotype</p>
+                        <p className="text-xl font-black text-white">AA</p>
+                        <p className="text-[9px] text-slate-500 mt-0.5">Confirmed 2024</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* FIELD 3 — Medications */}
+                  {visibleFields >= 3 && (
+                    <div
+                      className="bg-amber-500/5 border border-amber-500/15 rounded-xl p-3.5"
+                      style={{ animation: "fadeInUp 0.35s ease forwards" }}
+                    >
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-amber-400 mb-2">Active Medications</p>
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-white font-medium">Ventolin (Salbutamol) Inhaler</span>
+                          <span className="text-amber-300">As needed</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-white font-medium">Amlodipine 5mg</span>
+                          <span className="text-amber-300">Daily (AM)</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* FIELD 4 — Chronic Conditions */}
+                  {visibleFields >= 4 && (
+                    <div
+                      className="bg-white/5 border border-white/10 rounded-xl p-3.5"
+                      style={{ animation: "fadeInUp 0.35s ease forwards" }}
+                    >
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-blue-400 mb-2">Chronic Conditions</p>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="text-xs bg-blue-500/15 text-blue-300 border border-blue-500/20 rounded-lg px-2.5 py-1">Mild Asthma</span>
+                        <span className="text-xs bg-blue-500/15 text-blue-300 border border-blue-500/20 rounded-lg px-2.5 py-1">Stage 1 Hypertension</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* FIELD 5 — Emergency Contacts */}
+                  {visibleFields >= 5 && (
+                    <div
+                      className="bg-white/5 border border-white/10 rounded-xl p-3.5"
+                      style={{ animation: "fadeInUp 0.35s ease forwards" }}
+                    >
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-[#60A5FA] mb-2.5">Emergency Contacts</p>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="text-xs font-semibold text-white">Funmi Balogun</p>
+                            <p className="text-[10px] text-slate-500">Wife · +234 805 333 4444</p>
+                          </div>
+                          <a
+                            href="tel:+2348053334444"
+                            className="text-[10px] bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg text-white font-medium transition"
+                          >
+                            Call
+                          </a>
+                        </div>
+                        <div className="flex justify-between items-center pt-2 border-t border-white/5">
+                          <div>
+                            <p className="text-xs font-semibold text-white">Dr. Tunde Balogun</p>
+                            <p className="text-[10px] text-slate-500">Brother · Cardiologist</p>
+                          </div>
+                          <a
+                            href="tel:+2348031112222"
+                            className="text-[10px] bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg text-white font-medium transition"
+                          >
+                            Call
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Footer */}
+                  {visibleFields >= 5 && (
+                    <p className="text-center text-[10px] text-slate-600 pt-1">
+                      Session logged under NDPA 2023 · Responder access only
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Keyframe for field reveals */}
+      <style>{`
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(12px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   FAQ SECTION
+───────────────────────────────────────────── */
+function FAQ() {
+  const faqs = [
+    {
+      q: "Who can see my health records?",
+      a: "Only you — and only the providers you explicitly authorise. Access is granted per session: you can open your record for a single consultation, for 24 hours, or permanently for a trusted doctor. You revoke it instantly from your dashboard at any time. WelliRecord staff have zero visibility into your clinical data."
+    },
+    {
+      q: "How does consent work in practice?",
+      a: "When a hospital or lab requests access, you receive a one-time code on your registered phone via SMS or WhatsApp. The provider sees nothing until you read out or type that code. Every access event — who viewed what, at what time — is permanently logged in your audit trail."
+    },
+    {
+      q: "What if I lose my phone or Emergency Card?",
+      a: "Your data lives in our encrypted vault, not on the physical card or your device. If your card is lost or stolen, log into any browser, go to Settings › Emergency Card, and lock or replace it in under 60 seconds. Your records are never interrupted — only the card token is invalidated."
+    },
+    {
+      q: "What's free and what costs money?",
+      a: "Creating your health vault, storing unlimited basic records, WhatsApp registration, and QR emergency card access are permanently free for patients. Optional add-ons — teleconsultations, home lab bookings, and physical card delivery — carry small disclosed fees. Hospitals pay a separate subscription; patients never subsidise that cost."
+    },
+    {
+      q: "What happens the moment I'm brought into an emergency room?",
+      a: "The attending nurse or doctor scans the QR code on your card with any smartphone camera — no app required. Within seconds they see your critical allergy warning, blood group, active medications, and two emergency contacts. Your full medical history stays locked unless you (or your listed next-of-kin) grant explicit access."
+    },
+    {
+      q: "Is my data stored in Nigeria?",
+      a: "Yes. All personal health data for Nigerian patients is stored on servers located in Nigeria, in full compliance with the Nigeria Data Protection Act (NDPA) 2023. We do not transfer your records to foreign jurisdictions without your written consent."
+    }
+  ];
+
+  const [openIndex, setOpenIndex] = React.useState<number | null>(null);
+
+  return (
+    <section className="bg-white px-4 py-20 sm:px-6 sm:py-24 lg:px-8 border-t border-slate-100">
+      <div className="mx-auto max-w-4xl">
+        {/* Header */}
+        <div className="text-center mb-14">
+          <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#1e3a8a] mb-3">Common Questions</p>
+          <h2
+            className="text-3xl font-extrabold text-[#071B3F] sm:text-4xl tracking-tight"
+            style={{ fontFamily: "Bricolage Grotesque, Inter, sans-serif" }}
+          >
+            Every question a Nigerian family asks before enrolling
+          </h2>
+          <p className="mt-4 text-slate-500 max-w-xl mx-auto text-sm">
+            Plain answers. No fine print.
+          </p>
+        </div>
+
+        {/* Accordion */}
+        <div className="space-y-3">
+          {faqs.map((faq, idx) => {
+            const isOpen = openIndex === idx;
+            return (
+              <div
+                key={idx}
+                className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
+                  isOpen
+                    ? "border-[#1e3a8a]/30 bg-blue-50/40 shadow-sm"
+                    : "border-slate-200 bg-white hover:border-slate-300"
+                }`}
+              >
+                <button
+                  onClick={() => setOpenIndex(isOpen ? null : idx)}
+                  className="w-full flex justify-between items-center px-6 py-5 text-left group"
+                  aria-expanded={isOpen}
+                >
+                  <div className="flex items-center gap-4">
+                    <span
+                      className={`flex-shrink-0 text-xs font-black w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
+                        isOpen
+                          ? "bg-[#071B3F] text-white"
+                          : "bg-slate-100 text-slate-400 group-hover:bg-slate-200"
+                      }`}
+                    >
+                      {String(idx + 1).padStart(2, "0")}
+                    </span>
+                    <span
+                      className={`text-sm sm:text-base font-semibold transition-colors ${
+                        isOpen ? "text-[#071B3F]" : "text-slate-800"
+                      }`}
+                    >
+                      {faq.q}
+                    </span>
+                  </div>
+                  <span
+                    className={`ml-4 flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
+                      isOpen
+                        ? "bg-[#071B3F] text-white rotate-45"
+                        : "bg-slate-100 text-slate-400"
+                    }`}
+                  >
+                    +
+                  </span>
+                </button>
+
+                <div
+                  className="overflow-hidden transition-all duration-300"
+                  style={{
+                    maxHeight: isOpen ? "200px" : "0px",
+                    opacity: isOpen ? 1 : 0,
+                  }}
+                >
+                  <div className="px-6 pb-6 ml-11">
+                    <p className="text-sm text-slate-600 leading-relaxed border-l-2 border-[#1e3a8a]/20 pl-4">
+                      {faq.a}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Bottom CTA */}
+        <div className="mt-12 text-center">
+          <p className="text-sm text-slate-500">
+            Still have a question?{" "}
+            <a
+              href="https://wa.me/2348053355504?text=HELLO"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-[#1e3a8a] hover:underline underline-offset-2"
+            >
+              Ask us on WhatsApp →
+            </a>
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
 
   React.useEffect(() => {
     if (step === "scanning") {
@@ -1634,73 +2074,6 @@ function EmergencyDemo() {
   );
 }
 
-/* ─────────────────────────────────────────────
-   FAQ SECTION
-───────────────────────────────────────────── */
-function FAQ() {
-  const faqs = [
-    {
-      q: "Who can see my health records?",
-      a: "Only you and the healthcare providers you explicitly authorize. You can grant access for a single checkup, 24 hours, or permanently, and you can revoke it instantly at any time."
-    },
-    {
-      q: "How does consent work in practice?",
-      a: "When a hospital or lab wants to view your records, you will receive a secure OTP code on your phone (via SMS or WhatsApp). The provider can only access your files after you give them this code."
-    },
-    {
-      q: "What if I lose my phone or my Emergency Card?",
-      a: "Your data is stored securely in our encrypted vault, not on your physical device or card. If you lose your card, you can immediately lock it from your dashboard and order or print a replacement."
-    },
-    {
-      q: "Is WelliRecord free or paid?",
-      a: "Creating a personal health vault, storing basic health records, and WhatsApp registration are 100% free for patients. Special services like teleconsultations may carry small fees."
-    },
-    {
-      q: "What happens in a critical emergency?",
-      a: "First responders can scan the QR code on your Emergency Card to see only critical triage details (allergies, blood group, emergency contacts). Your full medical history remains locked unless you authorize it."
-    }
-  ];
-
-  const [openIndex, setOpenIndex] = React.useState<number | null>(null);
-
-  return (
-    <section className="bg-white px-4 py-20 sm:px-6 sm:py-24 lg:px-8 border-t border-slate-100">
-      <div className="mx-auto max-w-3xl">
-        <div className="text-center mb-16">
-          <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#1e3a8a] mb-3">Questions & Answers</p>
-          <h2 className="text-3xl font-extrabold text-[#071B3F] sm:text-4xl tracking-tight" style={{ fontFamily: 'Bricolage Grotesque, Inter, sans-serif' }}>
-            Frequently Asked Questions
-          </h2>
-          <p className="mt-3 text-slate-500">
-            Have questions about trust, security, and how WelliRecord works?
-          </p>
-        </div>
-
-        <div className="space-y-4">
-          {faqs.map((faq, idx) => {
-            const isOpen = openIndex === idx;
-            return (
-              <div key={idx} className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
-                <button
-                  onClick={() => setOpenIndex(isOpen ? null : idx)}
-                  className="w-full flex justify-between items-center p-5 text-left font-semibold text-slate-800 hover:bg-slate-50 transition"
-                >
-                  <span className="text-sm sm:text-base">{faq.q}</span>
-                  <span className="text-[#1e3a8a] text-lg font-bold">{isOpen ? "−" : "+"}</span>
-                </button>
-                {isOpen && (
-                  <div className="px-5 pb-5 pt-1 text-sm text-slate-500 leading-relaxed bg-slate-50/50 border-t border-slate-100">
-                    {faq.a}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
-}
 
 /* ─────────────────────────────────────────────
    EMAIL CAPTURE
