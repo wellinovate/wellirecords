@@ -18,7 +18,7 @@ export function TermsOfServicePage() {
       </header>
 
       <main className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-20 lg:py-24">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-600 mb-3">Legal</p>
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1e3a8a] mb-3">Legal</p>
         <h1 className="text-4xl font-black tracking-tight text-slate-950 sm:text-5xl mb-4">
           Terms of Service
         </h1>
@@ -30,7 +30,7 @@ export function TermsOfServicePage() {
             <p className="text-slate-600 leading-8">
               By creating an account or using the WelliRecord platform (wellirecord.com), you agree
               to these Terms of Service and our{" "}
-              <Link to="/privacy" className="text-emerald-600 hover:underline">Privacy Policy</Link>.
+              <Link to="/privacy" className="text-[#1e3a8a] hover:underline">Privacy Policy</Link>.
               If you do not agree, do not use the platform.
             </p>
           </section>
@@ -129,7 +129,7 @@ export function TermsOfServicePage() {
             <p className="text-slate-600 leading-8">
               WelliRecord Ltd<br />
               Abuja, Federal Capital Territory, Nigeria<br />
-              <a href="mailto:inquiry@wellirecord.com" className="text-emerald-600 hover:underline">inquiry@wellirecord.com</a>
+              <a href="mailto:inquiry@wellirecord.com" className="text-[#1e3a8a] hover:underline">inquiry@wellirecord.com</a>
             </p>
           </section>
         </div>

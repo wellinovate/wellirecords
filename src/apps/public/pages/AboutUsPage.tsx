@@ -6,7 +6,7 @@ import { welliIcon } from "@/assets";
 export function AboutUsPage() {
   const navigate = useNavigate();
   return (
-    <div className="min-h-screen bg-[#071B3F] text-white font-sans antialiased selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen bg-[#071B3F] text-white font-sans antialiased selection:bg-[#1e3a8a] selection:text-white">
       {/* CSS Styles */}
       <style>{`
         .about-container {
@@ -32,7 +32,7 @@ export function AboutUsPage() {
           left: 0;
           width: 4px;
           height: 100%;
-          background: #10B981;
+          background: #60A5FA;
         }
         .highlight-text {
           font-size: 20px;
@@ -63,18 +63,18 @@ export function AboutUsPage() {
       <main className="about-container">
         {/* Header */}
         <div className="text-center mb-16">
-          <p className="text-xs font-bold uppercase tracking-[0.25em] text-emerald-400 mb-3">Our Mission</p>
+          <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#60A5FA] mb-3">Our Mission</p>
           <h1 className="display-font text-4xl font-extrabold tracking-tight text-white sm:text-6xl mb-6">
             About Us
           </h1>
-          <div className="h-1.5 w-16 bg-emerald-500 mx-auto rounded-full" />
+          <div className="h-1.5 w-16 bg-[#60A5FA] mx-auto rounded-full" />
         </div>
 
         <div className="space-y-12">
           {/* Section 1: Intro */}
           <div className="space-y-6">
             <h2 className="display-font text-2xl font-bold text-white flex items-center gap-3">
-              <Shield className="text-emerald-400 shrink-0" size={24} />
+              <Shield className="text-[#60A5FA] shrink-0" size={24} />
               What is WelliRecord?
             </h2>
             <p className="highlight-text">
@@ -88,7 +88,7 @@ export function AboutUsPage() {
           {/* Section 2: Origin Story */}
           <div className="story-card space-y-6">
             <h2 className="display-font text-2xl font-bold text-white flex items-center gap-3">
-              <Heart className="text-emerald-400 shrink-0" size={24} />
+              <Heart className="text-[#60A5FA] shrink-0" size={24} />
               How We Started
             </h2>
             <p className="text-slate-300 text-lg leading-8">
@@ -101,7 +101,7 @@ export function AboutUsPage() {
           {/* Section 3: Today */}
           <div className="space-y-6">
             <h2 className="display-font text-2xl font-bold text-white flex items-center gap-3">
-              <Users className="text-emerald-400 shrink-0" size={24} />
+              <Users className="text-[#60A5FA] shrink-0" size={24} />
               WelliRecord Today
             </h2>
             <p className="text-slate-300 text-lg leading-8">
@@ -114,7 +114,7 @@ export function AboutUsPage() {
           <div className="border border-white/10 rounded-2xl bg-gradient-to-br from-[#0c2456] to-[#071B3F] p-8 text-center mt-12">
             <p className="display-font text-2xl font-bold tracking-tight text-white sm:text-3xl leading-tight">
               "One patient. One trusted record.<br />
-              <span className="text-emerald-400">Accessible when it matters.</span>"
+              <span className="text-[#60A5FA]">Accessible when it matters.</span>"
             </p>
           </div>
 

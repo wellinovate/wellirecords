@@ -130,7 +130,7 @@ function PrimaryButton({ children, href = "" }) {
   return (
     <Link
       to={href}
-      className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+      className="inline-flex items-center justify-center rounded-xl bg-[#071B3F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0c2d66] focus:outline-none focus:ring-2 focus:ring-[#071B3F] focus:ring-offset-2"
     >
       {children}
     </Link>
@@ -223,7 +223,7 @@ export function Navbar() {
           <div className="hidden items-center gap-4 lg:flex">
             <Link
               to="/auth/login"
-              className="text-base font-semibold text-[#1F4E79] transition hover:text-emerald-700 xl:text-lg"
+              className="text-base font-semibold text-[#1F4E79] transition hover:text-[#071B3F] xl:text-lg"
             >
               Login
             </Link>
@@ -235,7 +235,7 @@ export function Navbar() {
           <div className="hidden items-center gap-4 lg:flex">
             <button
               onClick={handleSignOut}
-              className="text-base font-semibold text-[#1F4E79] transition hover:text-emerald-700 xl:text-lg"
+              className="text-base font-semibold text-[#1F4E79] transition hover:text-[#071B3F] xl:text-lg"
             >
               Log Out
             </button>
@@ -310,7 +310,7 @@ export function Navbar() {
                   <Link
                     to="/auth/pre-signup"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="rounded-lg bg-emerald-600 px-4 py-3 text-center text-base font-semibold text-white transition hover:bg-emerald-700"
+                    className="rounded-lg bg-[#071B3F] px-4 py-3 text-center text-base font-semibold text-white transition hover:bg-[#0c2d66]"
                   >
                     Create Health Vault
                   </Link>
@@ -324,7 +324,7 @@ export function Navbar() {
                         : "/provider/overview"
                     }
                     onClick={() => setMobileMenuOpen(false)}
-                    className="rounded-lg bg-emerald-600 px-4 py-3 text-center text-base font-semibold text-white transition hover:bg-emerald-700"
+                    className="rounded-lg bg-[#071B3F] px-4 py-3 text-center text-base font-semibold text-white transition hover:bg-[#0c2d66]"
                   >
                     My Dashboard
                   </Link>
@@ -358,7 +358,7 @@ function IconBubble({ className = "", children }) {
 function HeroIllustration() {
   return (
     <div className="relative min-h-[560px] overflow-hidden rounded-[28px] bg-gradient-to-br from-slate-100 via-sky-50 to-white p-8 shadow-inner ring-1 ring-slate-200">
-      <div className="absolute left-4 top-4 rounded-full bg-emerald-700 px-4 py-2 text-sm font-semibold text-white shadow-sm">
+      <div className="absolute left-4 top-4 rounded-full bg-[#071B3F] px-4 py-2 text-sm font-semibold text-white shadow-sm">
         Trusted Health Vault
       </div>
 
@@ -369,7 +369,7 @@ function HeroIllustration() {
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="relative h-[420px] w-[420px] rounded-full border-[18px] border-sky-300/80">
           <div className="absolute -left-5 top-1/2 flex -translate-y-1/2 items-center justify-center rounded-full bg-white p-2 shadow-md">
-            <ArrowRight className="h-10 w-10 rotate-180 text-emerald-500" />
+            <ArrowRight className="h-10 w-10 rotate-180 text-[#1e3a8a]" />
           </div>
           <div className="absolute left-1/2 top-0 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white p-2 shadow-md">
             <ArrowRight className="h-10 w-10 -rotate-45 text-sky-500" />
@@ -378,7 +378,7 @@ function HeroIllustration() {
             <ArrowRight className="h-10 w-10 rotate-45 text-sky-500" />
           </div>
           <div className="absolute bottom-0 right-1/4 flex translate-y-1/2 items-center justify-center rounded-full bg-white p-2 shadow-md">
-            <ArrowRight className="h-10 w-10 rotate-90 text-emerald-400" />
+            <ArrowRight className="h-10 w-10 rotate-90 text-[#1e3a8a]" />
           </div>
 
           <div className="absolute inset-10 rounded-full bg-[radial-gradient(circle,_rgba(255,255,255,0.95)_0%,_rgba(226,232,240,0.5)_60%,_transparent_100%)]" />
@@ -405,7 +405,7 @@ function HeroIllustration() {
         <div className="mx-auto mb-4 h-1.5 w-14 rounded-full bg-slate-300" />
         <div className="rounded-2xl bg-slate-50 p-4 shadow-sm">
           <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-emerald-600" />
+            <Shield className="h-5 w-5 text-[#1e3a8a]" />
             <span className="text-xs font-semibold text-slate-800">
               Health Vault
             </span>
@@ -648,7 +648,7 @@ function Solutions() {
             <div className="mt-14 text-center">
               <Link
                 to="/auth/provider/signup"
-                className="font-semibold text-base bg-[#2E8B57] py-4 px-3 text-white shadow-sm transition hover:bg-[#2E8B57]/90 rounded-2xl"
+                className="font-semibold text-base bg-[#071B3F] py-4 px-3 text-white shadow-sm transition hover:bg-[#0c2d66] rounded-2xl"
               >
                 Register Your Organisation
               </Link>
@@ -744,8 +744,8 @@ function SocialProof() {
           width: 36px;
           height: 36px;
           border-radius: 10px;
-          background: rgba(16,185,129,0.08);
-          border: 1px solid rgba(16,185,129,0.2);
+          background: rgba(30, 58, 138, 0.07);
+          border: 1px solid rgba(30, 58, 138, 0.18);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -764,8 +764,8 @@ function SocialProof() {
           line-height: 1.5;
         }
         .pilot-metric {
-          background: #F0FDF4;
-          border: 1px solid #BBF7D0;
+          background: #EFF6FF;
+          border: 1px solid #BFDBFE;
           border-radius: 14px;
           padding: 18px 22px;
           display: flex;
@@ -781,7 +781,7 @@ function SocialProof() {
         }
         .pilot-metric-text {
           font-size: 14px;
-          color: #065F46;
+          color: #1e3a8a;
           line-height: 1.55;
         }
         .pilot-metric-text strong {
@@ -838,7 +838,7 @@ function SocialProof() {
 
       <div className="mx-auto max-w-6xl">
         <div className="mb-12 text-center">
-          <p className="text-xs font-bold uppercase tracking-[0.26em] text-emerald-600 mb-3">
+          <p className="text-xs font-bold uppercase tracking-[0.26em] text-[#1e3a8a] mb-3">
             Pilot Programme
           </p>
           <h2 className="text-3xl font-bold tracking-tight text-[#1F4E79] sm:text-4xl mb-4">
@@ -868,7 +868,7 @@ function SocialProof() {
             <div className="pilot-items">
               <div className="pilot-item">
                 <div className="pilot-item-icon">
-                  <svg className="text-emerald-600" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className="text-[#1e3a8a]" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"/>
                     <path d="M9 22V12h6v10"/>
                     <path d="M12 5V2"/>
@@ -919,7 +919,7 @@ function SocialProof() {
             {/* Success metric */}
             <div className="pilot-metric">
               <span className="pilot-metric-icon">
-                <svg className="text-emerald-600" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <svg className="text-[#1e3a8a]" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10"/>
                   <circle cx="12" cy="12" r="6"/>
                   <circle cx="12" cy="12" r="2"/>
@@ -1357,7 +1357,7 @@ function FoundingStory() {
       `}</style>
 
       <div className="story-section relative mx-auto max-w-6xl">
-        <p className="mb-12 text-xs font-bold uppercase tracking-[0.26em] text-emerald-400">
+        <p className="mb-12 text-xs font-bold uppercase tracking-[0.26em] text-[#60A5FA]">
           Why We Built This
         </p>
 
@@ -1557,7 +1557,7 @@ function EmailCapture() {
       `}</style>
 
       <div className="email-card">
-        <p className="text-xs font-bold uppercase tracking-[0.26em] text-emerald-400 mb-4" style={{ position: "relative" }}>
+        <p className="text-xs font-bold uppercase tracking-[0.26em] text-[#60A5FA] mb-4" style={{ position: "relative" }}>
           Stay in the loop
         </p>
         <h2 style={{ position: "relative" }}>
@@ -1648,7 +1648,7 @@ function Hero() {
             <div className="mt-8 flex flex-col gap-4 sm:mt-10 sm:max-w-xl sm:flex-row sm:flex-wrap sm:items-center">
               <Link
                 to="/auth/patient/signup"
-                className="w-full rounded-lg bg-[#2f8f53] px-6 py-3.5 text-center text-base font-semibold text-white shadow-md transition hover:bg-[#2E8B57] sm:w-auto sm:px-8 sm:py-4 sm:text-lg"
+                className="w-full rounded-lg bg-[#071B3F] px-6 py-3.5 text-center text-base font-semibold text-white shadow-md transition hover:bg-[#0c2d66] sm:w-auto sm:px-8 sm:py-4 sm:text-lg"
               >
                 Create Health Vault
               </Link>
@@ -1662,7 +1662,7 @@ function Hero() {
             </div>
 
             <div className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#5c6f85] sm:text-xs">
-              <Link to="/privacy" className="hover:underline text-emerald-700">NDPA Compliant</Link>
+              <Link to="/privacy" className="hover:underline text-[#1e3a8a]">NDPA Compliant</Link>
               <span className="text-slate-300">•</span>
               <span>Encrypted at Rest & Transit</span>
               <span className="text-slate-300">•</span>
@@ -1672,7 +1672,7 @@ function Hero() {
         </section>
 
         <section className="relative min-h-[280px] w-full overflow-hidden bg-[radial-gradient(circle_at_center,_#f8fbfc_0%,_#e5eef2_60%,_#dfe8ee_100%)] sm:min-h-[360px] lg:min-h-[530px] lg:w-[45%]">
-          <div className="absolute left-0 top-0 z-10 rounded-br-lg bg-[#2E8B57] px-3 py-1.5 text-sm font-semibold text-white shadow-sm sm:px-4 sm:text-base lg:text-lg">
+          <div className="absolute left-0 top-0 z-10 rounded-br-lg bg-[#071B3F] px-3 py-1.5 text-sm font-semibold text-white shadow-sm sm:px-4 sm:text-base lg:text-lg">
             Trusted Health Vault
           </div>
 

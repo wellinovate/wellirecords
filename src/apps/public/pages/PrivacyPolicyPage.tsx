@@ -18,7 +18,7 @@ export function PrivacyPolicyPage() {
       </header>
 
       <main className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-20 lg:py-24">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-600 mb-3">Legal</p>
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1e3a8a] mb-3">Legal</p>
         <h1 className="text-4xl font-black tracking-tight text-slate-950 sm:text-5xl mb-4">
           Privacy Policy
         </h1>
@@ -72,7 +72,7 @@ export function PrivacyPolicyPage() {
             <ul className="list-disc pl-5 space-y-2 text-slate-600 leading-8">
               <li>We obtain your explicit consent before processing sensitive health data</li>
               <li>You may request access to, correction of, or deletion of your data at any time</li>
-              <li>We maintain a Data Protection Officer (DPO) — contact: <a href="mailto:privacy@wellirecord.com" className="text-emerald-600 hover:underline">privacy@wellirecord.com</a></li>
+              <li>We maintain a Data Protection Officer (DPO) — contact: <a href="mailto:privacy@wellirecord.com" className="text-[#1e3a8a] hover:underline">privacy@wellirecord.com</a></li>
               <li>We conduct Data Protection Impact Assessments for high-risk processing activities</li>
             </ul>
           </section>
@@ -106,7 +106,7 @@ export function PrivacyPolicyPage() {
               <li>Lodge a complaint with the National Data Protection Commission (NDPC)</li>
             </ul>
             <p className="text-slate-600 leading-8 mt-4">
-              To exercise any right, email <a href="mailto:privacy@wellirecord.com" className="text-emerald-600 hover:underline">privacy@wellirecord.com</a>.
+              To exercise any right, email <a href="mailto:privacy@wellirecord.com" className="text-[#1e3a8a] hover:underline">privacy@wellirecord.com</a>.
             </p>
           </section>
 
@@ -115,8 +115,8 @@ export function PrivacyPolicyPage() {
             <p className="text-slate-600 leading-8">
               WelliRecord Ltd<br />
               Abuja, Federal Capital Territory, Nigeria<br />
-              General: <a href="mailto:inquiry@wellirecord.com" className="text-emerald-600 hover:underline">inquiry@wellirecord.com</a><br />
-              Privacy / DPO: <a href="mailto:privacy@wellirecord.com" className="text-emerald-600 hover:underline">privacy@wellirecord.com</a>
+              General: <a href="mailto:inquiry@wellirecord.com" className="text-[#1e3a8a] hover:underline">inquiry@wellirecord.com</a><br />
+              Privacy / DPO: <a href="mailto:privacy@wellirecord.com" className="text-[#1e3a8a] hover:underline">privacy@wellirecord.com</a>
             </p>
           </section>
         </div>
