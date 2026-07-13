@@ -665,25 +665,6 @@ function Partners() {
             </div>
           ))}
         </div>
-
-        <div
-          id="cta"
-          className="mt-24 rounded-[32px] bg-slate-50 px-6 py-20 text-center"
-        >
-          <h2 className="text-4xl font-bold tracking-tight text-slate-950 md:text-6xl">
-            Take Control of Your Health Records
-          </h2>
-
-          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <PrimaryButton href="#top">[Create Health Vault]</PrimaryButton>
-            <a
-              href="#solutions"
-              className="inline-flex items-center justify-center rounded-xl border-2 border-emerald-600 bg-transparent px-6 py-3 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
-            >
-              Register Your Organisation
-            </a>
-          </div>
-        </div>
       </div>
     </section>
   );
@@ -707,6 +688,60 @@ function DummySection({ id, title, text }) {
   );
 }
 
+function ConversionBanner() {
+  return (
+    <section className="relative overflow-hidden bg-gradient-to-br from-[#002A66] via-[#0a3d8f] to-[#003580] px-4 py-20 sm:px-6 sm:py-24 lg:px-8 lg:py-28">
+      {/* decorative blobs */}
+      <div className="pointer-events-none absolute -top-32 -right-32 h-96 w-96 rounded-full bg-white/5 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-emerald-500/10 blur-3xl" />
+
+      <div className="relative mx-auto max-w-4xl text-center">
+        {/* eyebrow */}
+        <p className="inline-block rounded-full border border-emerald-400/30 bg-emerald-400/10 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.2em] text-emerald-300 mb-6">
+          Join 10,000+ Patients Already on WelliRecord
+        </p>
+
+        <h2 className="text-4xl font-black tracking-[-0.03em] text-white sm:text-5xl lg:text-6xl leading-tight">
+          Create Your Health Vault{" "}
+          <span className="text-emerald-400">in Minutes</span>
+        </h2>
+
+        <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-blue-200 sm:text-xl">
+          Your complete medical history — hospitals, labs, prescriptions — in one secure, private vault. You control who sees it, always.
+        </p>
+
+        {/* trust badges */}
+        <div className="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2 text-[11px] font-bold uppercase tracking-[0.22em] text-blue-300/80">
+          <span>✓ NDPR Compliant</span>
+          <span>✓ HIPAA Ready</span>
+          <span>✓ ISO 27001</span>
+          <span>✓ Free to Start</span>
+        </div>
+
+        {/* CTAs */}
+        <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <Link
+            to="/auth/patient/signup"
+            className="inline-flex items-center justify-center rounded-xl bg-emerald-500 px-8 py-4 text-base font-bold text-white shadow-lg shadow-emerald-900/40 transition hover:bg-emerald-400 hover:-translate-y-0.5 active:translate-y-0"
+          >
+            Create Health Vault — Free
+          </Link>
+          <Link
+            to="/auth/provider/signup"
+            className="inline-flex items-center justify-center rounded-xl border-2 border-white/30 bg-white/10 px-8 py-4 text-base font-semibold text-white backdrop-blur transition hover:bg-white/20 hover:-translate-y-0.5"
+          >
+            Register Your Organisation
+          </Link>
+        </div>
+
+        <p className="mt-6 text-sm text-blue-300/60">
+          No credit card required · Setup in under 5 minutes · Cancel anytime
+        </p>
+      </div>
+    </section>
+  );
+}
+
 export default function App() {
   return (
     <div
@@ -721,6 +756,7 @@ export default function App() {
         <Features />
         <Solutions />
         {/* <Partners /> */}
+        <ConversionBanner />
         <WelliFooter />
       </main>
     </div>
@@ -756,7 +792,7 @@ function Hero() {
                 to="/auth/provider/signup"
                 className="w-full rounded-lg border-2 border-[#173f73] bg-white px-6 py-3.5 text-base font-semibold text-[#173f73] transition hover:bg-slate-50 sm:w-auto sm:px-8 sm:py-4 sm:text-lg"
               >
-                For Healthcare Providers
+                Register Your Organisation
               </Link>
             </div>
 
