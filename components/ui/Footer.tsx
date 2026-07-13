@@ -209,10 +209,10 @@ export default function WelliFooter() {
           <div className="col">
             <h3>Company</h3>
             <ul>
-              <li><a href="#about">About us</a></li>
-              <li><a href="#solutions">Solutions</a></li>
-              <li><a href="#pricing">Pricing</a></li>
-              <li><a href="#partners">Partners</a></li>
+              <li><Link to="/about">About us</Link></li>
+              <li><Link to="/#solutions">Solutions</Link></li>
+              <li><Link to="/privacy">Privacy &amp; NDPR</Link></li>
+              <li><Link to="/terms">Terms of service</Link></li>
             </ul>
           </div>
 
@@ -221,7 +221,6 @@ export default function WelliFooter() {
             <ul>
               <li><Link to="/auth/patient/signup">Create health vault</Link></li>
               <li><Link to="/auth/provider/signup">Register your organisation</Link></li>
-              <li><Link to="/auth/provider/signup">For healthcare providers</Link></li>
               <li><Link to="/auth/login">Log in</Link></li>
             </ul>
           </div>

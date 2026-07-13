@@ -9,6 +9,7 @@ import { PartnersPage } from "@/apps/public/pages/PartnersPage";
 import { SecurityPage } from "@/apps/public/pages/SecurityPage";
 import { PrivacyPolicyPage } from "@/apps/public/pages/PrivacyPolicyPage";
 import { TermsOfServicePage } from "@/apps/public/pages/TermsOfServicePage";
+import { AboutUsPage } from "@/apps/public/pages/AboutUsPage";
 
 // ─── Auth Pages ───────────────────────────────────────────────────────────────
 import { AuthGatewayPage } from "@/apps/auth/pages/AuthGatewayPage";
@@ -141,6 +142,7 @@ export function AppRoutes() {
       <Route path="/security" element={<SecurityPage />} />
       <Route path="/privacy" element={<PrivacyPolicyPage />} />
       <Route path="/terms" element={<TermsOfServicePage />} />
+      <Route path="/about" element={<AboutUsPage />} />
 
       {/* Auth */}
       <Route

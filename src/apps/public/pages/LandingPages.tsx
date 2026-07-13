@@ -40,7 +40,7 @@ const navItems = [
   // { label: "Pricing", href: "#pricing" },
   { label: "Partners", href: "#partners" },
   // { label: "Security", href: "#security" },
-  { label: "About Us", href: "#about" },
+  { label: "About Us", href: "/about" },
 ];
 
 const painPoints = [
@@ -195,16 +195,27 @@ export function Navbar() {
 
         {/* Desktop Nav */}
         <nav className="hidden items-center gap-6 lg:flex">
-          {navItems.map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              className="inline-flex items-center gap-1 text-base font-semibold text-[#1F4E79] transition hover:text-slate-950 xl:text-lg"
-            >
-              {item.label}
-              {item.hasChevron ? <ChevronDown className="h-4 w-4" /> : null}
-            </a>
-          ))}
+          {navItems.map((item) =>
+            item.href.startsWith("/") ? (
+              <Link
+                key={item.label}
+                to={item.href}
+                className="inline-flex items-center gap-1 text-base font-semibold text-[#1F4E79] transition hover:text-slate-950 xl:text-lg"
+              >
+                {item.label}
+                {item.hasChevron ? <ChevronDown className="h-4 w-4" /> : null}
+              </Link>
+            ) : (
+              <a
+                key={item.label}
+                href={item.href}
+                className="inline-flex items-center gap-1 text-base font-semibold text-[#1F4E79] transition hover:text-slate-950 xl:text-lg"
+              >
+                {item.label}
+                {item.hasChevron ? <ChevronDown className="h-4 w-4" /> : null}
+              </a>
+            )
+          )}
         </nav>
 
         {/* Desktop Actions */}
@@ -260,17 +271,29 @@ export function Navbar() {
         <div className="border-t border-slate-200 bg-white lg:hidden">
           <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6">
             <nav className="flex flex-col gap-3">
-              {navItems.map((item) => (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="inline-flex items-center justify-between rounded-lg px-2 py-2 text-base font-semibold text-[#1F4E79] transition hover:bg-slate-50"
-                >
-                  <span>{item.label}</span>
-                  {item.hasChevron ? <ChevronDown className="h-4 w-4" /> : null}
-                </a>
-              ))}
+              {navItems.map((item) =>
+                item.href.startsWith("/") ? (
+                  <Link
+                    key={item.label}
+                    to={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="inline-flex items-center justify-between rounded-lg px-2 py-2 text-base font-semibold text-[#1F4E79] transition hover:bg-slate-50"
+                  >
+                    <span>{item.label}</span>
+                    {item.hasChevron ? <ChevronDown className="h-4 w-4" /> : null}
+                  </Link>
+                ) : (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="inline-flex items-center justify-between rounded-lg px-2 py-2 text-base font-semibold text-[#1F4E79] transition hover:bg-slate-50"
+                  >
+                    <span>{item.label}</span>
+                    {item.hasChevron ? <ChevronDown className="h-4 w-4" /> : null}
+                  </a>
+                )
+              )}
             </nav>
 
             <div className="flex flex-col gap-3 pt-2">
@@ -624,7 +647,7 @@ function Solutions() {
 
             <div className="mt-14 text-center">
               <Link
-                to="#"
+                to="/auth/provider/signup"
                 className="font-semibold text-base bg-[#2E8B57] py-4 px-3 text-white shadow-sm transition hover:bg-[#2E8B57]/90 rounded-2xl"
               >
                 Register Your Organisation
