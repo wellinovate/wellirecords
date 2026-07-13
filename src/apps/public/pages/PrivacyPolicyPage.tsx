@@ -54,7 +54,7 @@ export function PrivacyPolicyPage() {
               <li>To facilitate sharing of records with care providers you explicitly authorise</li>
               <li>To send transactional notifications (appointment reminders, access alerts)</li>
               <li>To improve platform security and detect fraud</li>
-              <li>To comply with Nigerian law, including the <strong>Nigeria Data Protection Regulation (NDPR) 2019</strong> and the <strong>Nigeria Health Records Officers Act</strong></li>
+              <li>To comply with Nigerian law, including the <strong>Nigeria Data Protection Act (NDPA) 2023</strong> and the <strong>Nigeria Health Records Officers Act</strong></li>
             </ul>
             <p className="text-slate-600 leading-8 mt-4">
               We do <strong>not</strong> sell, rent, or broker your health data to insurers, employers,
@@ -63,11 +63,11 @@ export function PrivacyPolicyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-slate-900 mb-3">4. NDPR Compliance</h2>
+            <h2 className="text-xl font-bold text-slate-900 mb-3">4. NDPA Compliance</h2>
             <p className="text-slate-600 leading-8">
-              WelliRecord processes personal data in accordance with the Nigeria Data Protection
-              Regulation (NDPR) 2019, issued by the National Information Technology Development
-              Agency (NITDA). This means:
+              WelliRecord processes personal data in accordance with the <strong>Nigeria Data Protection Act (NDPA) 2023</strong>,
+              administered by the National Data Protection Commission (NDPC). The NDPA 2023 superseded the
+              earlier NDPR 2019 and establishes the current legal framework for data protection in Nigeria. This means:
             </p>
             <ul className="list-disc pl-5 space-y-2 text-slate-600 leading-8">
               <li>We obtain your explicit consent before processing sensitive health data</li>
@@ -97,13 +97,13 @@ export function PrivacyPolicyPage() {
 
           <section>
             <h2 className="text-xl font-bold text-slate-900 mb-3">7. Your Rights</h2>
-            <p className="text-slate-600 leading-8">Under the NDPR, you have the right to:</p>
+            <p className="text-slate-600 leading-8">Under the NDPA 2023, you have the right to:</p>
             <ul className="list-disc pl-5 space-y-2 text-slate-600 leading-8">
               <li>Access a copy of your personal data</li>
               <li>Request correction of inaccurate data</li>
               <li>Request deletion of your data ("right to erasure")</li>
               <li>Withdraw consent at any time without affecting prior processing</li>
-              <li>Lodge a complaint with NITDA</li>
+              <li>Lodge a complaint with the National Data Protection Commission (NDPC)</li>
             </ul>
             <p className="text-slate-600 leading-8 mt-4">
               To exercise any right, email <a href="mailto:privacy@wellirecord.com" className="text-emerald-600 hover:underline">privacy@wellirecord.com</a>.

@@ -3,7 +3,6 @@ import { PublicOnlyRoute, RequireRole } from "@/shared/auth/RequireRole";
 import { useAuth } from "@/shared/auth/AuthProvider";
 
 // ─── Public Pages ─────────────────────────────────────────────────────────────
-import { LandingPage } from "@/apps/public/pages/LandingPage";
 import { HowItWorksPage } from "@/apps/public/pages/HowItWorksPage";
 import { PartnersPage } from "@/apps/public/pages/PartnersPage";
 import { SecurityPage } from "@/apps/public/pages/SecurityPage";

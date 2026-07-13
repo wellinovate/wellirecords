@@ -211,7 +211,7 @@ export default function WelliFooter() {
             <ul>
               <li><Link to="/about">About us</Link></li>
               <li><Link to="/#solutions">Solutions</Link></li>
-              <li><Link to="/privacy">Privacy &amp; NDPR</Link></li>
+              <li><Link to="/privacy">Privacy &amp; NDPA</Link></li>
               <li><Link to="/terms">Terms of service</Link></li>
             </ul>
           </div>
@@ -231,7 +231,7 @@ export default function WelliFooter() {
           <div className="legal">
             <Link to="/privacy">Privacy policy</Link>
             <Link to="/terms">Terms of service</Link>
-            <Link to="/privacy">NDPR notice</Link>
+            <Link to="/privacy">NDPA notice</Link>
           </div>
         </div>
 

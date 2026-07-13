@@ -104,7 +104,7 @@ const stakeholders = [
 ];
 
 const partners = [
-  "General Hospital Lagos",
+  "General Hospital Abuja",
   "Evercare Hospital Lekki",
   "AXA Mansard",
   "Citylab Diagnostics",
@@ -460,7 +460,7 @@ function ProblemSection() {
     <section className="bg-white px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
       <div className="mx-auto max-w-7xl">
         <SectionHeading
-          title="Healthcare Records Should not Be This Hard"
+          title="Healthcare Records Shouldn't Be This Hard"
           subtitle="Healthcare data across Nigeria is fragmented, siloed, and difficult to access when it matters most."
         />
 
@@ -550,7 +550,7 @@ function HowItWorks() {
         <div className="grid items-center gap-12 lg:grid-cols-[0.82fr_1.18fr] lg:gap-16 xl:gap-20">
           <div>
             <h2 className="max-w-xl text-3xl font-semibold tracking-tight text-[#1F4E79] sm:text-4xl lg:max-w-sm">
-              How WelliRecords Work
+              How WelliRecord Works
             </h2>
 
             <div className="mt-8 sm:mt-10">
@@ -1438,7 +1438,7 @@ function EmailCapture() {
           Get updates on health record access in Nigeria
         </h2>
         <p style={{ position: "relative" }}>
-          We publish pilot updates, NDPR guidance, and practical guides for patients and
+          We publish pilot updates, NDPA guidance, and practical guides for patients and
           facilities. No spam — one email when something real happens.
         </p>
 
@@ -1483,7 +1483,7 @@ function EmailCapture() {
             <a href="https://wa.me/2348053355504" target="_blank" rel="noopener noreferrer" style={{ color: "#25D366", fontWeight: 600 }}>
               WhatsApp
             </a>
-            {" "}· inquiry@wellirecord.com · NDPR compliant
+            {" "}· inquiry@wellirecord.com · NDPA compliant
           </p>
         </div>
       </div>
@@ -1527,7 +1527,7 @@ function Hero() {
             </div>
 
             <div className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#5c6f85] sm:text-xs">
-              <Link to="/privacy" className="hover:underline text-emerald-700">NDPR Compliant</Link>
+              <Link to="/privacy" className="hover:underline text-emerald-700">NDPA Compliant</Link>
               <span className="text-slate-300">•</span>
               <span>Encrypted at Rest & Transit</span>
               <span className="text-slate-300">•</span>
