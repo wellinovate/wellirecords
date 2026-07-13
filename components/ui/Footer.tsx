@@ -1,5 +1,5 @@
 import { welliIcon } from "@/assets";
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin, MessageSquare } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function WelliFooter() {
@@ -39,6 +39,12 @@ export default function WelliFooter() {
                 <Phone size={18} className="text-blue-300 shrink-0" />
                 <a href="tel:+2348053355504" className="text-base leading-7 tracking-[-0.02em] sm:text-lg hover:text-blue-200 transition">
                   +234 805 335 5504
+                </a>
+              </div>
+              <div className="flex items-center gap-3">
+                <MessageSquare size={18} className="text-blue-300 shrink-0" />
+                <a href="https://wa.me/2348053355504" target="_blank" rel="noopener noreferrer" className="text-base leading-7 tracking-[-0.02em] sm:text-lg hover:text-blue-200 transition">
+                  WhatsApp Support
                 </a>
               </div>
               <div className="flex items-center gap-3">
