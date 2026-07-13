@@ -1,4 +1,4 @@
-import { health_companion_image, logos } from "@/assets";
+import { health_companion_image, logos, welliIcon } from "@/assets";
 import { orgApi } from "@/shared/api/orgApi";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { useWelliMate } from "@/shared/context/WelliMateContext";
@@ -206,16 +206,17 @@ export function ProviderLayout() {
         }}
       >
         {/* Logo */}
-        <div className="p-3 lg:p-5 border-b border-blue-950 flex flex-col items-center justify-center lg:justify-start">
-          <Link
-            to="/"
-            className="flex h-10 w-46 overflow-hidden items-center justify-center rounded-md  text-white shadow-sm cursor-pointer"
-          >
-            <img
-              src={logos}
-              alt="wellirecord"
-              className=" w-full h- full object-cover"
-            />
+        <div className="px-3 py-4 border-b border-blue-950 flex flex-col items-center justify-center lg:items-start">
+          <Link to="/" className="flex items-center gap-2.5 cursor-pointer">
+            {/* Shield icon — always visible */}
+            <img src={welliIcon} alt="WelliRecord" className="h-9 w-9 object-contain flex-shrink-0" />
+            {/* Wordmark — only on lg+ sidebar */}
+            <div className="hidden lg:flex flex-col leading-tight">
+              <span className="text-white font-black text-lg" style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '-0.02em' }}>
+                Welli<span className="font-normal">Record</span><sup className="text-xs font-normal align-super">™</sup>
+              </span>
+              <span className="text-blue-200 text-[8px] font-bold tracking-[0.12em] uppercase opacity-70">Your Health, Secured. Everywhere.</span>
+            </div>
           </Link>
 
           <div

@@ -1,4 +1,5 @@
 // import Logo from './logo.png'
+import welliIcon from './welli-icon.png'
 import control_access_image from './control_access_image.png'
 import diagonize from './diagonize.png'
 import hero from './hero.png'
@@ -26,6 +27,7 @@ import wearable from './wearable.png'
 
 export { 
     // Logo,
+    welliIcon,
     control_access_image,
     diagonize,
     hero,

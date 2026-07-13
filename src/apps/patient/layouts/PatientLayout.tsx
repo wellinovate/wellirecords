@@ -1,4 +1,4 @@
-import { health_companion_image, logos } from "@/assets";
+import { health_companion_image, logos, welliIcon } from "@/assets";
 import { orgApi } from "@/shared/api/orgApi";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { useWelliMate } from "@/shared/context/WelliMateContext";
@@ -189,13 +189,15 @@ export function PatientLayout() {
             <div className="p-4 border-b border-slate-200 flex items-center justify-between">
               <Link
                 to="/"
-                className="flex h-14 w-44  overflow-hidden items-center justify-center rounded-md  text-white shadow-sm cursor-pointer"
+                className="flex items-center gap-2.5 cursor-pointer"
               >
-                <img
-                  src={logos}
-                  alt="wellirecord"
-                  className=" w-full h- full object-cover"
-                />
+                <img src={welliIcon} alt="WelliRecord" className="h-9 w-9 object-contain flex-shrink-0" />
+                <div className="flex flex-col leading-tight">
+                  <span className="text-[#1e3a8a] font-black text-lg tracking-tight" style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '-0.02em' }}>
+                    Welli<span className="font-normal">Record</span><sup className="text-xs font-normal align-super">™</sup>
+                  </span>
+                  <span className="text-[#1e3a8a] text-[8px] font-bold tracking-[0.12em] uppercase opacity-60">Your Health, Secured. Everywhere.</span>
+                </div>
               </Link>
               <button
                 onClick={() => setDrawerOpen(false)}
@@ -283,16 +285,17 @@ export function PatientLayout() {
       {/* ─── Desktop / Tablet Sidebar ─── */}
       <aside className="sidebar-patient hidden md:flex flex-col w-16 lg:w-64 z-20 flex-shrink-0 border bg-[##FFFFFF] border-r-2 border-gray-100">
         {/* Logo */}
-        <div className="p-3 lg:p- b border-b border-slate-200 fle items-center justify-center lg:justify-start">
-          <Link
-            to="/"
-            className="flex h-14 w-44 mx-auto overflow-hidden items-center justify-center rounded-md  text-white shadow-sm cursor-pointer"
-          >
-            <img
-              src={logos}
-              alt="wellirecord"
-              className=" w-full h- full object-cover"
-            />
+        <div className="px-3 py-4 border-b border-slate-200 flex items-center justify-center lg:justify-start">
+          <Link to="/" className="flex items-center gap-2.5 cursor-pointer">
+            {/* Shield icon — always visible */}
+            <img src={welliIcon} alt="WelliRecord" className="h-9 w-9 object-contain flex-shrink-0" />
+            {/* Wordmark — only on lg+ sidebar */}
+            <div className="hidden lg:flex flex-col leading-tight">
+              <span className="text-[#1e3a8a] font-black text-lg tracking-tight" style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '-0.02em' }}>
+                Welli<span className="font-normal">Record</span><sup className="text-xs font-normal align-super">™</sup>
+              </span>
+              <span className="text-[#1e3a8a] text-[8px] font-bold tracking-[0.12em] uppercase opacity-60">Your Health, Secured. Everywhere.</span>
+            </div>
           </Link>
         </div>
 
