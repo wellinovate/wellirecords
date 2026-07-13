@@ -159,7 +159,7 @@ function Logo() {
           WelliRecord
         </div>
         <div className="text-[10px] font-medium uppercase tracking-[0.18em] text-slate-500">
-          Your health, secured
+          One patient. One trusted record. Accessible when it matters.
         </div>
       </div>
     </a>
@@ -188,7 +188,7 @@ export function Navbar() {
               <span className="text-[#1e3a8a] font-black text-base sm:text-lg tracking-tight" style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '-0.02em' }}>
                 Welli<span className="font-normal">Record</span><sup className="text-[10px] font-normal align-super">™</sup>
               </span>
-              <span className="text-[#1e3a8a] text-[7px] sm:text-[8px] font-bold tracking-[0.12em] uppercase opacity-60">Your Health, Secured. Everywhere.</span>
+              <span className="text-[#1e3a8a] text-[7px] sm:text-[8px] font-bold tracking-[0.12em] uppercase opacity-60">One patient. One trusted record. Accessible when it matters.</span>
             </div>
           </Link>
         </div>

@@ -196,7 +196,7 @@ export function PatientLayout() {
                   <span className="text-[#1e3a8a] font-black text-lg tracking-tight" style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '-0.02em' }}>
                     Welli<span className="font-normal">Record</span><sup className="text-xs font-normal align-super">™</sup>
                   </span>
-                  <span className="text-[#1e3a8a] text-[8px] font-bold tracking-[0.12em] uppercase opacity-60">Your Health, Secured. Everywhere.</span>
+                  <span className="text-[#1e3a8a] text-[8px] font-bold tracking-[0.12em] uppercase opacity-60">One patient. One trusted record. Accessible when it matters.</span>
                 </div>
               </Link>
               <button
@@ -294,7 +294,7 @@ export function PatientLayout() {
               <span className="text-[#1e3a8a] font-black text-lg tracking-tight" style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '-0.02em' }}>
                 Welli<span className="font-normal">Record</span><sup className="text-xs font-normal align-super">™</sup>
               </span>
-              <span className="text-[#1e3a8a] text-[8px] font-bold tracking-[0.12em] uppercase opacity-60">Your Health, Secured. Everywhere.</span>
+              <span className="text-[#1e3a8a] text-[8px] font-bold tracking-[0.12em] uppercase opacity-60">One patient. One trusted record. Accessible when it matters.</span>
             </div>
           </Link>
         </div>

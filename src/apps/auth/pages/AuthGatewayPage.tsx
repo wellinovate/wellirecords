@@ -290,7 +290,7 @@ export function AuthGatewayPage() {
                     <div className="flex flex-col gap-4 max-w-xs cursor-default">
                         <WelliRecordLogo height={28} theme="dark" />
                         <p className="text-xs leading-relaxed" style={{ color: '#64748b' }}>
-                            Your health, secured. Everywhere.<br />
+                            One patient. One trusted record. Accessible when it matters.<br />
                             <span className="font-semibold mt-1 inline-block" style={{ color: '#475569' }}>Powered by Wellinovate LTD.</span>
                         </p>
                     </div>

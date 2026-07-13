@@ -160,7 +160,7 @@ export default function WelliFooter() {
             <img src={welliIcon} alt="WelliRecord logo" className="h-9 w-9 object-contain" />
             <span className="wordmark">Welli<span className="rec">Record</span><sup>™</sup></span>
           </Link>
-          <span className="tagline">Your health, secured. Everywhere.</span>
+          <span className="tagline">One patient. One trusted record. Accessible when it matters.</span>
         </div>
 
         <div className="cols">

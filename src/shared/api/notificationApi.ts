@@ -18,7 +18,7 @@ export const MOCK_TEMPLATES: NotificationTemplate[] = [
     {
         id: 'tmpl_003', name: 'Welcome Email', channel: 'email',
         subject: 'Welcome to WelliRecord — Your Health Vault is Ready',
-        body: 'Hi {{name}},\n\nWelcome to WelliRecord. Your secure personal health vault has been created.\n\nYou can now start uploading records, granting provider access, and viewing your health history — all in one place.\n\n{{cta_link}}\n\nYour health, secured. Everywhere.\nThe WelliRecord Team',
+        body: 'Hi {{name}},\n\nWelcome to WelliRecord. Your secure personal health vault has been created.\n\nYou can now start uploading records, granting provider access, and viewing your health history — all in one place.\n\n{{cta_link}}\n\nOne patient. One trusted record. Accessible when it matters.\nThe WelliRecord Team',
         variables: ['name', 'cta_link'], isActive: true,
         lastModifiedAt: '2026-01-10T10:00:00Z', lastModifiedBy: 'admin_001',
     },

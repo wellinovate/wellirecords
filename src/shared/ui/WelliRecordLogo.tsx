@@ -73,7 +73,7 @@ export function WelliRecordLogo({
                         whiteSpace: 'nowrap',
                     }}
                 >
-                    Your Health, Secured. Everywhere.
+                    One patient. One trusted record. Accessible when it matters.
                 </span>
             )}
         </div>

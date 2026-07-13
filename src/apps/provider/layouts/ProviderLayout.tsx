@@ -215,7 +215,7 @@ export function ProviderLayout() {
               <span className="text-white font-black text-lg" style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '-0.02em' }}>
                 Welli<span className="font-normal">Record</span><sup className="text-xs font-normal align-super">™</sup>
               </span>
-              <span className="text-blue-200 text-[8px] font-bold tracking-[0.12em] uppercase opacity-70">Your Health, Secured. Everywhere.</span>
+              <span className="text-blue-200 text-[8px] font-bold tracking-[0.12em] uppercase opacity-70">One patient. One trusted record. Accessible when it matters.</span>
             </div>
           </Link>
 
