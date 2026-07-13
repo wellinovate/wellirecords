@@ -32,7 +32,7 @@ const ADMIN_FEATURES = [
     { icon: Settings, text: 'Subscription plans, billing, and notification templates' },
 ];
 
-const TRUST_PATIENT = ['HIPAA Ready', 'NDPR Compliant', 'E2E Encrypted'];
+const TRUST_PATIENT = ['HIPAA Ready', 'NDPA Compliant', 'E2E Encrypted'];
 const TRUST_PROVIDER = ['SOC 2 Ready', 'ISO 27001', 'Patient-first Access'];
 const TRUST_ADMIN = ['Internal Access Only', 'Full Audit Trail', 'RBAC Enforced'];
 

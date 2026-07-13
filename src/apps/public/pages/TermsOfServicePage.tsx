@@ -73,7 +73,7 @@ export function TermsOfServicePage() {
               <li>Use patient data exclusively for the delivery of care to that patient</li>
               <li>Not export, share, or monetise patient data outside the platform</li>
               <li>Maintain valid registration with the relevant Nigerian regulatory body (MDCN, MLSCN, PCN, etc.)</li>
-              <li>Comply with NDPR obligations as a data controller for your organisation's staff</li>
+              <li>Comply with NDPA obligations as a data controller for your organisation's staff</li>
             </ul>
           </section>
 

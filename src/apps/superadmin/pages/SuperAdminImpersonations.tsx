@@ -155,7 +155,7 @@ function NewImpersonationModal({ onClose }: { onClose: () => void }) {
 
                 <div className="p-3 rounded-lg mb-6 text-[11px] flex gap-2" style={{ background: 'rgba(239,68,68,0.1)', color: '#fca5a5', border: '1px solid rgba(239,68,68,0.2)' }}>
                     <AlertCircle size={14} className="flex-shrink-0 text-red-400" />
-                    <p><strong>NDPR Notice:</strong> Operating as a user without their explicit consent for troubleshooting is a breach of privacy. Do not access clinical or financial records unnecessarily.</p>
+                    <p><strong>NDPA Notice:</strong> Operating as a user without their explicit consent for troubleshooting is a breach of privacy. Do not access clinical or financial records unnecessarily.</p>
                 </div>
 
                 <div className="flex gap-3">
@@ -199,7 +199,7 @@ export function SuperAdminImpersonations() {
                         <Fingerprint className="text-indigo-400" size={28} />
                         Impersonation Audit Log
                     </h1>
-                    <p className="text-sm mt-1" style={{ color: 'var(--sa-muted)' }}>NDPR/HIPAA compliance log of all assumed identities and actions taken.</p>
+                    <p className="text-sm mt-1" style={{ color: 'var(--sa-muted)' }}>NDPA/HIPAA compliance log of all assumed identities and actions taken.</p>
                 </div>
                 <div className="flex gap-3">
                     <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-colors hover:bg-slate-800 border"

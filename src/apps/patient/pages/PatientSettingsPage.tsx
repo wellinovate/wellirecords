@@ -325,7 +325,7 @@ function DataPortabilitySection() {
           <p className="text-[10px] text-gray-400 mt-3 flex items-center gap-1">
             <AlertCircle size={10} />
             Export is encrypted and delivered to your registered email within 5
-            minutes. Required under NDPR Article 18.
+            minutes. Required under NDPA Section 34 (Right to Data Portability).
           </p>
         </div>
       </div>

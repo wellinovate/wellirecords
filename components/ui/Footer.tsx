@@ -211,8 +211,8 @@ export default function WelliFooter() {
             <ul>
               <li><Link to="/about">About us</Link></li>
               <li><Link to="/#solutions">Solutions</Link></li>
-              <li><Link to="/privacy">Privacy &amp; NDPA</Link></li>
-              <li><Link to="/terms">Terms of service</Link></li>
+              <li><Link to="/#proof">Pricing</Link></li>
+              <li><Link to="/partners">Partners</Link></li>
             </ul>
           </div>
 

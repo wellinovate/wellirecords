@@ -10,11 +10,11 @@ import {
 const SA_FEATURES = [
     { icon: Shield, title: 'God-Mode Access', desc: 'Full platform authority — users, orgs, billing, security, and governance from one command centre.' },
     { icon: Globe, title: 'Platform-wide Oversight', desc: 'Monitor all patient, provider, and administrative activity across every registered organisation.' },
-    { icon: Database, title: 'Data Governance', desc: 'Control consent policies, data retention rules, and NDPR/ISO 27001 compliance posture.' },
+    { icon: Database, title: 'Data Governance', desc: 'Control consent policies, data retention rules, and NDPA/ISO 27001 compliance posture.' },
     { icon: Zap, title: 'Incident Response', desc: 'Receive real-time security alerts and act immediately with session termination or account locks.' },
 ];
 
-const TRUST = ['SOC 2 Type II', 'ISO 27001', 'NDPR Compliant', 'Zero-Trust Architecture'];
+const TRUST = ['SOC 2 Type II', 'ISO 27001', 'NDPA Compliant', 'Zero-Trust Architecture'];
 
 const SA_STYLES = `
 @keyframes sa-orb {

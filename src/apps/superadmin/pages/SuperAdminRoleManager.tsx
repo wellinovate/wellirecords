@@ -125,7 +125,7 @@ function ConflictWarning({ message }: { message: string }) {
             style={{ background: 'rgba(245,158,11,0.1)', borderColor: 'rgba(245,158,11,0.3)', color: '#fcd34d' }}>
             <AlertTriangle className="flex-shrink-0 mt-0.5" size={18} />
             <div>
-                <h4 className="text-sm font-bold mb-0.5" style={{ color: '#fde68a' }}>NDPR Segregation of Duties Conflict</h4>
+                <h4 className="text-sm font-bold mb-0.5" style={{ color: '#fde68a' }}>NDPA Segregation of Duties Conflict</h4>
                 <p className="text-xs" style={{ color: '#fcd34d' }}>{message}</p>
             </div>
         </div>
@@ -209,7 +209,7 @@ export function SuperAdminRoleManager() {
             {/* Header */}
             <div className="mb-6 flex-shrink-0">
                 <h1 className="text-2xl font-black tracking-tight" style={{ color: '#e2e8f0' }}>Role & Permission Manager</h1>
-                <p className="text-sm mt-1" style={{ color: 'var(--sa-muted)' }}>Configure platform access matrices and enforce NDPR compliance policies.</p>
+                <p className="text-sm mt-1" style={{ color: 'var(--sa-muted)' }}>Configure platform access matrices and enforce NDPA compliance policies.</p>
             </div>
 
             {/* Split Layout */}

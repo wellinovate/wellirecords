@@ -245,7 +245,7 @@ export function SuperAdminPlatformSettings() {
                             )}
                             {activeTab === 'compliance' && (
                                 <>
-                                    {renderConfigRow('data_residency_region', 'AWS Region where all sensitive PHI data is physically stored to comply with NDPR/HIPAA.')}
+                                    {renderConfigRow('data_residency_region', 'AWS Region where all sensitive PHI data is physically stored to comply with NDPA/HIPAA.')}
                                     {renderConfigRow('audit_log_retention_days', 'Minimum legal retention period for system and access logs (7 years default).')}
                                     {renderConfigRow('auto_anonymize_after_years', 'Automatically wipe PII while retaining unlinked medical data for epidemiology models.')}
                                     {renderConfigRow('breach_notify_email', 'Monitored inbox that receives automated alerts if access heuristics indicate a data leak.')}

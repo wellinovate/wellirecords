@@ -32,7 +32,7 @@ const BRAND_FEATURES = [
     },
 ];
 
-const TRUST = ['SOC 2 Type II', 'ISO 27001', 'NDPR Compliant', 'Patient-first'];
+const TRUST = ['SOC 2 Type II', 'ISO 27001', 'NDPA Compliant', 'Patient-first'];
 
 export function ProviderLoginPage() {
     const navigate = useNavigate();

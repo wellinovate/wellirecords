@@ -4,7 +4,7 @@ import { ArrowLeft, Lock, Shield, Eye, Server, Key, Globe } from 'lucide-react';
 
 const PILLARS = [
     { icon: Lock, title: 'End-to-End Encryption', desc: 'All health records are encrypted at rest (AES-256) and in transit (TLS 1.3). Only the patient and explicitly consented parties can access data.' },
-    { icon: Shield, title: 'NDPR & HIPAA Alignment', desc: 'Designed from day one to align with Nigerian Data Protection Regulation (NDPR) and international HIPAA standards.' },
+    { icon: Shield, title: 'NDPA & HIPAA Alignment', desc: 'Designed from day one to align with the Nigeria Data Protection Act (NDPA) 2023 and international HIPAA standards.' },
     { icon: Eye, title: 'Immutable Audit Trails', desc: 'Every access event is permanently logged. Patients see exactly who accessed what and when — with full provenance.' },
     { icon: Key, title: 'Zero-Knowledge Architecture', desc: 'WelliRecord never has direct access to your PHI. Patient keys are managed client-side with optional on-chain identity via wallet.' },
     { icon: Server, title: 'Sovereign Data Hosting', desc: 'Data is hosted on NG-CERTs compliant infrastructure in Nigerian data centres for sovereign ownership.' },

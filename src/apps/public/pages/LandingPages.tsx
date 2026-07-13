@@ -977,7 +977,7 @@ function ConversionBanner() {
       <style>{`
         .cta-redesign {
           position: relative;
-          padding: 112px 24px 96px;
+          padding: 80px 24px 64px;
           background:
             radial-gradient(900px 420px at 50% -10%, rgba(18,48,105,0.9), transparent 70%),
             #071B3F;
@@ -1095,7 +1095,7 @@ function ConversionBanner() {
         .cta-redesign .micro {
           font-size: 14px;
           color: #7387AE;
-          margin-bottom: 44px;
+          margin-bottom: 20px;
         }
         .cta-redesign .micro span {
           white-space: nowrap;
@@ -1166,7 +1166,7 @@ function ConversionBanner() {
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
             <path d="M2 7.5L5.5 11L12 3.5" stroke="#9FB2D6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <Link to="/privacy">NDPR compliant</Link>
+          <Link to="/privacy">NDPA Compliant</Link>
         </li>
         <li>
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
