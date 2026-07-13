@@ -133,12 +133,28 @@ export function isProviderRole(role: UserRole): boolean {
   return PROVIDER_ROLES.includes(role);
 }
 
-// ─── OTP Auth stubs (for useEmailAuth hook) ───────────────────────────────────
+let activeChallengeToken = "";
+
 export async function initiateLogin(
   email: string,
-  _password: string,
-): Promise<{ status: number }> {
-  // Simulate a network call – in production this triggers OTP dispatch
+  password: string,
+): Promise<{ status: number; challengeToken?: string; maskedPhone?: string }> {
+  try {
+    const res = await authApi.signIn(email, password);
+    const payload = res?.data || res;
+    if (payload?.challengeToken) {
+      activeChallengeToken = payload.challengeToken;
+      return {
+        status: 200,
+        challengeToken: payload.challengeToken,
+        maskedPhone: payload.maskedPhone,
+      };
+    }
+  } catch (err) {
+    console.warn("initiateLogin backend call failed, falling back to mock", err);
+  }
+
+  // Fallback to mock behavior
   const user = MOCK_USERS.find(
     (u) => u.email?.toLowerCase() === email.toLowerCase(),
   );
@@ -147,9 +163,29 @@ export async function initiateLogin(
 
 export async function verifyOtp(
   _email: string,
-  _otp: number,
+  otp: number,
 ): Promise<{ status: number; data: AuthUser | null }> {
-  // Simulate OTP verification – always passes in mock
+  try {
+    if (activeChallengeToken) {
+      const res = await authApi.verifyLoginCodeApi(activeChallengeToken, String(otp));
+      const payload = res?.data || res;
+      if (payload) {
+        const { account, profile } = payload;
+        const userObj: AuthUser = {
+          ...account,
+          fullName: profile?.fullName,
+          sub: account?._id || account?.id,
+          wrId: profile?.wrId || "",
+          wrOrgId: profile?.wrOrgId,
+        };
+        return { status: 200, data: userObj };
+      }
+    }
+  } catch (err) {
+    console.warn("verifyOtp backend call failed, falling back to mock", err);
+  }
+
+  // Fallback to mock behavior
   return { status: 200, data: null };
 }
 
