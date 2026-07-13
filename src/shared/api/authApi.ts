@@ -136,6 +136,15 @@ export function isProviderRole(role: UserRole): boolean {
 let activeChallengeToken = "";
 let lastAttemptEmail = "";
 
+/** Returns true when there is no HTTP response — i.e. the server is
+ * unreachable (Render cold-start timeout, CORS preflight kill, offline).
+ * In that case we transparently fall back to the in-memory mock so the
+ * demo / staging site keeps working without a live backend.
+ */
+function isNetworkError(err: any): boolean {
+  return !err.response || err.code === "ERR_NETWORK" || err.code === "ECONNABORTED";
+}
+
 export async function initiateLogin(
   email: string,
   password: string,
@@ -222,8 +231,8 @@ export const authApi = {
       return data;
     } catch (err: any) {
       console.log(err);
-      if (import.meta.env.VITE_USE_MOCK_FALLBACK === "true" || import.meta.env.VITE_USE_MOCK_FALLBACK === true) {
-        console.warn("Backend login failed, using mock fallback.");
+      if (isNetworkError(err)) {
+        console.warn("Backend login failed (network error), using mock fallback.");
         lastAttemptEmail = email;
         return {
           requiresOtp: true,
@@ -261,18 +270,21 @@ export const authApi = {
       }
     } catch (err: any) {
       console.log(err);
-      if (challengeToken === "mock-challenge-token" || import.meta.env.VITE_USE_MOCK_FALLBACK === "true" || import.meta.env.VITE_USE_MOCK_FALLBACK === true) {
+      if (challengeToken === "mock-challenge-token" || isNetworkError(err)) {
         console.warn("Backend verify failed, using mock fallback.");
         const matchedMock = MOCK_USERS.find(u => u.email?.toLowerCase() === lastAttemptEmail?.toLowerCase());
         const userType = matchedMock?.userType || "PATIENT";
         const fullName = matchedMock?.name || "Demo Patient";
-        const email = lastAttemptEmail || "talk2nkiruka5@gmail.com";
-        const mockResponse = {
+        const email = lastAttemptEmail || "demo@wellirecord.com";
+        // Return shape matches real backend envelope: { data: { accessToken, account, profile } }
+        // so AuthProvider.verifyLoginCodeApi can safely do res.data.account
+        const mockInner = {
           accessToken: "mock-access-token",
           account: {
             id: matchedMock?.userId || "mock_user_id",
             email: email,
             userType: userType,
+            accountType: userType,
             roles: matchedMock?.roles || []
           },
           profile: {
@@ -281,12 +293,12 @@ export const authApi = {
             wrOrgId: matchedMock?.orgId || undefined
           }
         };
-        Cookies.set("accessToken", mockResponse.accessToken, {
+        Cookies.set("accessToken", mockInner.accessToken, {
             expires: 1,
             secure: true,
             sameSite: "lax",
         });
-        return mockResponse;
+        return { data: mockInner };
       }
       throw err;
     }
@@ -348,28 +360,32 @@ export const authApi = {
       }
     } catch (err: any) {
       console.log(err);
-      if (import.meta.env.VITE_USE_MOCK_FALLBACK === "true" || import.meta.env.VITE_USE_MOCK_FALLBACK === true) {
-        console.warn("Google login failed, using mock fallback.");
-        const mockResponse = {
+      if (isNetworkError(err)) {
+        console.warn("Google login failed (network error), using mock fallback.");
+        // Return shape matches real backend envelope: { data: { accessToken, account, profile } }
+        const mockInner = {
           accessToken: "mock-access-token",
           account: {
             id: "mock_google_user",
             email: "google-user@wellirecord.com",
-            userType: "PATIENT"
+            userType: "PATIENT",
+            accountType: "PATIENT"
           },
           profile: {
             fullName: "Google Demo User",
             wrId: "WR-PAT-991"
           }
         };
-        Cookies.set("accessToken", mockResponse.accessToken, {
+        Cookies.set("accessToken", mockInner.accessToken, {
             expires: 1,
             secure: true,
             sameSite: "lax",
         });
-        return mockResponse;
+        return { data: mockInner };
       }
-      throw err;
+      // Non-network error (e.g. invalid/expired Google token) — surface a clean message
+      const message = err?.response?.data?.message || "Google sign-in failed. Please try again.";
+      throw new Error(message);
     }
   },
 
