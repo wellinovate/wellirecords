@@ -31,8 +31,7 @@ import {
   wellirecordimage,
   yourhealthrecord,
 } from "../../../assets";
-// import hero from "../../../assets/hero.png";
-import { hero } from "@/assets";
+import { hero, welliIcon } from "@/assets";
 import { getCurrentUser } from "@/shared/utils/utilityFunction";
 
 const navItems = [
@@ -183,17 +182,13 @@ export function Navbar() {
       <div className="mx-auto flex w-full sm:max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
         {/* Logo */}
         <div className="flex items-center min-w-0">
-          <Link to="/" className="block">
-            <div
-              className="flex items-center justify-center overflow-hidden rounded-md shadow-sm
-                    h-8 w-20 sm:h-12 sm:w-44 md:h-14 md:w-52 lg:h-16 lg:w-64
-                    max-w-full"
-            >
-              <img
-                src={logos}
-                alt="wellirecord"
-                className="h-full w-full object-contain"
-              />
+          <Link to="/" className="flex items-center gap-2.5 cursor-pointer">
+            <img src={welliIcon} alt="WelliRecord" className="h-8 w-8 sm:h-9 sm:w-9 object-contain flex-shrink-0" />
+            <div className="flex flex-col leading-tight">
+              <span className="text-[#1e3a8a] font-black text-base sm:text-lg tracking-tight" style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '-0.02em' }}>
+                Welli<span className="font-normal">Record</span><sup className="text-[10px] font-normal align-super">™</sup>
+              </span>
+              <span className="text-[#1e3a8a] text-[7px] sm:text-[8px] font-bold tracking-[0.12em] uppercase opacity-60">Your Health, Secured. Everywhere.</span>
             </div>
           </Link>
         </div>
@@ -711,11 +706,12 @@ function ConversionBanner() {
         </p>
 
         {/* trust badges */}
-        <div className="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2 text-[11px] font-bold uppercase tracking-[0.22em] text-blue-300/80">
-          <span>✓ NDPR Compliant</span>
-          <span>✓ HIPAA Ready</span>
-          <span>✓ ISO 27001</span>
-          <span>✓ Free to Start</span>
+        <div className="mt-8 flex flex-wrap justify-center items-center gap-x-4 gap-y-2 text-[11px] font-bold uppercase tracking-[0.2em] text-blue-300/80">
+          <Link to="/privacy" className="hover:underline text-emerald-400">✓ NDPR Compliant</Link>
+          <span className="text-blue-400/50">•</span>
+          <span>✓ Encrypted at Rest & Transit</span>
+          <span className="text-blue-400/50">•</span>
+          <span>✓ Patient-Controlled Access</span>
         </div>
 
         {/* CTAs */}
@@ -728,7 +724,7 @@ function ConversionBanner() {
           </Link>
           <Link
             to="/auth/provider/signup"
-            className="inline-flex items-center justify-center rounded-xl border-2 border-white/30 bg-white/10 px-8 py-4 text-base font-semibold text-white backdrop-blur transition hover:bg-white/20 hover:-translate-y-0.5"
+            className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-8 py-4 text-base font-bold text-white shadow-lg shadow-blue-900/40 transition hover:bg-blue-500 hover:-translate-y-0.5 active:translate-y-0"
           >
             Register Your Organisation
           </Link>
@@ -783,24 +779,25 @@ function Hero() {
             <div className="mt-8 flex flex-col gap-4 sm:mt-10 sm:max-w-xl sm:flex-row sm:flex-wrap sm:items-center">
               <Link
                 to="/auth/patient/signup"
-                className="w-full rounded-lg bg-[#2f8f53] px-6 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-[#2E8B57] sm:w-auto sm:px-8 sm:py-4 sm:text-lg"
+                className="w-full rounded-lg bg-[#2f8f53] px-6 py-3.5 text-center text-base font-semibold text-white shadow-md transition hover:bg-[#2E8B57] sm:w-auto sm:px-8 sm:py-4 sm:text-lg"
               >
                 Create Health Vault
               </Link>
 
               <Link
                 to="/auth/provider/signup"
-                className="w-full rounded-lg border-2 border-[#173f73] bg-white px-6 py-3.5 text-base font-semibold text-[#173f73] transition hover:bg-slate-50 sm:w-auto sm:px-8 sm:py-4 sm:text-lg"
+                className="w-full rounded-lg bg-[#173f73] px-6 py-3.5 text-center text-base font-semibold text-white shadow-md transition hover:bg-[#1F4E79] sm:w-auto sm:px-8 sm:py-4 sm:text-lg"
               >
                 Register Your Organisation
               </Link>
             </div>
 
-            <div className="mt-8 flex flex-wrap gap-x-4 gap-y-2 text-[11px] uppercase tracking-[0.25em] text-[#5c6f85] sm:text-xs sm:tracking-[0.3em]">
-              <span>NDPR Compliant</span>
-              <span>NHR Interoperability</span>
-              <span>HIPAA Ready</span>
-              <span>ISO 27001</span>
+            <div className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#5c6f85] sm:text-xs">
+              <Link to="/privacy" className="hover:underline text-emerald-700">NDPR Compliant</Link>
+              <span className="text-slate-300">•</span>
+              <span>Encrypted at Rest & Transit</span>
+              <span className="text-slate-300">•</span>
+              <span>Patient-Controlled Access</span>
             </div>
           </div>
         </section>

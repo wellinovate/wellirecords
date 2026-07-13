@@ -104,9 +104,8 @@ export function LandingPage() {
                     <div className="flex flex-wrap items-center justify-center gap-4">
                         {[
                             { icon: Shield, label: 'NDPR Compliant', sub: 'Nigeria Data Protection' },
-                            { icon: BadgeCheck, label: 'HIPAA Ready', sub: 'US Health Data Standard' },
-                            { icon: Lock, label: 'ISO 27001', sub: 'Information Security' },
-                            { icon: Award, label: 'HL7 FHIR R4', sub: 'Interoperability Standard' },
+                            { icon: Lock, label: 'Encrypted at Rest & Transit', sub: 'AES-256 & TLS 1.3' },
+                            { icon: Award, label: 'Patient-Controlled Access', sub: 'Consent-Based Sharing' },
                             { icon: HeartPulse, label: '99.9% Uptime', sub: 'SLA Guaranteed' },
                         ].map(b => (
                             <div key={b.label}
@@ -225,7 +224,12 @@ export function LandingPage() {
                         <button onClick={() => navigate('/partners')} className="hover:text-slate-900 transition-colors">Partners</button>
                         <button onClick={() => navigate('/how-it-works')} className="hover:text-slate-900 transition-colors">How It Works</button>
                     </div>
-                    <div className="text-xs" style={{ color: '#94a3b8' }}>© 2026 WelliRecord Ltd. Lagos, Nigeria.</div>
+                    <div className="flex flex-wrap justify-center gap-4 text-xs mt-2" style={{ color: '#94a3b8' }}>
+                        <span>© 2026 WelliRecord Ltd. Abuja, Nigeria.</span>
+                        <button onClick={() => navigate('/privacy')} className="hover:underline hover:text-slate-900 transition-colors">Privacy Policy</button>
+                        <span>·</span>
+                        <button onClick={() => navigate('/terms')} className="hover:underline hover:text-slate-900 transition-colors">Terms of Service</button>
+                    </div>
                 </div>
             </footer>
         </div>

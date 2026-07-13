@@ -1,5 +1,5 @@
 import { welliIcon } from "@/assets";
-import { Instagram, Facebook, Linkedin, Twitter, Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function WelliFooter() {
@@ -32,7 +32,7 @@ export default function WelliFooter() {
               <div className="flex items-center gap-3">
                 <MapPin size={18} className="text-blue-300 shrink-0" />
                 <span className="text-base leading-7 tracking-[-0.02em] sm:text-lg">
-                  Lagos, Nigeria 🇳🇬
+                  Abuja, Nigeria 🇳🇬
                 </span>
               </div>
               <div className="flex items-center gap-3">
@@ -88,26 +88,15 @@ export default function WelliFooter() {
           </nav>
         </div>
 
-        {/* Social icons */}
-        <div className="mt-12 flex flex-wrap items-center justify-center gap-6 text-white sm:mt-14 sm:gap-8 lg:mt-16">
-          <a href="https://instagram.com/wellirecord" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="hover:text-blue-300 transition">
-            <Instagram size={24} strokeWidth={2} />
-          </a>
-          <a href="https://twitter.com/wellirecord" target="_blank" rel="noopener noreferrer" aria-label="Twitter / X" className="hover:text-blue-300 transition">
-            <Twitter size={24} strokeWidth={2} />
-          </a>
-          <a href="https://facebook.com/wellirecord" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="hover:text-blue-300 transition">
-            <Facebook size={24} strokeWidth={2} />
-          </a>
-          <a href="https://linkedin.com/company/wellirecord" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="hover:text-blue-300 transition">
-            <Linkedin size={24} strokeWidth={2} />
-          </a>
+        {/* Copyright & Legal links */}
+        <div className="mt-12 border-t border-blue-900/50 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-blue-200/70">
+          <p>© {new Date().getFullYear()} WelliRecord Ltd. Abuja, Nigeria. All rights reserved.</p>
+          <div className="flex gap-4">
+            <Link to="/privacy" className="hover:text-white transition underline decoration-blue-800">Privacy Policy</Link>
+            <span>·</span>
+            <Link to="/terms" className="hover:text-white transition underline decoration-blue-800">Terms of Service</Link>
+          </div>
         </div>
-
-        {/* Copyright */}
-        <p className="mt-10 text-center text-sm leading-6 tracking-[-0.02em] text-blue-200/70 sm:mt-12 sm:text-base lg:mt-14">
-          © {new Date().getFullYear()} WelliRecord Ltd. Lagos, Nigeria. All rights reserved.
-        </p>
       </div>
     </footer>
   );
