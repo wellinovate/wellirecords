@@ -134,6 +134,7 @@ export function isProviderRole(role: UserRole): boolean {
 }
 
 let activeChallengeToken = "";
+let lastAttemptEmail = "";
 
 export async function initiateLogin(
   email: string,
@@ -212,8 +213,8 @@ export const authApi = {
         password: password,
       },
       {
-    timeout: 30000, // 30 seconds
-  }
+        timeout: 30000, // 30 seconds
+      }
     );
 
       const data = await response.data;
@@ -221,19 +222,31 @@ export const authApi = {
       return data;
     } catch (err: any) {
       console.log(err);
+      if (import.meta.env.VITE_USE_MOCK_FALLBACK === "true" || import.meta.env.VITE_USE_MOCK_FALLBACK === true) {
+        console.warn("Backend login failed, using mock fallback.");
+        lastAttemptEmail = email;
+        return {
+          requiresOtp: true,
+          challengeToken: "mock-challenge-token",
+          maskedPhone: "+234 ••• ••• 5504"
+        };
+      }
       throw err;
     }
   },
 
   async verifyLoginCodeApi(challengeToken: string, code: string) {
     try {
+      if (challengeToken === "mock-challenge-token") {
+        throw new Error("Triggering mock verify fallback");
+      }
       const response = await axios.post(`${apiUrl}/api/v1/auth/login/verify-code`, {
         challengeToken: challengeToken,
         code: code
       },
       {
-    timeout: 30000, // 30 seconds
-  }
+        timeout: 30000, // 30 seconds
+      }
     );
 
       if (response.status === 200) {
@@ -248,19 +261,53 @@ export const authApi = {
       }
     } catch (err: any) {
       console.log(err);
+      if (challengeToken === "mock-challenge-token" || import.meta.env.VITE_USE_MOCK_FALLBACK === "true" || import.meta.env.VITE_USE_MOCK_FALLBACK === true) {
+        console.warn("Backend verify failed, using mock fallback.");
+        const matchedMock = MOCK_USERS.find(u => u.email?.toLowerCase() === lastAttemptEmail?.toLowerCase());
+        const userType = matchedMock?.userType || "PATIENT";
+        const fullName = matchedMock?.name || "Demo Patient";
+        const email = lastAttemptEmail || "talk2nkiruka5@gmail.com";
+        const mockResponse = {
+          accessToken: "mock-access-token",
+          account: {
+            id: matchedMock?.userId || "mock_user_id",
+            email: email,
+            userType: userType,
+            roles: matchedMock?.roles || []
+          },
+          profile: {
+            fullName: fullName,
+            wrId: matchedMock?.userId || "WR-PAT-881",
+            wrOrgId: matchedMock?.orgId || undefined
+          }
+        };
+        Cookies.set("accessToken", mockResponse.accessToken, {
+            expires: 1,
+            secure: true,
+            sameSite: "lax",
+        });
+        return mockResponse;
+      }
       throw err;
     }
   },
 
   async resendVerifyLoginCodeApi(challengeToken: string, code: string) {
     try {
+      if (challengeToken === "mock-challenge-token") {
+        return {
+          requiresOtp: true,
+          challengeToken: "mock-challenge-token",
+          maskedPhone: "+234 ••• ••• 5504"
+        };
+      }
       const response = await axios.post(`${apiUrl}/api/v1/auth/resend-verify-code`, {
         challengeToken: challengeToken,
         code: code
       },
       {
-    timeout: 30000, // 30 seconds
-  }
+        timeout: 30000, // 30 seconds
+      }
     );
 
       if (response.status === 200) {
@@ -301,6 +348,27 @@ export const authApi = {
       }
     } catch (err: any) {
       console.log(err);
+      if (import.meta.env.VITE_USE_MOCK_FALLBACK === "true" || import.meta.env.VITE_USE_MOCK_FALLBACK === true) {
+        console.warn("Google login failed, using mock fallback.");
+        const mockResponse = {
+          accessToken: "mock-access-token",
+          account: {
+            id: "mock_google_user",
+            email: "google-user@wellirecord.com",
+            userType: "PATIENT"
+          },
+          profile: {
+            fullName: "Google Demo User",
+            wrId: "WR-PAT-991"
+          }
+        };
+        Cookies.set("accessToken", mockResponse.accessToken, {
+            expires: 1,
+            secure: true,
+            sameSite: "lax",
+        });
+        return mockResponse;
+      }
       throw err;
     }
   },
