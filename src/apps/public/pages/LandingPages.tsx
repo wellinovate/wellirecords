@@ -1214,21 +1214,32 @@ function ConversionBanner() {
         </li>
       </ul>
 
-      <div className="btn-row">
-        <Link className="btn btn-primary" to="/auth/patient/signup">Create your health vault — free</Link>
-        <Link className="btn btn-secondary" to="/auth/provider/signup">Register your organisation</Link>
+      <div className="btn-row flex flex-wrap gap-4 justify-center">
+        <Link className="btn btn-primary" to="/auth/patient/signup">Create health vault — free</Link>
+        <a
+          href="https://wa.me/2348053355504?text=REGISTER"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn text-white bg-[#25D366] hover:bg-[#20ba5a]"
+        >
+          <svg className="h-5 w-5 fill-white" viewBox="0 0 24 24">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+          </svg>
+          Register via WhatsApp
+        </a>
+        <Link className="btn btn-secondary" to="/auth/provider/signup">Register Org</Link>
       </div>
       <p className="micro"><span>No credit card required</span> · <span>Setup in under 5 minutes</span> · <span>Cancel anytime</span></p>
 
-      <a className="wa-card" href="https://wa.me/2348053355504" target="_blank" rel="noopener noreferrer">
+      <a className="wa-card" href="https://wa.me/2348053355504?text=REGISTER" target="_blank" rel="noopener noreferrer">
         <span className="wa-badge" aria-hidden="true">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="#FFFFFF">
             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
           </svg>
         </span>
         <span className="wa-copy">
-          <strong>Chat with us on WhatsApp</strong>
-          <small>Questions answered same day · +234 805 335 5504</small>
+          <strong>Register or Chat on WhatsApp</strong>
+          <small>Send 'REGISTER' to start enrollment · +234 805 335 5504</small>
         </span>
       </a>
     </section>
@@ -1248,10 +1259,12 @@ export default function App() {
         <FoundingStory />
         <HowItWorks />
         <Features />
+        <EmergencyDemo />
         <Solutions />
         {/* <Partners /> */}
         <SocialProof />
-        {/* <EmailCapture /> */}
+        <FAQ />
+        <EmailCapture />
         <ConversionBanner />
         <WelliFooter />
       </main>
@@ -1396,7 +1409,293 @@ function FoundingStory() {
               Today we're enrolling families through WhatsApp — registration is free, consent comes
               first, and the patient stays at the centre of their health journey.
             </p>
+            <div className="mt-4">
+              <a
+                href="https://wa.me/2348053355504?text=REGISTER"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl bg-[#25D366] px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#20ba5a]"
+              >
+                <svg className="h-4 w-4 fill-white" viewBox="0 0 24 24">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                </svg>
+                Register on WhatsApp (send 'REGISTER')
+              </a>
+            </div>
           </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   EMERGENCY QR DEMO SIMULATOR
+───────────────────────────────────────────── */
+function EmergencyDemo() {
+  const [step, setStep] = React.useState<"card" | "scanning" | "portal">("card");
+
+  React.useEffect(() => {
+    if (step === "scanning") {
+      const timer = setTimeout(() => {
+        setStep("portal");
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [step]);
+
+  return (
+    <section className="bg-slate-50 px-4 py-20 sm:px-6 sm:py-24 lg:px-8 border-t border-b border-slate-100">
+      <div className="mx-auto max-w-5xl">
+        <div className="text-center mb-12">
+          <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#1e3a8a] mb-3">Live Simulation</p>
+          <h2 className="text-3xl font-extrabold text-[#071B3F] sm:text-4xl tracking-tight" style={{ fontFamily: 'Bricolage Grotesque, Inter, sans-serif' }}>
+            Emergency QR Code Simulator
+          </h2>
+          <p className="mt-3 text-slate-500 max-w-xl mx-auto">
+            See exactly what a first responder or doctor sees in an emergency when they scan your physical QR card.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8 items-center">
+          {/* Card / Scanner Side */}
+          <div className="flex flex-col items-center justify-center p-6 bg-white rounded-2xl border border-slate-200 shadow-sm min-h-[360px]">
+            {step === "card" && (
+              <div className="w-full max-w-sm">
+                {/* Physical Card Mockup */}
+                <div className="aspect-[1.586/1] bg-gradient-to-br from-[#071B3F] to-[#0f3473] text-white p-6 rounded-2xl shadow-lg relative overflow-hidden flex flex-col justify-between border border-white/10">
+                  <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none transform translate-x-4 translate-y-4">
+                    <Shield size={200} />
+                  </div>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="font-extrabold text-sm tracking-tight text-white" style={{ fontFamily: 'Bricolage Grotesque, Inter, sans-serif' }}>
+                        Welli<span className="font-normal text-slate-300">Record</span>™
+                      </span>
+                      <p className="text-[7px] text-slate-300 tracking-wider uppercase font-semibold">Emergency Health Card</p>
+                    </div>
+                    <div className="bg-white p-1 rounded-lg">
+                      {/* Fake QR */}
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#071B3F" strokeWidth="2.5">
+                        <rect x="2" y="2" width="6" height="6" rx="1"/>
+                        <rect x="16" y="2" width="6" height="6" rx="1"/>
+                        <rect x="2" y="16" width="6" height="6" rx="1"/>
+                        <path d="M16 16h2v2h-2zm4 4h2v2h-2zm0-4h2v2h-2zm-4 4h2v2h-2zm2-2h2v2h-2z" fill="#071B3F"/>
+                      </svg>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold tracking-wide">Oluwaseun Balogun</h4>
+                    <p className="text-[9px] text-slate-300 font-mono mt-0.5">ID: WR-504-2025</p>
+                  </div>
+                  <div className="flex justify-between items-end border-t border-white/10 pt-2 text-[8px] text-slate-300">
+                    <div>
+                      <p className="font-semibold text-red-400">⚠️ PENICILLIN ALLERGY</p>
+                    </div>
+                    <div className="text-right">
+                      <p>In emergency, scan QR</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-center mt-8">
+                  <p className="text-xs text-slate-500 mb-3">Click below to simulate scanning this card</p>
+                  <button
+                    onClick={() => setStep("scanning")}
+                    className="inline-flex items-center gap-2 bg-[#071B3F] text-white px-5 py-3 rounded-xl text-sm font-semibold hover:bg-[#0c2d66] transition shadow-md"
+                  >
+                    Scan Card QR Code
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {step === "scanning" && (
+              <div className="text-center">
+                <div className="relative w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+                  <div className="absolute inset-0 border-4 border-t-transparent border-[#071B3F] rounded-full animate-spin" />
+                  <Shield className="text-[#071B3F]" size={36} />
+                </div>
+                <h4 className="text-lg font-bold text-[#071B3F]">Processing Secure Link...</h4>
+                <p className="text-sm text-slate-500 mt-2">Checking validation tokens & audit log...</p>
+              </div>
+            )}
+
+            {step === "portal" && (
+              <div className="text-center">
+                <div className="w-12 h-12 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center mx-auto mb-4 text-[#1e3a8a]">
+                  <ShieldCheck size={24} />
+                </div>
+                <h4 className="text-lg font-bold text-[#071B3F]">Demo Loaded Successfully</h4>
+                <p className="text-sm text-slate-500 mt-2">The responder portal is now active on the right side.</p>
+                <button
+                  onClick={() => setStep("card")}
+                  className="mt-6 text-xs font-semibold text-[#1e3a8a] hover:underline"
+                >
+                  ← Reset & Scan Again
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Simulator View Side */}
+          <div className="bg-[#050F26] text-white rounded-3xl p-6 shadow-xl border border-white/5 relative overflow-hidden min-h-[420px]">
+            {/* Phone/Portal Chrome */}
+            <div className="flex justify-between items-center pb-4 border-b border-white/10 mb-5">
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                <div className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
+                <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
+              </div>
+              <span className="text-[10px] text-slate-400 font-mono tracking-widest">WR.SECURE-GATE.NG</span>
+              <Lock size={12} className="text-slate-400" />
+            </div>
+
+            {step === "card" || step === "scanning" ? (
+              <div className="flex flex-col items-center justify-center text-center py-20">
+                <Lock size={44} className="text-[#9FB2D6] opacity-35 mb-4 animate-pulse" />
+                <h4 className="text-base font-bold text-slate-300">Vault Portal Locked</h4>
+                <p className="text-xs text-slate-500 mt-2 max-w-xs">
+                  Scan the emergency QR card on the left side to unlock this screen and load the triage records.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-5">
+                {/* Allergy Banner First (Crucial alert!) */}
+                <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3.5 flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0 text-white font-bold text-xs">!</div>
+                  <div>
+                    <h5 className="text-xs font-bold uppercase tracking-wider text-red-400">Critical Medical Alert</h5>
+                    <p className="text-sm font-semibold text-white mt-1">Severe Penicillin Allergy (Anaphylaxis Risk)</p>
+                    <p className="text-[11px] text-slate-300 mt-0.5">Patient carries an auto-injector.</p>
+                  </div>
+                </div>
+
+                {/* Patient Overview */}
+                <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                  <div className="flex justify-between items-start mb-3 pb-3 border-b border-white/5">
+                    <div>
+                      <h4 className="font-bold text-base text-white">Oluwaseun Balogun</h4>
+                      <p className="text-[10px] text-slate-400 font-mono mt-0.5">DOB: 12-May-1991 (Male)</p>
+                    </div>
+                    <span className="bg-blue-500/20 text-[#60A5FA] border border-blue-500/30 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">Emergency Info Only</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 text-xs">
+                    <div>
+                      <p className="text-slate-400">Blood Group</p>
+                      <p className="font-semibold text-white mt-0.5">O- (Universal)</p>
+                    </div>
+                    <div>
+                      <p className="text-slate-400">Genotype</p>
+                      <p className="font-semibold text-white mt-0.5">AA</p>
+                    </div>
+                    <div>
+                      <p className="text-slate-400">Chronic Conditions</p>
+                      <p className="font-semibold text-white mt-0.5">Mild Asthma</p>
+                    </div>
+                    <div>
+                      <p className="text-slate-400">Active Meds</p>
+                      <p className="font-semibold text-white mt-0.5">Ventolin (As needed)</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Emergency Contacts */}
+                <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                  <h5 className="text-xs font-bold uppercase tracking-wider text-[#60A5FA] mb-2.5">Emergency Contacts</h5>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="font-semibold text-white">Funmi Balogun</p>
+                        <p className="text-[10px] text-slate-400">Wife</p>
+                      </div>
+                      <a href="tel:+2348053334444" className="bg-white/10 hover:bg-white/15 px-2.5 py-1.5 rounded-lg text-white font-medium">Call</a>
+                    </div>
+                    <div className="flex justify-between items-center pt-2 border-t border-white/5">
+                      <div>
+                        <p className="font-semibold text-white">Dr. Tunde Balogun</p>
+                        <p className="text-[10px] text-slate-400">Brother / Cardiologist</p>
+                      </div>
+                      <a href="tel:+2348031112222" className="bg-white/10 hover:bg-white/15 px-2.5 py-1.5 rounded-lg text-white font-medium">Call</a>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-center pt-2">
+                  <p className="text-[10px] text-slate-500">Secure session authorized under NDPA 2023 rules. All access logged.</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   FAQ SECTION
+───────────────────────────────────────────── */
+function FAQ() {
+  const faqs = [
+    {
+      q: "Who can see my health records?",
+      a: "Only you and the healthcare providers you explicitly authorize. You can grant access for a single checkup, 24 hours, or permanently, and you can revoke it instantly at any time."
+    },
+    {
+      q: "How does consent work in practice?",
+      a: "When a hospital or lab wants to view your records, you will receive a secure OTP code on your phone (via SMS or WhatsApp). The provider can only access your files after you give them this code."
+    },
+    {
+      q: "What if I lose my phone or my Emergency Card?",
+      a: "Your data is stored securely in our encrypted vault, not on your physical device or card. If you lose your card, you can immediately lock it from your dashboard and order or print a replacement."
+    },
+    {
+      q: "Is WelliRecord free or paid?",
+      a: "Creating a personal health vault, storing basic health records, and WhatsApp registration are 100% free for patients. Special services like teleconsultations may carry small fees."
+    },
+    {
+      q: "What happens in a critical emergency?",
+      a: "First responders can scan the QR code on your Emergency Card to see only critical triage details (allergies, blood group, emergency contacts). Your full medical history remains locked unless you authorize it."
+    }
+  ];
+
+  const [openIndex, setOpenIndex] = React.useState<number | null>(null);
+
+  return (
+    <section className="bg-white px-4 py-20 sm:px-6 sm:py-24 lg:px-8 border-t border-slate-100">
+      <div className="mx-auto max-w-3xl">
+        <div className="text-center mb-16">
+          <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#1e3a8a] mb-3">Questions & Answers</p>
+          <h2 className="text-3xl font-extrabold text-[#071B3F] sm:text-4xl tracking-tight" style={{ fontFamily: 'Bricolage Grotesque, Inter, sans-serif' }}>
+            Frequently Asked Questions
+          </h2>
+          <p className="mt-3 text-slate-500">
+            Have questions about trust, security, and how WelliRecord works?
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          {faqs.map((faq, idx) => {
+            const isOpen = openIndex === idx;
+            return (
+              <div key={idx} className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
+                <button
+                  onClick={() => setOpenIndex(isOpen ? null : idx)}
+                  className="w-full flex justify-between items-center p-5 text-left font-semibold text-slate-800 hover:bg-slate-50 transition"
+                >
+                  <span className="text-sm sm:text-base">{faq.q}</span>
+                  <span className="text-[#1e3a8a] text-lg font-bold">{isOpen ? "−" : "+"}</span>
+                </button>
+                {isOpen && (
+                  <div className="px-5 pb-5 pt-1 text-sm text-slate-500 leading-relaxed bg-slate-50/50 border-t border-slate-100">
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -1455,7 +1754,7 @@ function EmailCapture() {
           content: "";
           position: absolute;
           inset: 0;
-          background: radial-gradient(ellipse 600px 300px at 50% -20%, rgba(16,185,129,0.12), transparent 65%);
+          background: radial-gradient(ellipse 600px 300px at 50% -20%, rgba(96,165,250,0.12), transparent 65%);
           pointer-events: none;
         }
         .email-card h2 {
@@ -1494,7 +1793,7 @@ function EmailCapture() {
           font-family: 'Inter', sans-serif;
         }
         .email-input::placeholder { color: #7387AE; }
-        .email-input:focus { border-color: #10B981; }
+        .email-input:focus { border-color: #60A5FA; }
         .email-input.err { border-color: #F87171; }
         .email-btn {
           flex: none;
@@ -1520,11 +1819,11 @@ function EmailCapture() {
           align-items: center;
           justify-content: center;
           gap: 10px;
-          background: rgba(16,185,129,0.12);
-          border: 1px solid rgba(16,185,129,0.3);
+          background: rgba(96,165,250,0.12);
+          border: 1px solid rgba(96,165,250,0.3);
           border-radius: 10px;
           padding: 14px 20px;
-          color: #6EE7B7;
+          color: #93C5FD;
           font-size: 15px;
           font-weight: 600;
           max-width: 480px;
@@ -1653,11 +1952,23 @@ function Hero() {
                 Create Health Vault
               </Link>
 
+              <a
+                href="https://wa.me/2348053355504?text=REGISTER"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#25D366] px-6 py-3.5 text-center text-base font-semibold text-white shadow-md transition hover:bg-[#20ba5a] sm:w-auto sm:px-8 sm:py-4 sm:text-lg"
+              >
+                <svg className="h-5 w-5 fill-white" viewBox="0 0 24 24">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                </svg>
+                Register on WhatsApp
+              </a>
+
               <Link
                 to="/auth/provider/signup"
-                className="w-full rounded-lg bg-[#173f73] px-6 py-3.5 text-center text-base font-semibold text-white shadow-md transition hover:bg-[#1F4E79] sm:w-auto sm:px-8 sm:py-4 sm:text-lg"
+                className="w-full rounded-lg border-2 border-slate-200 bg-white px-6 py-3.5 text-center text-base font-semibold text-[#071B3F] hover:bg-slate-50 transition sm:w-auto sm:px-8 sm:py-4"
               >
-                Register Your Organisation
+                Register Provider Org
               </Link>
             </div>
 

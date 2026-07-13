@@ -210,6 +210,7 @@ export default function WelliFooter() {
             <h3>Company</h3>
             <ul>
               <li><Link to="/about">About us</Link></li>
+              <li><Link to="/blog">Blog</Link></li>
               <li><Link to="/#solutions">Solutions</Link></li>
               <li><Link to="/#proof">Pricing</Link></li>
               <li><Link to="/partners">Partners</Link></li>

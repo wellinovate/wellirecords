@@ -20,6 +20,9 @@ import { TermsOfServicePage } from "@/apps/public/pages/TermsOfServicePage";
 import { AboutUsPage } from "@/apps/public/pages/AboutUsPage";
 import LandingPages from "./apps/public/pages/LandingPages";
 
+// ─── Blog Page (lazy) ─────────────────────────────────────────────────────────
+const BlogPage = lazy(() => import("@/apps/public/pages/BlogPage").then(m => ({ default: m.BlogPage })));
+
 // ─── Auth Pages (lazy) ────────────────────────────────────────────────────────
 const AuthGatewayPage       = lazy(() => import("@/apps/auth/pages/AuthGatewayPage").then(m => ({ default: m.AuthGatewayPage })));
 const PatientLoginPage      = lazy(() => import("@/apps/auth/pages/PatientLoginPage").then(m => ({ default: m.PatientLoginPage })));
@@ -137,6 +140,8 @@ export function AppRoutes() {
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
         <Route path="/terms" element={<TermsOfServicePage />} />
         <Route path="/about" element={<AboutUsPage />} />
+        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/blog/:slug" element={<BlogPage />} />
 
         {/* Auth */}
         <Route
