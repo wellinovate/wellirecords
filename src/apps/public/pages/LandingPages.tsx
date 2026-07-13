@@ -726,9 +726,14 @@ function SocialProof() {
         }
         .pilot-items {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-          gap: 16px;
+          grid-template-columns: 1fr;
+          gap: 20px 24px;
           margin-bottom: 32px;
+        }
+        @media (min-width: 640px) {
+          .pilot-items {
+            grid-template-columns: 1fr 1fr;
+          }
         }
         .pilot-item {
           display: flex;
@@ -745,7 +750,6 @@ function SocialProof() {
           align-items: center;
           justify-content: center;
           flex: none;
-          font-size: 16px;
         }
         .pilot-item-text strong {
           display: block;
@@ -770,8 +774,10 @@ function SocialProof() {
           margin-bottom: 32px;
         }
         .pilot-metric-icon {
-          font-size: 22px;
           flex: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
         .pilot-metric-text {
           font-size: 14px;
@@ -847,7 +853,7 @@ function SocialProof() {
           {/* Header */}
           <div className="pilot-header">
             <p className="pilot-header-eyebrow">What the pilot includes</p>
-            <h2>A structured first cohort — not a vague promise</h2>
+            <h2>A structured first cohort</h2>
             <p>
               A small, deliberate group of anchor facilities in Abuja testing one
               thing: whether a patient's record, created at one facility, is
@@ -861,28 +867,48 @@ function SocialProof() {
 
             <div className="pilot-items">
               <div className="pilot-item">
-                <div className="pilot-item-icon">🏥</div>
+                <div className="pilot-item-icon">
+                  <svg className="text-emerald-600" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"/>
+                    <path d="M9 22V12h6v10"/>
+                    <path d="M12 5V2"/>
+                    <path d="M10 3h4"/>
+                  </svg>
+                </div>
                 <div className="pilot-item-text">
                   <strong>Free setup &amp; onboarding</strong>
                   <span>We configure the platform for your facility at no cost during the pilot.</span>
                 </div>
               </div>
               <div className="pilot-item">
-                <div className="pilot-item-icon">🔒</div>
+                <div className="pilot-item-icon">
+                  <svg className="text-emerald-600" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                </div>
                 <div className="pilot-item-text">
                   <strong>Patient-owned records</strong>
                   <span>Records belong to the patient — shared with your facility by consent, not by default.</span>
                 </div>
               </div>
               <div className="pilot-item">
-                <div className="pilot-item-icon">📋</div>
+                <div className="pilot-item-icon">
+                  <svg className="text-emerald-600" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  </svg>
+                </div>
                 <div className="pilot-item-text">
                   <strong>NDPA-compliant data handling</strong>
                   <span>Full compliance with the Nigeria Data Protection Act 2023 built in from day one.</span>
                 </div>
               </div>
               <div className="pilot-item">
-                <div className="pilot-item-icon">🤝</div>
+                <div className="pilot-item-icon">
+                  <svg className="text-emerald-600" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  </svg>
+                </div>
                 <div className="pilot-item-text">
                   <strong>Direct input into the product</strong>
                   <span>Your clinical team's feedback shapes what we build next.</span>
@@ -892,7 +918,13 @@ function SocialProof() {
 
             {/* Success metric */}
             <div className="pilot-metric">
-              <span className="pilot-metric-icon">🎯</span>
+              <span className="pilot-metric-icon">
+                <svg className="text-emerald-600" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <circle cx="12" cy="12" r="6"/>
+                  <circle cx="12" cy="12" r="2"/>
+                </svg>
+              </span>
               <p className="pilot-metric-text">
                 <strong>How we define success:</strong> a patient seen at one pilot
                 facility can walk into a second pilot facility and have their record
@@ -1219,7 +1251,7 @@ export default function App() {
         <Solutions />
         {/* <Partners /> */}
         <SocialProof />
-        <EmailCapture />
+        {/* <EmailCapture /> */}
         <ConversionBanner />
         <WelliFooter />
       </main>
@@ -1466,8 +1498,8 @@ function EmailCapture() {
         .email-input.err { border-color: #F87171; }
         .email-btn {
           flex: none;
-          background: #10B981;
-          color: #FFFFFF;
+          background: #FFFFFF;
+          color: #071B3F;
           font-size: 15px;
           font-weight: 600;
           padding: 14px 24px;
@@ -1478,7 +1510,10 @@ function EmailCapture() {
           transition: background .15s ease, transform .1s ease;
           white-space: nowrap;
         }
-        .email-btn:hover:not(:disabled) { background: #059669; transform: translateY(-1px); }
+        .email-btn:hover:not(:disabled) {
+          background: #EEF3FC;
+          transform: translateY(-1px);
+        }
         .email-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .email-success {
           display: flex;
@@ -1495,8 +1530,22 @@ function EmailCapture() {
           max-width: 480px;
           margin: 0 auto;
         }
-        .email-micro {
+        .email-consent {
           margin-top: 16px;
+          font-size: 12.5px;
+          color: #7387AE;
+          text-align: center;
+        }
+        .email-consent a {
+          color: #9FB2D6;
+          text-decoration: underline;
+          transition: color .15s ease;
+        }
+        .email-consent a:hover {
+          color: #FFFFFF;
+        }
+        .email-micro {
+          margin-top: 24px;
           font-size: 12.5px;
           color: #7387AE;
         }
@@ -1528,27 +1577,36 @@ function EmailCapture() {
               You're on the list — we'll be in touch.
             </div>
           ) : (
-            <form className="email-form" onSubmit={handleSubmit} noValidate>
-              <input
-                id="welli-email-signup"
-                type="email"
-                className={`email-input${status === "error" ? " err" : ""}`}
-                placeholder="your@email.com"
-                value={email}
-                onChange={(e) => { setEmail(e.target.value); setStatus("idle"); }}
-                autoComplete="email"
-                aria-label="Email address"
-                required
-              />
-              <button
-                type="submit"
-                className="email-btn"
-                disabled={busy}
-                aria-label="Join the waitlist"
-              >
-                {busy ? "Adding…" : "Get updates"}
-              </button>
-            </form>
+            <>
+              <form className="email-form" onSubmit={handleSubmit} noValidate>
+                <input
+                  id="welli-email-signup"
+                  type="email"
+                  className={`email-input${status === "error" ? " err" : ""}`}
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); setStatus("idle"); }}
+                  autoComplete="email"
+                  aria-label="Email address"
+                  required
+                />
+                <button
+                  type="submit"
+                  className="email-btn"
+                  disabled={busy}
+                  aria-label="Join the waitlist"
+                >
+                  {busy ? "Adding…" : "Get updates"}
+                </button>
+              </form>
+              <p className="email-consent">
+                By subscribing you agree to our{" "}
+                <Link to="/privacy">
+                  privacy policy
+                </Link>
+                .
+              </p>
+            </>
           )}
           {status === "error" && (
             <p className="email-micro" style={{ color: "#F87171" }}>
@@ -1560,7 +1618,7 @@ function EmailCapture() {
             <a href="https://wa.me/2348053355504" target="_blank" rel="noopener noreferrer" style={{ color: "#25D366", fontWeight: 600 }}>
               WhatsApp
             </a>
-            {" "}· inquiry@wellirecord.com · NDPA compliant
+            {" "}· inquiry@wellirecord.com
           </p>
         </div>
       </div>
