@@ -221,6 +221,7 @@ export const authApi = {
       return data;
     } catch (err: any) {
       console.log(err);
+      throw err;
     }
   },
 
@@ -247,6 +248,7 @@ export const authApi = {
       }
     } catch (err: any) {
       console.log(err);
+      throw err;
     }
   },
 
@@ -273,6 +275,7 @@ export const authApi = {
       }
     } catch (err: any) {
       console.log(err);
+      throw err;
     }
   },
 
@@ -298,6 +301,7 @@ export const authApi = {
       }
     } catch (err: any) {
       console.log(err);
+      throw err;
     }
   },
 
