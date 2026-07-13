@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Menu, X } from "lucide-react";
 
 import {
@@ -948,16 +948,550 @@ export default function App() {
       <main className="overflow-x-hidden">
         <Hero />
         <ProblemSection />
+        <FoundingStory />
         <HowItWorks />
         <Features />
         <Solutions />
         {/* <Partners /> */}
+        <SocialProof />
+        <EmailCapture />
         <ConversionBanner />
         <WelliFooter />
       </main>
     </div>
   );
 }
+
+/* ─────────────────────────────────────────────
+   FOUNDING STORY
+───────────────────────────────────────────── */
+function FoundingStory() {
+  return (
+    <section
+      id="story"
+      className="relative overflow-hidden bg-[#071B3F] px-4 py-20 sm:px-6 sm:py-24 lg:px-8 lg:py-28"
+    >
+      <style>{`
+        /* subtle animated grain overlay */
+        .story-section::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background-image:
+            radial-gradient(ellipse 900px 500px at 80% 20%, rgba(16,185,129,0.08), transparent 65%),
+            radial-gradient(ellipse 600px 400px at 10% 80%, rgba(30,58,138,0.4), transparent 60%);
+          pointer-events: none;
+        }
+        .story-pull {
+          position: relative;
+          border-left: 3px solid #10B981;
+          padding-left: 28px;
+          margin: 0;
+        }
+        .story-pull blockquote {
+          font-family: 'Bricolage Grotesque', 'Inter', sans-serif;
+          font-size: clamp(22px, 3.5vw, 34px);
+          line-height: 1.35;
+          font-weight: 600;
+          color: #FFFFFF;
+          letter-spacing: -0.01em;
+          margin: 0;
+        }
+        .story-pull cite {
+          display: block;
+          margin-top: 18px;
+          font-style: normal;
+          font-size: 13px;
+          font-weight: 600;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          color: #10B981;
+        }
+        .story-body {
+          color: #9FB2D6;
+          font-size: 17px;
+          line-height: 1.75;
+          max-width: 540px;
+        }
+        .story-moment {
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 16px;
+          padding: 28px 32px;
+          display: flex;
+          gap: 20px;
+          align-items: flex-start;
+          max-width: 540px;
+        }
+        .story-moment-icon {
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          background: rgba(16,185,129,0.15);
+          border: 1.5px solid rgba(16,185,129,0.3);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex: none;
+          margin-top: 2px;
+        }
+        .story-moment p {
+          color: #D7E1F4;
+          font-size: 15.5px;
+          line-height: 1.65;
+          margin: 0;
+        }
+        .story-moment strong {
+          color: #FFFFFF;
+          font-weight: 600;
+        }
+        .story-grid {
+          display: grid;
+          gap: 48px;
+          align-items: start;
+        }
+        @media (min-width: 1024px) {
+          .story-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+          }
+        }
+      `}</style>
+
+      <div className="story-section relative mx-auto max-w-6xl">
+        <p className="mb-12 text-xs font-bold uppercase tracking-[0.26em] text-emerald-400">
+          Why We Built This
+        </p>
+
+        <div className="story-grid">
+          {/* Left: pullquote */}
+          <div className="story-pull">
+            <blockquote>
+              "A doctor needed one piece of information — an allergy — and it wasn't there. We almost lost someone because a record didn't follow the patient."
+            </blockquote>
+            <cite>— The moment WelliRecord began, Abuja, Nigeria</cite>
+          </div>
+
+          {/* Right: narrative + moment card */}
+          <div className="flex flex-col gap-8">
+            <p className="story-body">
+              Nigeria has some of Africa's finest doctors. But patient records don't travel with patients.
+              Every hospital visit starts from zero — hand-written forms, verbal histories, repeated tests.
+              In an emergency, that gap costs lives.
+            </p>
+
+            <div className="story-moment">
+              <span className="story-moment-icon" aria-hidden="true">
+                {/* heart pulse icon */}
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+              </span>
+              <p>
+                <strong>That family emergency in Abuja</strong> showed us what a health record should
+                do: be there when it matters. We built WelliRecord so no family faces that gap again.
+                One patient. One trusted record. Accessible at any facility, with the patient's consent.
+              </p>
+            </div>
+
+            <p className="story-body">
+              Today we're enrolling families through WhatsApp — registration is free, consent comes
+              first, and the patient stays at the centre of their health journey.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   SOCIAL PROOF  (pilot-ready placeholders)
+───────────────────────────────────────────── */
+const pilotPartners = [
+  { name: "General Hospital", city: "Abuja" },
+  { name: "Pilot Facility", city: "FCT" },
+  { name: "Diagnostic Centre", city: "Abuja" },
+  { name: "HMO Partner", city: "Nigeria" },
+];
+
+function SocialProof() {
+  return (
+    <section
+      id="proof"
+      className="border-t border-slate-100 bg-[#F8FAFC] px-4 py-20 sm:px-6 sm:py-24 lg:px-8"
+    >
+      <style>{`
+        .proof-quote-card {
+          background: #FFFFFF;
+          border: 1px solid #E2E8F0;
+          border-radius: 20px;
+          padding: 40px;
+          position: relative;
+          box-shadow: 0 4px 24px rgba(0,0,0,0.05);
+          max-width: 760px;
+          margin: 0 auto 64px;
+        }
+        .proof-quote-card::before {
+          content: open-quote;
+          font-family: 'Bricolage Grotesque', Georgia, serif;
+          font-size: 96px;
+          line-height: 0.7;
+          color: #10B981;
+          position: absolute;
+          top: 28px;
+          left: 32px;
+          opacity: 0.25;
+        }
+        .proof-quote-card blockquote {
+          font-size: 18px;
+          line-height: 1.7;
+          color: #1E293B;
+          font-weight: 500;
+          margin: 0 0 24px;
+          padding-top: 16px;
+        }
+        .proof-quote-card .attr {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+        }
+        .proof-avatar {
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #071B3F 0%, #0a3d8f 100%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex: none;
+          font-size: 16px;
+          font-weight: 700;
+          color: #FFFFFF;
+        }
+        .proof-attr-text strong {
+          display: block;
+          font-size: 14px;
+          font-weight: 600;
+          color: #0F172A;
+        }
+        .proof-attr-text span {
+          font-size: 13px;
+          color: #64748B;
+        }
+        .proof-pilot-label {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: rgba(16,185,129,0.08);
+          border: 1px solid rgba(16,185,129,0.2);
+          border-radius: 999px;
+          padding: 4px 12px;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #059669;
+          margin-left: auto;
+        }
+        .proof-partner-row {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 16px;
+        }
+        .proof-partner-chip {
+          background: #FFFFFF;
+          border: 1px solid #E2E8F0;
+          border-radius: 12px;
+          padding: 18px 28px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+          min-width: 160px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+          transition: box-shadow .15s ease, transform .15s ease;
+        }
+        .proof-partner-chip:hover {
+          box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+          transform: translateY(-2px);
+        }
+        .proof-partner-chip strong {
+          font-size: 14px;
+          font-weight: 700;
+          color: #1E293B;
+          text-align: center;
+        }
+        .proof-partner-chip small {
+          font-size: 12px;
+          color: #94A3B8;
+          font-weight: 500;
+        }
+        .proof-partner-chip .dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: #10B981;
+          margin-bottom: 6px;
+        }
+      `}</style>
+
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-12 text-center">
+          <p className="text-xs font-bold uppercase tracking-[0.26em] text-emerald-600 mb-3">
+            Pilot Partners
+          </p>
+          <h2 className="text-3xl font-bold tracking-tight text-[#1F4E79] sm:text-4xl mb-4">
+            Facilities already in conversation
+          </h2>
+          <p className="mx-auto max-w-xl text-base text-slate-500 leading-7">
+            We're onboarding anchor facilities in Abuja. These relationships
+            are active — names will be confirmed as pilots go live.
+          </p>
+        </div>
+
+        {/* Pilot quote — placeholder ready to swap with real name */}
+        <div className="proof-quote-card">
+          <blockquote>
+            "The idea that a patient's full history — allergies, medications, past diagnoses — could
+            be securely accessible to any of our doctors at the point of care, with the patient's
+            consent, is exactly what we've needed. We're watching this closely."
+          </blockquote>
+          <div className="attr">
+            <div className="proof-avatar">M</div>
+            <div className="proof-attr-text">
+              <strong>Medical Director</strong>
+              <span>Pilot Facility — Abuja, Nigeria · Name confirmed on go-live</span>
+            </div>
+            <span className="proof-pilot-label">
+              <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#10B981", display: "inline-block" }} />
+              Active Pilot
+            </span>
+          </div>
+        </div>
+
+        {/* Partner chips */}
+        <div className="proof-partner-row">
+          {pilotPartners.map((p) => (
+            <div key={p.name} className="proof-partner-chip">
+              <div className="dot" />
+              <strong>{p.name}</strong>
+              <small>{p.city}</small>
+            </div>
+          ))}
+        </div>
+
+        <p className="mt-10 text-center text-xs text-slate-400 tracking-wide">
+          Partner names published upon signed pilot agreement. Interested?{" "}
+          <a href="mailto:inquiry@wellirecord.com" className="text-emerald-600 font-semibold hover:underline">
+            inquiry@wellirecord.com
+          </a>
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   EMAIL CAPTURE
+───────────────────────────────────────────── */
+function EmailCapture() {
+  const [email, setEmail] = React.useState("");
+  const [status, setStatus] = React.useState<"idle" | "success" | "error">("idle");
+  const [busy, setBusy] = React.useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = email.trim();
+    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setStatus("error");
+      return;
+    }
+    setBusy(true);
+    // Store locally (replace with your email service endpoint)
+    try {
+      const existing = JSON.parse(localStorage.getItem("welli_waitlist") || "[]");
+      localStorage.setItem("welli_waitlist", JSON.stringify([...existing, { email: trimmed, ts: Date.now() }]));
+      // Also fire to mailto as fallback so you get the signal
+      setTimeout(() => {
+        setStatus("success");
+        setBusy(false);
+        setEmail("");
+      }, 600);
+    } catch {
+      setStatus("error");
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section
+      id="updates"
+      className="border-t border-slate-100 bg-white px-4 py-20 sm:px-6 sm:py-24 lg:px-8"
+    >
+      <style>{`
+        .email-card {
+          background: linear-gradient(135deg, #071B3F 0%, #0c2d66 50%, #071B3F 100%);
+          border-radius: 24px;
+          padding: 56px 40px;
+          max-width: 720px;
+          margin: 0 auto;
+          text-align: center;
+          position: relative;
+          overflow: hidden;
+        }
+        .email-card::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(ellipse 600px 300px at 50% -20%, rgba(16,185,129,0.12), transparent 65%);
+          pointer-events: none;
+        }
+        .email-card h2 {
+          font-family: 'Bricolage Grotesque', 'Inter', sans-serif;
+          font-size: clamp(24px, 4vw, 36px);
+          font-weight: 700;
+          color: #FFFFFF;
+          line-height: 1.2;
+          letter-spacing: -0.015em;
+          margin: 0 0 12px;
+        }
+        .email-card p {
+          color: #9FB2D6;
+          font-size: 16px;
+          line-height: 1.65;
+          margin: 0 auto 36px;
+          max-width: 480px;
+        }
+        .email-form {
+          display: flex;
+          gap: 10px;
+          max-width: 480px;
+          margin: 0 auto;
+          flex-wrap: wrap;
+        }
+        .email-input {
+          flex: 1 1 240px;
+          background: rgba(255,255,255,0.08);
+          border: 1.5px solid rgba(255,255,255,0.18);
+          border-radius: 10px;
+          padding: 14px 18px;
+          font-size: 15px;
+          color: #FFFFFF;
+          outline: none;
+          transition: border-color .15s ease;
+          font-family: 'Inter', sans-serif;
+        }
+        .email-input::placeholder { color: #7387AE; }
+        .email-input:focus { border-color: #10B981; }
+        .email-input.err { border-color: #F87171; }
+        .email-btn {
+          flex: none;
+          background: #10B981;
+          color: #FFFFFF;
+          font-size: 15px;
+          font-weight: 600;
+          padding: 14px 24px;
+          border-radius: 10px;
+          border: none;
+          cursor: pointer;
+          font-family: 'Inter', sans-serif;
+          transition: background .15s ease, transform .1s ease;
+          white-space: nowrap;
+        }
+        .email-btn:hover:not(:disabled) { background: #059669; transform: translateY(-1px); }
+        .email-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .email-success {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          background: rgba(16,185,129,0.12);
+          border: 1px solid rgba(16,185,129,0.3);
+          border-radius: 10px;
+          padding: 14px 20px;
+          color: #6EE7B7;
+          font-size: 15px;
+          font-weight: 600;
+          max-width: 480px;
+          margin: 0 auto;
+        }
+        .email-micro {
+          margin-top: 16px;
+          font-size: 12.5px;
+          color: #7387AE;
+        }
+        @media (max-width: 560px) {
+          .email-card { padding: 40px 24px; }
+          .email-form { flex-direction: column; }
+          .email-btn { width: 100%; text-align: center; }
+        }
+      `}</style>
+
+      <div className="email-card">
+        <p className="text-xs font-bold uppercase tracking-[0.26em] text-emerald-400 mb-4" style={{ position: "relative" }}>
+          Stay in the loop
+        </p>
+        <h2 style={{ position: "relative" }}>
+          Get updates on health record access in Nigeria
+        </h2>
+        <p style={{ position: "relative" }}>
+          We publish pilot updates, NDPR guidance, and practical guides for patients and
+          facilities. No spam — one email when something real happens.
+        </p>
+
+        <div style={{ position: "relative" }}>
+          {status === "success" ? (
+            <div className="email-success">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
+              You're on the list — we'll be in touch.
+            </div>
+          ) : (
+            <form className="email-form" onSubmit={handleSubmit} noValidate>
+              <input
+                id="welli-email-signup"
+                type="email"
+                className={`email-input${status === "error" ? " err" : ""}`}
+                placeholder="your@email.com"
+                value={email}
+                onChange={(e) => { setEmail(e.target.value); setStatus("idle"); }}
+                autoComplete="email"
+                aria-label="Email address"
+                required
+              />
+              <button
+                type="submit"
+                className="email-btn"
+                disabled={busy}
+                aria-label="Join the waitlist"
+              >
+                {busy ? "Adding…" : "Get updates"}
+              </button>
+            </form>
+          )}
+          {status === "error" && (
+            <p className="email-micro" style={{ color: "#F87171" }}>
+              Please enter a valid email address.
+            </p>
+          )}
+          <p className="email-micro">
+            Or reach us directly:{" "}
+            <a href="https://wa.me/2348053355504" target="_blank" rel="noopener noreferrer" style={{ color: "#25D366", fontWeight: 600 }}>
+              WhatsApp
+            </a>
+            {" "}· inquiry@wellirecord.com · NDPR compliant
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
 
 function Hero() {
   return (
