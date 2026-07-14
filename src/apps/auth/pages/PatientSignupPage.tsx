@@ -535,7 +535,7 @@ export default function PatientSignupPage() {
                       type="checkbox"
                       checked={form.agree}
                       onChange={update("agree")}
-                      className="mt-1 h-4 w-4 sm:h-5 sm:w-5 rounded border border-[#C9CED6] accent-[#2F915C]"
+                      className="mt-1 h-4 w-4 sm:h-5 sm:w-5 rounded border border-[#C9CED6] accent-[#071B3F]"
                     />
                     <span>
                       By continuing, you agree to our Terms of Service and
@@ -547,7 +547,7 @@ export default function PatientSignupPage() {
                 <div className="pt-1 text-center col-span-2 w-full">
                   <button
                     type="submit"
-                    className="h-11 w-full sm:w-auto sm:min-w-[220px] md:min-w-[500px] rounded-[6px] bg-[#2F915C] px-6 text-sm sm:text-base font-semibold text-white shadow-sm transition hover:brightness-95 disabled:opacity-70"
+                    className="h-11 w-full sm:w-auto sm:min-w-[220px] md:min-w-[500px] rounded-[6px] bg-[#071B3F] hover:bg-[#0c2d66] px-6 text-sm sm:text-base font-semibold text-white shadow-sm transition disabled:opacity-70"
                     disabled={loading}
                   >
                     {loading
@@ -580,7 +580,7 @@ export default function PatientSignupPage() {
                   <button
                     type="button"
                     onClick={() => navigate("/auth/patient/login")}
-                    className="text-[#2F915C] underline underline-offset-2"
+                    className="text-[#071B3F] hover:text-[#0c2d66] font-bold underline underline-offset-2"
                   >
                     Log in
                   </button>

@@ -632,7 +632,7 @@ export function ProviderSignupPage() {
                         type="checkbox"
                         checked={organizationForm.agree}
                         onChange={updateOrganization("agree")}
-                        className="mt-1 h-[18px] w-[18px] rounded border border-[#C6CEDA] accent-[#2F915C]"
+                        className="mt-1 h-[18px] w-[18px] rounded border border-[#C6CEDA] accent-[#071B3F]"
                       />
                       <span>
                         By continuing, you agree to our Terms of Service and Privacy
@@ -648,7 +648,7 @@ export function ProviderSignupPage() {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="inline-flex h-[46px] min-w-[220px] items-center justify-center rounded-[8px] bg-[#2F915C] px-8 text-[16px] font-semibold text-white shadow-sm transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-70"
+                      className="inline-flex h-[46px] min-w-[220px] items-center justify-center rounded-[8px] bg-[#071B3F] hover:bg-[#0c2d66] px-8 text-[16px] font-semibold text-white shadow-sm transition disabled:cursor-not-allowed disabled:opacity-70"
                     >
                       {loading ? "Creating account..." : "Register Organization"}
                     </button>
@@ -743,7 +743,7 @@ export function ProviderSignupPage() {
                         type="checkbox"
                         checked={individualForm.agree}
                         onChange={updateIndividual("agree")}
-                        className="mt-1 h-[18px] w-[18px] rounded border border-[#C6CEDA] accent-[#2F915C]"
+                        className="mt-1 h-[18px] w-[18px] rounded border border-[#C6CEDA] accent-[#071B3F]"
                       />
                       <span>
                         By continuing, you agree to our Terms of Service and Privacy
@@ -761,7 +761,7 @@ export function ProviderSignupPage() {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="inline-flex h-[46px] min-w-[220px] items-center justify-center rounded-[8px] bg-[#2F915C] px-8 text-[16px] font-semibold text-white shadow-sm transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-70"
+                      className="inline-flex h-[46px] min-w-[220px] items-center justify-center rounded-[8px] bg-[#071B3F] hover:bg-[#0c2d66] px-8 text-[16px] font-semibold text-white shadow-sm transition disabled:cursor-not-allowed disabled:opacity-70"
                     >
                       {loading ? "Creating account..." : "Register Provider"}
                     </button>
@@ -782,12 +782,12 @@ export function ProviderSignupPage() {
 
                 
 
-                <div className="mt-6 text-center text-[15px] text-[#5E5E5E]">
+                 <div className="mt-6 text-center text-[15px] text-[#5E5E5E]">
                   Already have an account?{" "}
                   <button
                     type="button"
                     onClick={() => navigate("/auth/provider/login")}
-                    className="text-[#2F915C] underline underline-offset-2"
+                    className="text-[#071B3F] hover:text-[#0c2d66] font-bold underline underline-offset-2"
                   >
                     Log in
                   </button>

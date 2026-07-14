@@ -414,7 +414,7 @@ const handleResend = async () => {
               alt="Phone UI"
               className="h-full w-full object-cover"
             />
-            <div className="absolute left-0 top-0 h-[4px] w-full bg-[#2F915C]" />
+            <div className="absolute left-0 top-0 h-[4px] w-full bg-[#071B3F]" />
           </div>
 
           <div className="flex w-full flex-1 items-start justify-center bg-[#F3F4F5] px-3">
@@ -460,7 +460,7 @@ const handleResend = async () => {
                       className={`flex h-[46px] w-full items-center justify-center gap-2 rounded-md text-[18px] font-semibold text-white transition ${
                         loading || googleLoading || !isFormValid
                           ? "cursor-not-allowed bg-gray-400"
-                          : "bg-[#2F915C] hover:brightness-95"
+                          : "bg-[#071B3F] hover:bg-[#0c2d66]"
                       }`}
                     >
                       {loading ? (
@@ -494,7 +494,7 @@ const handleResend = async () => {
                       Don’t have an account?{" "}
                       <Link
                         to="/auth/patient/signup"
-                        className="cursor-pointer font-bold text-[#137742]"
+                        className="cursor-pointer font-bold text-[#071B3F] hover:text-[#0c2d66] underline underline-offset-2"
                       >
                         Sign Up
                       </Link>
@@ -524,7 +524,9 @@ const handleResend = async () => {
     <button
       type="submit"
       disabled={verifying || !isCodeValid}
-      className="mt-6 w-full rounded-xl bg-emerald-600 px-4 py-3 text-white font-bold"
+      className={`mt-6 w-full rounded-xl py-3 text-white font-bold transition-all ${
+        verifying || !isCodeValid ? "bg-gray-400 cursor-not-allowed" : "bg-[#071B3F] hover:bg-[#0c2d66]"
+      }`}
     >
       {verifying ? "Verifying..." : "Verify and Login"}
     </button>
