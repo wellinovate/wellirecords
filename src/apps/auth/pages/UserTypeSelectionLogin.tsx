@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 function PatientIcon() {
   return (
     <svg viewBox="0 0 64 64" className="h-11 w-11" fill="none">
-      <rect x="14" y="6" width="28" height="40" rx="4" fill="#2F915C" />
+      <rect x="14" y="6" width="28" height="40" rx="4" fill="#071B3F" />
       <circle cx="28" cy="20" r="6" fill="white" />
       <path
         d="M20 34c1.8-5 4.8-8 8-8s6.2 3 8 8"
@@ -13,18 +13,18 @@ function PatientIcon() {
         strokeWidth="3"
         strokeLinecap="round"
       />
-      <rect x="23.5" y="47" width="9" height="14" rx="2" fill="#2F915C" />
+      <rect x="23.5" y="47" width="9" height="14" rx="2" fill="#071B3F" />
       <path d="M28 50v8" stroke="white" strokeWidth="3" strokeLinecap="round" />
       <path d="M24 54h8" stroke="white" strokeWidth="3" strokeLinecap="round" />
       <path
         d="M45 22h10"
-        stroke="#2F915C"
+        stroke="#071B3F"
         strokeWidth="4"
         strokeLinecap="round"
       />
       <path
         d="M50 18l6 4-6 4"
-        stroke="#2F915C"
+        stroke="#071B3F"
         strokeWidth="4"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -36,7 +36,7 @@ function PatientIcon() {
 function ProviderIcon() {
   return (
     <svg viewBox="0 0 64 64" className="h-11 w-11" fill="none">
-      <rect x="14" y="10" width="36" height="36" rx="4" fill="#2F915C" />
+      <rect x="14" y="10" width="36" height="36" rx="4" fill="#071B3F" />
       <path
         d="M32 19v18"
         stroke="white"
@@ -58,7 +58,7 @@ function ArrowIcon() {
     <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none">
       <path
         d="M8 5l7 7-7 7"
-        stroke="#2F915C"
+        stroke="#071B3F"
         strokeWidth="2.8"
         strokeLinecap="round"
         strokeLinejoin="round"
