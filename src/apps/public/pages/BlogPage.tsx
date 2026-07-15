@@ -17,6 +17,20 @@ interface Post {
 
 const POSTS: Post[] = [
   {
+    slug: 'securing-electronic-health-records-nigeria',
+    title: 'Securing Electronic Health Records: How WelliRecord Guards Your Private Data',
+    excerpt: 'Discover the security measures behind WelliRecord, including server-side credential isolation, encrypted transfers, and user-controlled data access.',
+    date: 'July 16, 2026',
+    readTime: '4 min read',
+    author: 'WelliRecord Security Team',
+    category: 'Healthcare Tips',
+    content: [
+      'In today’s digital age, security isn’t just a feature of healthcare technology—it is the foundation. As Nigeria shifts toward decentralized electronic health records under the Nigeria Data Protection Act (NDPA) 2023, ensuring that sensitive patient files remain private and tamper-proof is our highest priority at WelliRecord.',
+      'To guarantee this privacy, WelliRecord employs a "Sovereign Health Vault" architecture. Unlike traditional hospital systems where data is stored in vulnerable local servers, WelliRecord uses end-to-end encrypted databases and isolates sensitive API keys. In our latest infrastructure upgrade, we moved all artificial intelligence features behind a secure backend proxy. This prevents sensitive credentials from ever being exposed to web browsers or client devices, neutralizing potential security vectors before they can be exploited.',
+      'Furthermore, data access is fully in the patient’s hands. Your medical files can only be accessed by doctor credentials after you authorize them with a secure, one-time passcode (OTP) sent directly to your device. This keeps you in absolute control of who sees your history, when, and for how long. At WelliRecord, we believe that security and patient ownership go hand-in-hand to build a healthier, safer Nigeria.'
+    ]
+  },
+  {
     slug: 'owning-your-health-data-nigeria-ndpa-2023',
     title: 'Owning Your Health Data: What the NDPA 2023 Means for Nigerian Patients',
     excerpt: 'Explore how the Nigeria Data Protection Act (NDPA) 2023 shifts health data ownership directly to you, and how to exercise your rights.',
