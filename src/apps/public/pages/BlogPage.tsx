@@ -17,6 +17,20 @@ interface Post {
 
 const POSTS: Post[] = [
   {
+    slug: 'your-custom-url-slug',
+    title: 'Your Article Title',
+    excerpt: 'A short one-sentence summary that will show on the blog listing page.',
+    date: 'July 16, 2026',
+    readTime: '3 min read',
+    author: 'Your Name',
+    category: 'Healthcare Tips', // Can be 'Regulations', 'Patient Stories', or 'Healthcare Tips'
+    content: [
+      'This is the first paragraph of your article.',
+      'This is the second paragraph. You can add as many paragraphs as you like here, separated by commas.'
+    ]
+  },
+
+  {
     slug: 'securing-electronic-health-records-nigeria',
     title: 'Securing Electronic Health Records: How WelliRecord Guards Your Private Data',
     excerpt: 'Discover the security measures behind WelliRecord, including server-side credential isolation, encrypted transfers, and user-controlled data access.',
