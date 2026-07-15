@@ -1,13 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { GoogleGenAI, LiveServerMessage, Modality } from '@google/genai';
-import { createPcmBlob, decodeAudioData, base64ToUint8Array } from '../utils/audio';
 import { 
   Mic, MicOff, PhoneOff, Activity, Radio, Volume2, Globe, ChevronDown, Check,
   Sparkles, Shield, Lock, FileText, Calendar, Search, Keyboard, Zap, Play, Info
 } from 'lucide-react';
 import { AppView } from '../types';
-
-const API_KEY = process.env.API_KEY || '';
 
 // Language Configuration
 const LANGUAGES = [
@@ -82,158 +78,212 @@ export const LiveAssistant: React.FC<Props> = ({ onChangeView }) => {
   const [isActive, setIsActive] = useState(false);
   const [status, setStatus] = useState<'idle' | 'connecting' | 'active' | 'error'>('idle');
   const [volume, setVolume] = useState(0);
+  const [assistantText, setAssistantText] = useState<string>('');
   
   // Language State
   const [selectedLang, setSelectedLang] = useState(LANGUAGES[0]);
   const [showLangMenu, setShowLangMenu] = useState(false);
 
-  // Audio Context Refs
-  const inputContextRef = useRef<AudioContext | null>(null);
-  const outputContextRef = useRef<AudioContext | null>(null);
+  // Audio Refs
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const processorRef = useRef<ScriptProcessorNode | null>(null);
-  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
-  
-  // Gemini Session Refs
-  const sessionRef = useRef<Promise<any> | null>(null);
-  const nextStartTimeRef = useRef<number>(0);
-  const audioQueueRef = useRef<Set<AudioBufferSourceNode>>(new Set());
+  const animationFrameRef = useRef<number | null>(null);
 
   const cleanupAudio = () => {
-    if (processorRef.current) {
-      processorRef.current.disconnect();
-      processorRef.current = null;
+    // Stop recording if active
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      try {
+        mediaRecorderRef.current.stop();
+      } catch (e) {}
+      mediaRecorderRef.current = null;
     }
-    if (sourceRef.current) {
-      sourceRef.current.disconnect();
-      sourceRef.current = null;
+
+    // Stop current playback source
+    if (audioSourceRef.current) {
+      try {
+        audioSourceRef.current.stop();
+      } catch (e) {}
+      audioSourceRef.current = null;
     }
+
+    // Close AudioContext
+    if (audioContextRef.current) {
+      try {
+        audioContextRef.current.close();
+      } catch (e) {}
+      audioContextRef.current = null;
+    }
+
+    // Stop stream tracks
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     }
-    if (inputContextRef.current) {
-      inputContextRef.current.close();
-      inputContextRef.current = null;
+
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
     }
-    if (outputContextRef.current) {
-      outputContextRef.current.close();
-      outputContextRef.current = null;
-    }
-    // Stop all playing audio
-    audioQueueRef.current.forEach(source => {
-      try { source.stop(); } catch(e) {}
+
+    setVolume(0);
+  };
+
+  // Convert Blob to Base64 String
+  const blobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64data = (reader.result as string).split(',')[1];
+        resolve(base64data);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
     });
-    audioQueueRef.current.clear();
   };
 
   const startSession = async () => {
     try {
+      cleanupAudio();
       setStatus('connecting');
       setShowLangMenu(false);
-      
-      const ai = new GoogleGenAI({ apiKey: API_KEY });
-      
-      // Initialize Audio Contexts
-      inputContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-      outputContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-      
+      setAssistantText('');
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
 
-      const config = {
-        model: 'gemini-2.5-flash-native-audio-preview-09-2025',
-        callbacks: {
-          onopen: () => {
-            console.log('Gemini Live Session Opened');
-            setStatus('active');
-            
-            // Setup Input Streaming
-            if (!inputContextRef.current || !streamRef.current) return;
-            
-            const source = inputContextRef.current.createMediaStreamSource(streamRef.current);
-            sourceRef.current = source;
-            
-            const processor = inputContextRef.current.createScriptProcessor(4096, 1, 1);
-            processorRef.current = processor;
-            
-            processor.onaudioprocess = (e) => {
-              const inputData = e.inputBuffer.getChannelData(0);
-              
-              // Calculate volume for visualizer
-              let sum = 0;
-              for(let i=0; i<inputData.length; i++) sum += inputData[i] * inputData[i];
-              setVolume(Math.sqrt(sum / inputData.length) * 5); // Scale up a bit
-              
-              const pcmBlob = createPcmBlob(inputData);
-              
-              // Use sessionRef.current to access the active session promise
-              if (sessionRef.current) {
-                sessionRef.current.then(session => {
-                  session.sendRealtimeInput({ media: pcmBlob });
-                }).catch(err => console.error("Send Error", err));
-              }
-            };
-            
-            source.connect(processor);
-            processor.connect(inputContextRef.current.destination);
-          },
-          onmessage: async (message: LiveServerMessage) => {
-            const base64Audio = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
-            
-            if (base64Audio && outputContextRef.current) {
-                const ctx = outputContextRef.current;
-                const audioData = base64ToUint8Array(base64Audio);
-                const audioBuffer = await decodeAudioData(audioData, ctx, 24000, 1);
-                
-                // Schedule playback
-                nextStartTimeRef.current = Math.max(nextStartTimeRef.current, ctx.currentTime);
-                
-                const source = ctx.createBufferSource();
-                source.buffer = audioBuffer;
-                source.connect(ctx.destination);
-                
-                source.onended = () => {
-                    audioQueueRef.current.delete(source);
-                };
-                
-                source.start(nextStartTimeRef.current);
-                nextStartTimeRef.current += audioBuffer.duration;
-                audioQueueRef.current.add(source);
-            }
+      // Setup audio analyzer for voice visualizer while user speaks
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      const audioCtx = new AudioCtx();
+      audioContextRef.current = audioCtx;
 
-            const interrupted = message.serverContent?.interrupted;
-            if (interrupted) {
-                audioQueueRef.current.forEach(src => {
-                    try { src.stop(); } catch(e) {}
-                });
-                audioQueueRef.current.clear();
-                nextStartTimeRef.current = 0;
-            }
-          },
-          onclose: () => {
-            console.log("Session Closed");
-            setStatus('idle');
-            setIsActive(false);
-          },
-          onerror: (err: any) => {
-            console.error("Session Error", err);
-            setStatus('error');
-            setIsActive(false);
-          }
-        },
-        config: {
-          responseModalities: [Modality.AUDIO],
-          speechConfig: {
-            voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } }
-          },
-          // Dynamically set system instruction based on selected language
-          systemInstruction: selectedLang.instruction
+      const source = audioCtx.createMediaStreamSource(stream);
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256;
+      analyserRef.current = analyser;
+      source.connect(analyser);
+
+      // Simple visualizer loop
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      const updateVolume = () => {
+        analyser.getByteFrequencyData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          sum += dataArray[i];
+        }
+        const average = sum / bufferLength;
+        setVolume(average / 15); // Scale appropriately
+        animationFrameRef.current = requestAnimationFrame(updateVolume);
+      };
+      updateVolume();
+
+      // Configure MediaRecorder
+      audioChunksRef.current = [];
+      const options = { mimeType: 'audio/webm' };
+      let mediaRecorder: MediaRecorder;
+      try {
+        mediaRecorder = new MediaRecorder(stream, options);
+      } catch (e) {
+        // Fallback for browsers that don't support audio/webm
+        mediaRecorder = new MediaRecorder(stream);
+      }
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
         }
       };
 
-      const sessionPromise = ai.live.connect(config);
-      sessionRef.current = sessionPromise;
+      mediaRecorder.onstop = async () => {
+        try {
+          setStatus('connecting');
+          const audioBlob = new Blob(audioChunksRef.current, { type: mediaRecorder.mimeType || 'audio/webm' });
+          const base64Audio = await blobToBase64(audioBlob);
+
+          // Call secure backend proxy
+          const response = await fetch('/api/gemini', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'voice',
+              base64Audio,
+              mimeType: mediaRecorder.mimeType || 'audio/webm',
+              instruction: selectedLang.instruction
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error ${response.status}`);
+          }
+
+          const result = await response.json();
+          setAssistantText(result.text || "Here is your response.");
+
+          if (result.audio) {
+            // Decode and play back the generated audio
+            const audioData = Uint8Array.from(atob(result.audio), c => c.charCodeAt(0));
+            const responseAudioContext = audioContextRef.current || new AudioCtx();
+            if (!audioContextRef.current) {
+              audioContextRef.current = responseAudioContext;
+            }
+
+            const audioBuffer = await responseAudioContext.decodeAudioData(audioData.buffer);
+            
+            // Connect to visualizer node during playback
+            const playAnalyser = responseAudioContext.createAnalyser();
+            playAnalyser.fftSize = 256;
+            analyserRef.current = playAnalyser;
+            playAnalyser.connect(responseAudioContext.destination);
+
+            const playSource = responseAudioContext.createBufferSource();
+            playSource.buffer = audioBuffer;
+            playSource.connect(playAnalyser);
+            audioSourceRef.current = playSource;
+
+            // Simple visualizer loop for output playback
+            const outputDataArray = new Uint8Array(playAnalyser.frequencyBinCount);
+            const updatePlayVolume = () => {
+              if (!audioSourceRef.current) return;
+              playAnalyser.getByteFrequencyData(outputDataArray);
+              let sum = 0;
+              for (let i = 0; i < playAnalyser.frequencyBinCount; i++) {
+                sum += outputDataArray[i];
+              }
+              const average = sum / playAnalyser.frequencyBinCount;
+              setVolume(average / 15);
+              animationFrameRef.current = requestAnimationFrame(updatePlayVolume);
+            };
+            updatePlayVolume();
+
+            playSource.onended = () => {
+              cleanupAudio();
+              setStatus('idle');
+              setIsActive(false);
+            };
+
+            playSource.start(0);
+            setStatus('active');
+          } else {
+            // No audio, reset to idle
+            cleanupAudio();
+            setStatus('idle');
+            setIsActive(false);
+          }
+
+        } catch (error) {
+          console.error("Failed to process voice response:", error);
+          setStatus('error');
+          setIsActive(false);
+        }
+      };
+
+      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start();
+      setStatus('active');
       setIsActive(true);
 
     } catch (error) {
@@ -243,9 +293,13 @@ export const LiveAssistant: React.FC<Props> = ({ onChangeView }) => {
   };
 
   const stopSession = () => {
-    cleanupAudio();
-    setIsActive(false);
-    setStatus('idle');
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+    } else {
+      cleanupAudio();
+      setIsActive(false);
+      setStatus('idle');
+    }
   };
 
   useEffect(() => {
@@ -341,7 +395,7 @@ export const LiveAssistant: React.FC<Props> = ({ onChangeView }) => {
                   : 'bg-slate-900 border-slate-700 text-slate-500'
               }`}>
                   <div className={`w-2 h-2 rounded-full ${status === 'active' ? 'bg-blue-400 animate-pulse' : 'bg-slate-600'}`}></div>
-                  {status === 'active' ? 'Live Session Active' : status === 'connecting' ? 'Establishing Connection...' : 'Ready to Connect'}
+                  {status === 'active' ? (mediaRecorderRef.current?.state === 'recording' ? 'Listening...' : 'Speaking...') : status === 'connecting' ? 'Processing Voice...' : 'Ready to Connect'}
               </div>
           </div>
 
@@ -392,8 +446,17 @@ export const LiveAssistant: React.FC<Props> = ({ onChangeView }) => {
                            onClick={stopSession}
                            className="w-full h-full flex flex-col items-center justify-center gap-2 group bg-red-900/5 hover:bg-red-900/10 transition-colors"
                          >
-                           <PhoneOff size={40} className="text-red-500 animate-pulse" />
-                           <span className="text-xs font-bold text-red-500 uppercase tracking-widest">End Session</span>
+                           {mediaRecorderRef.current?.state === 'recording' ? (
+                             <>
+                               <MicOff size={40} className="text-red-500 animate-pulse" />
+                               <span className="text-xs font-bold text-red-500 uppercase tracking-widest">Stop Recording</span>
+                             </>
+                           ) : (
+                             <>
+                               <PhoneOff size={40} className="text-red-500" />
+                               <span className="text-xs font-bold text-red-500 uppercase tracking-widest">End Session</span>
+                             </>
+                           )}
                          </button>
                        )}
                    </div>
@@ -436,15 +499,23 @@ export const LiveAssistant: React.FC<Props> = ({ onChangeView }) => {
 
           {/* Active Session Info */}
           {isActive && (
-              <div className="relative z-10 text-center animate-in fade-in zoom-in-95 duration-500">
-                  <p className="text-lg text-slate-300 font-medium mb-2">I'm listening...</p>
-                  <p className="text-sm text-slate-500">Go ahead and ask me anything about your health records.</p>
-                  
-                  <div className="mt-8 flex justify-center gap-2">
-                      {[1,2,3,4,5].map(i => (
-                          <div key={i} className="w-1 h-8 bg-blue-500/50 rounded-full animate-bounce" style={{ animationDelay: `${i * 0.1}s` }}></div>
-                      ))}
-                  </div>
+              <div className="relative z-10 text-center animate-in fade-in zoom-in-95 duration-500 max-w-xl">
+                  {mediaRecorderRef.current?.state === 'recording' ? (
+                    <>
+                      <p className="text-lg text-slate-300 font-medium mb-2">I'm listening...</p>
+                      <p className="text-sm text-slate-500">Go ahead and speak. Click 'Stop Recording' when you are done.</p>
+                      <div className="mt-8 flex justify-center gap-2">
+                          {[1,2,3,4,5].map(i => (
+                              <div key={i} className="w-1 h-8 bg-blue-500/50 rounded-full animate-bounce" style={{ animationDelay: `${i * 0.1}s` }}></div>
+                          ))}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-lg text-blue-400 font-medium mb-2">Welli Assistant</p>
+                      <p className="text-sm text-slate-300 leading-relaxed bg-slate-900/50 border border-slate-800 p-4 rounded-xl">{assistantText || "Responding..."}</p>
+                    </>
+                  )}
               </div>
           )}
       </div>
