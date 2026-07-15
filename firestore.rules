@@ -142,5 +142,11 @@ service cloud.firestore {
                             (resource.data.orgId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.orgId ||
                              request.resource.data.orgId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.orgId);
     }
+
+    // 8. Blog Posts Collection
+    match /blog_posts/{postId} {
+      allow read: if true;
+      allow write: if isProvider();
+    }
   }
 }

@@ -22,6 +22,7 @@ import LandingPages from "./apps/public/pages/LandingPages";
 
 // ─── Blog Page (lazy) ─────────────────────────────────────────────────────────
 const BlogPage = lazy(() => import("@/apps/public/pages/BlogPage").then(m => ({ default: m.BlogPage })));
+const BlogAdminPage = lazy(() => import("@/apps/public/pages/BlogAdminPage").then(m => ({ default: m.BlogAdminPage })));
 
 // ─── Auth Pages (lazy) ────────────────────────────────────────────────────────
 const AuthGatewayPage       = lazy(() => import("@/apps/auth/pages/AuthGatewayPage").then(m => ({ default: m.AuthGatewayPage })));
@@ -141,6 +142,7 @@ export function AppRoutes() {
         <Route path="/terms" element={<TermsOfServicePage />} />
         <Route path="/about" element={<AboutUsPage />} />
         <Route path="/blog" element={<BlogPage />} />
+        <Route path="/blog/write" element={<RequireRole allow="organization"><BlogAdminPage /></RequireRole>} />
         <Route path="/blog/:slug" element={<BlogPage />} />
 
         {/* Auth */}

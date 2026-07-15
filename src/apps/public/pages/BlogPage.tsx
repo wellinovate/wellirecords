@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Clock, Calendar, User, ArrowRight, BookOpen, Share2 } from 'lucide-react';
+import { ArrowLeft, Clock, Calendar, User, ArrowRight, BookOpen, Share2, PenTool } from 'lucide-react';
 import { welliIcon } from '@/assets';
 import WelliFooter from '../../../../components/ui/Footer';
+import { db } from '@/shared/lib/firebase';
+import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 
 interface Post {
   slug: string;
@@ -16,20 +18,6 @@ interface Post {
 }
 
 const POSTS: Post[] = [
-  {
-    slug: 'your-custom-url-slug',
-    title: 'Your Article Title',
-    excerpt: 'A short one-sentence summary that will show on the blog listing page.',
-    date: 'July 16, 2026',
-    readTime: '3 min read',
-    author: 'Your Name',
-    category: 'Healthcare Tips', // Can be 'Regulations', 'Patient Stories', or 'Healthcare Tips'
-    content: [
-      'This is the first paragraph of your article.',
-      'This is the second paragraph. You can add as many paragraphs as you like here, separated by commas.'
-    ]
-  },
-
   {
     slug: 'securing-electronic-health-records-nigeria',
     title: 'Securing Electronic Health Records: How WelliRecord Guards Your Private Data',
@@ -101,11 +89,75 @@ const POSTS: Post[] = [
 export function BlogPage() {
   const { slug } = useParams<{ slug?: string }>();
   const navigate = useNavigate();
+  const [dynamicPosts, setDynamicPosts] = useState<Post[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch dynamic posts from Firestore
+  useEffect(() => {
+    async function fetchPosts() {
+      try {
+        const q = query(collection(db, 'blog_posts'), orderBy('createdAt', 'desc'));
+        const querySnapshot = await getDocs(q);
+        const fetched: Post[] = [];
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          fetched.push({
+            slug: data.slug,
+            title: data.title,
+            excerpt: data.excerpt,
+            date: data.date,
+            readTime: data.readTime,
+            author: data.author,
+            category: data.category,
+            content: data.content || [],
+          });
+        });
+        setDynamicPosts(fetched);
+      } catch (error) {
+        console.error("Failed to load blog posts from Firestore:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchPosts();
+  }, []);
+
+  // Combine dynamic and static posts (dynamic posts first)
+  const allPosts = [
+    ...dynamicPosts,
+    ...POSTS.filter(sp => !dynamicPosts.some(dp => dp.slug === sp.slug))
+  ];
 
   // Detail view
   if (slug) {
-    const post = POSTS.find((p) => p.slug === slug);
+    const post = allPosts.find((p) => p.slug === slug);
+
     if (!post) {
+      if (isLoading) {
+        return (
+          <div className="min-h-screen bg-white text-slate-900 flex flex-col justify-between">
+            <header className="sticky top-0 z-50 border-b border-slate-100 bg-white/95 backdrop-blur">
+              <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
+                <Link to="/" className="flex items-center gap-2.5">
+                  <img src={welliIcon} alt="WelliRecord" className="h-8 w-8 object-contain" />
+                  <span className="font-black text-[#071B3F] text-base" style={{ fontFamily: 'Bricolage Grotesque, Inter, sans-serif' }}>
+                    Welli<span className="font-normal text-slate-400">Record</span>™
+                  </span>
+                </Link>
+                <Link to="/blog" className="text-sm font-semibold text-[#1e3a8a] hover:underline">
+                  Back to Blog
+                </Link>
+              </div>
+            </header>
+            <main className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-slate-50">
+              <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              <p className="text-slate-500 mt-4 text-sm font-medium">Loading article details...</p>
+            </main>
+            <WelliFooter />
+          </div>
+        );
+      }
+
       return (
         <div className="min-h-screen bg-white text-slate-900 flex flex-col justify-between">
           <header className="sticky top-0 z-50 border-b border-slate-100 bg-white/95 backdrop-blur">
@@ -121,7 +173,7 @@ export function BlogPage() {
               </Link>
             </div>
           </header>
-          <main className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+          <main className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-slate-50">
             <h1 className="text-2xl font-bold text-[#071B3F] mb-4">Article Not Found</h1>
             <p className="text-slate-500 mb-6">The blog post you are looking for does not exist or has been moved.</p>
             <Link to="/blog" className="inline-flex items-center gap-2 bg-[#071B3F] text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-[#0c2d66]">
@@ -135,7 +187,6 @@ export function BlogPage() {
 
     return (
       <div className="min-h-screen bg-white text-slate-900 font-sans antialiased">
-        {/* Dynamic JSON-LD injection for SEO */}
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
@@ -217,12 +268,20 @@ export function BlogPage() {
               Welli<span className="font-normal text-slate-400">Record</span>™
             </span>
           </Link>
-          <button
-            onClick={() => navigate('/')}
-            className="flex items-center gap-1.5 text-sm font-semibold text-[#1e3a8a] hover:text-[#071B3F] transition"
-          >
-            <ArrowLeft size={15} /> Back to Home
-          </button>
+          <div className="flex items-center gap-4">
+            <Link
+              to="/blog/write"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-blue-50 text-[#1e3a8a] border border-blue-200/50 hover:bg-blue-100 transition"
+            >
+              <PenTool size={13} /> Write Article
+            </Link>
+            <button
+              onClick={() => navigate('/')}
+              className="flex items-center gap-1.5 text-sm font-semibold text-[#1e3a8a] hover:text-[#071B3F] transition"
+            >
+              <ArrowLeft size={15} /> Back to Home
+            </button>
+          </div>
         </div>
       </header>
 
@@ -238,30 +297,38 @@ export function BlogPage() {
           </p>
         </div>
 
-        {/* Blog grid */}
-        <div className="grid md:grid-cols-3 gap-6 mb-16">
-          {POSTS.map((post) => (
-            <div key={post.slug} className="flex flex-col bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md transition overflow-hidden">
-              <div className="p-6 flex-1 flex flex-col justify-between">
-                <div>
-                  <span className="inline-block bg-blue-50 text-[#1e3a8a] text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full mb-3">
-                    {post.category}
-                  </span>
-                  <h3 className="font-bold text-lg text-[#071B3F] leading-tight mb-2 hover:text-[#1e3a8a] transition">
-                    <Link to={`/blog/${post.slug}`}>{post.title}</Link>
-                  </h3>
-                  <p className="text-sm text-slate-500 leading-relaxed mb-4 line-clamp-3">{post.excerpt}</p>
-                </div>
-                <div className="flex justify-between items-center text-xs text-slate-400 pt-4 border-t border-slate-100 mt-4">
-                  <span>{post.date}</span>
-                  <span className="font-semibold text-[#1e3a8a] hover:underline flex items-center gap-1">
-                    <Link to={`/blog/${post.slug}`} className="flex items-center gap-1">Read Article <ArrowRight size={14} /></Link>
-                  </span>
+        {/* Loading Spinner */}
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            <p className="text-slate-400 text-sm">Loading articles...</p>
+          </div>
+        ) : (
+          /* Blog grid */
+          <div className="grid md:grid-cols-3 gap-6 mb-16 animate-in fade-in duration-500">
+            {allPosts.map((post) => (
+              <div key={post.slug} className="flex flex-col bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md transition overflow-hidden">
+                <div className="p-6 flex-1 flex flex-col justify-between">
+                  <div>
+                    <span className="inline-block bg-blue-50 text-[#1e3a8a] text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full mb-3">
+                      {post.category}
+                    </span>
+                    <h3 className="font-bold text-lg text-[#071B3F] leading-tight mb-2 hover:text-[#1e3a8a] transition">
+                      <Link to={`/blog/${post.slug}`}>{post.title}</Link>
+                    </h3>
+                    <p className="text-sm text-slate-500 leading-relaxed mb-4 line-clamp-3">{post.excerpt}</p>
+                  </div>
+                  <div className="flex justify-between items-center text-xs text-slate-400 pt-4 border-t border-slate-100 mt-4">
+                    <span>{post.date}</span>
+                    <span className="font-semibold text-[#1e3a8a] hover:underline flex items-center gap-1">
+                      <Link to={`/blog/${post.slug}`} className="flex items-center gap-1">Read Article <ArrowRight size={14} /></Link>
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </main>
 
       <WelliFooter />
