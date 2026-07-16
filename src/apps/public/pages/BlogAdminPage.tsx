@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/shared/lib/firebase';
 import { toast } from 'react-toastify';
 import { ArrowLeft, BookOpen, PenTool, LayoutGrid, FileText, CheckCircle, AlertCircle } from 'lucide-react';
@@ -69,7 +69,7 @@ export function BlogAdminPage() {
       const dateStr = new Date().toLocaleDateString('en-US', dateOptions);
 
       // Save to Firestore
-      await addDoc(collection(db, 'blog_posts'), {
+      await setDoc(doc(db, 'blog_posts', slug), {
         title,
         slug,
         excerpt,

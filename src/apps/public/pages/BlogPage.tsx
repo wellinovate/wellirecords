@@ -4,7 +4,8 @@ import { ArrowLeft, Clock, Calendar, User, ArrowRight, BookOpen, Share2, PenTool
 import { welliIcon } from '@/assets';
 import WelliFooter from '../../../../components/ui/Footer';
 import { db } from '@/shared/lib/firebase';
-import { collection, getDocs, orderBy, query } from 'firebase/firestore';
+import { collection, getDocs, orderBy, query, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useAuth } from '@/shared/auth/AuthProvider';
 
 interface Post {
   slug: string;
@@ -89,8 +90,18 @@ const POSTS: Post[] = [
 export function BlogPage() {
   const { slug } = useParams<{ slug?: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [dynamicPosts, setDynamicPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [comments, setComments] = useState<any[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [isPostingComment, setIsPostingComment] = useState(false);
+
+  // Check if current user is an Admin to display the write button
+  const isAdminUser = !!user && (
+    user.roles?.includes('super_admin') || 
+    user.roles?.includes('admin')
+  );
 
   // Fetch dynamic posts from Firestore
   useEffect(() => {
@@ -122,11 +133,68 @@ export function BlogPage() {
     fetchPosts();
   }, []);
 
+  // Fetch comments for current post slug
+  useEffect(() => {
+    if (!slug) return;
+    async function fetchComments() {
+      try {
+        const q = query(collection(db, 'blog_posts', slug, 'comments'), orderBy('createdAt', 'asc'));
+        const snapshot = await getDocs(q);
+        const list: any[] = [];
+        snapshot.forEach((doc) => {
+          list.push({ id: doc.id, ...doc.data() });
+        });
+        setComments(list);
+      } catch (error) {
+        console.error("Failed to load comments:", error);
+      }
+    }
+    fetchComments();
+  }, [slug]);
+
   // Combine dynamic and static posts (dynamic posts first)
   const allPosts = [
     ...dynamicPosts,
     ...POSTS.filter(sp => !dynamicPosts.some(dp => dp.slug === sp.slug))
   ];
+
+  const handleCommentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newComment.trim() || !slug) return;
+
+    setIsPostingComment(true);
+    try {
+      const name = user?.name || user?.email || 'Anonymous';
+      let roleLabel = 'Patient';
+      if (user?.roles?.includes('super_admin') || user?.roles?.includes('admin')) {
+        roleLabel = 'Admin';
+      } else if (user?.accountType === 'organization') {
+        roleLabel = 'Provider';
+      }
+
+      const commentData = {
+        author: name,
+        role: roleLabel,
+        text: newComment.trim(),
+        date: new Date().toLocaleDateString('en-NG', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        createdAt: serverTimestamp(),
+      };
+
+      const docRef = await addDoc(collection(db, 'blog_posts', slug, 'comments'), commentData);
+      setComments((prev) => [...prev, { id: docRef.id, ...commentData }]);
+      setNewComment('');
+    } catch (error) {
+      console.error("Failed to post comment:", error);
+    } finally {
+      setIsPostingComment(false);
+    }
+  };
 
   // Detail view
   if (slug) {
@@ -242,6 +310,67 @@ export function BlogPage() {
             ))}
           </div>
 
+          {/* Comments Section */}
+          <div className="mt-16 pt-10 border-t border-slate-100">
+            <h3 className="text-xl font-black text-[#071B3F] mb-6" style={{ fontFamily: 'Bricolage Grotesque, Inter, sans-serif' }}>
+              Comments ({comments.length})
+            </h3>
+
+            {/* Comments List */}
+            {comments.length === 0 ? (
+              <p className="text-slate-400 text-sm italic mb-8">No comments yet. Be the first to share your thoughts!</p>
+            ) : (
+              <div className="space-y-5 mb-8">
+                {comments.map((c) => (
+                  <div key={c.id} className="bg-slate-50 rounded-2xl p-5 border border-slate-100 flex flex-col gap-2">
+                    <div className="flex justify-between items-center text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-[#071B3F]">{c.author}</span>
+                        <span className={`px-2 py-0.5 rounded-full font-bold text-[9px] uppercase tracking-wider ${
+                          c.role === 'Admin' ? 'bg-red-50 text-red-600 border border-red-100' :
+                          c.role === 'Provider' ? 'bg-blue-50 text-blue-600 border border-blue-100' :
+                          'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                        }`}>
+                          {c.role}
+                        </span>
+                      </div>
+                      <span className="text-slate-400">{c.date}</span>
+                    </div>
+                    <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">{c.text}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add Comment Form */}
+            {user ? (
+              <form onSubmit={handleCommentSubmit} className="space-y-4 bg-slate-50/50 border border-slate-200/60 rounded-2xl p-6 mb-8">
+                <h4 className="text-sm font-bold text-[#071B3F]">Leave a Comment</h4>
+                <textarea
+                  required
+                  rows={4}
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Write a supportive comment, ask a question, or share your thoughts..."
+                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition text-sm leading-relaxed bg-white"
+                />
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={isPostingComment || !newComment.trim()}
+                    className="px-5 py-2.5 rounded-xl bg-[#071B3F] hover:bg-[#0c2d66] text-white transition text-xs font-semibold flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+                  >
+                    {isPostingComment ? 'Posting...' : 'Post Comment'}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-6 text-center text-sm text-slate-500 mb-8">
+                Please <Link to="/auth/pre-login" className="text-[#1e3a8a] font-bold hover:underline">log in</Link> to share your thoughts on this article.
+              </div>
+            )}
+          </div>
+
           <div className="mt-12 pt-8 border-t border-slate-100 text-center">
             <h4 className="font-bold text-[#071B3F] mb-4">Subscribe to WelliRecord Updates</h4>
             <p className="text-slate-500 text-sm mb-6 max-w-md mx-auto">Get notified when new articles, pilot announcements, and updates are posted.</p>
@@ -269,12 +398,14 @@ export function BlogPage() {
             </span>
           </Link>
           <div className="flex items-center gap-4">
-            <Link
-              to="/blog/write"
-              className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-blue-50 text-[#1e3a8a] border border-blue-200/50 hover:bg-blue-100 transition"
-            >
-              <PenTool size={13} /> Write Article
-            </Link>
+            {isAdminUser && (
+              <Link
+                to="/blog/write"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-blue-50 text-[#1e3a8a] border border-blue-200/50 hover:bg-blue-100 transition"
+              >
+                <PenTool size={13} /> Write Article
+              </Link>
+            )}
             <button
               onClick={() => navigate('/')}
               className="flex items-center gap-1.5 text-sm font-semibold text-[#1e3a8a] hover:text-[#071B3F] transition"
