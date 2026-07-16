@@ -177,7 +177,7 @@ export function ProviderLayout() {
 
   const handleSignOut = () => {
     signOut();
-    navigate("/auth");
+    navigate("/auth/pre-login");
   };
   const navTo = (path: string) => {
     navigate(path);

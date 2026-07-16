@@ -460,7 +460,7 @@ export function PatientSettingsPage() {
 
   const handleSignOut = () => {
     signOut();
-    navigate("/auth");
+    navigate("/auth/pre-login");
   };
 
   const handleNinSubmit = (e: React.FormEvent) => {

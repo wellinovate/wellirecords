@@ -51,7 +51,7 @@ export function RequireRole({ children, allow }: RequireRoleProps) {
   const storedUser = userstored ? JSON.parse(userstored) : null;
 
   if (!user || !storedUser) {
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    return <Navigate to="/auth/pre-login" state={{ from: location }} replace />;
   }
 
   function isPermitted(
