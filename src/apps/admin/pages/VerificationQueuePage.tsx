@@ -13,7 +13,7 @@ function StatusBadge({ status }: { status: string }) {
         approved: { color: '#10b981', bg: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.25)', label: 'Approved', icon: CheckCircle },
         rejected: { color: '#ef4444', bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.25)', label: 'Rejected', icon: XCircle },
         flagged: { color: '#8b5cf6', bg: 'rgba(139,92,246,0.1)', border: 'rgba(139,92,246,0.25)', label: 'Flagged', icon: AlertTriangle },
-        more_info_requested: { color: '#38bdf8', bg: 'rgba(56,189,248,0.1)', border: 'rgba(56,189,248,0.25)', label: 'More Info Req.', icon: MessageSquare },
+        more_info_requested: { color: '#38bdf8', bg: 'rgba(56,189,248,0.1)', border: 'rgba(56,189,248,0.25)', label: 'Awaiting Info', icon: MessageSquare },
     };
     const s = map[status] ?? map.pending;
     const Icon = s.icon;
@@ -32,7 +32,7 @@ const TYPE_ICONS: Record<string, React.ElementType> = {
 const TABS = [
     { key: undefined as undefined | string, label: 'All' },
     { key: 'pending', label: 'Pending' },
-    { key: 'more_info_requested', label: 'More Info' },
+    { key: 'more_info_requested', label: 'Awaiting Info' },
     { key: 'approved', label: 'Approved' },
     { key: 'rejected', label: 'Rejected' },
 ];
@@ -61,7 +61,7 @@ export function VerificationQueuePage() {
             <div className="flex flex-wrap gap-3">
                 {[
                     { label: 'Pending', count: countByStatus('pending'), color: '#f59e0b' },
-                    { label: 'More Info', count: countByStatus('more_info_requested'), color: '#38bdf8' },
+                    { label: 'Awaiting Info', count: countByStatus('more_info_requested'), color: '#38bdf8' },
                     { label: 'Approved', count: countByStatus('approved'), color: '#10b981' },
                     { label: 'Rejected', count: countByStatus('rejected'), color: '#ef4444' },
                 ].map(c => (

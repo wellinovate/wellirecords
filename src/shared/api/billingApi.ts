@@ -54,13 +54,13 @@ export const MOCK_INVOICES: Invoice[] = [
 // ─── Revenue stats ────────────────────────────────────────────────────────────
 
 export const MOCK_REVENUE = {
-    mrrKobo: 40150000,    // ₦401,500 / month
-    arrKobo: 481800000,   // ₦4,818,000 / year
+    mrrKobo: 60800000,    // ₦608,000 / month
+    arrKobo: 729600000,   // ₦7,296,000 / year
     newSubscriptionsThisMonth: 8,
     churnedThisMonth: 1,
     planBreakdown: [
         { planName: 'Facility Enterprise', count: 1, revenueKobo: 20000000 },
-        { planName: 'Facility Professional', count: 2, revenueKobo: 15000000 },
+        { planName: 'Facility Professional', count: 2, revenueKobo: 30000000 },
         { planName: 'Facility Basic', count: 3, revenueKobo: 7500000 },
         { planName: 'Patient Premium', count: 22, revenueKobo: 3300000 },
     ],

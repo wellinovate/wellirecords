@@ -61,7 +61,7 @@ function StatusBadge({ status }: { status: string }) {
         approved: { color: '#10b981', bg: 'rgba(16,185,129,0.1)', label: 'Approved' },
         rejected: { color: '#ef4444', bg: 'rgba(239,68,68,0.1)', label: 'Rejected' },
         flagged: { color: '#8b5cf6', bg: 'rgba(139,92,246,0.1)', label: 'Flagged' },
-        more_info_requested: { color: '#38bdf8', bg: 'rgba(56,189,248,0.1)', label: 'More Info' },
+        more_info_requested: { color: '#38bdf8', bg: 'rgba(56,189,248,0.1)', label: 'Awaiting Info' },
     };
     const s = map[status] ?? map.pending;
     return (

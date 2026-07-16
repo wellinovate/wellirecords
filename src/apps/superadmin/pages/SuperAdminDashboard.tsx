@@ -97,7 +97,7 @@ function StatusBadge({ status }: { status: string }) {
         approved: { color: '#10b981', bg: 'rgba(16,185,129,0.1)', label: 'Approved' },
         rejected: { color: '#ef4444', bg: 'rgba(239,68,68,0.1)', label: 'Rejected' },
         flagged: { color: '#8b5cf6', bg: 'rgba(139,92,246,0.1)', label: 'Flagged' },
-        more_info_requested: { color: '#38bdf8', bg: 'rgba(56,189,248,0.1)', label: 'More Info' },
+        more_info_requested: { color: '#38bdf8', bg: 'rgba(56,189,248,0.1)', label: 'Awaiting Info' },
     };
     const s = map[status] ?? map.pending;
     return (
@@ -133,23 +133,27 @@ export function SuperAdminDashboard() {
                         </span>
                     </div>
                     <h1 className="text-2xl font-black" style={{ color: '#f1f5f9' }}>
-                        Welcome back, {user?.name?.split(' ')[0] ?? 'Admin'} 👋
+                        Welcome back, {user?.fullName ?? user?.name?.split(' ')[0] ?? 'Admin'}
                     </h1>
                     <p className="text-sm mt-1" style={{ color: '#475569' }}>
                         Platform-wide overview · {now}
                     </p>
                 </div>
-                <div
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold self-start flex-shrink-0"
-                    style={{ background: 'rgba(16,185,129,0.08)', color: '#10b981', border: '1px solid rgba(16,185,129,0.2)' }}
+                <button
+                    onClick={() => navigate('/super-admin/system-health')}
+                    className="text-xs font-bold hover:underline self-start flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all"
+                    style={{
+                        background: 'rgba(52,211,153,0.05)',
+                        borderColor: 'rgba(52,211,153,0.15)',
+                        color: '#34d399',
+                    }}
                 >
-                    <CheckCircle size={14} />
-                    {stats.systemHealthMessage}
-                </div>
+                    <Activity size={12} /> System status
+                </button>
             </div>
 
             {/* ─── KPI Grid ─── */}
-            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                 <KpiCard
                     label="Total Patients" value={stats.totalPatients.toLocaleString()}
                     sub="+312 this month" trend="up" icon={Users} accent="#38bdf8"
@@ -174,12 +178,6 @@ export function SuperAdminDashboard() {
                     sub="Last 30 days" icon={Server} accent="#34d399"
                     onClick={() => navigate('/super-admin/system-health')}
                 />
-                <KpiCard
-                    label="Total MRR" value={formatNaira(rev.mrrKobo)}
-                    sub={`+${rev.newSubscriptionsThisMonth} new subs`} trend="up"
-                    icon={CreditCard} accent="#f472b6"
-                    onClick={() => navigate('/super-admin/revenue')}
-                />
             </div>
 
             {/* ─── Command Centre ─── */}
@@ -190,12 +188,11 @@ export function SuperAdminDashboard() {
                         Command Centre
                     </h2>
                 </div>
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
                     <CommandTile label="Impersonation Log" icon={Eye} accent="#a78bfa" to="/super-admin/impersonation" />
                     <CommandTile label="Feature Flags" icon={Flag} accent="#38bdf8" to="/super-admin/feature-flags" />
                     <CommandTile label="Broadcast Message" icon={MessageSquare} accent="#34d399" to="/super-admin/broadcast" />
                     <CommandTile label="Audit Search" icon={Search} accent="#f59e0b" to="/super-admin/audit" />
-                    <CommandTile label="Incident Log" icon={Flame} accent="#f87171" to="/super-admin/incidents" />
                     <CommandTile label="Permission History" icon={Shield} accent="#fb923c" to="/super-admin/permissions" />
                 </div>
             </div>
@@ -283,34 +280,6 @@ export function SuperAdminDashboard() {
                             <span className="font-black" style={{ color: '#f472b6' }}>{formatNaira(rev.mrrKobo)}</span>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            {/* ─── Governance & Security Quick Links ─── */}
-            <div>
-                <div className="flex items-center gap-2 mb-4">
-                    <AlertTriangle size={14} style={{ color: '#f87171' }} />
-                    <h2 className="text-sm font-black uppercase tracking-widest" style={{ color: '#f87171' }}>
-                        Security & Governance
-                    </h2>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {[
-                        { label: 'Security Alerts', to: '/super-admin/security', icon: AlertTriangle, accent: '#f87171' },
-                        { label: 'Audit Trail', to: '/super-admin/audit', icon: Activity, accent: '#38bdf8' },
-                        { label: 'Consent Governance', to: '/super-admin/consent', icon: Lock, accent: '#a78bfa' },
-                        { label: 'Data Retention', to: '/super-admin/retention', icon: Shield, accent: '#34d399' },
-                    ].map(a => (
-                        <button
-                            key={a.to}
-                            onClick={() => navigate(a.to)}
-                            className="flex flex-col items-center gap-2 p-4 rounded-xl font-medium text-sm transition-all hover:scale-105"
-                            style={{ background: '#0d1233', border: `1px solid ${a.accent}20`, color: a.accent }}
-                        >
-                            <a.icon size={20} />
-                            <span className="text-xs text-center font-bold" style={{ color: '#94a3b8' }}>{a.label}</span>
-                        </button>
-                    ))}
                 </div>
             </div>
         </div>
