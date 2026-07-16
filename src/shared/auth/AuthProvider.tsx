@@ -250,6 +250,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInAsRole = (role: UserRole): AuthUser => {
     const u = authApi.signInAsRole(role);
     setUser(u);
+    localStorage.setItem(
+      "ui_user",
+      JSON.stringify({
+        id: u.userId,
+        accountType: role === "patient" ? "user" : "organization",
+        ...u
+      }),
+    );
     return u;
   };
 

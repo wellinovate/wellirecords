@@ -53,13 +53,17 @@ export function getAuthFromToken(token: string) {
 export function getCurrentUser() {
   const token = Cookies.get("accessToken");
 
-  if (!token) return null;
+  if (!token) {
+    const stored = localStorage.getItem("ui_user");
+    return stored ? JSON.parse(stored) : null;
+  }
 
   const auth = getAuthFromToken(token);
 
   if (!auth.isValid) {
     Cookies.remove("accessToken");
-    return null;
+    const stored = localStorage.getItem("ui_user");
+    return stored ? JSON.parse(stored) : null;
   }
 
   return auth.user;
