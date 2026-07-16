@@ -3,12 +3,12 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || (typeof process !== "undefined" ? process.env.NEXT_PUBLIC_FIREBASE_API_KEY : ""),
+  apiKey: "AIzaSyD2k1iCQ8Z4O1YiHyF04Ec_oyHrTfm9RaQ",
   authDomain: "wellirecord-b977f.firebaseapp.com",
   projectId: "wellirecord-b977f",
   storageBucket: "wellirecord-b977f.firebasestorage.app",
   messagingSenderId: "898120818136",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || (typeof process !== "undefined" ? process.env.NEXT_PUBLIC_FIREBASE_APP_ID : ""),
+  appId: "1:898120818136:web:237dcb9165e3c9796266ad",
 };
 
 const app = initializeApp(firebaseConfig);
