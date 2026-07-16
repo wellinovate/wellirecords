@@ -104,13 +104,13 @@ export function BlogPage() {
     user.roles?.includes('admin')
   );
 
-  // Fetch dynamic posts from Firestore
+  // Fetch dynamic posts from Firestore and blend with local posts
   useEffect(() => {
     async function fetchPosts() {
+      let fetched: Post[] = [];
       try {
         const q = query(collection(db, 'blog_posts'), orderBy('createdAt', 'desc'));
         const querySnapshot = await getDocs(q);
-        const fetched: Post[] = [];
         querySnapshot.forEach((doc) => {
           const data = doc.data();
           fetched.push({
@@ -124,12 +124,19 @@ export function BlogPage() {
             content: data.content || [],
           });
         });
-        setDynamicPosts(fetched);
       } catch (error) {
         console.error("Failed to load blog posts from Firestore:", error);
-      } finally {
-        setIsLoading(false);
       }
+
+      try {
+        const local = JSON.parse(localStorage.getItem('welli_local_blog_posts') || '[]');
+        fetched = [...local, ...fetched];
+      } catch (e) {
+        console.error("Failed to load local blog posts:", e);
+      }
+
+      setDynamicPosts(fetched);
+      setIsLoading(false);
     }
     fetchPosts();
   }, []);

@@ -21,26 +21,38 @@ export function BlogManagementPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch posts from Firestore
+  // Fetch posts from Firestore and blend with local posts
   useEffect(() => {
     async function fetchPosts() {
       try {
-        const q = query(collection(db, 'blog_posts'), orderBy('createdAt', 'desc'));
-        const querySnapshot = await getDocs(q);
-        const fetched: BlogPost[] = [];
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          fetched.push({
-            slug: data.slug,
-            title: data.title,
-            excerpt: data.excerpt,
-            date: data.date,
-            readTime: data.readTime,
-            author: data.author,
-            category: data.category,
-            isStatic: false
+        let fetched: BlogPost[] = [];
+        try {
+          const q = query(collection(db, 'blog_posts'), orderBy('createdAt', 'desc'));
+          const querySnapshot = await getDocs(q);
+          querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            fetched.push({
+              slug: data.slug,
+              title: data.title,
+              excerpt: data.excerpt,
+              date: data.date,
+              readTime: data.readTime,
+              author: data.author,
+              category: data.category,
+              isStatic: false
+            });
           });
-        });
+        } catch (error) {
+          console.error("Failed to load blog posts from Firestore:", error);
+        }
+
+        try {
+          const local = JSON.parse(localStorage.getItem('welli_local_blog_posts') || '[]');
+          const localMapped = local.map((p: any) => ({ ...p, isStatic: false, isLocal: true }));
+          fetched = [...localMapped, ...fetched];
+        } catch (e) {
+          console.error("Failed to load local blog posts:", e);
+        }
 
         // Add static placeholders for complete list
         const staticPlaceholders: BlogPost[] = [
@@ -109,6 +121,17 @@ export function BlogManagementPage() {
     }
 
     try {
+      const localPosts = JSON.parse(localStorage.getItem('welli_local_blog_posts') || '[]');
+      const isLocal = localPosts.some((p: any) => p.slug === slug);
+
+      if (isLocal) {
+        const filtered = localPosts.filter((p: any) => p.slug !== slug);
+        localStorage.setItem('welli_local_blog_posts', JSON.stringify(filtered));
+        setPosts(prev => prev.filter(p => p.slug !== slug));
+        toast.success("Article deleted successfully (removed locally).");
+        return;
+      }
+
       await deleteDoc(doc(db, 'blog_posts', slug));
       setPosts(prev => prev.filter(p => p.slug !== slug));
       toast.success("Article deleted successfully.");
