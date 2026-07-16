@@ -190,6 +190,26 @@ export function TeamManagementPage() {
 
     const sendInvite = () => {
         setSent(true);
+        fetch("/api/send-email", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                to: inviteEmail,
+                templateId: "provider-welcome",
+                variables: {
+                    providerName: inviteName,
+                    facilityName: org?.name || user?.orgName || "WelliRecord Partner",
+                    organizationId: user?.orgId || "ORG-" + Math.floor(100000 + Math.random() * 900000),
+                    providerDashboardUrl: `${window.location.origin}/provider/dashboard`,
+                    dashboardUrl: `${window.location.origin}/dashboard`,
+                    privacyPolicyUrl: `${window.location.origin}/privacy`,
+                    contactSupportUrl: `${window.location.origin}/support`
+                }
+            })
+        }).catch(err => console.error("Failed to send invite email:", err));
+
         setTimeout(() => { setSent(false); setShowInvite(false); setInviteEmail(''); setInviteName(''); }, 2000);
     };
 

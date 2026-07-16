@@ -400,6 +400,25 @@ export function ProviderSignupPage() {
       const resp = await signUpProvider(payload);
 
       if (resp === "Account created successfully") {
+        fetch("/api/send-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            to: payload.email,
+            templateId: "provider-welcome",
+            variables: {
+              providerName: payload.contactPersonName,
+              facilityName: payload.organizationName,
+              organizationId: "ORG-" + Math.floor(100000 + Math.random() * 900000),
+              providerDashboardUrl: `${window.location.origin}/provider/dashboard`,
+              dashboardUrl: `${window.location.origin}/dashboard`,
+              privacyPolicyUrl: `${window.location.origin}/privacy`,
+              contactSupportUrl: `${window.location.origin}/support`
+            }
+          })
+        }).catch(err => console.error("Failed to send welcome email:", err));
         navigate("/auth/login");
       }
     } catch (error: any) {
@@ -440,6 +459,25 @@ export function ProviderSignupPage() {
       const resp = await signUpProvider(payload);
 
       if (resp === "Account created successfully") {
+        fetch("/api/send-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            to: payload.email,
+            templateId: "provider-welcome",
+            variables: {
+              providerName: payload.contactPersonName,
+              facilityName: "Individual Practice",
+              organizationId: "IND-" + Math.floor(100000 + Math.random() * 900000),
+              providerDashboardUrl: `${window.location.origin}/provider/dashboard`,
+              dashboardUrl: `${window.location.origin}/dashboard`,
+              privacyPolicyUrl: `${window.location.origin}/privacy`,
+              contactSupportUrl: `${window.location.origin}/support`
+            }
+          })
+        }).catch(err => console.error("Failed to send welcome email:", err));
         navigate("/auth/login");
       }
     } catch (error: any) {

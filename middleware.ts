@@ -1,4 +1,4 @@
-4const BOT_USER_AGENTS = [
+const BOT_USER_AGENTS = [
   'googlebot',
   'yahoo! slurp',
   'bingbot',

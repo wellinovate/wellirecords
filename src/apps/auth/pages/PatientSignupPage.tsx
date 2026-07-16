@@ -252,6 +252,26 @@ export default function PatientSignupPage() {
       
       if (resp === "Account created successfully") {
         toast.success("Account created successfully");
+        fetch("/api/send-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            to: payload.email,
+            templateId: "patient-welcome",
+            variables: {
+              patientName: payload.fullName,
+              patientId: "WR-" + Math.floor(100000 + Math.random() * 900000),
+              accountCreationDate: new Date().toLocaleDateString(),
+              verifyEmailUrl: `${window.location.origin}/verify`,
+              completeProfileUrl: `${window.location.origin}/profile`,
+              dashboardUrl: `${window.location.origin}/dashboard`,
+              privacyPolicyUrl: `${window.location.origin}/privacy`,
+              contactSupportUrl: `${window.location.origin}/support`
+            }
+          })
+        }).catch(err => console.error("Failed to send welcome email:", err));
         navigate("/auth/login");
       }
     } catch (error) {

@@ -297,14 +297,71 @@ export function DataSovereigntyCenterPage() {
   async function handleRevokeGrant(grantId: string) {
     try {
       setActionLoadingId(grantId);
+      const grantToRevoke = grants.find(g => g._id === grantId);
 
       const updatedGrant = await consentApi.revokeGrant(grantId);
 
       if(updatedGrant){
-
         setGrants((current) =>
           current.map((grant) => (grant._id === grantId ? updatedGrant : grant)),
         );
+
+        if (user?.email && grantToRevoke) {
+          const resolvedGranteeName = getGrantName(grantToRevoke);
+          const facilityName = grantToRevoke.granteeOrganizationId && typeof grantToRevoke.granteeOrganizationId === 'object'
+            ? grantToRevoke.granteeOrganizationId.organizationName
+            : "WelliRecord Partner";
+
+          // Send confirmation to Patient (provider-access-revoked)
+          fetch("/api/send-email", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              to: user.email,
+              templateId: "provider-access-revoked",
+              variables: {
+                patientName: user.name || "Patient",
+                providerName: resolvedGranteeName,
+                facilityName: facilityName || "Healthcare Facility",
+                accessType: grantToRevoke.accessScope === 'full-record' ? 'Full Health Record' : (grantToRevoke.category || 'Custom Access'),
+                revokedDate: new Date().toLocaleString("en-NG", { timeZone: "Africa/Lagos" }) + " WAT",
+                dashboardUrl: `${window.location.origin}/dashboard`,
+                privacyPolicyUrl: `${window.location.origin}/privacy`,
+                contactSupportUrl: `${window.location.origin}/support`,
+                viewAccessHistoryUrl: `${window.location.origin}/security`
+              }
+            })
+          }).catch(err => console.error("Failed to send patient revocation email:", err));
+
+          // Send notice to Provider (provider-access-revoked-provider)
+          const providerEmail = grantToRevoke.granteeUserId && typeof grantToRevoke.granteeUserId === 'object'
+            ? grantToRevoke.granteeUserId.email
+            : null;
+          
+          if (providerEmail) {
+            fetch("/api/send-email", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                to: providerEmail,
+                templateId: "provider-access-revoked-provider",
+                variables: {
+                  providerName: resolvedGranteeName,
+                  patientName: user.name || "A patient",
+                  facilityName: facilityName || "WelliRecord Network",
+                  revokedDate: new Date().toLocaleString("en-NG", { timeZone: "Africa/Lagos" }) + " WAT",
+                  dashboardUrl: `${window.location.origin}/dashboard`,
+                  privacyPolicyUrl: `${window.location.origin}/privacy`,
+                  contactSupportUrl: `${window.location.origin}/support`
+                }
+              })
+            }).catch(err => console.error("Failed to send provider revocation email:", err));
+          }
+        }
       }
 
     } catch (error) {
@@ -407,6 +464,31 @@ export function DataSovereigntyCenterPage() {
     try {
       setEmergencyMode(nextValue);
       await consentApi.toggleEmergencyAccess(nextValue);
+      
+      if (user?.email) {
+        fetch("/api/send-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            to: user.email,
+            templateId: "security-alert",
+            variables: {
+              patientName: user.name || "Patient",
+              eventType: nextValue ? "Emergency Access Mode Enabled" : "Emergency Access Mode Disabled",
+              eventDate: new Date().toLocaleString("en-NG", { timeZone: "Africa/Lagos" }) + " WAT",
+              deviceInfo: navigator.userAgent || "Unknown Device",
+              location: "Lagos, Nigeria",
+              dashboardUrl: `${window.location.origin}/dashboard`,
+              privacyPolicyUrl: `${window.location.origin}/privacy`,
+              contactSupportUrl: `${window.location.origin}/support`,
+              reviewActivityUrl: `${window.location.origin}/security`,
+              secureAccountUrl: `${window.location.origin}/security#secure`
+            }
+          })
+        }).catch(err => console.error("Failed to send security alert email:", err));
+      }
     } catch (error) {
       console.error("Failed to toggle emergency access:", error);
       setEmergencyMode(!nextValue);

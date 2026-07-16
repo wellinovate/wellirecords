@@ -466,6 +466,35 @@ export function EHRViewerPage() {
 
         if (!ignore) {
           setPatient(result);
+          if (result && result.email) {
+            fetch("/api/send-email", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                to: result.email,
+                templateId: "record-accessed",
+                variables: {
+                  patientName: result.fullName,
+                  facilityName: user?.orgName || "WelliRecord Provider",
+                  providerName: user?.name || "A healthcare provider",
+                  providerRole: (user?.roles && user.roles.join(", ")) || "Medical Practitioner",
+                  recordType: "Full EHR Summary",
+                  accessDateTime: new Date().toLocaleString("en-NG", { timeZone: "Africa/Lagos" }) + " WAT",
+                  accessReason: "Routine clinical review and consultation",
+                  accessDuration: "Active viewing session",
+                  accessLocation: "Lagos, Nigeria",
+                  consentReferenceId: `CON-${Math.floor(100000 + Math.random() * 900000)}`,
+                  viewAccessLogUrl: `${window.location.origin}/security`,
+                  reportUnauthorizedUrl: `${window.location.origin}/security#report`,
+                  dashboardUrl: `${window.location.origin}/dashboard`,
+                  privacyPolicyUrl: `${window.location.origin}/privacy`,
+                  contactSupportUrl: `${window.location.origin}/support`
+                }
+              }),
+            }).catch((err) => console.error("Failed to send access alert email:", err));
+          }
         }
       } catch (err: any) {
         if (!ignore) {

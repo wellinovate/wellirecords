@@ -226,7 +226,7 @@ export function SuperAdminPlatformSettings() {
                             {activeTab === 'notifications' && (
                                 <>
                                     {renderConfigRow('smtp_host', 'Fully Qualified Domain Name of the default SMTP mail relay server.')}
-                                    {renderConfigRow('sms_gateway', 'Primary SMS provider for OTPs and appointment reminders (Ensure local market compatibility like Termii).')}
+                                    {renderConfigRow('sms_gateway', 'Primary SMS provider for OTPs and appointment reminders (Ensure local market compatibility like ).')}
                                     {renderConfigRow('sms_sender_id', 'Alphanumeric Sender ID registered with local telecom regulators.')}
                                 </>
                             )}
