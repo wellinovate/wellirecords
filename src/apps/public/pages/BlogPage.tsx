@@ -110,8 +110,15 @@ export function BlogPage() {
       let fetched: Post[] = [];
       try {
         const q = query(collection(db, 'blog_posts'), orderBy('createdAt', 'desc'));
-        const querySnapshot = await getDocs(q);
-        querySnapshot.forEach((doc) => {
+        
+        const fetchPromise = getDocs(q);
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Firestore fetch timeout')), 3000)
+        );
+
+        const querySnapshot = (await Promise.race([fetchPromise, timeoutPromise])) as any;
+        
+        querySnapshot.forEach((doc: any) => {
           const data = doc.data();
           fetched.push({
             slug: data.slug,
@@ -125,7 +132,7 @@ export function BlogPage() {
           });
         });
       } catch (error) {
-        console.error("Failed to load blog posts from Firestore:", error);
+        console.warn("Failed to load blog posts from Firestore:", error);
       }
 
       try {
