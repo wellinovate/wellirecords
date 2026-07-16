@@ -4,20 +4,13 @@ import { Activity, Eye, User, Shield, Clock, AlertTriangle } from 'lucide-react'
 
 export function PlatformAuditPage() {
     const impersonations = adminApi.getImpersonationLogs();
-
-    // Mock cross-facility audit events
-    const auditEvents = [
-        { id: 'ae_001', actor: 'Dr. Fatima Aliyu', role: 'clinician', org: 'Lagos General', action: 'view_ehr_full', target: 'Amara Okafor', at: '2026-03-03T14:52:00Z', ipAddress: '102.88.77.12' },
-        { id: 'ae_002', actor: 'Admin (Tolu Adeyemi)', role: 'super_admin', org: 'WelliRecord Ops', action: 'impersonate_user', target: 'Amara Okafor', at: '2026-03-01T14:23:00Z', ipAddress: '197.232.84.11' },
-        { id: 'ae_003', actor: 'Lab Tech (James)', role: 'lab_tech', org: 'CityLab Diagnostics', action: 'upload_imaging', target: 'Emeka Nwosu', at: '2026-03-03T11:10:00Z', ipAddress: '41.203.64.5' },
-        { id: 'ae_004', actor: 'Dr. Emeka Okonkwo', role: 'clinician', org: 'Reddington Hospital', action: 'new_encounter', target: 'Patient #0198', at: '2026-03-03T09:38:00Z', ipAddress: '196.12.45.90' },
-        { id: 'ae_005', actor: 'Front Desk (Blessing)', role: 'front_desk', org: 'Lagos General', action: 'manage_appointments', target: 'Walk-in Patient', at: '2026-03-03T08:05:00Z', ipAddress: '102.88.77.13' },
-    ];
+    const auditEvents = adminApi.getAuditEvents();
 
     const ACTION_COLORS: Record<string, string> = {
         view_ehr_full: '#38bdf8', impersonate_user: '#ef4444',
         upload_imaging: '#a78bfa', new_encounter: '#10b981',
         manage_appointments: '#f59e0b',
+        escalate_alert: '#f59e0b', create_incident: '#ef4444',
     };
 
     return (
@@ -77,7 +70,7 @@ export function PlatformAuditPage() {
                 </div>
                 <div className="divide-y" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
                     {auditEvents.map(e => (
-                        <div key={e.id} className="flex items-center gap-4 px-5 py-3.5">
+                        <div key={e.id} className="flex items-center gap-4 px-5 py-3.5 animate-fade-in">
                             <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
                                 style={{ background: `${ACTION_COLORS[e.action] ?? '#6b7280'}18` }}>
                                 <Activity size={14} style={{ color: ACTION_COLORS[e.action] ?? '#6b7280' }} />

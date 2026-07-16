@@ -1,12 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AlertTriangle, Lock, Eye, Clock, CheckCircle, XCircle, Wifi } from 'lucide-react';
-
-const ALERTS = [
-    { id: 'sa_001', severity: 'high', type: 'Brute Force Attempt', detail: '14 failed login attempts for prov_user_009 from IP 185.220.101.44 (Tor exit node) — account temporarily locked.', occurredAt: '2026-03-03T13:47:00Z', status: 'open', ipAddress: '185.220.101.44' },
-    { id: 'sa_002', severity: 'medium', type: 'Unusual Data Export', detail: 'User lab_tech_004 (CityLab) exported 234 records in 3 minutes — 8× above normal pattern. Possible bulk data pull.', occurredAt: '2026-03-03T10:15:00Z', status: 'investigating', ipAddress: '41.203.64.5' },
-    { id: 'sa_003', severity: 'low', type: 'Login from New Country', detail: 'pat_001 (Amara Okafor) logged in from United Kingdom (IP: 5.62.12.100). First time from this location.', occurredAt: '2026-03-02T22:30:00Z', status: 'resolved', ipAddress: '5.62.12.100' },
-    { id: 'sa_004', severity: 'medium', type: 'Account Lockout', detail: 'prov_admin_003 (Reddington) account locked after 5 failed 2FA attempts. Admin notified.', occurredAt: '2026-03-02T18:05:00Z', status: 'resolved', ipAddress: '196.12.45.90' },
-];
+import { adminApi } from '@/shared/api/adminApi';
+import { useAuth } from '@/shared/auth/AuthProvider';
 
 const SEV: Record<string, { color: string; bg: string; border: string; icon: React.ElementType }> = {
     high: { color: '#ef4444', bg: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.25)', icon: AlertTriangle },
@@ -18,11 +13,31 @@ const STATUS_B: Record<string, { color: string; bg: string; icon: React.ElementT
     open: { color: '#ef4444', bg: 'rgba(239,68,68,0.1)', icon: AlertTriangle, label: 'Open' },
     investigating: { color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', icon: Clock, label: 'Investigating' },
     resolved: { color: '#10b981', bg: 'rgba(16,185,129,0.1)', icon: CheckCircle, label: 'Resolved' },
+    escalated: { color: '#a78bfa', bg: 'rgba(167,139,250,0.1)', icon: CheckCircle, label: 'Escalated' },
 };
 
 export function SecurityAlertsPage() {
-    const openCount = ALERTS.filter(a => a.status === 'open').length;
-    const invCount = ALERTS.filter(a => a.status === 'investigating').length;
+    const { user } = useAuth();
+    const [alerts, setAlerts] = useState(() => adminApi.getSecurityAlerts());
+
+    const openCount = alerts.filter((a: any) => a.status === 'open').length;
+    const invCount = alerts.filter((a: any) => a.status === 'investigating').length;
+
+    const handleInvestigate = (id: string) => {
+        adminApi.updateAlertStatus(id, 'investigating');
+        setAlerts(adminApi.getSecurityAlerts());
+    };
+
+    const handleResolve = (id: string) => {
+        adminApi.updateAlertStatus(id, 'resolved');
+        setAlerts(adminApi.getSecurityAlerts());
+    };
+
+    const handleEscalate = (id: string) => {
+        const adminName = user?.fullName ?? user?.name ?? 'Super Admin';
+        adminApi.escalateAlert(id, adminName);
+        setAlerts(adminApi.getSecurityAlerts());
+    };
 
     return (
         <div className="animate-fade-in space-y-6">
@@ -40,16 +55,19 @@ export function SecurityAlertsPage() {
                     <Clock size={13} /> {invCount} Investigating
                 </div>
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-bold" style={{ background: '#111827', border: '1px solid rgba(16,185,129,0.2)', color: '#10b981' }}>
-                    <CheckCircle size={13} /> {ALERTS.filter(a => a.status === 'resolved').length} Resolved
+                    <CheckCircle size={13} /> {alerts.filter((a: any) => a.status === 'resolved').length} Resolved
+                </div>
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-bold" style={{ background: '#111827', border: '1px solid rgba(167,139,250,0.2)', color: '#a78bfa' }}>
+                    <CheckCircle size={13} /> {alerts.filter((a: any) => a.status === 'escalated').length} Escalated
                 </div>
             </div>
 
             {/* Alert cards */}
             <div className="space-y-3">
-                {ALERTS.map(a => {
-                    const sev = SEV[a.severity];
+                {alerts.map((a: any) => {
+                    const sev = SEV[a.severity] || SEV.low;
                     const SevIcon = sev.icon;
-                    const st = STATUS_B[a.status];
+                    const st = STATUS_B[a.status] || STATUS_B.open;
                     const StIcon = st.icon;
                     return (
                         <div key={a.id} className="rounded-2xl p-5"
@@ -74,13 +92,18 @@ export function SecurityAlertsPage() {
                                 </div>
                             </div>
                             <p className="text-sm leading-relaxed" style={{ color: '#9ca3af' }}>{a.detail}</p>
-                            {a.status !== 'resolved' && (
+                            {a.status !== 'resolved' && a.status !== 'escalated' && (
                                 <div className="flex gap-2 mt-3">
-                                    <button className="text-xs font-bold px-3 py-1 rounded-lg" style={{ background: 'rgba(16,185,129,0.1)', color: '#10b981' }}>Mark Resolved</button>
-                                    <button className="text-xs font-bold px-3 py-1 rounded-lg" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}>Escalate</button>
+                                    <button onClick={() => handleResolve(a.id)} className="text-xs font-bold px-3 py-1 rounded-lg hover:opacity-90 active:scale-95 transition-all" style={{ background: 'rgba(16,185,129,0.1)', color: '#10b981' }}>Mark Resolved</button>
+                                    <button onClick={() => handleEscalate(a.id)} className="text-xs font-bold px-3 py-1 rounded-lg hover:opacity-90 active:scale-95 transition-all" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}>Escalate to incident</button>
                                     {a.status === 'open' && (
-                                        <button className="text-xs font-bold px-3 py-1 rounded-lg" style={{ background: 'rgba(107,114,128,0.1)', color: '#9ca3af' }}>Start Investigation</button>
+                                        <button onClick={() => handleInvestigate(a.id)} className="text-xs font-bold px-3 py-1 rounded-lg hover:opacity-90 active:scale-95 transition-all" style={{ background: 'rgba(107,114,128,0.1)', color: '#9ca3af' }}>Start Investigation</button>
                                     )}
+                                </div>
+                            )}
+                            {a.status === 'escalated' && (
+                                <div className="text-xs mt-3 text-[#a78bfa] font-bold flex items-center gap-1.5">
+                                    <CheckCircle size={12} /> This alert has been escalated to the Incident Log and is tracked there.
                                 </div>
                             )}
                         </div>
