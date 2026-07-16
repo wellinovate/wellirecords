@@ -22,7 +22,8 @@ import LandingPages from "./apps/public/pages/LandingPages";
 
 // ─── Blog Page (lazy) ─────────────────────────────────────────────────────────
 const BlogPage = lazy(() => import("@/apps/public/pages/BlogPage").then(m => ({ default: m.BlogPage })));
-const BlogAdminPage = lazy(() => import("@/apps/public/pages/BlogAdminPage").then(m => ({ default: m.BlogAdminPage })));
+const BlogAdminPage = lazy(() => import("@/apps/admin/pages/BlogAdminPage").then(m => ({ default: m.BlogAdminPage })));
+const BlogManagementPage = lazy(() => import("@/apps/admin/pages/BlogManagementPage").then(m => ({ default: m.BlogManagementPage })));
 
 // ─── Auth Pages (lazy) ────────────────────────────────────────────────────────
 const AuthGatewayPage       = lazy(() => import("@/apps/auth/pages/AuthGatewayPage").then(m => ({ default: m.AuthGatewayPage })));
@@ -142,7 +143,6 @@ export function AppRoutes() {
         <Route path="/terms" element={<TermsOfServicePage />} />
         <Route path="/about" element={<AboutUsPage />} />
         <Route path="/blog" element={<BlogPage />} />
-        <Route path="/blog/write" element={<RequireRole allow="organization"><BlogAdminPage /></RequireRole>} />
         <Route path="/blog/:slug" element={<BlogPage />} />
 
         {/* Auth */}
@@ -291,6 +291,8 @@ export function AppRoutes() {
           <Route path="incidents" element={<IncidentLogPage />} />
           <Route path="data-retention" element={<DataRetentionPage />} />
           <Route path="system-health" element={<SystemHealthPage />} />
+          <Route path="blog" element={<BlogManagementPage />} />
+          <Route path="blog/write" element={<BlogAdminPage />} />
         </Route>
 
         {/* ─── Super Admin Portal ─── */}

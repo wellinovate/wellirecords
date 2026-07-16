@@ -95,9 +95,10 @@ export function BlogPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
+  const [guestName, setGuestName] = useState('');
   const [isPostingComment, setIsPostingComment] = useState(false);
 
-  // Check if current user is an Admin to display the write button
+  // Check if current user is an Admin to display the dashboard edit link
   const isAdminUser = !!user && (
     user.roles?.includes('super_admin') || 
     user.roles?.includes('admin')
@@ -164,12 +165,19 @@ export function BlogPage() {
 
     setIsPostingComment(true);
     try {
-      const name = user?.name || user?.email || 'Anonymous';
-      let roleLabel = 'Patient';
-      if (user?.roles?.includes('super_admin') || user?.roles?.includes('admin')) {
-        roleLabel = 'Admin';
-      } else if (user?.accountType === 'organization') {
-        roleLabel = 'Provider';
+      const name = user
+        ? (user.name || user.email || 'Anonymous')
+        : (guestName.trim() || 'Guest');
+      
+      let roleLabel = 'Guest';
+      if (user) {
+        if (user.roles?.includes('super_admin') || user.roles?.includes('admin')) {
+          roleLabel = 'Admin';
+        } else if (user.accountType === 'organization') {
+          roleLabel = 'Provider';
+        } else {
+          roleLabel = 'Patient';
+        }
       }
 
       const commentData = {
@@ -189,6 +197,7 @@ export function BlogPage() {
       const docRef = await addDoc(collection(db, 'blog_posts', slug, 'comments'), commentData);
       setComments((prev) => [...prev, { id: docRef.id, ...commentData }]);
       setNewComment('');
+      if (!user) setGuestName(''); // clear guest name input
     } catch (error) {
       console.error("Failed to post comment:", error);
     } finally {
@@ -329,7 +338,8 @@ export function BlogPage() {
                         <span className={`px-2 py-0.5 rounded-full font-bold text-[9px] uppercase tracking-wider ${
                           c.role === 'Admin' ? 'bg-red-50 text-red-600 border border-red-100' :
                           c.role === 'Provider' ? 'bg-blue-50 text-blue-600 border border-blue-100' :
-                          'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                          c.role === 'Patient' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                          'bg-slate-200 text-slate-600 border border-slate-300'
                         }`}>
                           {c.role}
                         </span>
@@ -343,32 +353,55 @@ export function BlogPage() {
             )}
 
             {/* Add Comment Form */}
-            {user ? (
-              <form onSubmit={handleCommentSubmit} className="space-y-4 bg-slate-50/50 border border-slate-200/60 rounded-2xl p-6 mb-8">
+            <form onSubmit={handleCommentSubmit} className="space-y-4 bg-slate-50/50 border border-slate-200/60 rounded-2xl p-6 mb-8">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
                 <h4 className="text-sm font-bold text-[#071B3F]">Leave a Comment</h4>
-                <textarea
-                  required
-                  rows={4}
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Write a supportive comment, ask a question, or share your thoughts..."
-                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition text-sm leading-relaxed bg-white"
-                />
-                <div className="flex justify-end">
-                  <button
-                    type="submit"
-                    disabled={isPostingComment || !newComment.trim()}
-                    className="px-5 py-2.5 rounded-xl bg-[#071B3F] hover:bg-[#0c2d66] text-white transition text-xs font-semibold flex items-center gap-1.5 shadow-sm disabled:opacity-50"
-                  >
-                    {isPostingComment ? 'Posting...' : 'Post Comment'}
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-6 text-center text-sm text-slate-500 mb-8">
-                Please <Link to="/auth/pre-login" className="text-[#1e3a8a] font-bold hover:underline">log in</Link> to share your thoughts on this article.
+                {!user ? (
+                  <span className="text-[11px] text-slate-500">
+                    Anyone can comment. <Link to="/auth/pre-login" className="text-[#1e3a8a] font-bold hover:underline">Log in</Link> to get your verified account badge.
+                  </span>
+                ) : (
+                  <span className="text-[11px] text-[#1e3a8a] font-bold flex items-center gap-1">
+                    Logged in as: {user.name || user.email} ({user.roles?.includes('super_admin') || user.roles?.includes('admin') ? 'Admin' : user.accountType === 'organization' ? 'Provider' : 'Patient'})
+                  </span>
+                )}
               </div>
-            )}
+
+              {!user && (
+                <div className="max-w-xs">
+                  <label htmlFor="guestName" className="block text-[11px] font-bold text-slate-500 mb-1">
+                    Your Name (Optional)
+                  </label>
+                  <input
+                    id="guestName"
+                    type="text"
+                    value={guestName}
+                    onChange={(e) => setGuestName(e.target.value)}
+                    placeholder="Guest"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition text-xs bg-white"
+                  />
+                </div>
+              )}
+
+              <textarea
+                required
+                rows={4}
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Write a supportive comment, ask a question, or share your thoughts..."
+                className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition text-sm leading-relaxed bg-white"
+              />
+              
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  disabled={isPostingComment || !newComment.trim()}
+                  className="px-5 py-2.5 rounded-xl bg-[#071B3F] hover:bg-[#0c2d66] text-white transition text-xs font-semibold flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+                >
+                  {isPostingComment ? 'Posting...' : 'Post Comment'}
+                </button>
+              </div>
+            </form>
           </div>
 
           <div className="mt-12 pt-8 border-t border-slate-100 text-center">
@@ -400,10 +433,10 @@ export function BlogPage() {
           <div className="flex items-center gap-4">
             {isAdminUser && (
               <Link
-                to="/blog/write"
+                to="/admin/blog"
                 className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-blue-50 text-[#1e3a8a] border border-blue-200/50 hover:bg-blue-100 transition"
               >
-                <PenTool size={13} /> Write Article
+                <PenTool size={13} /> Manage Blog
               </Link>
             )}
             <button

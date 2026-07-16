@@ -21,6 +21,14 @@ service cloud.firestore {
              role in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles;
     }
     
+    // Check if the user has a platform admin role (admin or super_admin)
+    function isAdmin() {
+      return isAuthenticated() && 
+             'roles' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data &&
+             ('admin' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles ||
+              'super_admin' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles);
+    }
+    
     // Check if user is a patient
     function isPatient() {
       return isAuthenticated() && 
@@ -146,7 +154,14 @@ service cloud.firestore {
     // 8. Blog Posts Collection
     match /blog_posts/{postId} {
       allow read: if true;
-      allow write: if isProvider();
+      allow write: if isAdmin();
+
+      // Comments Subcollection
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if true;
+        allow update, delete: if false;
+      }
     }
   }
 }

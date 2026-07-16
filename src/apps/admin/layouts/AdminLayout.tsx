@@ -63,6 +63,10 @@ const ADMIN_NAV = [
         ],
     },
     {
+        group: 'Content Management',
+        items: [{ label: 'Blog Manager', to: '/admin/blog', icon: FileText }],
+    },
+    {
         group: 'System',
         items: [{ label: 'System Health', to: '/admin/system-health', icon: Server }],
     },
