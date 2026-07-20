@@ -1,4 +1,3 @@
-import puppeteer from 'puppeteer';
 import { preview } from 'vite';
 import fs from 'fs';
 import path from 'path';
@@ -15,10 +14,26 @@ const routes = [
   '/blog',
 ];
 
+const isVercel = !!process.env.VERCEL;
+
+async function getBrowser() {
+  if (isVercel) {
+    const puppeteer = (await import('puppeteer-core')).default;
+    const chromium = (await import('@sparticuz/chromium')).default;
+    return puppeteer.launch({
+      args: chromium.args,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
+    });
+  } else {
+    const puppeteer = (await import('puppeteer')).default;
+    return puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
+  }
+}
+
 async function run() {
   const server = await preview({ preview: { port: 4173 } });
-
-  const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
+  const browser = await getBrowser();
   const page = await browser.newPage();
 
   for (const route of routes) {
