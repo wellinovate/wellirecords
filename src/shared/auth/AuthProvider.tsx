@@ -48,7 +48,8 @@ type AuthContextValue = {
   createEncounter: (payload: any) => any;
   createProcedure: (payload: any) => any;
   signIn: (email: string, password: string) => AuthUser | null;
-  verifyLoginCodeApi:(challengeToken: string, code: string) => AuthUser | null;
+  verifyLoginCodeApi: (challengeToken: string, code: string) => AuthUser | null;
+  resendVerifyLoginCodeApi: (challengeToken: string) => any;
   handleGoogleCredentials: (
     response: GoogleCredentialResponse,
   ) => AuthUser | null;
@@ -91,7 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log("🚀 ~ signIn ~ account:", account)
     console.log("🚀 ~ signIn ~ profile:", profile)
 
-      // console.log("🚀 ~ verifyLoginCodeApi ~ profile?.fullName:", profile?.fullName)
+    // console.log("🚀 ~ verifyLoginCodeApi ~ profile?.fullName:", profile?.fullName)
     setUser({
       ...account,
       fullName: profile?.fullName,
@@ -108,6 +109,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }),
     );
     const auth = getAuthFromToken(res.data.accessToken);
+    return res;
+  };
+
+  const resendVerifyLoginCodeApi = async (challengeToken: string) => {
+    const res = await authApi.resendVerifyLoginCodeApi(challengeToken, "");
     return res;
   };
 
@@ -267,7 +273,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return u;
   };
 
-  const signUpProvider = async (payload: any ) => {
+  const signUpProvider = async (payload: any) => {
     const u = await authApi.signUpProvider(payload);
     console.log("🚀 ~ signUpProvider ~ u:", u);
     return u;
@@ -289,6 +295,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isProvider: user?.userType === "ORG_USER",
       signIn,
       verifyLoginCodeApi,
+      resendVerifyLoginCodeApi,
       handleGoogleCredentials,
       searchPatientRequest,
       searchDoctorRequest,
@@ -321,3 +328,4 @@ export function useAuth(): AuthContextValue {
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }
+

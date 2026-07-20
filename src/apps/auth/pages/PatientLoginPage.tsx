@@ -95,7 +95,7 @@ function TextInput({
 
 
 export function PatientLoginPage() {
-  const { setUser, verifyLoginCodeApi, signIn } = useAuth();
+  const { setUser, verifyLoginCodeApi, signIn, resendVerifyLoginCodeApi } = useAuth();
   const navigate = useNavigate();
 
   const googleBtnRef = useRef<HTMLDivElement | null>(null);
@@ -103,8 +103,8 @@ export function PatientLoginPage() {
   const [profileType, setProfileType] = useState("Personal");
 
   const [step, setStep] = useState<LoginStep>("credentials");
-const [isCodeValid, setIsCodeValid] = useState(false);
-const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
+  const [isCodeValid, setIsCodeValid] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
 
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -135,40 +135,38 @@ const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
 
   useEffect(() => setIsCodeValid(code.length === 6), [code]);
 
-const handleResend = async () => {
-  try {
-    setCode("");         // clear existing OTP
-    setTimeLeft(300);    // reset countdown to 5 minutes
-    setError("");        // clear error messages
-
-    console.log("Resend code triggered");
-
-    // Call backend to resend OTP
-    const response = await fetch(`${apiUrl}/api/v1/auth/resend-verify-code`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email: form.email }), // use the user's email or account identifier
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || "Failed to resend OTP");
+  const handleResend = async () => {
+    if (!challengeToken) {
+      setError("Login session expired. Please start again.");
+      setStep("credentials");
+      return;
     }
 
-    // Update challenge token and optionally masked phone
-    setChallengeToken(data.data.challengeToken);
-    setMaskedPhone(data.data.maskedPhone);
+    try {
+      setCode("");         // clear existing OTP
+      setTimeLeft(300);    // reset countdown to 5 minutes
+      setError("");        // clear error messages
 
-    toast.success("OTP resent successfully");
+      const res = await resendVerifyLoginCodeApi(challengeToken);
+      const payload = res?.data || res;
 
-  } catch (err: any) {
-    console.error("Resend OTP error:", err);
-    toast.error(err.message || "Unable to resend OTP");
-  }
-};
+      if (!payload?.challengeToken) {
+        throw new Error("Failed to resend OTP");
+      }
+
+      // Update challenge token and optionally masked phone
+      setChallengeToken(payload.challengeToken);
+      setMaskedPhone(payload.maskedPhone || maskedPhone);
+
+      toast.success("OTP resent successfully");
+
+    } catch (err: any) {
+      console.error("Resend OTP error:", err);
+      const message =
+        err?.response?.data?.message || err?.message || "Unable to resend OTP";
+      toast.error(message);
+    }
+  };
 
   const redirectAfterLogin = (accountType?: string) => {
     localStorage.setItem("activeProfileType", profileType);
@@ -288,7 +286,7 @@ const handleResend = async () => {
     }
   };
 
- 
+
 
   const handleBackToCredentials = () => {
     setStep("credentials");
@@ -457,11 +455,10 @@ const handleResend = async () => {
                     <button
                       type="submit"
                       disabled={loading || googleLoading || !isFormValid}
-                      className={`flex h-[46px] w-full items-center justify-center gap-2 rounded-md text-[18px] font-semibold text-white transition ${
-                        loading || googleLoading || !isFormValid
-                          ? "cursor-not-allowed bg-gray-400"
-                          : "bg-[#071B3F] hover:bg-[#0c2d66]"
-                      }`}
+                      className={`flex h-[46px] w-full items-center justify-center gap-2 rounded-md text-[18px] font-semibold text-white transition ${loading || googleLoading || !isFormValid
+                        ? "cursor-not-allowed bg-gray-400"
+                        : "bg-[#071B3F] hover:bg-[#0c2d66]"
+                        }`}
                     >
                       {loading ? (
                         <>
@@ -509,28 +506,27 @@ const handleResend = async () => {
                     Verify Login
                   </h1>
 
-                    <form onSubmit={handleVerifyCode}>
-    <OTPForm
-      maskedPhone={maskedPhone}
-      code={code}
-      setCode={setCode}
-      isCodeValid={isCodeValid}
-      verifying={verifying}
-      handleResend={handleResend}
-      timeLeft={timeLeft}
-      setTimeLeft={setTimeLeft}
-    />
+                  <form onSubmit={handleVerifyCode}>
+                    <OTPForm
+                      maskedPhone={maskedPhone}
+                      code={code}
+                      setCode={setCode}
+                      isCodeValid={isCodeValid}
+                      verifying={verifying}
+                      handleResend={handleResend}
+                      timeLeft={timeLeft}
+                      setTimeLeft={setTimeLeft}
+                    />
 
-    <button
-      type="submit"
-      disabled={verifying || !isCodeValid}
-      className={`mt-6 w-full rounded-xl py-3 text-white font-bold transition-all ${
-        verifying || !isCodeValid ? "bg-gray-400 cursor-not-allowed" : "bg-[#071B3F] hover:bg-[#0c2d66]"
-      }`}
-    >
-      {verifying ? "Verifying..." : "Verify and Login"}
-    </button>
-  </form>
+                    <button
+                      type="submit"
+                      disabled={verifying || !isCodeValid}
+                      className={`mt-6 w-full rounded-xl py-3 text-white font-bold transition-all ${verifying || !isCodeValid ? "bg-gray-400 cursor-not-allowed" : "bg-[#071B3F] hover:bg-[#0c2d66]"
+                        }`}
+                    >
+                      {verifying ? "Verifying..." : "Verify and Login"}
+                    </button>
+                  </form>
                 </>
               )}
             </div>
