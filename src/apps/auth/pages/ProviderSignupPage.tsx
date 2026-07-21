@@ -114,9 +114,8 @@ function FormInput({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className={`h-[39px] w-full rounded-[9px] border bg-[#F8F8F8] px-4 text-[16px] md:text-[17px] text-[#384152] outline-none focus:bg-white ${
-          error ? "border-red-400" : "border-[#D7D7D7] focus:border-[#BFC9D8]"
-        }`}
+        className={`h-[39px] w-full rounded-[9px] border bg-[#F8F8F8] px-4 text-[16px] md:text-[17px] text-[#384152] outline-none focus:bg-white ${error ? "border-red-400" : "border-[#D7D7D7] focus:border-[#BFC9D8]"
+          }`}
       />
 
       {error ? <p className="mt-2 text-sm text-red-500">{error}</p> : null}
@@ -149,9 +148,8 @@ function FormSelect({
         <select
           value={value}
           onChange={onChange}
-          className={`h-[38px] w-full appearance-none rounded-[7px] border bg-[#F8F8F8] px-4 pr-12 text-[14px] md:text-[17px] text-[#384152] outline-none focus:bg-white ${
-            error ? "border-red-400" : "border-[#BFC9D8]"
-          }`}
+          className={`h-[38px] w-full appearance-none rounded-[7px] border bg-[#F8F8F8] px-4 pr-12 text-[14px] md:text-[17px] text-[#384152] outline-none focus:bg-white ${error ? "border-red-400" : "border-[#BFC9D8]"
+            }`}
         >
           {options.map((option) => (
             <option
@@ -246,41 +244,41 @@ export function ProviderSignupPage() {
 
   const updateOrganization =
     (key: keyof OrganizationForm) =>
-    (
-      e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLSelectElement>,
-    ) => {
-      const value =
-        key === "agree" && "checked" in e.target
-          ? e.target.checked
-          : e.target.value;
+      (
+        e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLSelectElement>,
+      ) => {
+        const value =
+          key === "agree" && "checked" in e.target
+            ? e.target.checked
+            : e.target.value;
 
-      setOrganizationForm((prev) => ({
-        ...prev,
-        [key]: value,
-      }));
+        setOrganizationForm((prev) => ({
+          ...prev,
+          [key]: value,
+        }));
 
-      setOrgErrors((prev) => ({ ...prev, [key]: "" }));
-      setGeneralError("");
-    };
+        setOrgErrors((prev) => ({ ...prev, [key]: "" }));
+        setGeneralError("");
+      };
 
   const updateIndividual =
     (key: keyof IndividualForm) =>
-    (
-      e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLSelectElement>,
-    ) => {
-      const value =
-        key === "agree" && "checked" in e.target
-          ? e.target.checked
-          : e.target.value;
+      (
+        e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLSelectElement>,
+      ) => {
+        const value =
+          key === "agree" && "checked" in e.target
+            ? e.target.checked
+            : e.target.value;
 
-      setIndividualForm((prev) => ({
-        ...prev,
-        [key]: value,
-      }));
+        setIndividualForm((prev) => ({
+          ...prev,
+          [key]: value,
+        }));
 
-      setIndividualErrors((prev) => ({ ...prev, [key]: "" }));
-      setGeneralError("");
-    };
+        setIndividualErrors((prev) => ({ ...prev, [key]: "" }));
+        setGeneralError("");
+      };
 
   const validateOrganization = () => {
     const errors: Record<string, string> = {};
@@ -419,7 +417,7 @@ export function ProviderSignupPage() {
             }
           })
         }).catch(err => console.error("Failed to send welcome email:", err));
-        navigate("/auth/login");
+        navigate("/auth/provider/login");
       }
     } catch (error: any) {
       console.log("Organization signup error:", error);
@@ -478,13 +476,13 @@ export function ProviderSignupPage() {
             }
           })
         }).catch(err => console.error("Failed to send welcome email:", err));
-        navigate("/auth/login");
+        navigate("/auth/provider/login");
       }
     } catch (error: any) {
       console.log("Individual provider signup error:", error);
       setGeneralError(
         error?.response?.data?.message ||
-          "Unable to create individual provider account",
+        "Unable to create individual provider account",
       );
     } finally {
       setLoading(false);
@@ -537,11 +535,10 @@ export function ProviderSignupPage() {
                       setActiveTab("organization");
                       setGeneralError("");
                     }}
-                    className={`h-[30px] rounded-xl text-[14px] md:text-[16px] font-semibold transition ${
-                      activeTab === "organization"
+                    className={`h-[30px] rounded-xl text-[14px] md:text-[16px] font-semibold transition ${activeTab === "organization"
                         ? "bg-[#062B67] text-white"
                         : "bg-[#F3F4F5] text-[#24416D]"
-                    }`}
+                      }`}
                   >
                     Organization
                   </button>
@@ -552,11 +549,10 @@ export function ProviderSignupPage() {
                       setActiveTab("individual");
                       setGeneralError("");
                     }}
-                    className={`h-[30px] rounded-xl text-[14px] md:text-[16px] font-semibold transition ${
-                      activeTab === "individual"
+                    className={`h-[30px] rounded-xl text-[14px] md:text-[16px] font-semibold transition ${activeTab === "individual"
                         ? "bg-[#062B67] text-white"
                         : "bg-[#F3F4F5] text-[#24416D]"
-                    }`}
+                      }`}
                   >
                     Individual Provider
                   </button>
@@ -818,9 +814,9 @@ export function ProviderSignupPage() {
                   <div className="h-px w-[84px] bg-[#D9D9D9]" />
                 </div>
 
-                
 
-                 <div className="mt-6 text-center text-[15px] text-[#5E5E5E]">
+
+                <div className="mt-6 text-center text-[15px] text-[#5E5E5E]">
                   Already have an account?{" "}
                   <button
                     type="button"

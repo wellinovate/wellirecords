@@ -553,7 +553,7 @@ export function ProviderLayout() {
                 </p>
 
                 <button
-                  onClick={() => navigate("/provider/verify")}
+                  onClick={() => navigate("/auth/provider/verify-org")}
                   className="w-full bg-[#2F915C] text-white py-2 rounded-md font-semibold"
                 >
                   Verification in Progress
