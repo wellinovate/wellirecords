@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { UserRole } from '@/shared/types/types';
 import { ROLE_METADATA } from '@/shared/rbac/permissions';
+import OTPForm from '@/apps/patient/components/OTPInput';
 
 const BRAND_FEATURES = [
     {
@@ -34,20 +35,32 @@ const BRAND_FEATURES = [
 
 const TRUST = ['SOC 2 Type II', 'ISO 27001', 'NDPA Compliant', 'Patient-first'];
 
+type LoginStep = 'credentials' | 'otp';
+
 export function ProviderLoginPage() {
     const navigate = useNavigate();
-    const { signIn, signInAsRole } = useAuth();
-    const [email, setEmail] = useState('fatima@lagosgeneral.ng');
-    const [password, setPassword] = useState('password');
+    const { signIn, signInAsRole, verifyLoginCodeApi, resendVerifyLoginCodeApi, setUser } = useAuth();
+    const [step, setStep] = useState<LoginStep>('credentials');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [verifying, setVerifying] = useState(false);
     const [showWeb3, setShowWeb3] = useState(false);
     const [web3Loading, setWeb3Loading] = useState(false);
     const [showRoleDrop, setShowRoleDrop] = useState(false);
     const [selectedRole, setSelectedRole] = useState<UserRole>('clinician');
     const roleDropRef = useRef<HTMLDivElement>(null);
 
+    const [code, setCode] = useState('');
+    const [isCodeValid, setIsCodeValid] = useState(false);
+    const [timeLeft, setTimeLeft] = useState(300);
+    const [challengeToken, setChallengeToken] = useState('');
+    const [maskedPhone, setMaskedPhone] = useState('');
+
     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    useEffect(() => setIsCodeValid(code.length === 6), [code]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -64,24 +77,116 @@ export function ProviderLoginPage() {
         navigate('/provider/overview');
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError('');
-        setTimeout(() => {
-            if (
-                email === 'fatima@lagosgeneral.ng' || 
-                email === 'support@wellirecord.com' ||
-                email === 'clinician@wellirecord.ng'
-            ) {
-                signInAsRole('clinician');
-                setLoading(false);
-                navigate('/provider/overview');
-            } else {
-                setLoading(false);
-                setError('Invalid credentials. Try: fatima@lagosgeneral.ng');
+
+        try {
+            const res = await signIn(email.trim().toLowerCase(), password);
+            const payload = res?.data || res;
+
+            if (!payload?.requiresOtp || !payload?.challengeToken) {
+                throw new Error('Login verification could not be started.');
             }
-        }, 600);
+
+            setChallengeToken(payload.challengeToken);
+            setMaskedPhone(payload.maskedPhone || 'your phone number');
+            setStep('otp');
+        } catch (err: any) {
+            const message =
+                err?.response?.data?.message ||
+                err?.message ||
+                'Invalid email or password. Try again.';
+            setError(message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleVerifyCode = async (e?: React.FormEvent) => {
+        e?.preventDefault();
+
+        if (!challengeToken) {
+            setError('Login session expired. Please start again.');
+            setStep('credentials');
+            return;
+        }
+
+        if (!isCodeValid) {
+            setError('Enter the 6-digit login code.');
+            return;
+        }
+
+        try {
+            setVerifying(true);
+            setError('');
+
+            const res = await verifyLoginCodeApi(challengeToken, code);
+            const payload = res?.data || res;
+
+            const account = payload?.account;
+            const profile = payload?.profile;
+
+            const uiUser = {
+                id: account?._id || account?.id,
+                sub: account?._id || account?.id,
+                accountType: account?.accountType,
+                role: account?.role,
+                orgId: account?._id || account?.id,
+                orgName: profile?.organizationName,
+                profile,
+            };
+
+            localStorage.setItem('ui_user', JSON.stringify(uiUser));
+            setUser?.(uiUser);
+
+            navigate('/provider/overview');
+        } catch (err: any) {
+            const message =
+                err?.response?.data?.message ||
+                err?.message ||
+                'Invalid or expired login code.';
+            setError(message);
+        } finally {
+            setVerifying(false);
+        }
+    };
+
+    const handleResend = async () => {
+        if (!challengeToken) {
+            setError('Login session expired. Please start again.');
+            setStep('credentials');
+            return;
+        }
+
+        try {
+            setCode('');
+            setTimeLeft(300);
+            setError('');
+
+            const res = await resendVerifyLoginCodeApi(challengeToken);
+            const payload = res?.data || res;
+
+            if (!payload?.challengeToken) {
+                throw new Error('Failed to resend OTP');
+            }
+
+            setChallengeToken(payload.challengeToken);
+            setMaskedPhone(payload.maskedPhone || maskedPhone);
+        } catch (err: any) {
+            const message =
+                err?.response?.data?.message || err?.message || 'Unable to resend OTP';
+            setError(message);
+        }
+    };
+
+    const handleBackToCredentials = () => {
+        setStep('credentials');
+        setCode('');
+        setChallengeToken('');
+        setMaskedPhone('');
+        setError('');
     };
 
     const handleWeb3 = () => {
@@ -159,16 +264,26 @@ export function ProviderLoginPage() {
                 <div className="w-full max-w-sm animate-fade-in-up">
                     {/* Back */}
                     <button
-                        onClick={() => navigate('/auth')}
+                        onClick={() => {
+                            if (step === 'otp') {
+                                handleBackToCredentials();
+                                return;
+                            }
+                            navigate('/auth');
+                        }}
                         className="flex items-center gap-2 mb-8 text-sm font-semibold hover:opacity-70 transition-opacity"
                         style={{ color: '#475569' }}
                     >
-                        <ArrowLeft size={15} /> Back to portal selection
+                        <ArrowLeft size={15} /> {step === 'otp' ? 'Back to sign in' : 'Back to portal selection'}
                     </button>
 
                     <div className="mb-7">
-                        <h1 className="font-black text-3xl leading-tight mb-1" style={{ color: '#1e293b' }}>Provider Sign In</h1>
-                        <p className="text-sm" style={{ color: '#64748b' }}>Organisation access portal</p>
+                        <h1 className="font-black text-3xl leading-tight mb-1" style={{ color: '#1e293b' }}>
+                            {step === 'otp' ? 'Verify Sign In' : 'Provider Sign In'}
+                        </h1>
+                        <p className="text-sm" style={{ color: '#64748b' }}>
+                            {step === 'otp' ? 'Enter the code sent to your organisation phone.' : 'Organisation access portal'}
+                        </p>
                     </div>
 
                     {error && (
@@ -178,155 +293,183 @@ export function ProviderLoginPage() {
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-semibold mb-1.5" style={{ color: '#1e293b' }}>
-                                Organisation email
-                            </label>
-                            <div className="relative">
-                                <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: '#64748b' }} />
-                                <input
-                                    type="email"
-                                    value={email}
-                                    onChange={e => setEmail(e.target.value)}
-                                    className="input input-light bg-white border-slate-200"
-                                    style={{ paddingLeft: '2.5rem' }}
-                                    placeholder="you@hospital.ng"
-                                    required
-                                />
-                            </div>
-                        </div>
+                    {step === 'otp' ? (
+                        <form onSubmit={handleVerifyCode} className="space-y-4">
+                            <OTPForm
+                                maskedPhone={maskedPhone}
+                                code={code}
+                                setCode={setCode}
+                                isCodeValid={isCodeValid}
+                                verifying={verifying}
+                                handleResend={handleResend}
+                                timeLeft={timeLeft}
+                                setTimeLeft={setTimeLeft}
+                            />
 
-                        <div>
-                            <div className="flex items-center justify-between mb-1.5">
-                                <label className="text-sm font-semibold" style={{ color: '#1e293b' }}>Password</label>
-                                <span className="text-xs font-semibold cursor-pointer hover:underline" style={{ color: '#1e3a8a' }}>
-                                    Forgot password?
-                                </span>
-                            </div>
-                            <div className="relative">
-                                <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: '#64748b' }} />
-                                <input
-                                    type="password"
-                                    value={password}
-                                    onChange={e => setPassword(e.target.value)}
-                                    className="input input-light bg-white border-slate-200"
-                                    style={{ paddingLeft: '2.5rem' }}
-                                    placeholder="Password"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 text-white transition-all hover:opacity-90 hover:-translate-y-0.5 shadow-sm"
-                            style={{ background: '#1e3a8a', opacity: loading ? 0.7 : 1, marginTop: '6px' }}
-                        >
-                            {loading ? 'Signing in…' : 'Sign In to Provider Portal'} {!loading && <ArrowRight size={15} />}
-                        </button>
-                    </form>
-
-                    {/* Web3 — demoted to subtle secondary option */}
-                    <div className="mt-5 text-center">
-                        {!showWeb3 ? (
                             <button
-                                onClick={() => setShowWeb3(true)}
-                                className="text-xs hover:underline transition-opacity hover:opacity-80"
-                                style={{ color: '#64748b' }}
+                                type="submit"
+                                disabled={verifying || !isCodeValid}
+                                className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 text-white transition-all hover:opacity-90 hover:-translate-y-0.5 shadow-sm"
+                                style={{ background: '#1e3a8a', opacity: (verifying || !isCodeValid) ? 0.7 : 1, marginTop: '6px' }}
                             >
-                                Sign in with Web3 wallet instead
+                                {verifying ? 'Verifying…' : 'Verify and Sign In'} {!verifying && <ArrowRight size={15} />}
                             </button>
-                        ) : (
-                            <button
-                                onClick={handleWeb3}
-                                disabled={web3Loading}
-                                className="w-full py-3 rounded-xl font-bold text-sm flex flex-row items-center justify-center gap-2 transition-all hover:bg-slate-50"
-                                style={{
-                                    color: '#1e3a8a',
-                                    border: '1.5px solid #cbd5e1',
-                                    opacity: web3Loading ? 0.7 : 1,
-                                }}
-                            >
-                                <Wallet size={14} /> {web3Loading ? 'Connecting…' : 'Connect Org Wallet (Web3)'}
-                            </button>
-                        )}
-                    </div>
-
-                    <p className="mt-6 text-center text-sm" style={{ color: '#64748b' }}>
-                        New organisation?{' '}
-                        <Link to="/auth/provider/signup" className="font-bold hover:underline" style={{ color: '#1e3a8a' }}>
-                            Register →
-                        </Link>
-                    </p>
-
-                    {/* Dev-mode demo link — clearly scoped */}
-                    {true && (
-                        <div className="mt-8 rounded-xl p-4 text-left relative"
-                            style={{ background: '#f8fafc', border: '1px dashed #cbd5e1' }}>
-                            <div className="flex items-center justify-between mb-3">
-                                <p className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5" style={{ color: '#7ba3c8' }}>
-                                    <Activity size={12} style={{ color: '#38bdf8' }} /> Development Mode
-                                </p>
+                        </form>
+                    ) : (
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-semibold mb-1.5" style={{ color: '#1e293b' }}>
+                                    Organisation email
+                                </label>
+                                <div className="relative">
+                                    <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: '#64748b' }} />
+                                    <input
+                                        type="email"
+                                        value={email}
+                                        onChange={e => setEmail(e.target.value)}
+                                        className="input input-light bg-white border-slate-200"
+                                        style={{ paddingLeft: '2.5rem' }}
+                                        placeholder="you@hospital.ng"
+                                        required
+                                    />
+                                </div>
                             </div>
 
-                            <p className="text-xs mb-3" style={{ color: '#7ba3c8' }}>Select a role below to bypass authentication and preview the provider portal.</p>
+                            <div>
+                                <div className="flex items-center justify-between mb-1.5">
+                                    <label className="text-sm font-semibold" style={{ color: '#1e293b' }}>Password</label>
+                                    <span className="text-xs font-semibold cursor-pointer hover:underline" style={{ color: '#1e3a8a' }}>
+                                        Forgot password?
+                                    </span>
+                                </div>
+                                <div className="relative">
+                                    <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: '#64748b' }} />
+                                    <input
+                                        type="password"
+                                        value={password}
+                                        onChange={e => setPassword(e.target.value)}
+                                        className="input input-light bg-white border-slate-200"
+                                        style={{ paddingLeft: '2.5rem' }}
+                                        placeholder="Password"
+                                        required
+                                    />
+                                </div>
+                            </div>
 
-                            <div className="relative mb-3" ref={roleDropRef}>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowRoleDrop(!showRoleDrop)}
-                                    className="w-full flex items-center justify-between p-3 rounded-lg text-sm font-semibold transition-colors focus:outline-none"
-                                    style={{ background: '#0a1e38', color: '#e2eaf4', border: '1px solid rgba(56,189,248,.2)' }}
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2.5 h-2.5 rounded-full" style={{ background: ROLE_METADATA[selectedRole]?.color || '#38bdf8' }} />
-                                        {ROLE_METADATA[selectedRole]?.label || selectedRole}
-                                    </div>
-                                    <ChevronDown size={16} style={{ color: '#7ba3c8' }} />
-                                </button>
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 text-white transition-all hover:opacity-90 hover:-translate-y-0.5 shadow-sm"
+                                style={{ background: '#1e3a8a', opacity: loading ? 0.7 : 1, marginTop: '6px' }}
+                            >
+                                {loading ? 'Signing in…' : 'Sign In to Provider Portal'} {!loading && <ArrowRight size={15} />}
+                            </button>
+                        </form>
+                    )}
 
-                                {showRoleDrop && (
-                                    <div className="absolute top-full left-0 right-0 mt-1 rounded-lg overflow-hidden z-50 shadow-2xl"
-                                        style={{ background: '#071628', border: '1px solid rgba(56,189,248,.2)' }}>
-                                        <div className="max-h-60 overflow-y-auto p-1 py-1.5 space-y-0.5">
-                                            {(['provider_admin', 'clinician', 'lab_tech', 'pharmacist', 'insurer', 'telehealth'] as UserRole[]).map(role => {
-                                                const meta = ROLE_METADATA[role];
-                                                if (!meta) return null;
-                                                return (
-                                                    <button
-                                                        key={role}
-                                                        type="button"
-                                                        onClick={() => { setSelectedRole(role); setShowRoleDrop(false); }}
-                                                        className="w-full flex items-center justify-between p-2.5 rounded-md text-sm text-left hover:bg-white/5 transition-colors focus:outline-none focus:bg-white/10"
-                                                        style={{ color: selectedRole === role ? '#fff' : '#e2eaf4', background: selectedRole === role ? 'rgba(56,189,248,.1)' : 'transparent' }}
-                                                    >
-                                                        <div className="flex items-center gap-2">
-                                                            <div className="w-2 h-2 rounded-full" style={{ background: meta.color }} />
-                                                            <div>
-                                                                <div className="font-semibold">{meta.label}</div>
-                                                                <div className="text-[10px]" style={{ color: '#7ba3c8' }}>{meta.description?.split('.')[0]}</div>
-                                                            </div>
-                                                        </div>
-                                                        {selectedRole === role && <Check size={14} style={{ color: '#38bdf8' }} />}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
+                    {step === 'credentials' && (
+                        <>
+                            {/* Web3 — demoted to subtle secondary option */}
+                            <div className="mt-5 text-center">
+                                {!showWeb3 ? (
+                                    <button
+                                        onClick={() => setShowWeb3(true)}
+                                        className="text-xs hover:underline transition-opacity hover:opacity-80"
+                                        style={{ color: '#64748b' }}
+                                    >
+                                        Sign in with Web3 wallet instead
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={handleWeb3}
+                                        disabled={web3Loading}
+                                        className="w-full py-3 rounded-xl font-bold text-sm flex flex-row items-center justify-center gap-2 transition-all hover:bg-slate-50"
+                                        style={{
+                                            color: '#1e3a8a',
+                                            border: '1.5px solid #cbd5e1',
+                                            opacity: web3Loading ? 0.7 : 1,
+                                        }}
+                                    >
+                                        <Wallet size={14} /> {web3Loading ? 'Connecting…' : 'Connect Org Wallet (Web3)'}
+                                    </button>
                                 )}
                             </div>
 
-                            <button
-                                type="button"
-                                onClick={handleDemoLogin}
-                                className="w-full flex items-center justify-center p-2.5 rounded-lg text-sm font-bold transition-all hover:opacity-90 active:scale-95"
-                                style={{ background: 'rgba(56,189,248,.1)', color: '#38bdf8', border: '1px solid rgba(56,189,248,.2)' }}
-                            >
-                                Sign In as {ROLE_METADATA[selectedRole]?.label || selectedRole} <ArrowRight size={14} className="ml-1.5" />
-                            </button>
-                        </div>
+                            <p className="mt-6 text-center text-sm" style={{ color: '#64748b' }}>
+                                New organisation?{' '}
+                                <Link to="/auth/provider/signup" className="font-bold hover:underline" style={{ color: '#1e3a8a' }}>
+                                    Register →
+                                </Link>
+                            </p>
+
+                            {/* Dev-mode demo link — clearly scoped */}
+                            {true && (
+                                <div className="mt-8 rounded-xl p-4 text-left relative"
+                                    style={{ background: '#f8fafc', border: '1px dashed #cbd5e1' }}>
+                                    <div className="flex items-center justify-between mb-3">
+                                        <p className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5" style={{ color: '#7ba3c8' }}>
+                                            <Activity size={12} style={{ color: '#38bdf8' }} /> Development Mode
+                                        </p>
+                                    </div>
+
+                                    <p className="text-xs mb-3" style={{ color: '#7ba3c8' }}>Select a role below to bypass authentication and preview the provider portal.</p>
+
+                                    <div className="relative mb-3" ref={roleDropRef}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowRoleDrop(!showRoleDrop)}
+                                            className="w-full flex items-center justify-between p-3 rounded-lg text-sm font-semibold transition-colors focus:outline-none"
+                                            style={{ background: '#0a1e38', color: '#e2eaf4', border: '1px solid rgba(56,189,248,.2)' }}
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-2.5 h-2.5 rounded-full" style={{ background: ROLE_METADATA[selectedRole]?.color || '#38bdf8' }} />
+                                                {ROLE_METADATA[selectedRole]?.label || selectedRole}
+                                            </div>
+                                            <ChevronDown size={16} style={{ color: '#7ba3c8' }} />
+                                        </button>
+
+                                        {showRoleDrop && (
+                                            <div className="absolute top-full left-0 right-0 mt-1 rounded-lg overflow-hidden z-50 shadow-2xl"
+                                                style={{ background: '#071628', border: '1px solid rgba(56,189,248,.2)' }}>
+                                                <div className="max-h-60 overflow-y-auto p-1 py-1.5 space-y-0.5">
+                                                    {(['provider_admin', 'clinician', 'lab_tech', 'pharmacist', 'insurer', 'telehealth'] as UserRole[]).map(role => {
+                                                        const meta = ROLE_METADATA[role];
+                                                        if (!meta) return null;
+                                                        return (
+                                                            <button
+                                                                key={role}
+                                                                type="button"
+                                                                onClick={() => { setSelectedRole(role); setShowRoleDrop(false); }}
+                                                                className="w-full flex items-center justify-between p-2.5 rounded-md text-sm text-left hover:bg-white/5 transition-colors focus:outline-none focus:bg-white/10"
+                                                                style={{ color: selectedRole === role ? '#fff' : '#e2eaf4', background: selectedRole === role ? 'rgba(56,189,248,.1)' : 'transparent' }}
+                                                            >
+                                                                <div className="flex items-center gap-2">
+                                                                    <div className="w-2 h-2 rounded-full" style={{ background: meta.color }} />
+                                                                    <div>
+                                                                        <div className="font-semibold">{meta.label}</div>
+                                                                        <div className="text-[10px]" style={{ color: '#7ba3c8' }}>{meta.description?.split('.')[0]}</div>
+                                                                    </div>
+                                                                </div>
+                                                                {selectedRole === role && <Check size={14} style={{ color: '#38bdf8' }} />}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={handleDemoLogin}
+                                        className="w-full flex items-center justify-center p-2.5 rounded-lg text-sm font-bold transition-all hover:opacity-90 active:scale-95"
+                                        style={{ background: 'rgba(56,189,248,.1)', color: '#38bdf8', border: '1px solid rgba(56,189,248,.2)' }}
+                                    >
+                                        Sign In as {ROLE_METADATA[selectedRole]?.label || selectedRole} <ArrowRight size={14} className="ml-1.5" />
+                                    </button>
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
             </div>
