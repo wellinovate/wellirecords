@@ -67,9 +67,8 @@ function InputField({
           <select
             value={value}
             onChange={onChange}
-            className={`h-11 w-full appearance-none rounded-[10px] border border-[#D4D4D4] bg-[#F4F4F4] px-4 pr-10 text-sm sm:text-base text-[#4B5563] outline-none focus:border-[#AEB7C5] focus:bg-white ${
-              error ? "border-red-500 bg-red-50" : ""
-            }`}
+            className={`h-11 w-full appearance-none rounded-[10px] border border-[#D4D4D4] bg-[#F4F4F4] px-4 pr-10 text-sm sm:text-base text-[#4B5563] outline-none focus:border-[#AEB7C5] focus:bg-white ${error ? "border-red-500 bg-red-50" : ""
+              }`}
           >
             {children}
           </select>
@@ -95,9 +94,8 @@ function InputField({
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          className={`h-11 w-full rounded-[10px] border border-[#D4D4D4] bg-[#F4F4F4] px-4 text-sm sm:text-base text-[#4B5563] outline-none transition focus:border-[#AEB7C5] focus:bg-white ${
-            error ? "border-red-500 bg-red-50" : ""
-          }`}
+          className={`h-11 w-full rounded-[10px] border border-[#D4D4D4] bg-[#F4F4F4] px-4 text-sm sm:text-base text-[#4B5563] outline-none transition focus:border-[#AEB7C5] focus:bg-white ${error ? "border-red-500 bg-red-50" : ""
+            }`}
         />
       )}
 
@@ -249,7 +247,7 @@ export default function PatientSignupPage() {
       //   form.fullName,
       //   form.email,
       //   form.password,
-      
+
       if (resp === "Account created successfully") {
         toast.success("Account created successfully");
         fetch("/api/send-email", {
@@ -312,6 +310,27 @@ export default function PatientSignupPage() {
 
       toast.success("Google sign-up successful");
 
+      fetch("/api/send-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          to: data.user.email,
+          templateId: "patient-welcome",
+          variables: {
+            patientName: data.user.fullName,
+            patientId: "WR-" + Math.floor(100000 + Math.random() * 900000),
+            accountCreationDate: new Date().toLocaleDateString(),
+            verifyEmailUrl: `${window.location.origin}/verify`,
+            completeProfileUrl: `${window.location.origin}/profile`,
+            dashboardUrl: `${window.location.origin}/dashboard`,
+            privacyPolicyUrl: `${window.location.origin}/privacy`,
+            contactSupportUrl: `${window.location.origin}/support`
+          }
+        })
+      }).catch(err => console.error("Failed to send welcome email:", err));
+
       if (data?.user?.accountType === "user") {
         navigate("/patient/overview");
       } else {
@@ -320,8 +339,8 @@ export default function PatientSignupPage() {
     } catch (error: any) {
       toast.error(
         error?.response?.data?.message ||
-          error?.message ||
-          "Google sign-up failed",
+        error?.message ||
+        "Google sign-up failed",
       );
     } finally {
       setGoogleLoading(false);
@@ -341,22 +360,22 @@ export default function PatientSignupPage() {
 
   const update =
     (field: string) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      const value =
-        e.target instanceof HTMLInputElement && e.target.type === "checkbox"
-          ? e.target.checked
-          : e.target.value;
+      (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const value =
+          e.target instanceof HTMLInputElement && e.target.type === "checkbox"
+            ? e.target.checked
+            : e.target.value;
 
-      setForm((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
+        setForm((prev) => ({
+          ...prev,
+          [field]: value,
+        }));
 
-      // Track when password is first touched
-      if (field === "password") {
-        setPasswordTouched(true);
-      }
-    };
+        // Track when password is first touched
+        if (field === "password") {
+          setPasswordTouched(true);
+        }
+      };
 
   const passwordMatchError =
     form.confirmPassword && form.password !== form.confirmPassword
