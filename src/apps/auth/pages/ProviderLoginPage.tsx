@@ -133,6 +133,7 @@ export function ProviderLoginPage() {
                 sub: account?._id || account?.id,
                 accountType: account?.accountType,
                 role: account?.role,
+                isVerified: account?.isVerified,
                 orgId: account?._id || account?.id,
                 orgName: profile?.organizationName,
                 profile,
