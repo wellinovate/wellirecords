@@ -11,29 +11,39 @@ function getBaseLayout(title: string, category: string, bodyContent: string, foo
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${title}</title>
 </head>
-<body style="margin:0; padding:0; background-color:#F4F6F9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F4F6F9; padding:32px 0;">
+<body style="margin:0; padding:0; background-color:#EEF1F6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#EEF1F6; padding:40px 0;">
 <tr>
 <td align="center">
-<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#FFFFFF; border-radius:8px; overflow:hidden; border:1px solid #E2E6EC;">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#FFFFFF; border-radius:12px; overflow:hidden; border:1px solid #E2E6EC; box-shadow:0 1px 3px rgba(10,31,68,0.06);">
 
 <!-- Header -->
 <tr>
-<td style="background-color:#0A1F44; padding:28px 32px;">
-<span style="color:#FFFFFF; font-size:20px; font-weight:600; letter-spacing:0.3px;">WelliRecord™</span>
+<td style="background-color:#0A1F44; padding:32px 32px 28px 32px;">
+<table role="presentation" cellpadding="0" cellspacing="0">
+<tr>
+<td style="vertical-align:middle; padding-right:12px;">
+<img src="https://www.wellirecord.com/assets/logo-mark.png" alt="WelliRecord" width="36" height="36" style="display:block; border-radius:6px;">
+</td>
+<td style="vertical-align:middle;">
+<span style="color:#FFFFFF; font-size:19px; font-weight:700; letter-spacing:0.2px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">WelliRecord<span style="font-size:11px; vertical-align:top; font-weight:400;">™</span></span><br/>
+<span style="color:#9FB3D9; font-size:11px; font-weight:500; letter-spacing:0.6px; text-transform:uppercase;">One patient. One trusted record.</span>
+</td>
+</tr>
+</table>
 </td>
 </tr>
 
 <!-- Category tag -->
 <tr>
-<td style="padding:24px 32px 0 32px;">
-<span style="display:inline-block; background-color:#EAF0FB; color:#0A1F44; font-size:13px; font-weight:600; padding:6px 12px; border-radius:4px;">${category}</span>
+<td style="padding:28px 32px 0 32px;">
+<span style="display:inline-block; background-color:#EAF0FB; color:#0A1F44; font-size:12px; font-weight:700; letter-spacing:0.4px; padding:6px 14px; border-radius:100px;">${category}</span>
 </td>
 </tr>
 
 <!-- Body and Content -->
 <tr>
-<td style="padding:16px 32px 28px 32px;">
+<td style="padding:18px 32px 28px 32px;">
 ${bodyContent}
 </td>
 </tr>
@@ -41,37 +51,48 @@ ${bodyContent}
 <!-- Divider -->
 <tr>
 <td style="padding:0 32px;">
-<div style="border-top:1px solid #E2E6EC;"></div>
+<div style="border-top:1px solid #E9ECF2;"></div>
 </td>
 </tr>
 
 <!-- Global Email Footer -->
 <tr>
-<td style="padding:24px 32px 8px 32px;">
-<p style="margin:0; font-size:13px; font-weight:600; color:#0A1F44;">WelliRecord™</p>
-<p style="margin:4px 0 0 0; font-size:12px; color:#6B7280;">One patient. One trusted record. Accessible when it matters.</p>
+<td style="padding:24px 32px 4px 32px;">
+<table role="presentation" cellpadding="0" cellspacing="0">
+<tr>
+<td style="vertical-align:middle; padding-right:8px;">
+<img src="https://www.wellirecord.com/assets/logo-mark.png" alt="" width="18" height="18" style="display:block; border-radius:4px; opacity:0.85;">
+</td>
+<td style="vertical-align:middle;">
+<p style="margin:0; font-size:13px; font-weight:700; color:#0A1F44;">WelliRecord™</p>
+</td>
+</tr>
+</table>
+<p style="margin:6px 0 0 0; font-size:12px; color:#6B7280; font-style:italic;">One patient. One trusted record. Accessible when it matters.</p>
 </td>
 </tr>
 <tr>
-<td style="padding:8px 32px 0 32px;">
-<p style="margin:0; font-size:11px; color:#8A93A3; line-height:1.7;">
+<td style="padding:10px 32px 0 32px;">
+<p style="margin:0; font-size:11px; color:#8A93A3; letter-spacing:0.2px; line-height:1.7;">
 Secure &nbsp;·&nbsp; Patient-Owned &nbsp;·&nbsp; Consent-Driven &nbsp;·&nbsp; Interoperable
 </p>
 </td>
 </tr>
 <tr>
-<td style="padding:16px 32px 28px 32px;">
+<td style="padding:18px 32px 30px 32px;">
 ${footerLinks}
 </td>
 </tr>
 
 </table>
+<p style="margin:20px 0 0 0; font-size:11px; color:#9AA3B2;">© ${new Date().getFullYear()} WelliRecord Ltd. Abuja, Nigeria. All rights reserved.</p>
 </td>
 </tr>
 </table>
 </body>
 </html>`;
 }
+
 
 function getStandardFooterLinks(vars: Record<string, string>) {
   return `
@@ -578,6 +599,50 @@ The QR code and secure access link are now available in your WelliRecord™ acco
       html: getBaseLayout('TravelPass Generated', 'TRAVELPASS CREATED', bodyContent, getStandardFooterLinks(vars))
     };
   },
+  'travelpass-shared': (vars) => {
+    const bodyContent = `
+<h1 style="margin:0 0 12px 0; font-size:20px; color:#0A1F44;">Your TravelPass™ Has Been Shared</h1>
+<p style="margin:0 0 20px 0; font-size:14px; line-height:1.6; color:#3A3F4B;">
+Hello ${vars.patientName || 'there'},<br/><br/>
+Your TravelPass™ has been successfully shared with a receiving facility.
+</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #E2E6EC; border-radius:6px; margin-bottom:24px;">
+<tr>
+<td style="padding:12px 16px; border-bottom:1px solid #E2E6EC; font-size:13px; color:#6B7280; width:44%;">Receiving Facility</td>
+<td style="padding:12px 16px; border-bottom:1px solid #E2E6EC; font-size:13px; color:#0A1F44; font-weight:600;">${vars.receivingFacility || ''}</td>
+</tr>
+<tr>
+<td style="padding:12px 16px; border-bottom:1px solid #E2E6EC; font-size:13px; color:#6B7280;">TravelPass ID</td>
+<td style="padding:12px 16px; border-bottom:1px solid #E2E6EC; font-size:13px; color:#0A1F44; font-weight:600;">${vars.travelPassId || ''}</td>
+</tr>
+<tr>
+<td style="padding:12px 16px; border-bottom:1px solid #E2E6EC; font-size:13px; color:#6B7280;">Expires</td>
+<td style="padding:12px 16px; border-bottom:1px solid #E2E6EC; font-size:13px; color:#EF4444; font-weight:600;">${vars.expiryDate || ''}</td>
+</tr>
+<tr>
+<td style="padding:12px 16px; font-size:13px; color:#6B7280;">Records Shared</td>
+<td style="padding:12px 16px; font-size:13px; color:#0A1F44; font-weight:600;">${vars.sharedRecords || ''}</td>
+</tr>
+</table>
+<p style="margin:0 0 20px 0; font-size:14px; line-height:1.6; color:#3A3F4B;">
+Only the receiving facility can access the information included in this TravelPass™, and only during its active period.
+</p>
+<table role="presentation" cellpadding="0" cellspacing="0">
+<tr>
+<td style="padding-right:12px;">
+<a href="${vars.revokeAccessUrl || 'https://www.wellirecord.com/travelpass/revoke'}" style="display:inline-block; background-color:#FFFFFF; color:#EF4444; font-size:14px; font-weight:600; text-decoration:none; padding:12px 20px; border-radius:6px; border:1px solid #EF4444;">Revoke Access</a>
+</td>
+<td>
+<a href="${vars.viewAuditLogUrl || 'https://www.wellirecord.com/security'}" style="display:inline-block; background-color:#0A1F44; color:#FFFFFF; font-size:14px; font-weight:600; text-decoration:none; padding:12px 20px; border-radius:6px;">View Audit Log</a>
+</td>
+</tr>
+</table>
+`;
+    return {
+      subject: '✈️ Your WelliRecord™ TravelPass™ Has Been Shared',
+      html: getBaseLayout('TravelPass Shared', 'TRAVELPASS SHARED', bodyContent, getStandardFooterLinks(vars))
+    };
+  },
   'security-alert': (vars) => {
     const bodyContent = `
 <h1 style="margin:0 0 12px 0; font-size:20px; color:#0A1F44;">Security Settings Updated</h1>
@@ -621,6 +686,42 @@ If you do not recognize this activity, please secure your account immediately.
     return {
       subject: '🚨 Security Settings Updated',
       html: getBaseLayout('Security Settings Updated', 'SECURITY ALERT', bodyContent, getStandardFooterLinks(vars))
+    };
+  },
+  'welcome-back': (vars) => {
+    const bodyContent = `
+<h1 style="margin:0 0 12px 0; font-size:20px; color:#0A1F44;">Welcome back, ${vars.patientName || 'there'}</h1>
+<p style="margin:0 0 20px 0; font-size:14px; line-height:1.6; color:#3A3F4B;">
+You just signed in to your WelliRecord™ health vault. Here's a quick summary of this sign-in for your records.
+</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #E2E6EC; border-radius:6px; margin-bottom:24px;">
+<tr>
+<td style="padding:12px 16px; border-bottom:1px solid #E2E6EC; font-size:13px; color:#6B7280; width:44%;">Signed in</td>
+<td style="padding:12px 16px; border-bottom:1px solid #E2E6EC; font-size:13px; color:#0A1F44; font-weight:600;">${vars.loginDateTime || new Date().toLocaleString()}</td>
+</tr>
+<tr>
+<td style="padding:12px 16px; border-bottom:1px solid #E2E6EC; font-size:13px; color:#6B7280;">Method</td>
+<td style="padding:12px 16px; border-bottom:1px solid #E2E6EC; font-size:13px; color:#0A1F44; font-weight:600;">${vars.loginMethod || 'Email & Password'}</td>
+</tr>
+<tr>
+<td style="padding:12px 16px; font-size:13px; color:#6B7280;">Device</td>
+<td style="padding:12px 16px; font-size:13px; color:#0A1F44; font-weight:600;">${vars.deviceInfo || 'Unknown device'}</td>
+</tr>
+</table>
+<table role="presentation" cellpadding="0" cellspacing="0">
+<tr>
+<td>
+<a href="${vars.dashboardUrl || 'https://www.wellirecord.com/dashboard'}" style="display:inline-block; background-color:#0A1F44; color:#FFFFFF; font-size:14px; font-weight:600; text-decoration:none; padding:12px 20px; border-radius:6px;">Go to Dashboard</a>
+</td>
+</tr>
+</table>
+<p style="margin:20px 0 0 0; font-size:13px; color:#6B7280;">
+Wasn't you? <a href="${vars.secureAccountUrl || 'https://www.wellirecord.com/security'}" style="color:#0A1F44; font-weight:600;">Secure your account immediately</a>.
+</p>
+`;
+    return {
+      subject: 'Welcome back to WelliRecord™',
+      html: getBaseLayout('Welcome Back', 'SIGNED IN', bodyContent, getStandardFooterLinks(vars))
     };
   }
 };

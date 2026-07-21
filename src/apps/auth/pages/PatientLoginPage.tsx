@@ -272,6 +272,27 @@ export function PatientLoginPage() {
 
       toast.success("Login successful");
 
+      if (account?.email) {
+        fetch("/api/send-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            to: account.email,
+            templateId: "welcome-back",
+            variables: {
+              patientName: profile?.fullName || account?.fullName || "",
+              loginDateTime: new Date().toLocaleString(),
+              loginMethod: "Email & Password",
+              deviceInfo: navigator.userAgent,
+              dashboardUrl: `${window.location.origin}/dashboard`,
+              secureAccountUrl: `${window.location.origin}/security`
+            }
+          })
+        }).catch(err => console.error("Failed to send welcome-back email:", err));
+      }
+
       redirectAfterLogin(account?.accountType);
     } catch (error: any) {
       const message =
@@ -324,6 +345,27 @@ export function PatientLoginPage() {
       setUser?.(uiUser);
 
       toast.success("Google sign-in successful");
+
+      if (data?.user?.email) {
+        fetch("/api/send-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            to: data.user.email,
+            templateId: "welcome-back",
+            variables: {
+              patientName: data.user.fullName || "",
+              loginDateTime: new Date().toLocaleString(),
+              loginMethod: "Google",
+              deviceInfo: navigator.userAgent,
+              dashboardUrl: `${window.location.origin}/dashboard`,
+              secureAccountUrl: `${window.location.origin}/security`
+            }
+          })
+        }).catch(err => console.error("Failed to send welcome-back email:", err));
+      }
 
       redirectAfterLogin(data?.user?.accountType);
     } catch (error: any) {
