@@ -73,8 +73,8 @@ export function SuperAdminLoginPage() {
         setError('');
         try {
             const res = await verifyLoginCodeApi(challengeToken, code);
-            const roles: string[] = res?.data?.account?.roles || [];
-            if (!roles.includes('admin') && !roles.includes('super_admin')) {
+            const role: string = res?.data?.account?.role || '';
+            if (role !== 'admin' && role !== 'super_admin') {
                 signOut();
                 setError('This account does not have admin access.');
                 setStage('credentials');
