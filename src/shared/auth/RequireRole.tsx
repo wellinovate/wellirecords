@@ -60,7 +60,7 @@ export function RequireRole({ children, allow }: RequireRoleProps) {
   ): boolean {
     if (!user) return false;
 
-    const roles = user.roles ?? user.accountType;
+    const role = (user as any).role as UserRole | undefined;
 
     if (allow === "user") {
       return user.accountType === "user";
@@ -71,15 +71,15 @@ export function RequireRole({ children, allow }: RequireRoleProps) {
     }
 
     if (allow === "super_admin") {
-      return roles.includes("super_admin");
+      return role === "super_admin" || role === "admin";
     }
 
     if (allow === "admin") {
-      return roles.some((role) => ADMIN_ROLES.includes(role));
+      return !!role && ADMIN_ROLES.includes(role);
     }
 
     if (Array.isArray(allow)) {
-      return roles.some((role) => allow.includes(role));
+      return !!role && allow.includes(role);
     }
 
     return false;
@@ -88,16 +88,6 @@ export function RequireRole({ children, allow }: RequireRoleProps) {
   const permitted = isPermitted(user, allow);
 
   if (!permitted) {
-    const roles = user?.roles ?? user.accountType;
-
-    // if (roles.includes("super_admin")) {
-    //   return <Navigate to="/super-admin/dashboard" replace />;
-    // }
-
-    // if (roles.some((role) => ADMIN_ROLES.includes(role))) {
-    //   return <Navigate to="/admin/dashboard" replace />;
-    // }
-
     const dest =
       user?.accountType === "organization"
         ? "/provider/overview"
