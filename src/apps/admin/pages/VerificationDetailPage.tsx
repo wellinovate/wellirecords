@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { adminApi } from '@/shared/api/adminApi';
+import { VerificationRequest } from '@/shared/types/types';
 import {
     ArrowLeft, FileText, CheckCircle, XCircle, MessageSquare,
-    Building2, User, Calendar, AlertTriangle,
+    Building2, User, Calendar, AlertTriangle, Loader2,
 } from 'lucide-react';
 
 export function VerificationDetailPage() {
@@ -12,7 +13,48 @@ export function VerificationDetailPage() {
     const [note, setNote] = useState('');
     const [done, setDone] = useState<'approved' | 'rejected' | 'info' | null>(null);
 
-    const v = adminApi.getVerificationById(id ?? '');
+    const [v, setV] = useState<VerificationRequest | undefined>(undefined);
+    const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState<string | null>(null);
+
+    const [submitting, setSubmitting] = useState(false);
+    const [actionError, setActionError] = useState<string | null>(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        setLoading(true);
+        setLoadError(null);
+        adminApi.getVerificationById(id ?? '')
+            .then(data => {
+                if (!cancelled) setV(data);
+            })
+            .catch(err => {
+                if (!cancelled) setLoadError(err instanceof Error ? err.message : 'Failed to load verification');
+            })
+            .finally(() => {
+                if (!cancelled) setLoading(false);
+            });
+        return () => { cancelled = true; };
+    }, [id]);
+
+    if (loading) {
+        return (
+            <div className="text-center py-20" style={{ color: '#6b7280' }}>
+                <Loader2 size={28} className="mx-auto mb-3 animate-spin opacity-40" />
+                <p>Loading verification…</p>
+            </div>
+        );
+    }
+
+    if (loadError) {
+        return (
+            <div className="text-center py-20" style={{ color: '#ef4444' }}>
+                <AlertTriangle size={28} className="mx-auto mb-3 opacity-60" />
+                <p className="font-semibold">{loadError}</p>
+            </div>
+        );
+    }
+
     if (!v) return (
         <div className="text-center py-20" style={{ color: '#6b7280' }}>
             <AlertTriangle size={32} className="mx-auto mb-3 opacity-30" />
@@ -20,9 +62,22 @@ export function VerificationDetailPage() {
         </div>
     );
 
-    const handleApprove = () => { adminApi.approveVerification(v.id, note || undefined); setDone('approved'); };
-    const handleReject = () => { adminApi.rejectVerification(v.id, note || 'Rejected by admin.'); setDone('rejected'); };
-    const handleInfo = () => { adminApi.requestMoreInfo(v.id, note || 'Please provide additional documentation.'); setDone('info'); };
+    const runAction = async (fn: () => Promise<unknown>, outcome: 'approved' | 'rejected' | 'info') => {
+        setSubmitting(true);
+        setActionError(null);
+        try {
+            await fn();
+            setDone(outcome);
+        } catch (err) {
+            setActionError(err instanceof Error ? err.message : 'Action failed. Please try again.');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleApprove = () => runAction(() => adminApi.approveVerification(v.id, note || undefined), 'approved');
+    const handleReject = () => runAction(() => adminApi.rejectVerification(v.id, note || 'Rejected by admin.'), 'rejected');
+    const handleInfo = () => runAction(() => adminApi.requestMoreInfo(v.id, note || 'Please provide additional documentation.'), 'info');
 
     if (done) {
         const msgs = { approved: { icon: CheckCircle, color: '#10b981', text: 'Verification approved and applicant notified.' }, rejected: { icon: XCircle, color: '#ef4444', text: 'Verification rejected and applicant notified.' }, info: { icon: MessageSquare, color: '#38bdf8', text: 'More information requested. Applicant notified.' } };
@@ -107,23 +162,29 @@ export function VerificationDetailPage() {
                     <textarea
                         value={note} onChange={e => setNote(e.target.value)}
                         rows={3} placeholder="Add a note for the applicant…"
+                        disabled={submitting}
                         className="w-full resize-none rounded-xl p-3 text-sm"
                         style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#e5e7eb' }} />
+                    {actionError && (
+                        <div className="text-sm px-3 py-2 rounded-lg" style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}>
+                            {actionError}
+                        </div>
+                    )}
                     <div className="flex gap-3 flex-wrap">
-                        <button onClick={handleApprove}
-                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all hover:-translate-y-0.5"
+                        <button onClick={handleApprove} disabled={submitting}
+                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0"
                             style={{ background: 'rgba(16,185,129,0.15)', color: '#10b981', border: '1px solid rgba(16,185,129,0.3)' }}>
-                            <CheckCircle size={15} /> Approve
+                            {submitting ? <Loader2 size={15} className="animate-spin" /> : <CheckCircle size={15} />} Approve
                         </button>
-                        <button onClick={handleInfo}
-                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all hover:-translate-y-0.5"
+                        <button onClick={handleInfo} disabled={submitting}
+                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0"
                             style={{ background: 'rgba(56,189,248,0.1)', color: '#38bdf8', border: '1px solid rgba(56,189,248,0.2)' }}>
-                            <MessageSquare size={15} /> Request More Info
+                            {submitting ? <Loader2 size={15} className="animate-spin" /> : <MessageSquare size={15} />} Request More Info
                         </button>
-                        <button onClick={handleReject}
-                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all hover:-translate-y-0.5"
+                        <button onClick={handleReject} disabled={submitting}
+                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0"
                             style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}>
-                            <XCircle size={15} /> Reject
+                            {submitting ? <Loader2 size={15} className="animate-spin" /> : <XCircle size={15} />} Reject
                         </button>
                     </div>
                 </div>
