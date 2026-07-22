@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { adminApi } from '@/shared/api/adminApi';
 import { VerificationRequest } from '@/shared/types/types';
 import {
     ShieldCheck, Clock, CheckCircle, XCircle, AlertTriangle,
-    MessageSquare, Building2, User, FlaskConical, ArrowRight, Search,
+    MessageSquare, Building2, User, FlaskConical, ArrowRight, Search, Loader2,
 } from 'lucide-react';
 
 function StatusBadge({ status }: { status: string }) {
@@ -41,8 +41,27 @@ export function VerificationQueuePage() {
     const navigate = useNavigate();
     const [tab, setTab] = useState<string | undefined>(undefined);
     const [search, setSearch] = useState('');
+    const [all, setAll] = useState<VerificationRequest[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const all = adminApi.getVerifications();
+    useEffect(() => {
+        let cancelled = false;
+        setLoading(true);
+        setError(null);
+        adminApi.getVerifications()
+            .then(data => {
+                if (!cancelled) setAll(data);
+            })
+            .catch(err => {
+                if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load verifications');
+            })
+            .finally(() => {
+                if (!cancelled) setLoading(false);
+            });
+        return () => { cancelled = true; };
+    }, []);
+
     const list = all.filter(v =>
         (tab ? v.status === tab : true) &&
         (search ? v.submittedByName.toLowerCase().includes(search.toLowerCase()) : true)
@@ -97,7 +116,17 @@ export function VerificationQueuePage() {
 
             {/* List */}
             <div className="rounded-2xl overflow-hidden" style={{ background: '#111827', border: '1px solid rgba(245,158,11,0.1)' }}>
-                {list.length === 0 ? (
+                {loading ? (
+                    <div className="py-16 text-center" style={{ color: '#4b5563' }}>
+                        <Loader2 size={28} className="mx-auto mb-3 animate-spin opacity-40" />
+                        <p className="font-semibold">Loading verifications…</p>
+                    </div>
+                ) : error ? (
+                    <div className="py-16 text-center" style={{ color: '#ef4444' }}>
+                        <AlertTriangle size={28} className="mx-auto mb-3 opacity-60" />
+                        <p className="font-semibold">{error}</p>
+                    </div>
+                ) : list.length === 0 ? (
                     <div className="py-16 text-center" style={{ color: '#4b5563' }}>
                         <ShieldCheck size={32} className="mx-auto mb-3 opacity-30" />
                         <p className="font-semibold">No verifications match this filter</p>
