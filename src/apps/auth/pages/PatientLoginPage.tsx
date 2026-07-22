@@ -239,10 +239,7 @@ export function PatientLoginPage() {
       setVerifying(true);
       setError("");
 
-      const res = await verifyLoginCodeApi(
-        challengeToken,
-        code,
-      );
+      const res = await resendVerifyLoginCodeApi(form.email.trim().toLowerCase());
 
       const payload = res?.data || res;
 

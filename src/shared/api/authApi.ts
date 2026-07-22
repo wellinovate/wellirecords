@@ -8,7 +8,7 @@ import { toast } from "react-toastify";
 // Moved from authService
 const STORAGE_KEY = "welli_auth_user";
 
-export const apiUrl: string = import.meta.env.VITE_API_BASE_URL 
+export const apiUrl: string = import.meta.env.VITE_API_BASE_URL
 // console.log("🚀 ~ apiUrl:", apiUrl)
 // || "https://wellirecord.onrender.com";
 // export const apiUrl: string = "http://localhost:3001";
@@ -192,7 +192,7 @@ export async function verifyOtp(
       }
     }
   } catch (err) {
-    console.warn("verifyOtp backend call failed, falling back to mock", err);
+    console.warn("a backend call failed, falling back to mock", err);
   }
 
   // Fallback to mock behavior
@@ -221,10 +221,10 @@ export const authApi = {
         email: email,
         password: password,
       },
-      {
-        timeout: 30000, // 30 seconds
-      }
-    );
+        {
+          timeout: 30000, // 30 seconds
+        }
+      );
 
       const data = await response.data;
       console.log("🚀 ~ data:", data)
@@ -253,19 +253,19 @@ export const authApi = {
         challengeToken: challengeToken,
         code: code
       },
-      {
-        timeout: 30000, // 30 seconds
-      }
-    );
+        {
+          timeout: 30000, // 30 seconds
+        }
+      );
 
       if (response.status === 200) {
         const data = await response.data;
         Cookies.set("accessToken", data.accessToken, {
-            expires: 1, // days
-            secure: true, // only over HTTPS (important in prod)
-            sameSite: "lax",
+          expires: 1, // days
+          secure: true, // only over HTTPS (important in prod)
+          sameSite: "lax",
         });
-        
+
         return data;
       }
     } catch (err: any) {
@@ -294,9 +294,9 @@ export const authApi = {
           }
         };
         Cookies.set("accessToken", mockInner.accessToken, {
-            expires: 1,
-            secure: true,
-            sameSite: "lax",
+          expires: 1,
+          secure: true,
+          sameSite: "lax",
         });
         return { data: mockInner };
       }
@@ -304,32 +304,18 @@ export const authApi = {
     }
   },
 
-  async resendVerifyLoginCodeApi(challengeToken: string, code: string) {
+  async resendVerifyLoginCodeApi(email: string) {
     try {
-      if (challengeToken === "mock-challenge-token") {
-        return {
-          requiresOtp: true,
-          challengeToken: "mock-challenge-token",
-          maskedPhone: "+234 ••• ••• 5504"
-        };
-      }
       const response = await axios.post(`${apiUrl}/api/v1/auth/resend-verify-code`, {
-        challengeToken: challengeToken,
-        code: code
+        email: email,
       },
-      {
-        timeout: 30000, // 30 seconds
-      }
-    );
+        {
+          timeout: 30000,
+        }
+      );
 
       if (response.status === 200) {
         const data = await response.data;
-        Cookies.set("accessToken", data.accessToken, {
-            expires: 1, // days
-            secure: true, // only over HTTPS (important in prod)
-            sameSite: "lax",
-        });
-        
         return data;
       }
     } catch (err: any) {
@@ -339,137 +325,137 @@ export const authApi = {
   },
 
   async handleGoogleCredentials(response: GoogleCredentialResponse) {
-    const profileType = "user"
-    try {
-      const res = await axios.post(`${apiUrl}/api/v1/auth/google/login`, {
-              credential: response.credential,
-              profileType,
-            });
-  
+  const profileType = "user"
+  try {
+    const res = await axios.post(`${apiUrl}/api/v1/auth/google/login`, {
+      credential: response.credential,
+      profileType,
+    });
 
-      if (res.status === 200) {
-        const data = await res.data;
-        // document.cookie = `accessToken=${data.accessToken}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
-        Cookies.set("accessToken", data.accessToken, {
-            expires: 1, // days
-            secure: true, // only over HTTPS (important in prod)
-            sameSite: "lax",
-        });
-        
-        return data;
-      }
-    } catch (err: any) {
-      console.log(err);
-      if (isNetworkError(err)) {
-        console.warn("Google login failed (network error), using mock fallback.");
-        // Return shape matches real backend envelope: { data: { accessToken, account, profile } }
-        const mockInner = {
-          accessToken: "mock-access-token",
-          account: {
-            id: "mock_google_user",
-            email: "google-user@wellirecord.com",
-            userType: "PATIENT",
-            accountType: "PATIENT"
-          },
-          profile: {
-            fullName: "Google Demo User",
-            wrId: "WR-PAT-991"
-          }
-        };
-        Cookies.set("accessToken", mockInner.accessToken, {
-            expires: 1,
-            secure: true,
-            sameSite: "lax",
-        });
-        return { data: mockInner };
-      }
-      // Non-network error (e.g. invalid/expired Google token) — surface a clean message
-      const message = err?.response?.data?.message || "Google sign-in failed. Please try again.";
-      throw new Error(message);
+
+    if (res.status === 200) {
+      const data = await res.data;
+      // document.cookie = `accessToken=${data.accessToken}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
+      Cookies.set("accessToken", data.accessToken, {
+        expires: 1, // days
+        secure: true, // only over HTTPS (important in prod)
+        sameSite: "lax",
+      });
+
+      return data;
     }
-  },
+  } catch (err: any) {
+    console.log(err);
+    if (isNetworkError(err)) {
+      console.warn("Google login failed (network error), using mock fallback.");
+      // Return shape matches real backend envelope: { data: { accessToken, account, profile } }
+      const mockInner = {
+        accessToken: "mock-access-token",
+        account: {
+          id: "mock_google_user",
+          email: "google-user@wellirecord.com",
+          userType: "PATIENT",
+          accountType: "PATIENT"
+        },
+        profile: {
+          fullName: "Google Demo User",
+          wrId: "WR-PAT-991"
+        }
+      };
+      Cookies.set("accessToken", mockInner.accessToken, {
+        expires: 1,
+        secure: true,
+        sameSite: "lax",
+      });
+      return { data: mockInner };
+    }
+    // Non-network error (e.g. invalid/expired Google token) — surface a clean message
+    const message = err?.response?.data?.message || "Google sign-in failed. Please try again.";
+    throw new Error(message);
+  }
+},
 
-  
-  /** Mock provider sign-in with role override */
-  signInAsRole(role: UserRole): AuthUser {
-    const isPatient = role === "patient";
-    const user = MOCK_USERS.find((u) => u.roles?.includes(role)) ?? {
-      userId: `mock_${role}`,
-      name: isPatient ? "Mock patient" : `Mock ${role.replace("_", " ")}`,
-      email: `${role}@welli.ng`,
-      userType: isPatient ? "PATIENT" : "ORG_USER",
-      roles: [role],
-      ...(isPatient
-        ? {}
-        : {
-            orgId: "org_hosp_001",
-            orgName: "Lagos General Hospital",
-            orgType: "hospital" as const,
-          }),
-      avatar: `https://api.dicebear.com/8.x/avataaars/svg?seed=${role}`,
-      loginMethod: "web2" as const,
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-    return user;
-  },
+
+/** Mock provider sign-in with role override */
+signInAsRole(role: UserRole): AuthUser {
+  const isPatient = role === "patient";
+  const user = MOCK_USERS.find((u) => u.roles?.includes(role)) ?? {
+    userId: `mock_${role}`,
+    name: isPatient ? "Mock patient" : `Mock ${role.replace("_", " ")}`,
+    email: `${role}@welli.ng`,
+    userType: isPatient ? "PATIENT" : "ORG_USER",
+    roles: [role],
+    ...(isPatient
+      ? {}
+      : {
+        orgId: "org_hosp_001",
+        orgName: "Lagos General Hospital",
+        orgType: "hospital" as const,
+      }),
+    avatar: `https://api.dicebear.com/8.x/avataaars/svg?seed=${role}`,
+    loginMethod: "web2" as const,
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+  return user;
+},
 
   async signUpPatient(payload: any) {
-    try {
-      const response = await axios.post(`${apiUrl}/api/v1/auth/register`, payload);
+  try {
+    const response = await axios.post(`${apiUrl}/api/v1/auth/register`, payload);
 
-      if (response.status === 201) {
-        const data = await response.data.message;
-        return data;
-      }
-    } catch (err: any) {
-  console.log("========== ERROR ==========");
-  console.log("Full error:", err);
-  console.log("Response:", err.response);
-  console.log("Response data:", err.response?.data);
-  console.log("Status:", err.response?.status);
+    if (response.status === 201) {
+      const data = await response.data.message;
+      return data;
+    }
+  } catch (err: any) {
+    console.log("========== ERROR ==========");
+    console.log("Full error:", err);
+    console.log("Response:", err.response);
+    console.log("Response data:", err.response?.data);
+    console.log("Status:", err.response?.status);
 
-  toast.error(
-    err.response?.data?.message ?? "Registration failed"
-  );
-}
-  },
+    toast.error(
+      err.response?.data?.message ?? "Registration failed"
+    );
+  }
+},
 
   async signUpProvider(payload: any) {
-    try {
-      const response = await axios.post(`${apiUrl}/api/v1/auth/register`, payload);
+  try {
+    const response = await axios.post(`${apiUrl}/api/v1/auth/register`, payload);
 
-      if (response.status === 201) {
-        const data = await response.data.message;
-        return data;
-      }
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? "registration failed");
+    if (response.status === 201) {
+      const data = await response.data.message;
+      return data;
     }
+  } catch (err: any) {
+    toast.error(err?.response?.data?.message ?? "registration failed");
+  }
 
-    // const user: AuthUser = {
-    //     userId: `pat_${Date.now()}`,
-    //     name,
-    //     email,
-    //     userType: 'PATIENT',
-    //     avatar: `https://api.dicebear.com/8.x/avataaars/svg?seed=${name}`,
-    //     loginMethod: 'web2',
-    // };
-    // localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-    // return user;
-  },
+  // const user: AuthUser = {
+  //     userId: `pat_${Date.now()}`,
+  //     name,
+  //     email,
+  //     userType: 'PATIENT',
+  //     avatar: `https://api.dicebear.com/8.x/avataaars/svg?seed=${name}`,
+  //     loginMethod: 'web2',
+  // };
+  // localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+  // return user;
+},
 
   async  searchPatientRequest(
   identifier: string,
   identifierType: IdentifierType,
-  signal?: AbortSignal,
-): Promise<SearchPatientResponse> {
+  signal ?: AbortSignal,
+): Promise < SearchPatientResponse > {
   const token = Cookies.get("accessToken");
   const response = await fetch(`${apiUrl}/api/v1/organization/patient/search`, {
     method: "POST",
-     headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
     credentials: "include",
     signal,
     body: JSON.stringify({
@@ -480,25 +466,25 @@ export const authApi = {
 
   const data = await response.json();
 
-  if (!response.ok) {
-    throw new Error(data?.message || "Failed to search patient");
-  }
+  if(!response.ok) {
+  throw new Error(data?.message || "Failed to search patient");
+}
 
-  return data.data;
+return data.data;
   },
 
   async  searchDoctorRequest(
   identifier: string,
   identifierType: IdentifierType,
-  signal?: AbortSignal,
-): Promise<SearchPatientResponse> {
+  signal ?: AbortSignal,
+): Promise < SearchPatientResponse > {
   const token = Cookies.get("accessToken");
   const response = await fetch(`${apiUrl}/api/v1/organization/doctor/search`, {
     method: "POST",
-     headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
     credentials: "include",
     signal,
     body: JSON.stringify({
@@ -509,278 +495,278 @@ export const authApi = {
 
   const data = await response.json();
 
-  if (!response.ok) {
-    throw new Error(data?.message || "Failed to search patient");
-  }
+  if(!response.ok) {
+  throw new Error(data?.message || "Failed to search patient");
+}
 
-  return data.data;
+return data.data;
   },
 
   async  linkPatientRequest(patientIdentityId: string, id: string) {
-    const token = Cookies.get("accessToken");
-    const response = await fetch(`${apiUrl}/api/v1/organization/patient/link`, {
-      method: "POST",      
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        patientIdentityId,
-      }),
-    });
+  const token = Cookies.get("accessToken");
+  const response = await fetch(`${apiUrl}/api/v1/organization/patient/link`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    credentials: "include",
+    body: JSON.stringify({
+      patientIdentityId,
+    }),
+  });
 
-    const data = await response.json();
+  const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data?.message || "Failed to link patient");
-    }
+  if (!response.ok) {
+    throw new Error(data?.message || "Failed to link patient");
+  }
 
-    return data.data;
-  },
+  return data.data;
+},
   async  addDoctorRequest(doctorIdentityId: string) {
-    const token = Cookies.get("accessToken");
-    const response = await fetch(`${apiUrl}/api/v1/organization/doctor/add`, {
-      method: "POST",      
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        doctorIdentityId,
-      }),
-    });
+  const token = Cookies.get("accessToken");
+  const response = await fetch(`${apiUrl}/api/v1/organization/doctor/add`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    credentials: "include",
+    body: JSON.stringify({
+      doctorIdentityId,
+    }),
+  });
 
-    const data = await response.json();
+  const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data?.message || "Failed to link patient");
-    }
+  if (!response.ok) {
+    throw new Error(data?.message || "Failed to link patient");
+  }
 
-    return data.data;
-  },
+  return data.data;
+},
 
   async  registerNewPatient(newPatientForm: any) {
-    const token = Cookies.get("accessToken");
-    const response = await fetch(`${apiUrl}/api/v1/organization/register-patient`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        newPatientForm
-      }),
-    });
+  const token = Cookies.get("accessToken");
+  const response = await fetch(`${apiUrl}/api/v1/organization/register-patient`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    credentials: "include",
+    body: JSON.stringify({
+      newPatientForm
+    }),
+  });
 
-    const data = await response.json();
+  const data = await response.json();
 
-    
 
-    if (!response.ok) {
-      throw new Error(data?.message || "Failed to link patient");
-    }
 
-    return data.message;
-  },
+  if (!response.ok) {
+    throw new Error(data?.message || "Failed to link patient");
+  }
+
+  return data.message;
+},
 
   async  createVitalRecord(payload: any) {
-    const token = Cookies.get("accessToken");
-    const response = await fetch(`${apiUrl}/api/v1/vitals`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-      body: JSON.stringify(payload),
-    });
+  const token = Cookies.get("accessToken");
+  const response = await fetch(`${apiUrl}/api/v1/vitals`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    credentials: "include",
+    body: JSON.stringify(payload),
+  });
 
-    const data = await response.json();
+  const data = await response.json();
 
-    
 
-    if (!response.ok) {
-      throw new Error(data?.message || "Failed to link patient");
-    }
 
-    return data.message;
-  },
+  if (!response.ok) {
+    throw new Error(data?.message || "Failed to link patient");
+  }
+
+  return data.message;
+},
 
   async  createMedication(payload: any) {
-    const token = Cookies.get("accessToken");
-    const response = await fetch(`${apiUrl}/api/v1/medications`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-      body: JSON.stringify(payload),
-    });
+  const token = Cookies.get("accessToken");
+  const response = await fetch(`${apiUrl}/api/v1/medications`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    credentials: "include",
+    body: JSON.stringify(payload),
+  });
 
-    const data = await response.json();
+  const data = await response.json();
 
-    
 
-    if (!response.ok) {
-      throw new Error(data?.message || "Failed to link patient");
-    }
 
-    return data.message;
-  },
+  if (!response.ok) {
+    throw new Error(data?.message || "Failed to link patient");
+  }
+
+  return data.message;
+},
 
   async  updateProfile(payload: any) {
-    const token = Cookies.get("accessToken");
-    const response = await fetch(`${apiUrl}/api/v1/user/update/profile`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-      body: JSON.stringify(payload),
-    });
+  const token = Cookies.get("accessToken");
+  const response = await fetch(`${apiUrl}/api/v1/user/update/profile`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    credentials: "include",
+    body: JSON.stringify(payload),
+  });
 
-    const data = await response.json();
+  const data = await response.json();
 
-    
 
-    if (!response.ok) {
-      throw new Error(data?.message || "Failed to link patient");
-    }
 
-    return data.message;
-  },
+  if (!response.ok) {
+    throw new Error(data?.message || "Failed to link patient");
+  }
+
+  return data.message;
+},
 
   async  createAllergy(payload: any) {
-    const token = Cookies.get("accessToken");
-    const response = await fetch(`${apiUrl}/api/v1/allergies`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-      body: JSON.stringify(payload),
-    });
+  const token = Cookies.get("accessToken");
+  const response = await fetch(`${apiUrl}/api/v1/allergies`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    credentials: "include",
+    body: JSON.stringify(payload),
+  });
 
-    const data = await response.json();
+  const data = await response.json();
 
-    
 
-    if (!response.ok) {
-      throw new Error(data?.message || "Failed to link patient");
-    }
 
-    return data.message;
-  },
+  if (!response.ok) {
+    throw new Error(data?.message || "Failed to link patient");
+  }
+
+  return data.message;
+},
   
   async  createDiagnosis(payload: any) {
-    const token = Cookies.get("accessToken");
-    const response = await fetch(`${apiUrl}/api/v1/diagnoses`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-      body: JSON.stringify(payload),
-    });
+  const token = Cookies.get("accessToken");
+  const response = await fetch(`${apiUrl}/api/v1/diagnoses`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    credentials: "include",
+    body: JSON.stringify(payload),
+  });
 
-    const data = await response.json();
+  const data = await response.json();
 
-    
 
-    if (!response.ok) {
-      throw new Error(data?.message || "Failed to link patient");
-    }
 
-    return data.message;
-  },
+  if (!response.ok) {
+    throw new Error(data?.message || "Failed to link patient");
+  }
+
+  return data.message;
+},
   async  createLabResult(payload: any) {
-    const token = Cookies.get("accessToken");
-    const response = await fetch(`${apiUrl}/api/v1/lab-results`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-      body: JSON.stringify(payload),
-    });
+  const token = Cookies.get("accessToken");
+  const response = await fetch(`${apiUrl}/api/v1/lab-results`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    credentials: "include",
+    body: JSON.stringify(payload),
+  });
 
-    const data = await response.json();
+  const data = await response.json();
 
-    
 
-    if (!response.ok) {
-      throw new Error(data?.message || "Failed to link patient");
-    }
 
-    return data.message;
-  },
+  if (!response.ok) {
+    throw new Error(data?.message || "Failed to link patient");
+  }
+
+  return data.message;
+},
   async  createEncounter(payload: any) {
-    const token = Cookies.get("accessToken");
-    const response = await fetch(`${apiUrl}/api/v1/encounter`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-      body: JSON.stringify(payload),
-    });
+  const token = Cookies.get("accessToken");
+  const response = await fetch(`${apiUrl}/api/v1/encounter`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    credentials: "include",
+    body: JSON.stringify(payload),
+  });
 
-    const data = await response.json();
+  const data = await response.json();
 
-    
 
-    if (!response.ok) {
-      throw new Error(data?.message || "Failed to link patient");
-    }
 
-    return data.message;
-  },
+  if (!response.ok) {
+    throw new Error(data?.message || "Failed to link patient");
+  }
+
+  return data.message;
+},
 
   async  createProcedure(payload: any) {
-    const token = Cookies.get("accessToken");
-    const response = await fetch(`${apiUrl}/api/v1/procedures`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-      body: JSON.stringify(payload),
-    });
+  const token = Cookies.get("accessToken");
+  const response = await fetch(`${apiUrl}/api/v1/procedures`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    credentials: "include",
+    body: JSON.stringify(payload),
+  });
 
-    const data = await response.json();
+  const data = await response.json();
 
-    
 
-    if (!response.ok) {
-      throw new Error(data?.message || "Failed to link patient");
-    }
 
-    return data.message;
-  },
+  if (!response.ok) {
+    throw new Error(data?.message || "Failed to link patient");
+  }
 
-  signOut(): void {
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem("welli_onboarded");
-    localStorage.removeItem("wallet_onboarded");
-  },
+  return data.message;
+},
+
+signOut(): void {
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem("welli_onboarded");
+  localStorage.removeItem("wallet_onboarded");
+},
 
   getCurrentUser(): AuthUser | null {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    try {
-      return JSON.parse(raw) as AuthUser;
-    } catch {
-      return null;
-    }
-  },
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as AuthUser;
+  } catch {
+    return null;
+  }
+},
 };
