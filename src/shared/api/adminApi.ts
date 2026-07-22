@@ -2,6 +2,8 @@ import {
     VerificationRequest, Invoice, SubscriptionPlan,
     ImpersonationLog, FacilityBranch, OrgType
 } from '@/shared/types/types';
+import Cookies from 'js-cookie';
+import { apiUrl } from '@/shared/api/authApi';
 
 // ─── Verification Queue ───────────────────────────────────────────────────────
 
@@ -175,27 +177,65 @@ function saveData(key: string, data: any) {
 // ─── adminApi ─────────────────────────────────────────────────────────────────
 
 export const adminApi = {
-    getVerifications(status?: VerificationRequest['status']): VerificationRequest[] {
-        if (status) return MOCK_VERIFICATIONS.filter(v => v.status === status);
-        return MOCK_VERIFICATIONS;
+    async getVerifications(status?: VerificationRequest['status']): Promise<VerificationRequest[]> {
+        const token = Cookies.get('accessToken');
+        const url = status
+            ? `${apiUrl}/api/v1/admin/verifications?status=${status}`
+            : `${apiUrl}/api/v1/admin/verifications`;
+        const res = await fetch(url, {
+            headers: { Authorization: `Bearer ${token}` },
+            credentials: 'include',
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json?.message || 'Failed to load verifications');
+        return json.data;
     },
-    getVerificationById(id: string): VerificationRequest | undefined {
-        return MOCK_VERIFICATIONS.find(v => v.id === id);
+    async getVerificationById(id: string): Promise<VerificationRequest | undefined> {
+        const token = Cookies.get('accessToken');
+        const res = await fetch(`${apiUrl}/api/v1/admin/verifications/${id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+            credentials: 'include',
+        });
+        if (res.status === 404) return undefined;
+        const json = await res.json();
+        if (!res.ok) throw new Error(json?.message || 'Failed to load verification');
+        return json.data;
     },
-    approveVerification(id: string, note?: string): VerificationRequest | undefined {
-        const v = MOCK_VERIFICATIONS.find(v => v.id === id);
-        if (v) { v.status = 'approved'; v.reviewedAt = new Date().toISOString(); v.decisionNote = note; }
-        return v;
+    async approveVerification(id: string, note?: string): Promise<VerificationRequest | undefined> {
+        const token = Cookies.get('accessToken');
+        const res = await fetch(`${apiUrl}/api/v1/admin/verifications/${id}/approve`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            credentials: 'include',
+            body: JSON.stringify({ note }),
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json?.message || 'Failed to approve verification');
+        return json.data;
     },
-    rejectVerification(id: string, note: string): VerificationRequest | undefined {
-        const v = MOCK_VERIFICATIONS.find(v => v.id === id);
-        if (v) { v.status = 'rejected'; v.reviewedAt = new Date().toISOString(); v.decisionNote = note; }
-        return v;
+    async rejectVerification(id: string, note: string): Promise<VerificationRequest | undefined> {
+        const token = Cookies.get('accessToken');
+        const res = await fetch(`${apiUrl}/api/v1/admin/verifications/${id}/reject`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            credentials: 'include',
+            body: JSON.stringify({ note }),
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json?.message || 'Failed to reject verification');
+        return json.data;
     },
-    requestMoreInfo(id: string, note: string): VerificationRequest | undefined {
-        const v = MOCK_VERIFICATIONS.find(v => v.id === id);
-        if (v) { v.status = 'more_info_requested'; v.decisionNote = note; }
-        return v;
+    async requestMoreInfo(id: string, note: string): Promise<VerificationRequest | undefined> {
+        const token = Cookies.get('accessToken');
+        const res = await fetch(`${apiUrl}/api/v1/admin/verifications/${id}/request-info`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            credentials: 'include',
+            body: JSON.stringify({ note }),
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json?.message || 'Failed to request more info');
+        return json.data;
     },
     getBranches(orgId: string): FacilityBranch[] {
         return MOCK_BRANCHES[orgId] ?? [];
