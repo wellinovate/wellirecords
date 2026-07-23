@@ -567,7 +567,7 @@ export function PatientSettingsPage() {
       icon: ShieldCheck,
       disabled: false,
     },
-    { id: "notifications", label: "Notifications", icon: Bell, disabled: true },
+    { id: "notifications", label: "Notifications", icon: Bell, disabled: false },
     // { id: "wearables", label: "Wearables", icon: Watch, disabled: true },
   ];
 
