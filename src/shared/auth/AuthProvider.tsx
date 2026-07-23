@@ -106,6 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       JSON.stringify({
         id: res.data.account.id,
         accountType: res.data.account.accountType,
+        role: res.data.account.role,
       }),
     );
     const auth = getAuthFromToken(res.data.accessToken);
@@ -130,6 +131,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       JSON.stringify({
         id: res.data.account.id,
         accountType: res.data.account.accountType,
+        role: res.data.account.role,
       }),
     );
     getAuthFromToken(res.data.accessToken);
