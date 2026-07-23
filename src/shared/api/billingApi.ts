@@ -42,28 +42,16 @@ export const MOCK_PLANS: SubscriptionPlan[] = [
 
 // ─── Invoices ─────────────────────────────────────────────────────────────────
 
-export const MOCK_INVOICES: Invoice[] = [
-    { id: 'inv_001', orgId: 'org_hosp_001', planId: 'plan_facility_professional', planName: 'Facility Professional', amount: 7500000, status: 'paid', issuedAt: '2026-03-01T00:00:00Z', dueAt: '2026-03-07T00:00:00Z', paidAt: '2026-03-03T10:22:00Z', reference: 'WR-INV-20260301-001' },
-    { id: 'inv_002', orgId: 'org_lab_001', planId: 'plan_facility_basic', planName: 'Facility Basic', amount: 2500000, status: 'paid', issuedAt: '2026-03-01T00:00:00Z', dueAt: '2026-03-07T00:00:00Z', paidAt: '2026-03-02T08:11:00Z', reference: 'WR-INV-20260301-002' },
-    { id: 'inv_003', orgId: 'org_hosp_002', planId: 'plan_facility_enterprise', planName: 'Facility Enterprise', amount: 20000000, status: 'overdue', issuedAt: '2026-02-01T00:00:00Z', dueAt: '2026-02-07T00:00:00Z', reference: 'WR-INV-20260201-003' },
-    { id: 'inv_004', patientId: 'pat_001', planId: 'plan_patient_premium', planName: 'Patient Premium', amount: 150000, status: 'paid', issuedAt: '2026-03-01T00:00:00Z', dueAt: '2026-03-07T00:00:00Z', paidAt: '2026-03-01T12:05:00Z', reference: 'WR-INV-20260301-004' },
-    { id: 'inv_005', orgId: 'org_ph_001', planId: 'plan_facility_basic', planName: 'Facility Basic', amount: 2500000, status: 'pending', issuedAt: '2026-03-01T00:00:00Z', dueAt: '2026-03-07T00:00:00Z', reference: 'WR-INV-20260301-005' },
-    { id: 'inv_006', orgId: 'org_lab_002', planId: 'plan_facility_professional', planName: 'Facility Professional', amount: 7500000, status: 'disputed', issuedAt: '2026-02-15T00:00:00Z', dueAt: '2026-02-21T00:00:00Z', reference: 'WR-INV-20260215-006' },
-];
+export const MOCK_INVOICES: Invoice[] = [];
 
 // ─── Revenue stats ────────────────────────────────────────────────────────────
 
 export const MOCK_REVENUE = {
-    mrrKobo: 60800000,    // ₦608,000 / month
-    arrKobo: 729600000,   // ₦7,296,000 / year
-    newSubscriptionsThisMonth: 8,
-    churnedThisMonth: 1,
-    planBreakdown: [
-        { planName: 'Facility Enterprise', count: 1, revenueKobo: 20000000 },
-        { planName: 'Facility Professional', count: 2, revenueKobo: 30000000 },
-        { planName: 'Facility Basic', count: 3, revenueKobo: 7500000 },
-        { planName: 'Patient Premium', count: 22, revenueKobo: 3300000 },
-    ],
+    mrrKobo: 0,
+    arrKobo: 0,
+    newSubscriptionsThisMonth: 0,
+    churnedThisMonth: 0,
+    planBreakdown: [] as { planName: string; count: number; revenueKobo: number }[],
 };
 
 // ─── billingApi ───────────────────────────────────────────────────────────────
