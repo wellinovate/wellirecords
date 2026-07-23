@@ -347,6 +347,19 @@ export function PatientSettingsPage() {
   const [nameRequested, setNameRequested] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const defaultNotificationPrefs: Record<string, boolean> = {
+    labResultsReady: true,
+    consentRequests: true,
+    appointmentReminders: true,
+    emergencyModeAlerts: true,
+    medicationReminders: false,
+    accessAuditLog: false,
+  };
+  const [notificationPrefs, setNotificationPrefs] = useState<Record<string, boolean>>(
+    defaultNotificationPrefs,
+  );
+  const [notificationSavingIds, setNotificationSavingIds] = useState<Set<string>>(new Set());
+
   const [form, setForm] = useState<ProfileFormState>({
     avatar: "",
     firstName: "",
@@ -375,6 +388,11 @@ export function PatientSettingsPage() {
       const data = await fetchProfile();
 
       setProfile(data);
+
+      setNotificationPrefs((prev) => ({
+        ...prev,
+        ...(data?.notificationPreferences || {}),
+      }));
 
       setForm({
         avatar: data?.avatar || "",
@@ -461,6 +479,30 @@ export function PatientSettingsPage() {
   const handleSignOut = () => {
     signOut();
     navigate("/auth/pre-login");
+  };
+
+  const handleToggleNotification = async (id: string) => {
+    if (notificationSavingIds.has(id)) return; // already saving this one, ignore repeat clicks
+
+    const previousValue = notificationPrefs[id];
+    const nextPrefs = { ...notificationPrefs, [id]: !previousValue };
+
+    setNotificationPrefs(nextPrefs); // optimistic
+    setNotificationSavingIds((prev) => new Set(prev).add(id));
+
+    try {
+      await updateProfile({ notificationPreferences: nextPrefs });
+    } catch (error) {
+      console.error("Failed to update notification preference", error);
+      setNotificationPrefs((prev) => ({ ...prev, [id]: previousValue })); // rollback
+      toast.error("Couldn't save that preference. Try again.");
+    } finally {
+      setNotificationSavingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    }
   };
 
   const handleNinSubmit = (e: React.FormEvent) => {
@@ -1072,84 +1114,94 @@ export function PatientSettingsPage() {
               </h2>
               {[
                 {
+                  id: "labResultsReady",
                   label: "Lab Results Ready",
                   desc: "Get notified when new lab results are published",
-                  on: true,
                 },
                 {
+                  id: "consentRequests",
                   label: "Consent Requests",
                   desc: "When a provider requests access to your records",
-                  on: true,
                 },
                 {
+                  id: "appointmentReminders",
                   label: "Appointment Reminders",
                   desc: "24h before your appointments",
-                  on: true,
                 },
                 {
+                  id: "emergencyModeAlerts",
                   label: "Emergency Mode Alerts",
                   desc: "When paramedics invoke emergency read access",
-                  on: true,
                   critical: true,
                 },
                 {
+                  id: "medicationReminders",
                   label: "Medication Reminders",
                   desc: "Daily reminders for active prescriptions",
-                  on: false,
                 },
                 {
+                  id: "accessAuditLog",
                   label: "Access Audit Log",
                   desc: "Each time a provider views your records",
-                  on: false,
                 },
-              ].map((n) => (
-                <div
-                  key={n.label}
-                  className={`flex items-center justify-between p-4 rounded-xl border ${n.critical ? "bg-red-50 border-red-100" : "bg-white border-gray-100"}`}
-                >
-                  <div>
-                    <div
-                      className={`font-bold text-sm ${n.critical ? "text-red-800" : "text-gray-900"}`}
-                    >
-                      {n.label}
-                    </div>
-                    <div
-                      className={`text-xs mt-0.5 ${n.critical ? "text-red-600" : "text-gray-500"}`}
-                    >
-                      {n.desc}
-                    </div>
-                  </div>
+              ].map((n) => {
+                const on = notificationPrefs[n.id];
+                const isSaving = notificationSavingIds.has(n.id);
+
+                return (
                   <div
-                    style={{
-                      width: 42,
-                      height: 24,
-                      borderRadius: 12,
-                      background: n.on
-                        ? n.critical
-                          ? "#ef4444"
-                          : "#1a6b42"
-                        : "#e5e7eb",
-                      cursor: "pointer",
-                      position: "relative",
-                      transition: "background .2s",
-                    }}
+                    key={n.id}
+                    className={`flex items-center justify-between p-4 rounded-xl border ${n.critical ? "bg-red-50 border-red-100" : "bg-white border-gray-100"}`}
                   >
+                    <div>
+                      <div
+                        className={`font-bold text-sm ${n.critical ? "text-red-800" : "text-gray-900"}`}
+                      >
+                        {n.label}
+                      </div>
+                      <div
+                        className={`text-xs mt-0.5 ${n.critical ? "text-red-600" : "text-gray-500"}`}
+                      >
+                        {n.desc}
+                      </div>
+                    </div>
                     <div
+                      role="switch"
+                      aria-checked={on}
+                      aria-label={n.label}
+                      onClick={() => handleToggleNotification(n.id)}
                       style={{
-                        width: 18,
-                        height: 18,
-                        borderRadius: "50%",
-                        background: "#fff",
-                        position: "absolute",
-                        top: 3,
-                        left: n.on ? 21 : 3,
-                        transition: "left .2s",
-                        boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                        width: 42,
+                        height: 24,
+                        borderRadius: 12,
+                        background: on
+                          ? n.critical
+                            ? "#ef4444"
+                            : "#1a6b42"
+                          : "#e5e7eb",
+                        cursor: isSaving ? "not-allowed" : "pointer",
+                        opacity: isSaving ? 0.6 : 1,
+                        position: "relative",
+                        transition: "background .2s",
                       }}
-                    />
+                    >
+                      <div
+                        style={{
+                          width: 18,
+                          height: 18,
+                          borderRadius: "50%",
+                          background: "#fff",
+                          position: "absolute",
+                          top: 3,
+                          left: on ? 21 : 3,
+                          transition: "left .2s",
+                          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                        }}
+                      />
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
