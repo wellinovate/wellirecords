@@ -109,6 +109,7 @@ export function PatientLoginPage() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [resending, setResending] = useState(false);
 
   const [error, setError] = useState("");
 
@@ -142,9 +143,11 @@ export function PatientLoginPage() {
       return;
     }
 
+    if (resending) return; // a request is already in flight, ignore repeat clicks
+
     try {
+      setResending(true);
       setCode("");         // clear existing OTP
-      setTimeLeft(300);    // reset countdown to 5 minutes
       setError("");        // clear error messages
 
       const res = await resendVerifyLoginCodeApi(challengeToken);
@@ -157,6 +160,7 @@ export function PatientLoginPage() {
       // Update challenge token and optionally masked phone
       setChallengeToken(payload.challengeToken);
       setMaskedPhone(payload.maskedPhone || maskedPhone);
+      setTimeLeft(300);    // reset countdown only after a successful resend
 
       toast.success("OTP resent successfully");
 
@@ -165,6 +169,8 @@ export function PatientLoginPage() {
       const message =
         err?.response?.data?.message || err?.message || "Unable to resend OTP";
       toast.error(message);
+    } finally {
+      setResending(false);
     }
   };
 
@@ -553,6 +559,7 @@ export function PatientLoginPage() {
                       isCodeValid={isCodeValid}
                       verifying={verifying}
                       handleResend={handleResend}
+                      resending={resending}
                       timeLeft={timeLeft}
                       setTimeLeft={setTimeLeft}
                     />

@@ -7,6 +7,7 @@ interface OTPFormProps {
   isCodeValid: boolean;
   verifying: boolean;
   handleResend: () => void;
+  resending: boolean;
   timeLeft: number;
   setTimeLeft: (seconds: number) => void;
 }
@@ -18,6 +19,7 @@ export default function OTPForm({
   isCodeValid,
   verifying,
   handleResend,
+  resending,
   timeLeft,
   setTimeLeft
 }: OTPFormProps) {
@@ -75,11 +77,11 @@ export default function OTPForm({
         <span>Expires in: {formatTime(timeLeft)}</span>
         <button
           type="button"
-          disabled={timeLeft > 0}
+          disabled={timeLeft > 0 || resending}
           onClick={handleResend}
-          className={`text-emerald-600 font-bold ${timeLeft > 0 ? "opacity-50 cursor-not-allowed" : "hover:underline"}`}
+          className={`text-emerald-600 font-bold ${timeLeft > 0 || resending ? "opacity-50 cursor-not-allowed" : "hover:underline"}`}
         >
-          Resend Code
+          {resending ? "Resending..." : "Resend Code"}
         </button>
       </div>
     </div>
