@@ -1,14 +1,15 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/shared/auth/AuthProvider';
 import {
     Users, Building2, ShieldCheck, CreditCard,
     Activity, TrendingUp, AlertTriangle, CheckCircle,
     ArrowRight, Zap, Server, Eye, Flag, Lock,
-    Shield, Flame, Search, MessageSquare,
+    Shield, Flame, Search, MessageSquare, Loader2,
 } from 'lucide-react';
 import { adminApi } from '@/shared/api/adminApi';
 import { billingApi } from '@/shared/api/billingApi';
+import { VerificationRequest } from '@/shared/types/types';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -114,7 +115,27 @@ export function SuperAdminDashboard() {
     const { user } = useAuth();
     const stats = adminApi.getPlatformStats();
     const rev = billingApi.getRevenueSummary();
-    const recent = adminApi.getVerifications().slice(0, 5);
+
+    const [recent, setRecent] = useState<VerificationRequest[]>([]);
+    const [loadingRecent, setLoadingRecent] = useState(true);
+    const [recentError, setRecentError] = useState<string | null>(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        setLoadingRecent(true);
+        setRecentError(null);
+        adminApi.getVerifications()
+            .then(data => {
+                if (!cancelled) setRecent(data.slice(0, 5));
+            })
+            .catch(err => {
+                if (!cancelled) setRecentError(err instanceof Error ? err.message : 'Failed to load verifications');
+            })
+            .finally(() => {
+                if (!cancelled) setLoadingRecent(false);
+            });
+        return () => { cancelled = true; };
+    }, []);
 
     const now = new Date().toLocaleDateString('en-NG', {
         weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
@@ -219,20 +240,36 @@ export function SuperAdminDashboard() {
                         </button>
                     </div>
                     <div className="divide-y" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
-                        {recent.map(v => (
-                            <div
-                                key={v.id}
-                                className="flex items-center gap-3 px-5 py-3.5 hover:bg-white/[0.03] cursor-pointer transition-colors"
-                            >
-                                <div className="flex-1 min-w-0">
-                                    <div className="text-sm font-semibold truncate" style={{ color: '#e2e8f0' }}>{v.submittedByName}</div>
-                                    <div className="text-xs capitalize" style={{ color: '#475569' }}>
-                                        {v.type} · {new Date(v.submittedAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })}
-                                    </div>
-                                </div>
-                                <StatusBadge status={v.status} />
+                        {loadingRecent ? (
+                            <div className="px-5 py-8 text-center" style={{ color: '#475569' }}>
+                                <Loader2 size={20} className="mx-auto mb-2 animate-spin opacity-50" />
+                                <p className="text-xs">Loading recent verifications…</p>
                             </div>
-                        ))}
+                        ) : recentError ? (
+                            <div className="px-5 py-8 text-center" style={{ color: '#ef4444' }}>
+                                <AlertTriangle size={20} className="mx-auto mb-2 opacity-60" />
+                                <p className="text-xs">{recentError}</p>
+                            </div>
+                        ) : recent.length === 0 ? (
+                            <div className="px-5 py-8 text-center" style={{ color: '#475569' }}>
+                                <p className="text-xs">No verifications yet.</p>
+                            </div>
+                        ) : (
+                            recent.map(v => (
+                                <div
+                                    key={v.id}
+                                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-white/[0.03] cursor-pointer transition-colors"
+                                >
+                                    <div className="flex-1 min-w-0">
+                                        <div className="text-sm font-semibold truncate" style={{ color: '#e2e8f0' }}>{v.submittedByName}</div>
+                                        <div className="text-xs capitalize" style={{ color: '#475569' }}>
+                                            {v.type} · {new Date(v.submittedAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })}
+                                        </div>
+                                    </div>
+                                    <StatusBadge status={v.status} />
+                                </div>
+                            ))
+                        )}
                     </div>
                 </div>
 
