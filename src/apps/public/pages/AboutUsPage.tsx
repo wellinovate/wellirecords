@@ -93,8 +93,9 @@ export function AboutUsPage() {
             </h2>
             <p className="text-slate-300 text-lg leading-8">
               We started with a family emergency. A doctor needed one crucial piece of 
-              information — an allergy — and it was visible in seconds. That moment 
-              showed us what a record should do: be there when it matters most.
+              information — an allergy — and it wasn't there. We almost lost someone 
+              because a record didn't follow the patient. That moment showed us what 
+              a record should do: be there when it matters most.
             </p>
           </div>
 

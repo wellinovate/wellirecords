@@ -157,9 +157,18 @@ service cloud.firestore {
       allow write: if isAdmin();
 
       // Comments Subcollection
+      // Guest commenting (no login) is an intentional product feature —
+      // do not require isAuthenticated() here. Instead, validate shape and
+      // size so the previously wide-open "allow create: if true" can't be
+      // used to write arbitrary/oversized/malformed documents.
       match /comments/{commentId} {
         allow read: if true;
-        allow create: if true;
+        allow create: if request.resource.data.keys().hasOnly(['author', 'role', 'text', 'date', 'createdAt']) &&
+                        request.resource.data.author is string && request.resource.data.author.size() <= 80 &&
+                        request.resource.data.role is string && request.resource.data.role.size() <= 30 &&
+                        request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 2000 &&
+                        request.resource.data.date is string &&
+                        request.resource.data.createdAt == request.time;
         allow update, delete: if false;
       }
     }

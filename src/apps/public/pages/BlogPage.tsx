@@ -144,6 +144,12 @@ export function BlogPage() {
 
       setDynamicPosts(fetched);
       setIsLoading(false);
+      // Signal to the prerender script (Puppeteer) that async content has
+      // resolved and it is safe to capture page.content(). networkidle0
+      // alone is not reliable here: Firestore's getDocs() call frequently
+      // starts after the initial "idle" navigation event has already
+      // resolved, so Puppeteer would otherwise capture the loading state.
+      document.body.setAttribute('data-blog-ready', 'true');
     }
     fetchPosts();
   }, []);

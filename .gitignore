@@ -25,3 +25,7 @@ dist-ssr
 
 .env
 .env.local
+
+# Build artifacts — should be produced by CI/deploy, not committed
+*.zip
+.firebase/

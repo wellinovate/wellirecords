@@ -18,7 +18,6 @@ import {
   control_access_image,
   diagonize,
   government,
-  health_companion_image,
   HealthRecord,
   hopistal,
   insurance,
@@ -70,11 +69,6 @@ const timelineSteps = [
 ];
 
 const featureCards = [
-  {
-    title: "AI Health Companion",
-    description: "Understand your lab results with AI guidance.",
-    icon: health_companion_image,
-  },
   {
     title: "Own Your Health Record",
     description: "Your complete medical history in one secure vault.",
@@ -591,7 +585,7 @@ function Features() {
           {/* Decorative background */}
           <div className="absolute inset-x-0 top-10 hidden h-64 rounded-3xl bg-[#8DB8E25C] sm:block lg:top-24 lg:h-[326px]" />
 
-          <div className="relative grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+          <div className="relative grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
             {featureCards.map((feature) => (
               <div
                 key={feature.title}
