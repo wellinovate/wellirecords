@@ -46,6 +46,7 @@ export function ProviderLoginPage() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [verifying, setVerifying] = useState(false);
+    const [resending, setResending] = useState(false);
     const [showWeb3, setShowWeb3] = useState(false);
     const [web3Loading, setWeb3Loading] = useState(false);
     const [showRoleDrop, setShowRoleDrop] = useState(false);
@@ -161,9 +162,11 @@ export function ProviderLoginPage() {
             return;
         }
 
+        if (resending) return; // a request is already in flight, ignore repeat clicks
+
         try {
+            setResending(true);
             setCode('');
-            setTimeLeft(300);
             setError('');
 
             const res = await resendVerifyLoginCodeApi(challengeToken);
@@ -175,10 +178,13 @@ export function ProviderLoginPage() {
 
             setChallengeToken(payload.challengeToken);
             setMaskedPhone(payload.maskedPhone || maskedPhone);
+            setTimeLeft(300);
         } catch (err: any) {
             const message =
                 err?.response?.data?.message || err?.message || 'Unable to resend OTP';
             setError(message);
+        } finally {
+            setResending(false);
         }
     };
 
@@ -303,6 +309,7 @@ export function ProviderLoginPage() {
                                 isCodeValid={isCodeValid}
                                 verifying={verifying}
                                 handleResend={handleResend}
+                                resending={resending}
                                 timeLeft={timeLeft}
                                 setTimeLeft={setTimeLeft}
                             />
