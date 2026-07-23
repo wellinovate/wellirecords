@@ -100,13 +100,13 @@ export const MOCK_IMPERSONATION_LOGS: ImpersonationLog[] = [
 // ─── Platform stats (AdminDashboard) ─────────────────────────────────────────
 
 export const MOCK_PLATFORM_STATS = {
-    totalPatients: 14872,
-    activeProviders: 312,
-    pendingVerifications: MOCK_VERIFICATIONS.filter(v => v.status === 'pending' || v.status === 'more_info_requested').length,
-    monthlyActiveUsers: 9231,
-    consentRequestsToday: 47,
+    totalPatients: 0,
+    activeProviders: 0,
+    pendingVerifications: 0,
+    monthlyActiveUsers: 0,
+    consentRequestsToday: 0,
     systemHealthStatus: 'healthy' as 'healthy' | 'degraded' | 'down',
-    systemHealthMessage: 'All services operational. Uptime 99.97%.',
+    systemHealthMessage: 'Awaiting live data.',
 };
 
 // ─── Security Alerts & Incidents Keys ──────────────────────────────────────────

@@ -27,92 +27,7 @@ interface TenantOrg {
     status: OrgStatus;
 }
 
-const MOCK_ORGS: TenantOrg[] = [
-    {
-        id: 'org_hosp_001',
-        name: 'Lagos General Hospital',
-        type: 'Hospital',
-        location: 'Victoria Island, Lagos',
-        logo: 'https://api.dicebear.com/8.x/shapes/svg?seed=lagos_gen&backgroundColor=0d1233',
-        adminName: 'Dr. Chidi Okonkwo',
-        adminEmail: 'admin@lagosgeneral.ng',
-        subscription: 'Enterprise',
-        mrr: 1500000,
-        apiCallsAvg: '2.4k/min',
-        staffCount: 450,
-        status: 'Active'
-    },
-    {
-        id: 'org_clin_012',
-        name: 'Avon Medical Practice',
-        type: 'Clinic',
-        location: 'Surulere, Lagos',
-        logo: 'https://api.dicebear.com/8.x/shapes/svg?seed=avon&backgroundColor=0d1233',
-        adminName: 'Sarah Ndubuisi',
-        adminEmail: 'sarah@avonmedical.com',
-        subscription: 'Pro',
-        mrr: 250000,
-        apiCallsAvg: '150/min',
-        staffCount: 24,
-        status: 'Active'
-    },
-    {
-        id: 'org_lab_004',
-        name: 'CityLab Diagnostics',
-        type: 'Laboratory',
-        location: 'Wuse II, Abuja',
-        logo: 'https://api.dicebear.com/8.x/shapes/svg?seed=citylab&backgroundColor=0d1233',
-        adminName: 'Bayo Adewale',
-        adminEmail: 'it.admin@citylab.ng',
-        subscription: 'Enterprise',
-        mrr: 850000,
-        apiCallsAvg: '3.1k/min',
-        staffCount: 112,
-        status: 'Active'
-    },
-    {
-        id: 'org_clin_088',
-        name: 'Lifecare Family Clinic',
-        type: 'Clinic',
-        location: 'Ikeja, Lagos',
-        logo: 'https://api.dicebear.com/8.x/shapes/svg?seed=lifecare&backgroundColor=0d1233',
-        adminName: 'Dr. Mary Adebayo',
-        adminEmail: 'mary.ade@lifecare.ng',
-        subscription: 'Starter',
-        mrr: 50000,
-        apiCallsAvg: '12/min',
-        staffCount: 5,
-        status: 'Pending Review'
-    },
-    {
-        id: 'org_pharm_021',
-        name: 'MedPlus Pharmacy - Lekki',
-        type: 'Pharmacy',
-        location: 'Lekki Phase 1, Lagos',
-        logo: 'https://api.dicebear.com/8.x/shapes/svg?seed=medplus&backgroundColor=0d1233',
-        adminName: 'Ngozi Eze',
-        adminEmail: 'ngozi@medplus.ng',
-        subscription: 'Pro',
-        mrr: 150000,
-        apiCallsAvg: '45/min',
-        staffCount: 18,
-        status: 'Active'
-    },
-    {
-        id: 'org_hosp_042',
-        name: 'Reddington Hospital',
-        type: 'Hospital',
-        location: 'Ikeja, Lagos',
-        logo: 'https://api.dicebear.com/8.x/shapes/svg?seed=reddington&backgroundColor=0d1233',
-        adminName: 'Tunde Bakare',
-        adminEmail: 'sysadmin@reddington.ng',
-        subscription: 'Enterprise',
-        mrr: 1200000,
-        apiCallsAvg: '1.8k/min',
-        staffCount: 320,
-        status: 'Suspended'
-    }
-];
+const MOCK_ORGS: TenantOrg[] = [];
 
 // --- Subcomponents ---
 
@@ -182,10 +97,10 @@ export function SuperAdminOrganisations() {
 
             {/* Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <MetricCard title="Total Facilities" value="842" subtitle="+12 this month" icon={Building2} trend="up" />
-                <MetricCard title="Active API Traffic" value="14.2k/m" subtitle="peak: 18k/m" icon={Activity} trend="neutral" />
-                <MetricCard title="Platform MRR" value="₦42.5M" subtitle="+₦2.1M vs last month" icon={Wallet} trend="up" />
-                <MetricCard title="Pending KYC Review" value="8" subtitle="Average wait: 1.2 days" icon={FileLock2} trend="down" />
+                <MetricCard title="Total Facilities" value="0" subtitle="—" icon={Building2} trend="neutral" />
+                <MetricCard title="Active API Traffic" value="0/min" subtitle="—" icon={Activity} trend="neutral" />
+                <MetricCard title="Platform MRR" value="₦0" subtitle="—" icon={Wallet} trend="neutral" />
+                <MetricCard title="Pending KYC Review" value="0" subtitle="—" icon={FileLock2} trend="neutral" />
             </div>
 
             {/* Main Table Card */}
@@ -233,108 +148,116 @@ export function SuperAdminOrganisations() {
                             </tr>
                         </thead>
                         <tbody className="divide-y" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-                            {MOCK_ORGS.map((org) => (
-                                <tr key={org.id} className="hover:bg-white/[0.02] transition-colors relative group">
-                                    {/* Org (Logo + Name + Location) */}
-                                    <td className="p-4">
-                                        <div className="flex items-start gap-3">
-                                            <img src={org.logo} alt={org.name} className="w-10 h-10 rounded-lg" style={{ border: '1px solid rgba(255,255,255,0.1)' }} />
-                                            <div>
-                                                <div className="text-sm font-bold truncate max-w-[200px]" style={{ color: '#e2e8f0' }}>{org.name}</div>
-                                                <div className="flex items-center gap-2 mt-0.5">
-                                                    <span className="text-[10px] font-mono" style={{ color: '#9ca3af' }}>{org.id}</span>
-                                                    <span className="w-1 h-1 rounded-full bg-slate-600" />
-                                                    <span className="text-xs truncate max-w-[120px]" style={{ color: 'var(--sa-muted)' }}>{org.location}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-
-                                    {/* Primary Admin - Hidden on small */}
-                                    <td className="p-4 hidden lg:table-cell">
-                                        <div className="text-sm font-medium" style={{ color: '#e2e8f0' }}>{org.adminName}</div>
-                                        <div className="text-xs" style={{ color: 'var(--sa-muted)' }}>{org.adminEmail}</div>
-                                    </td>
-
-                                    {/* Utilization - Hidden on lg */}
-                                    <td className="p-4 hidden xl:table-cell">
-                                        <div className="flex gap-4">
-                                            <div>
-                                                <div className="text-[10px] uppercase font-bold tracking-wider" style={{ color: 'var(--sa-muted)' }}>Staff</div>
-                                                <div className="text-sm font-semibold" style={{ color: '#e2e8f0' }}>{org.staffCount}</div>
-                                            </div>
-                                            <div>
-                                                <div className="text-[10px] uppercase font-bold tracking-wider" style={{ color: 'var(--sa-muted)' }}>API Load</div>
-                                                <div className="text-sm font-semibold" style={{ color: '#e2e8f0' }}>{org.apiCallsAvg}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-
-                                    {/* Subscription details */}
-                                    <td className="p-4">
-                                        <div className="flex flex-col items-start gap-1">
-                                            <TierBadge tier={org.subscription} />
-                                            <div className="text-[11px] font-mono mt-1" style={{ color: '#9ca3af' }}>₦{(org.mrr / 1000).toFixed(0)}k / month</div>
-                                        </div>
-                                    </td>
-
-                                    {/* Status */}
-                                    <td className="p-4 text-center">
-                                        <StatusChip status={org.status} />
-                                    </td>
-
-                                    {/* Actions */}
-                                    <td className="p-4 text-right static">
-                                        <div className="relative inline-block text-left">
-                                            <button
-                                                onClick={() => setActiveMenuId(activeMenuId === org.id ? null : org.id)}
-                                                className="p-2 rounded-xl transition-colors hover:bg-white/10 relative z-10"
-                                                style={{ color: 'var(--sa-muted)' }}
-                                            >
-                                                <MoreVertical size={18} />
-                                            </button>
-
-                                            {activeMenuId === org.id && (
-                                                <>
-                                                    <div className="fixed inset-0 z-10" onClick={() => setActiveMenuId(null)} />
-                                                    <div
-                                                        className="absolute right-0 top-12 w-56 rounded-xl shadow-2xl py-1 z-20 animate-fade-in z-50 overflow-hidden"
-                                                        style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.5)' }}
-                                                    >
-                                                        <button
-                                                            className="w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-white/5 transition-colors flex items-center gap-2"
-                                                            style={{ color: '#e2e8f0' }}
-                                                        >
-                                                            <Settings size={16} /> Manage Subscription
-                                                        </button>
-                                                        {org.status === 'Pending Review' && (
-                                                            <button
-                                                                className="w-full text-left px-4 py-2.5 text-sm font-bold hover:bg-emerald-500/10 transition-colors flex items-center gap-2"
-                                                                style={{ color: '#10b981' }}
-                                                            >
-                                                                <FileLock2 size={16} /> Verify Medical License
-                                                            </button>
-                                                        )}
-                                                        <button
-                                                            className="w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-white/5 transition-colors flex items-center gap-2"
-                                                            style={{ color: '#e2e8f0' }}
-                                                        >
-                                                            <ExternalLink size={16} /> View Tenant Audit Log
-                                                        </button>
-                                                        <div className="h-px my-1 w-full" style={{ background: 'rgba(255,255,255,0.05)' }} />
-                                                        <button
-                                                            className="w-full text-left px-4 py-2.5 text-sm font-bold hover:bg-red-500/10 transition-colors flex items-center gap-2"
-                                                            style={{ color: '#ef4444' }}
-                                                        >
-                                                            <ShieldAlert size={16} /> Suspend Organisation
-                                                        </button>
-                                                    </div>
-                                                </>
-                                            )}
-                                        </div>
+                            {MOCK_ORGS.length === 0 ? (
+                                <tr>
+                                    <td colSpan={6} className="p-10 text-center" style={{ color: 'var(--sa-muted)' }}>
+                                        No organisations registered yet.
                                     </td>
                                 </tr>
-                            ))}
+                            ) : (
+                                MOCK_ORGS.map((org) => (
+                                    <tr key={org.id} className="hover:bg-white/[0.02] transition-colors relative group">
+                                        {/* Org (Logo + Name + Location) */}
+                                        <td className="p-4">
+                                            <div className="flex items-start gap-3">
+                                                <img src={org.logo} alt={org.name} className="w-10 h-10 rounded-lg" style={{ border: '1px solid rgba(255,255,255,0.1)' }} />
+                                                <div>
+                                                    <div className="text-sm font-bold truncate max-w-[200px]" style={{ color: '#e2e8f0' }}>{org.name}</div>
+                                                    <div className="flex items-center gap-2 mt-0.5">
+                                                        <span className="text-[10px] font-mono" style={{ color: '#9ca3af' }}>{org.id}</span>
+                                                        <span className="w-1 h-1 rounded-full bg-slate-600" />
+                                                        <span className="text-xs truncate max-w-[120px]" style={{ color: 'var(--sa-muted)' }}>{org.location}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        {/* Primary Admin - Hidden on small */}
+                                        <td className="p-4 hidden lg:table-cell">
+                                            <div className="text-sm font-medium" style={{ color: '#e2e8f0' }}>{org.adminName}</div>
+                                            <div className="text-xs" style={{ color: 'var(--sa-muted)' }}>{org.adminEmail}</div>
+                                        </td>
+
+                                        {/* Utilization - Hidden on lg */}
+                                        <td className="p-4 hidden xl:table-cell">
+                                            <div className="flex gap-4">
+                                                <div>
+                                                    <div className="text-[10px] uppercase font-bold tracking-wider" style={{ color: 'var(--sa-muted)' }}>Staff</div>
+                                                    <div className="text-sm font-semibold" style={{ color: '#e2e8f0' }}>{org.staffCount}</div>
+                                                </div>
+                                                <div>
+                                                    <div className="text-[10px] uppercase font-bold tracking-wider" style={{ color: 'var(--sa-muted)' }}>API Load</div>
+                                                    <div className="text-sm font-semibold" style={{ color: '#e2e8f0' }}>{org.apiCallsAvg}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        {/* Subscription details */}
+                                        <td className="p-4">
+                                            <div className="flex flex-col items-start gap-1">
+                                                <TierBadge tier={org.subscription} />
+                                                <div className="text-[11px] font-mono mt-1" style={{ color: '#9ca3af' }}>₦{(org.mrr / 1000).toFixed(0)}k / month</div>
+                                            </div>
+                                        </td>
+
+                                        {/* Status */}
+                                        <td className="p-4 text-center">
+                                            <StatusChip status={org.status} />
+                                        </td>
+
+                                        {/* Actions */}
+                                        <td className="p-4 text-right static">
+                                            <div className="relative inline-block text-left">
+                                                <button
+                                                    onClick={() => setActiveMenuId(activeMenuId === org.id ? null : org.id)}
+                                                    className="p-2 rounded-xl transition-colors hover:bg-white/10 relative z-10"
+                                                    style={{ color: 'var(--sa-muted)' }}
+                                                >
+                                                    <MoreVertical size={18} />
+                                                </button>
+
+                                                {activeMenuId === org.id && (
+                                                    <>
+                                                        <div className="fixed inset-0 z-10" onClick={() => setActiveMenuId(null)} />
+                                                        <div
+                                                            className="absolute right-0 top-12 w-56 rounded-xl shadow-2xl py-1 z-20 animate-fade-in z-50 overflow-hidden"
+                                                            style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.5)' }}
+                                                        >
+                                                            <button
+                                                                className="w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-white/5 transition-colors flex items-center gap-2"
+                                                                style={{ color: '#e2e8f0' }}
+                                                            >
+                                                                <Settings size={16} /> Manage Subscription
+                                                            </button>
+                                                            {org.status === 'Pending Review' && (
+                                                                <button
+                                                                    className="w-full text-left px-4 py-2.5 text-sm font-bold hover:bg-emerald-500/10 transition-colors flex items-center gap-2"
+                                                                    style={{ color: '#10b981' }}
+                                                                >
+                                                                    <FileLock2 size={16} /> Verify Medical License
+                                                                </button>
+                                                            )}
+                                                            <button
+                                                                className="w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-white/5 transition-colors flex items-center gap-2"
+                                                                style={{ color: '#e2e8f0' }}
+                                                            >
+                                                                <ExternalLink size={16} /> View Tenant Audit Log
+                                                            </button>
+                                                            <div className="h-px my-1 w-full" style={{ background: 'rgba(255,255,255,0.05)' }} />
+                                                            <button
+                                                                className="w-full text-left px-4 py-2.5 text-sm font-bold hover:bg-red-500/10 transition-colors flex items-center gap-2"
+                                                                style={{ color: '#ef4444' }}
+                                                            >
+                                                                <ShieldAlert size={16} /> Suspend Organisation
+                                                            </button>
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
@@ -343,4 +266,3 @@ export function SuperAdminOrganisations() {
         </div>
     );
 }
-

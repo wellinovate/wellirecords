@@ -26,86 +26,7 @@ interface PlatformUser {
     status: AccountStatus;
 }
 
-const MOCK_USERS: PlatformUser[] = [
-    {
-        id: 'usr_pat_001',
-        fullName: 'Amara Okafor',
-        email: 'amara.okafor@gmail.com',
-        avatar: 'https://api.dicebear.com/8.x/avataaars/svg?seed=amara_okafor',
-        accountType: 'Patient',
-        org: 'Unaffiliated',
-        registrationDate: '2026-02-14',
-        verificationStatus: 'NIN Verified',
-        plan: 'Free',
-        lastActive: '2h ago',
-        status: 'Active'
-    },
-    {
-        id: 'usr_pat_002',
-        fullName: 'Emeka Nwosu',
-        email: 'emeka.n@yahoo.com',
-        avatar: 'https://api.dicebear.com/8.x/avataaars/svg?seed=emeka_n',
-        accountType: 'Patient',
-        org: 'Unaffiliated',
-        registrationDate: '2026-03-01',
-        verificationStatus: 'Pending',
-        plan: 'Pro',
-        lastActive: '1m ago',
-        status: 'Active'
-    },
-    {
-        id: 'usr_pro_001',
-        fullName: 'Dr. Fatima Aliyu',
-        email: 'fatima.aliyu@lagosgeneral.ng',
-        avatar: 'https://api.dicebear.com/8.x/avataaars/svg?seed=fatima_aliyu',
-        accountType: 'Clinician',
-        org: 'Lagos General Hospital',
-        registrationDate: '2025-11-20',
-        verificationStatus: 'NIN Verified',
-        plan: 'Enterprise',
-        lastActive: 'Just now',
-        status: 'Active'
-    },
-    {
-        id: 'usr_pro_002',
-        fullName: 'Dr. Chidi Eze',
-        email: 'dr.chidi@reddington.ng',
-        avatar: 'https://api.dicebear.com/8.x/avataaars/svg?seed=chidi_eze',
-        accountType: 'Clinician',
-        org: 'Reddington Hospital',
-        registrationDate: '2025-10-05',
-        verificationStatus: 'NIN Verified',
-        plan: 'Enterprise',
-        lastActive: '3d ago',
-        status: 'Suspended'
-    },
-    {
-        id: 'usr_adm_001',
-        fullName: 'Bayo Adewale',
-        email: 'admin@citylab.ng',
-        avatar: 'https://api.dicebear.com/8.x/avataaars/svg?seed=bayo_adewale',
-        accountType: 'Provider Admin',
-        org: 'CityLab Diagnostics',
-        registrationDate: '2026-01-12',
-        verificationStatus: 'Unverified',
-        plan: 'Pro',
-        lastActive: '5h ago',
-        status: 'Pending'
-    },
-    {
-        id: 'usr_sa_001',
-        fullName: 'Tolu Adeyemi',
-        email: 't.adeyemi@wellirecord.com',
-        avatar: 'https://api.dicebear.com/8.x/avataaars/svg?seed=tolu_adeyemi',
-        accountType: 'Super Admin',
-        org: 'WelliRecord Ops',
-        registrationDate: '2025-01-01',
-        verificationStatus: 'NIN Verified',
-        plan: 'N/A',
-        lastActive: 'Configuring settings',
-        status: 'Active'
-    }
-];
+const MOCK_USERS: PlatformUser[] = [];
 
 // --- Subcomponents ---
 
@@ -160,10 +81,10 @@ export function SuperAdminPlatformUsers() {
 
             {/* Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <MetricCard title="Total Platform Users" value="284,592" change="+12.4%" timeframe="last month" icon={Users} trend="up" />
-                <MetricCard title="New Registrations" value="14,204" change="+5.2%" timeframe="last week" icon={UserPlus} trend="up" />
-                <MetricCard title="Active Today" value="94,011" change="-2.1%" timeframe="yesterday" icon={Activity} trend="down" />
-                <MetricCard title="Pending Verifications" value="1,842" change="184 cleared" timeframe="today" icon={ShieldCheck} trend="neutral" />
+                <MetricCard title="Total Platform Users" value="0" change="—" timeframe="last month" icon={Users} trend="neutral" />
+                <MetricCard title="New Registrations" value="0" change="—" timeframe="last week" icon={UserPlus} trend="neutral" />
+                <MetricCard title="Active Today" value="0" change="—" timeframe="yesterday" icon={Activity} trend="neutral" />
+                <MetricCard title="Pending Verifications" value="0" change="—" timeframe="today" icon={ShieldCheck} trend="neutral" />
             </div>
 
             {/* Main Table Card */}
@@ -216,113 +137,121 @@ export function SuperAdminPlatformUsers() {
                             </tr>
                         </thead>
                         <tbody className="divide-y" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-                            {MOCK_USERS.map((u) => (
-                                <tr key={u.id} className="hover:bg-white/[0.02] transition-colors relative group">
-                                    {/* User (Avatar + Name) */}
-                                    <td className="p-4">
-                                        <div className="flex items-center gap-3">
-                                            <img src={u.avatar} alt={u.fullName} className="w-10 h-10 rounded-full" style={{ border: '2px solid rgba(255,255,255,0.1)', background: '#cbd5e1' }} />
-                                            <div>
-                                                <div className="text-sm font-bold truncate max-w-[150px] sm:max-w-[200px]" style={{ color: '#e2e8f0' }}>{u.fullName}</div>
-                                                <div className="text-xs truncate max-w-[150px] sm:max-w-[200px]" style={{ color: 'var(--sa-muted)' }}>{u.email}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-
-                                    {/* Role & ID */}
-                                    <td className="p-4">
-                                        <div className="text-xs font-mono mb-1" style={{ color: '#9ca3af' }}>{u.id}</div>
-                                        <span className="text-[10px] font-black px-2 py-0.5 rounded" style={{ background: 'rgba(129,140,248,0.15)', color: 'var(--sa-accent)' }}>
-                                            {u.accountType}
-                                        </span>
-                                    </td>
-
-                                    {/* Organisation - Hidden on small */}
-                                    <td className="p-4 hidden lg:table-cell">
-                                        <div className="text-sm font-medium" style={{ color: u.org === 'Unaffiliated' ? 'var(--sa-muted)' : '#e2e8f0' }}>
-                                            {u.org}
-                                        </div>
-                                    </td>
-
-                                    {/* Registration - Hidden on lg */}
-                                    <td className="p-4 hidden xl:table-cell">
-                                        <div className="text-sm" style={{ color: '#e2e8f0' }}>{new Date(u.registrationDate).toLocaleDateString('en-GB')}</div>
-                                        <div className="text-xs" style={{ color: 'var(--sa-muted)' }}>Active {u.lastActive}</div>
-                                    </td>
-
-                                    {/* Verification & Plan - Hidden on md */}
-                                    <td className="p-4 hidden md:table-cell">
-                                        <div className="flex flex-col items-start gap-1.5">
-                                            <StatusChip status={u.verificationStatus} />
-                                            <span className="text-[11px] font-semibold" style={{ color: '#9ca3af' }}>Plan: {u.plan}</span>
-                                        </div>
-                                    </td>
-
-                                    {/* Status */}
-                                    <td className="p-4 text-center">
-                                        <StatusChip status={u.status} />
-                                    </td>
-
-                                    {/* Actions */}
-                                    <td className="p-4 text-right static">
-                                        <div className="relative inline-block text-left">
-                                            <button
-                                                onClick={() => setActiveMenuId(activeMenuId === u.id ? null : u.id)}
-                                                className="p-2 rounded-xl transition-colors hover:bg-white/10 relative z-10"
-                                                style={{ color: 'var(--sa-muted)' }}
-                                            >
-                                                <MoreVertical size={18} />
-                                            </button>
-
-                                            {activeMenuId === u.id && (
-                                                <>
-                                                    <div className="fixed inset-0 z-10" onClick={() => setActiveMenuId(null)} />
-                                                    <div
-                                                        className="absolute right-0 top-12 w-48 rounded-xl shadow-2xl py-1 z-20 animate-fade-in z-50 overflow-hidden"
-                                                        style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.5)' }}
-                                                    >
-                                                        <button
-                                                            className="w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-white/5 transition-colors flex items-center gap-2"
-                                                            style={{ color: '#e2e8f0' }}
-                                                        >
-                                                            <Activity size={16} /> View Profile
-                                                        </button>
-                                                        <button
-                                                            className="w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-white/5 transition-colors flex items-center gap-2"
-                                                            style={{ color: '#e2e8f0' }}
-                                                        >
-                                                            <Download size={16} /> Export Audit Log
-                                                        </button>
-                                                        <button
-                                                            className="w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-white/5 transition-colors flex items-center gap-2"
-                                                            style={{ color: '#e2e8f0' }}
-                                                        >
-                                                            <Mail size={16} /> Send Notification
-                                                        </button>
-                                                        <div className="h-px my-1 w-full" style={{ background: 'rgba(255,255,255,0.05)' }} />
-                                                        <button
-                                                            className="w-full text-left px-4 py-2.5 text-sm font-bold hover:bg-red-500/10 transition-colors flex items-center gap-2"
-                                                            style={{ color: '#ef4444' }}
-                                                        >
-                                                            <Ban size={16} /> Suspend Account
-                                                        </button>
-                                                    </div>
-                                                </>
-                                            )}
-                                        </div>
+                            {MOCK_USERS.length === 0 ? (
+                                <tr>
+                                    <td colSpan={7} className="p-10 text-center" style={{ color: 'var(--sa-muted)' }}>
+                                        No platform users yet.
                                     </td>
                                 </tr>
-                            ))}
+                            ) : (
+                                MOCK_USERS.map((u) => (
+                                    <tr key={u.id} className="hover:bg-white/[0.02] transition-colors relative group">
+                                        {/* User (Avatar + Name) */}
+                                        <td className="p-4">
+                                            <div className="flex items-center gap-3">
+                                                <img src={u.avatar} alt={u.fullName} className="w-10 h-10 rounded-full" style={{ border: '2px solid rgba(255,255,255,0.1)', background: '#cbd5e1' }} />
+                                                <div>
+                                                    <div className="text-sm font-bold truncate max-w-[150px] sm:max-w-[200px]" style={{ color: '#e2e8f0' }}>{u.fullName}</div>
+                                                    <div className="text-xs truncate max-w-[150px] sm:max-w-[200px]" style={{ color: 'var(--sa-muted)' }}>{u.email}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        {/* Role & ID */}
+                                        <td className="p-4">
+                                            <div className="text-xs font-mono mb-1" style={{ color: '#9ca3af' }}>{u.id}</div>
+                                            <span className="text-[10px] font-black px-2 py-0.5 rounded" style={{ background: 'rgba(129,140,248,0.15)', color: 'var(--sa-accent)' }}>
+                                                {u.accountType}
+                                            </span>
+                                        </td>
+
+                                        {/* Organisation - Hidden on small */}
+                                        <td className="p-4 hidden lg:table-cell">
+                                            <div className="text-sm font-medium" style={{ color: u.org === 'Unaffiliated' ? 'var(--sa-muted)' : '#e2e8f0' }}>
+                                                {u.org}
+                                            </div>
+                                        </td>
+
+                                        {/* Registration - Hidden on lg */}
+                                        <td className="p-4 hidden xl:table-cell">
+                                            <div className="text-sm" style={{ color: '#e2e8f0' }}>{new Date(u.registrationDate).toLocaleDateString('en-GB')}</div>
+                                            <div className="text-xs" style={{ color: 'var(--sa-muted)' }}>Active {u.lastActive}</div>
+                                        </td>
+
+                                        {/* Verification & Plan - Hidden on md */}
+                                        <td className="p-4 hidden md:table-cell">
+                                            <div className="flex flex-col items-start gap-1.5">
+                                                <StatusChip status={u.verificationStatus} />
+                                                <span className="text-[11px] font-semibold" style={{ color: '#9ca3af' }}>Plan: {u.plan}</span>
+                                            </div>
+                                        </td>
+
+                                        {/* Status */}
+                                        <td className="p-4 text-center">
+                                            <StatusChip status={u.status} />
+                                        </td>
+
+                                        {/* Actions */}
+                                        <td className="p-4 text-right static">
+                                            <div className="relative inline-block text-left">
+                                                <button
+                                                    onClick={() => setActiveMenuId(activeMenuId === u.id ? null : u.id)}
+                                                    className="p-2 rounded-xl transition-colors hover:bg-white/10 relative z-10"
+                                                    style={{ color: 'var(--sa-muted)' }}
+                                                >
+                                                    <MoreVertical size={18} />
+                                                </button>
+
+                                                {activeMenuId === u.id && (
+                                                    <>
+                                                        <div className="fixed inset-0 z-10" onClick={() => setActiveMenuId(null)} />
+                                                        <div
+                                                            className="absolute right-0 top-12 w-48 rounded-xl shadow-2xl py-1 z-20 animate-fade-in z-50 overflow-hidden"
+                                                            style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.5)' }}
+                                                        >
+                                                            <button
+                                                                className="w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-white/5 transition-colors flex items-center gap-2"
+                                                                style={{ color: '#e2e8f0' }}
+                                                            >
+                                                                <Activity size={16} /> View Profile
+                                                            </button>
+                                                            <button
+                                                                className="w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-white/5 transition-colors flex items-center gap-2"
+                                                                style={{ color: '#e2e8f0' }}
+                                                            >
+                                                                <Download size={16} /> Export Audit Log
+                                                            </button>
+                                                            <button
+                                                                className="w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-white/5 transition-colors flex items-center gap-2"
+                                                                style={{ color: '#e2e8f0' }}
+                                                            >
+                                                                <Mail size={16} /> Send Notification
+                                                            </button>
+                                                            <div className="h-px my-1 w-full" style={{ background: 'rgba(255,255,255,0.05)' }} />
+                                                            <button
+                                                                className="w-full text-left px-4 py-2.5 text-sm font-bold hover:bg-red-500/10 transition-colors flex items-center gap-2"
+                                                                style={{ color: '#ef4444' }}
+                                                            >
+                                                                <Ban size={16} /> Suspend Account
+                                                            </button>
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
 
                 {/* Table Footer / Pagination placeholder */}
                 <div className="p-4 border-t flex items-center justify-between text-sm" style={{ borderColor: 'var(--sa-border)', color: 'var(--sa-muted)' }}>
-                    <div>Showing <span className="font-bold text-white">1</span> to <span className="font-bold text-white">6</span> of <span className="font-bold text-white">284,592</span> users</div>
+                    <div>Showing <span className="font-bold text-white">{MOCK_USERS.length}</span> of <span className="font-bold text-white">{MOCK_USERS.length}</span> users</div>
                     <div className="flex items-center gap-2">
                         <button className="px-3 py-1.5 rounded-lg opacity-50 cursor-not-allowed" style={{ background: 'rgba(255,255,255,0.05)' }}>Previous</button>
-                        <button className="px-3 py-1.5 rounded-lg hover:bg-white/10 transition-colors" style={{ background: 'rgba(255,255,255,0.05)', color: '#e2e8f0' }}>Next</button>
+                        <button className="px-3 py-1.5 rounded-lg opacity-50 cursor-not-allowed" style={{ background: 'rgba(255,255,255,0.05)', color: '#e2e8f0' }}>Next</button>
                     </div>
                 </div>
 
@@ -330,4 +259,3 @@ export function SuperAdminPlatformUsers() {
         </div>
     );
 }
-
