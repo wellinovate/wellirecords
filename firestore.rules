@@ -29,12 +29,6 @@ service cloud.firestore {
               'super_admin' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles);
     }
     
-    // Check if user is a patient
-    function isPatient() {
-      return isAuthenticated() && 
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.userType == 'patient';
-    }
-    
     // Validate if a provider has active consent from a patient
     function hasActiveConsent(patientId, requiredScope) {
       let providerOrgId = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.orgId;
