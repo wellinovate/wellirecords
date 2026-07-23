@@ -54,8 +54,11 @@ async function run() {
   };
 
   for (const route of routes) {
-    await page.goto(`http://localhost:4173${route}`, { waitUntil: 'networkidle0' });
-
+    try {
+    await page.goto(`http://localhost:4173${route}`, { waitUntil: 'networkidle2', timeout: 45000 });
+  } catch (err) {
+    console.warn(`Warning: navigation to ${route} did not settle within 45s (${err.message}). Prerendering current state anyway.`);
+  }
     const marker = readyMarkers[route];
     if (marker) {
       try {
