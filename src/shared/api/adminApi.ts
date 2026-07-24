@@ -76,26 +76,7 @@ export const MOCK_BRANCHES: Record<string, FacilityBranch[]> = {
 
 // ─── Impersonation Log ────────────────────────────────────────────────────────
 
-export const MOCK_IMPERSONATION_LOGS: ImpersonationLog[] = [
-    {
-        id: 'imp_001',
-        adminId: 'admin_001', adminName: 'Tolu Adeyemi (Super Admin)',
-        targetUserId: 'pat_001', targetUserName: 'Amara Okafor', targetUserRole: 'patient',
-        reason: 'Customer support — patient unable to access vault records after password reset.',
-        startedAt: '2026-03-01T14:23:00Z', endedAt: '2026-03-01T14:35:00Z',
-        actionsPerformed: ['Viewed health vault', 'Reset record access flag'],
-        ipAddress: '197.232.84.11',
-    },
-    {
-        id: 'imp_002',
-        adminId: 'admin_001', adminName: 'Tolu Adeyemi (Super Admin)',
-        targetUserId: 'prov_001', targetUserName: 'Dr. Fatima Aliyu', targetUserRole: 'clinician',
-        reason: 'Verification of reported UI bug in SOAP note form.',
-        startedAt: '2026-03-02T09:10:00Z', endedAt: '2026-03-02T09:22:00Z',
-        actionsPerformed: ['Viewed patient queue', 'Opened encounter form (no save)'],
-        ipAddress: '197.232.84.11',
-    },
-];
+export const MOCK_IMPERSONATION_LOGS: ImpersonationLog[] = [];
 
 // ─── Platform stats (AdminDashboard) ─────────────────────────────────────────
 
@@ -115,48 +96,15 @@ const ALERTS_KEY = 'welli_security_alerts';
 const INCIDENTS_KEY = 'welli_incidents';
 const AUDITS_KEY = 'welli_audit_events';
 
-const INITIAL_ALERTS = [
-    { id: 'sa_001', severity: 'high', type: 'Brute Force Attempt', detail: '14 failed login attempts for prov_user_009 from IP 185.220.101.44 (Tor exit node) — account temporarily locked.', occurredAt: '2026-03-03T13:47:00Z', status: 'open', ipAddress: '185.220.101.44' },
-    { id: 'sa_002', severity: 'medium', type: 'Unusual Data Export', detail: 'User lab_tech_004 (CityLab) exported 234 records in 3 minutes — 8× above normal pattern. Possible bulk data pull.', occurredAt: '2026-03-03T10:15:00Z', status: 'investigating', ipAddress: '41.203.64.5' },
-    { id: 'sa_003', severity: 'low', type: 'Login from New Country', detail: 'pat_001 (Amara Okafor) logged in from United Kingdom (IP: 5.62.12.100). First time from this location.', occurredAt: '2026-03-02T22:30:00Z', status: 'resolved', ipAddress: '5.62.12.100' },
-    { id: 'sa_004', severity: 'medium', type: 'Account Lockout', detail: 'prov_admin_003 (Reddington) account locked after 5 failed 2FA attempts. Admin notified.', occurredAt: '2026-03-02T18:05:00Z', status: 'resolved', ipAddress: '196.12.45.90' },
-];
+// No real backend exists yet for security alerts, incidents, or audit
+// events — this used to seed fabricated fake data (named people, fake
+// IPs, fake incidents) into localStorage on first load. Starting empty
+// until a real backend-driven audit system is built.
+const INITIAL_ALERTS: any[] = [];
 
-const INITIAL_INCIDENTS = [
-    {
-        id: 'inc001', ref: 'INC-001', title: 'WelliChain sync failure — Lab results queue blocked',
-        severity: 'high', status: 'resolved',
-        systems: ['Sync Service', 'Lab Results Pipeline'],
-        description: 'Sync job for CityLab partition failed causing a backlog of 840 unsynced lab result payloads.',
-        createdAt: '2026-03-03T01:44:00Z', resolvedAt: '2026-03-03T07:30:00Z',
-        timeline: [
-            { at: '01:44', note: 'Alert triggered: sync queue depth exceeded 500' },
-            { at: '03:00', note: 'On-call engineer notified, investigation started' },
-            { at: '05:15', note: 'Root cause identified: partition key collision in FIFO queue' },
-            { at: '07:30', note: 'Fix deployed, backlog cleared. Incident resolved.' },
-        ],
-    },
-    {
-        id: 'inc002', ref: 'INC-002', title: 'Suspicious bulk export — CityLab lab_tech_004',
-        severity: 'medium', status: 'investigating',
-        systems: ['Audit System', 'Export API'],
-        description: 'User exported 234 records in under 3 minutes. Pattern is 8× above baseline. Possible unauthorised data extraction.',
-        createdAt: '2026-03-03T10:15:00Z',
-        timeline: [
-            { at: '10:15', note: 'Security alert raised by anomaly detection system' },
-            { at: '11:00', note: 'Account temporarily suspended pending investigation' },
-            { at: '12:30', note: 'Support agent reviewing consent logs and audit trail' },
-        ],
-    },
-];
+const INITIAL_INCIDENTS: any[] = [];
 
-const INITIAL_AUDITS = [
-    { id: 'ae_001', actor: 'Dr. Fatima Aliyu', role: 'clinician', org: 'Lagos General', action: 'view_ehr_full', target: 'Amara Okafor', at: '2026-03-03T14:52:00Z', ipAddress: '102.88.77.12' },
-    { id: 'ae_002', actor: 'Admin (Tolu Adeyemi)', role: 'super_admin', org: 'WelliRecord Ops', action: 'impersonate_user', target: 'Amara Okafor', at: '2026-03-01T14:23:00Z', ipAddress: '197.232.84.11' },
-    { id: 'ae_003', actor: 'Lab Tech (James)', role: 'lab_tech', org: 'CityLab Diagnostics', action: 'upload_imaging', target: 'Emeka Nwosu', at: '2026-03-03T11:10:00Z', ipAddress: '41.203.64.5' },
-    { id: 'ae_004', actor: 'Dr. Emeka Okonkwo', role: 'clinician', org: 'Reddington Hospital', action: 'new_encounter', target: 'Patient #0198', at: '2026-03-03T09:38:00Z', ipAddress: '196.12.45.90' },
-    { id: 'ae_005', actor: 'Front Desk (Blessing)', role: 'front_desk', org: 'Lagos General', action: 'manage_appointments', target: 'Walk-in Patient', at: '2026-03-03T08:05:00Z', ipAddress: '102.88.77.13' },
-];
+const INITIAL_AUDITS: any[] = [];
 
 function loadData(key: string, initial: any) {
     if (typeof window === 'undefined') return initial;

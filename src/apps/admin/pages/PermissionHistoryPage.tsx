@@ -1,13 +1,9 @@
 import React, { useState } from 'react';
 import { ArrowRight, Search, Shield } from 'lucide-react';
 
-const MOCK_CHANGES = [
-    { id: 'pc001', changed: 'Dr. Fatima Aliyu', changedBy: 'facility_admin_001', facility: 'Lagos General', fromRole: 'clinician', toRole: 'clinician', note: 'Added lab_access feature flag', at: '2026-03-03T09:00:00Z', approver: 'super_admin' },
-    { id: 'pc002', changed: 'lab_tech_004', changedBy: 'super_admin', facility: 'CityLab', fromRole: 'lab_staff', toRole: 'auditor', note: 'Temporary elevated access for audit', at: '2026-03-02T14:00:00Z', approver: 'super_admin' },
-    { id: 'pc003', changed: 'Front Desk Staff 01', changedBy: 'facility_admin_003', facility: 'Reddington', fromRole: 'front_desk', toRole: 'nurse', note: 'Role reassignment after training completion', at: '2026-03-01T10:30:00Z', approver: 'verification_officer' },
-    { id: 'pc004', changed: 'Ibrahim (Finance)', changedBy: 'super_admin', facility: 'WelliRecord HQ', fromRole: 'support_agent', toRole: 'finance_admin', note: 'Promotion', at: '2026-02-28T08:00:00Z', approver: 'super_admin' },
-    { id: 'pc005', changed: 'Dr. Emeka Okonkwo', changedBy: 'facility_admin_002', facility: 'Reddington', fromRole: 'clinician', toRole: 'clinician', note: 'Suspended telemedicine access pending review', at: '2026-02-27T16:00:00Z', approver: 'security_admin' },
-];
+// No real backend tracks role/permission changes yet — this used to
+// show fabricated fake entries with fake named people.
+const MOCK_CHANGES: any[] = [];
 
 export function PermissionHistoryPage() {
     const [search, setSearch] = useState('');

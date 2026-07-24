@@ -1,13 +1,9 @@
 import React from 'react';
 import { Monitor, MapPin, Clock, LogOut, Shield, Lock } from 'lucide-react';
 
-const MOCK_SESSIONS = [
-    { id: 's001', user: 'Dr. Fatima Aliyu', role: 'clinician', device: 'Chrome · macOS', ip: '41.203.10.5', location: 'Lagos, NG', lastActive: '2026-03-03T17:40:00Z', mfa: true, current: false },
-    { id: 's002', user: 'Amara Okafor', role: 'patient', device: 'iOS App', ip: '102.89.3.4', location: 'Lagos, NG', lastActive: '2026-03-03T17:55:00Z', mfa: true, current: false },
-    { id: 's003', user: 'prov_user_009', role: 'clinician', device: 'Firefox · Win', ip: '185.220.101.44', location: 'Unknown (Tor)', lastActive: '2026-03-03T13:47:00Z', mfa: false, current: false },
-    { id: 's004', user: 'lab_tech_004', role: 'lab_staff', device: 'Chrome · Win', ip: '41.203.64.5', location: 'Ikeja, NG', lastActive: '2026-03-03T10:15:00Z', mfa: true, current: false },
-    { id: 's005', user: 'super_admin', role: 'super_admin', device: 'Chrome · macOS', ip: '129.0.0.1', location: 'WelliHQ, NG', lastActive: '2026-03-03T17:57:00Z', mfa: true, current: true },
-];
+// No real backend session-tracking exists yet — this used to show
+// fabricated fake sessions with fake IPs and names.
+const MOCK_SESSIONS: any[] = [];
 
 const MFA_ENFORCEMENT: Record<string, boolean> = { super_admin: true, verification_officer: true, security_admin: true, clinician: false, patient: false, lab_staff: false };
 
