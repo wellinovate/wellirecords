@@ -96,14 +96,14 @@ const ALERTS_KEY = 'welli_security_alerts';
 const INCIDENTS_KEY = 'welli_incidents';
 const AUDITS_KEY = 'welli_audit_events';
 
-const INITIAL_ALERTS: any[] = [];
-
-const INITIAL_INCIDENTS: any[] = [];
 
 // No real backend exists yet for security alerts, incidents, or audit
-// events — this used to seed fabricated fake data (named people, fake
+// events -- this used to seed fabricated fake data (named people, fake
 // IPs, fake incidents) into localStorage on first load. Starting empty
 // until a real backend-driven audit system is built.
+const INITIAL_ALERTS: any[] = [];
+const INITIAL_INCIDENTS: any[] = [];
+const INITIAL_AUDITS: any[] = [];
 const INITIAL_AUDITS: any[] = [];
 
 function loadData(key: string, initial: any) {
