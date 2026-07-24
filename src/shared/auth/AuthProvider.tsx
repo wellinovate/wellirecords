@@ -11,6 +11,7 @@ import {
   getAuthFromToken,
   getCurrentUser,
   logOut,
+  fetchProfile,
 } from "../utils/utilityFunction";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -76,6 +77,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const users = getCurrentUser();
     setUser(users);
+
+    if (users) {
+      fetchProfile()
+        .then((profile) => {
+          if (typeof profile?.isVerified !== "undefined") {
+            setUser((prev) =>
+              prev ? { ...prev, isVerified: profile.isVerified } : prev,
+            );
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to refresh verification status", err);
+        });
+    }
     // console.log("🚀 ~ AuthProvider ~ users:", users)
   }, []);
 
@@ -96,7 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser({
       ...account,
       fullName: profile?.fullName,
-      isVerified: account?.isVerified ?? (profile?.verificationStatus === "approved") ?? true,
+      isVerified: Boolean(account?.isVerified),
       sub: account._id || account.id,
       wrId: profile?.wrId || "",
       wrOrgId: profile?.wrOrgId
@@ -256,7 +271,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signInAsRole = (role: UserRole): AuthUser => {
-    localStorage.setItem("dev_bypass", "true");
+    if (!import.meta.env.DEV) {
+      throw new Error(
+        "signInAsRole is a development-only shortcut and is disabled in production.",
+      );
+    }
     const u = authApi.signInAsRole(role);
     const verifiedUser = { ...u, isVerified: true };
     setUser(verifiedUser);
