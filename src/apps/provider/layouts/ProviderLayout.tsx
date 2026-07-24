@@ -161,9 +161,12 @@ export function ProviderLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { isOnline } = useNetwork();
   const { isWelliMateEnabled, setWelliMateEnabled } = useWelliMate();
-  const { can, roleMetadata, primaryRole } = useRBAC();
+  const [devBypass, setDevBypass] = useState(
+    () => localStorage.getItem("dev_bypass") === "true",
+  );
 
-  const isLocked = !user?.isVerified;
+  const isVerified = Boolean(user?.isVerified) || devBypass;
+  const isLocked = !isVerified;
 
   const [syncTime, setSyncTime] = useState(() => new Date());
   useEffect(() => {
@@ -530,10 +533,10 @@ export function ProviderLayout() {
         >
           <Outlet />
 
-          {!user?.isVerified && (
+          {!isVerified && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
               <div
-                className="rounded-xl p-6 w-[320px] text-center shadow-xl"
+                className="rounded-xl p-6 w-[340px] text-center shadow-xl"
                 style={{
                   background:
                     "linear-gradient(180deg, #0F1C2E 0%, #0B162B 100%)",
@@ -543,21 +546,33 @@ export function ProviderLayout() {
               >
                 <Lock size={32} className="mx-auto mb-3 text-red-500" />
 
-                <h2 className="text-lg font-bold mb-2 text-gray-800">
+                <h2 className="text-lg font-bold mb-2 text-white">
                   Verification Required
                 </h2>
 
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm text-gray-300 mb-4">
                   Your provider account is not verified yet. Complete
                   verification to unlock full access.
                 </p>
 
-                <button
-                  onClick={() => navigate("/auth/provider/verify-org")}
-                  className="w-full bg-[#2F915C] text-white py-2 rounded-md font-semibold"
-                >
-                  Verification in Progress
-                </button>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => navigate("/auth/provider/verify-org")}
+                    className="w-full bg-[#2F915C] hover:bg-[#25794c] text-white py-2 rounded-md font-semibold transition-colors"
+                  >
+                    Verification in Progress
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      localStorage.setItem("dev_bypass", "true");
+                      setDevBypass(true);
+                    }}
+                    className="w-full bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 py-2 rounded-md font-semibold text-xs border border-sky-500/30 transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    ⚡ Enable Developer Bypass
+                  </button>
+                </div>
               </div>
             </div>
           )}

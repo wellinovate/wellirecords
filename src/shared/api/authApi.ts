@@ -385,6 +385,7 @@ signInAsRole(role: UserRole): AuthUser {
     email: `${role}@welli.ng`,
     userType: isPatient ? "PATIENT" : "ORG_USER",
     roles: [role],
+    isVerified: true,
     ...(isPatient
       ? {}
       : {
@@ -395,8 +396,9 @@ signInAsRole(role: UserRole): AuthUser {
     avatar: `https://api.dicebear.com/8.x/avataaars/svg?seed=${role}`,
     loginMethod: "web2" as const,
   };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-  return user;
+  const verifiedUser = { ...user, isVerified: true };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(verifiedUser));
+  return verifiedUser;
 },
 
   async signUpPatient(payload: any) {

@@ -96,7 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser({
       ...account,
       fullName: profile?.fullName,
-      // isVerified: account.isVerified,
+      isVerified: account?.isVerified ?? (profile?.verificationStatus === "approved") ?? true,
       sub: account._id || account.id,
       wrId: profile?.wrId || "",
       wrOrgId: profile?.wrOrgId
@@ -256,17 +256,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signInAsRole = (role: UserRole): AuthUser => {
+    localStorage.setItem("dev_bypass", "true");
     const u = authApi.signInAsRole(role);
-    setUser(u);
+    const verifiedUser = { ...u, isVerified: true };
+    setUser(verifiedUser);
     localStorage.setItem(
       "ui_user",
       JSON.stringify({
         id: u.userId,
         accountType: role === "patient" ? "user" : "organization",
-        ...u
+        ...verifiedUser,
       }),
     );
-    return u;
+    return verifiedUser;
   };
 
   const signUpPatient = async (payload: any) => {
