@@ -108,6 +108,7 @@ export interface AuthUser {
   avatar?: string;
   loginMethod: LoginMethod;
   dependants?: string[];
+  isVerified?: boolean;
 }
 
 // ─── Organisations ───────────────────────────────────────────────────────────
