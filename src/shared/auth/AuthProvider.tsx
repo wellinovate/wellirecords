@@ -123,6 +123,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         id: res.data.account.id,
         accountType: res.data.account.accountType,
         role: res.data.account.role,
+        roles: res.data.account.role ? [res.data.account.role] : [],
       }),
     );
     const auth = getAuthFromToken(res.data.accessToken);
@@ -141,13 +142,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log("🚀 ~ handleGoogleCredentials ~ response:", response);
     const res = await authApi.handleGoogleCredentials(response);
     // console.log("🚀 ~ signIn ~ u:", res.data.account);
-    setUser(res.data.account);
+    setUser({
+      ...res.data.account,
+      isVerified: Boolean(res.data.account?.isVerified),
+      roles: res.data.account?.role ? [res.data.account.role] : [],
+    });
     localStorage.setItem(
       "ui_user",
       JSON.stringify({
         id: res.data.account.id,
         accountType: res.data.account.accountType,
         role: res.data.account.role,
+        roles: res.data.account.role ? [res.data.account.role] : [],
       }),
     );
     getAuthFromToken(res.data.accessToken);
