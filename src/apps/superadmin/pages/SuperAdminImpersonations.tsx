@@ -32,79 +32,9 @@ interface ImpersonationSession {
     actions: AuditAction[];
 }
 
-const MOCK_SESSIONS: ImpersonationSession[] = [
-    {
-        id: 'IMP-8429-XB',
-        adminName: 'Tolu Adeyemi (Super Admin)',
-        targetName: 'Dr. Sarah Ndubuisi',
-        targetRole: 'Clinician',
-        targetOrg: 'Avon Medical Practice',
-        justification: 'Investigating reported bug #441 where patient timeline fails to render clinical notes.',
-        ipAddress: '197.210.64.12',
-        startTime: 'Today, 14:05:00',
-        durationMins: 12,
-        status: 'Active',
-        risk: 'Normal',
-        actions: [
-            { time: '14:05:01', path: '/provider/dashboard', actionType: 'GET', sensitive: false },
-            { time: '14:06:22', path: '/provider/patients/PT-8812', actionType: 'GET', sensitive: false }
-        ]
-    },
-    {
-        id: 'IMP-8428-MC',
-        adminName: 'Chidi Okonkwo (System Support)',
-        targetName: 'Bayo Adewale',
-        targetRole: 'Org Admin',
-        targetOrg: 'CityLab Diagnostics',
-        justification: 'Client locked out of billing interface, checking stripe integration keys.',
-        ipAddress: '105.112.98.44',
-        startTime: 'Yesterday, 09:12:00',
-        durationMins: 45, // Warning: over 30 mins
-        status: 'Manual Logout',
-        risk: 'Critical', // They accessed billing keys
-        actions: [
-            { time: '09:12:05', path: '/admin', actionType: 'GET', sensitive: false },
-            { time: '09:14:00', path: '/admin/settings/billing', actionType: 'GET', sensitive: true },
-            { time: '09:18:22', path: '/api/v1/tenant/stripe-keys', actionType: 'GET', sensitive: true },
-            { time: '09:57:00', path: '/auth/logout', actionType: 'POST', sensitive: false }
-        ]
-    },
-    {
-        id: 'IMP-8421-KL',
-        adminName: 'System Maintenance (Automated)',
-        targetName: 'Jane Doe',
-        targetRole: 'Patient',
-        targetOrg: 'Independent',
-        justification: 'Automated GDPR compliance data anonymization check.',
-        ipAddress: '10.0.4.122',
-        startTime: 'Feb 28, 02:00:00',
-        durationMins: 5,
-        status: 'Manual Logout',
-        risk: 'Normal',
-        actions: [
-            { time: '02:00:01', path: '/patient/profile', actionType: 'GET', sensitive: false },
-            { time: '02:04:15', path: '/patient/settings/privacy', actionType: 'GET', sensitive: false }
-        ]
-    },
-    {
-        id: 'IMP-8409-PP',
-        adminName: 'Tolu Adeyemi (Super Admin)',
-        targetName: 'Mary Adebayo',
-        targetRole: 'Patient',
-        targetOrg: 'Independent',
-        justification: 'Checking emergency card generation failure as reported on ZenDesk Z-4122.',
-        ipAddress: '197.210.64.12',
-        startTime: 'Feb 25, 11:30:00',
-        durationMins: 8,
-        status: 'Timeout',
-        risk: 'Warning', // Accessed emergency card
-        actions: [
-            { time: '11:30:05', path: '/patient/dashboard', actionType: 'GET', sensitive: false },
-            { time: '11:32:10', path: '/patient/emergency-card', actionType: 'GET', sensitive: true },
-            { time: '11:36:00', path: '/api/v1/patient/generate-card-pdf', actionType: 'POST', sensitive: true }
-        ]
-    }
-];
+// No real backend tracks impersonation sessions yet — this used to
+// show fabricated fake sessions with fake named people and fake IPs.
+const MOCK_SESSIONS: ImpersonationSession[] = [];
 
 // --- Subcomponents ---
 
@@ -221,21 +151,21 @@ export function SuperAdminImpersonations() {
                     <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-400"><ShieldCheck size={24} /></div>
                     <div>
                         <div className="text-sm font-semibold" style={{ color: 'var(--sa-muted)' }}>Active Sessions Now</div>
-                        <div className="text-2xl font-black text-white">1</div>
+                        <div className="text-2xl font-black text-white">0</div>
                     </div>
                 </div>
                 <div className="p-5 rounded-2xl flex items-center gap-4" style={{ background: '#111827', border: '1px solid var(--sa-border)' }}>
                     <div className="p-3 rounded-xl bg-indigo-500/10 text-indigo-400"><Fingerprint size={24} /></div>
                     <div>
                         <div className="text-sm font-semibold" style={{ color: 'var(--sa-muted)' }}>Sessions (Last 7 Days)</div>
-                        <div className="text-2xl font-black text-white">24</div>
+                        <div className="text-2xl font-black text-white">0</div>
                     </div>
                 </div>
                 <div className="p-5 rounded-2xl flex items-center gap-4" style={{ background: '#111827', border: '1px solid rgba(239,68,68,0.3)' }}>
                     <div className="p-3 rounded-xl bg-red-500/10 text-red-400"><ShieldAlert size={24} /></div>
                     <div>
                         <div className="text-sm font-semibold" style={{ color: 'var(--sa-muted)' }}>Flagged Sessions (Risk)</div>
-                        <div className="text-2xl font-black text-white">3</div>
+                        <div className="text-2xl font-black text-white">0</div>
                     </div>
                 </div>
             </div>
