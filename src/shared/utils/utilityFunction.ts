@@ -37,6 +37,7 @@ export function getAuthFromToken(token: string) {
         wrId: decoded.wrId,
         accountType: decoded.accountType,
         role: decoded.role,
+        roles: decoded.role ? [decoded.role] : [],
         isVerified: decoded.isVerified,
       },
     };

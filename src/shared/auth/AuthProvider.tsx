@@ -114,7 +114,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isVerified: Boolean(account?.isVerified),
       sub: account._id || account.id,
       wrId: profile?.wrId || "",
-      wrOrgId: profile?.wrOrgId
+      wrOrgId: profile?.wrOrgId,
+      roles: account?.role ? [account.role] : [],
     });
     localStorage.setItem(
       "ui_user",
