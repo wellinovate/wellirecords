@@ -194,6 +194,7 @@ export function AppRoutes() {
         />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/auth/super-admin/login" element={<SuperAdminLoginPage />} />
+        <Route path="/super-admin/login" element={<Navigate to="/auth/super-admin/login" replace />} />
 
         {/* ─── Patient Portal ─── */}
         <Route
