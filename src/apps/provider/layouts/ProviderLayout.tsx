@@ -161,6 +161,7 @@ export function ProviderLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { isOnline } = useNetwork();
   const { isWelliMateEnabled, setWelliMateEnabled } = useWelliMate();
+  const { can, roleMetadata, primaryRole } = useRBAC();
   const [devBypass, setDevBypass] = useState(
     () => import.meta.env.DEV && localStorage.getItem("dev_bypass") === "true",
   );
