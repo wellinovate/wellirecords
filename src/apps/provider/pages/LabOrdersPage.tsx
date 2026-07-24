@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/shared/auth/AuthProvider';
-import { consentApi } from '@/shared/api/consentApi';
 import { vaultApi } from '@/shared/api/vaultApi';
 import { FlaskConical, Plus, CheckCircle, Clock, AlertCircle, X, ShieldCheck } from 'lucide-react';
 import { LabOrder } from '@/shared/types/types';
@@ -8,7 +7,10 @@ import { getAllPatientLabResults, LabResultItem } from '@/shared/utils/utilityFu
 
 export function LabOrdersPage() {
     const { user } = useAuth();
-    const grants = consentApi.getProviderGrants(user?.orgId ?? '');
+    // TODO: consentApi has no provider-side grants lookup yet (only
+    // patient-side getMyGrants/getRequests exist). Failing closed here
+    // (empty grants means write actions stay disabled) rather than crashing.
+    const grants: { scope: string }[] = [];
     const hasWriteAccess = grants.some(g => ['full', 'labs'].includes(g.scope));
     const [orders, setOrders] = useState(() => vaultApi.getLabOrders(user?.orgId ?? ''));
     const [showNew, setShowNew] = useState(false);
