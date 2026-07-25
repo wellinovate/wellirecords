@@ -18,6 +18,16 @@ const BOT_USER_AGENTS = [
   'w3c_validator',
   'redditbot',
   'applebot',
+  'amazonbot',
+  'gptbot',
+  'chatgpt-user',
+  'oai-searchbot',
+  'claudebot',
+  'anthropic-ai',
+  'perplexitybot',
+  'ccbot',
+  'bingpreview',
+  'duckduckbot',
 ];
 
 const IGNORED_EXTENSIONS = [
@@ -32,15 +42,22 @@ export default async function middleware(request: Request) {
   const isBot = BOT_USER_AGENTS.some(bot => userAgent.includes(bot));
   const isStaticFile = IGNORED_EXTENSIONS.some(ext => pathname.endsWith(ext));
 
-  if (isBot && !isStaticFile) {
+  // Build-time prerendering (scripts/prerender.js) already generates static
+  // HTML for the public marketing routes, served directly from the
+  // filesystem before this middleware's rewrite fallback applies. Without a
+  // PRERENDER_TOKEN, service.prerender.io will reject or rate-limit every
+  // request, so attempting it here would only add latency and a failure
+  // point for every bot crawl. Skip the proxy entirely until a token is
+  // actually provisioned, and let the request fall through to the
+  // prerendered static file (or the SPA shell for routes that aren't
+  // prerendered).
+  if (isBot && !isStaticFile && process.env.PRERENDER_TOKEN) {
     const originalUrl = `${url.protocol}//${request.headers.get('host') || 'wellirecord.com'}${url.pathname}${url.search}`;
     const targetUrl = `https://service.prerender.io/${originalUrl}`;
 
     const headers = new Headers();
     headers.set('User-Agent', request.headers.get('user-agent') || '');
-    if (process.env.PRERENDER_TOKEN) {
-      headers.set('X-Prerender-Token', process.env.PRERENDER_TOKEN);
-    }
+    headers.set('X-Prerender-Token', process.env.PRERENDER_TOKEN);
 
     try {
       const response = await fetch(targetUrl, { headers });
