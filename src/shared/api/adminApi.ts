@@ -104,7 +104,6 @@ const AUDITS_KEY = 'welli_audit_events';
 const INITIAL_ALERTS: any[] = [];
 const INITIAL_INCIDENTS: any[] = [];
 const INITIAL_AUDITS: any[] = [];
-const INITIAL_AUDITS: any[] = [];
 
 function loadData(key: string, initial: any) {
     if (typeof window === 'undefined') return initial;
