@@ -40,6 +40,21 @@ async function getBrowser() {
   }
 }
 
+const SITE_ORIGIN = 'https://www.wellirecord.com';
+
+// index.html ships one static canonical/og:url/twitter:url, all pointing at
+// the homepage. Prerendering just captures whatever that static markup says,
+// so without this every route was shipping the homepage's canonical URL --
+// telling crawlers that /about, /security, /blog, etc. are all duplicates
+// of "/" and should be excluded from indexing in favor of it. Rewrite those
+// three tags per route after capture so each page self-canonicalizes.
+function withCanonicalUrl(html, url) {
+  return html
+    .replace(/(<link rel="canonical" href=")[^"]*(")/, `$1${url}$2`)
+    .replace(/(<meta property="og:url" content=")[^"]*(")/, `$1${url}$2`)
+    .replace(/(<meta name="twitter:url" content=")[^"]*(")/, `$1${url}$2`);
+}
+
 async function run() {
   const server = await preview({ preview: { port: 4173 } });
   const browser = await getBrowser();
@@ -70,13 +85,20 @@ async function run() {
 
     const html = await page.content();
 
+    // /home renders the identical LandingPages component as "/" -- it's a
+    // genuine duplicate, so it canonicalizes to the homepage rather than
+    // itself. Every other route canonicalizes to its own URL.
+    const canonicalPath = route === '/home' ? '/' : route;
+    const canonicalUrl = canonicalPath === '/' ? `${SITE_ORIGIN}/` : `${SITE_ORIGIN}${canonicalPath}`;
+    const finalHtml = withCanonicalUrl(html, canonicalUrl);
+
     const outPath = route === '/'
       ? 'dist/index.html'
       : `dist${route}/index.html`;
 
     fs.mkdirSync(path.dirname(outPath), { recursive: true });
-    fs.writeFileSync(outPath, html);
-    console.log(`Prerendered: ${route} -> ${outPath}`);
+    fs.writeFileSync(outPath, finalHtml);
+    console.log(`Prerendered: ${route} -> ${outPath} (canonical: ${canonicalUrl})`);
   }
 
   await browser.close();
