@@ -298,7 +298,7 @@ export function BlogPage() {
             "publisher": {
               "@type": "Organization",
               "name": "WelliRecord",
-              "logo": "https://wellirecord.com/welli-icon.png"
+              "logo": "https://www.wellirecord.com/welli-icon.png"
             }
           })}
         </script>

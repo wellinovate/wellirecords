@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://wellirecord.com/sitemap.xml
+Sitemap: https://www.wellirecord.com/sitemap.xml
