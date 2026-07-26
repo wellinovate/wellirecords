@@ -260,7 +260,8 @@ export default function PatientSignupPage() {
             templateId: "patient-welcome",
             variables: {
               patientName: payload.fullName,
-              patientId: "WR-" + Math.floor(100000 + Math.random() * 900000),
+              // See handleGoogleCredential for why this is omitted rather
+              // than a fabricated random number.
               accountCreationDate: new Date().toLocaleDateString(),
               verifyEmailUrl: `${window.location.origin}/verify-email`,
               completeProfileUrl: `${window.location.origin}/profile`,
@@ -280,13 +281,23 @@ export default function PatientSignupPage() {
   };
 
   const handleGoogleCredential = async (response: GoogleCredentialResponse) => {
+    // Regular signup already requires a phone number (see validate() above,
+    // which has no fallback for it). Google signup was the one path that
+    // let this through as null — nothing downstream ever asked for it
+    // again, since Google signup skips straight to the dashboard instead
+    // of the /auth/login checkpoint the regular flow goes through.
+    if (!form.phone.trim()) {
+      toast.error("Please enter your phone number before continuing with Google.");
+      return;
+    }
+
     try {
       setGoogleLoading(true);
 
       const res = await axios.post(`${apiUrl}/api/v1/auth/google/login`, {
         credential: response.credential,
         role: form.role || "patient",
-        phone: form.phone.trim() || null,
+        phone: form.phone.trim(),
       });
 
       const data = res.data;
@@ -320,7 +331,11 @@ export default function PatientSignupPage() {
           templateId: "patient-welcome",
           variables: {
             patientName: data.user.fullName,
-            patientId: "WR-" + Math.floor(100000 + Math.random() * 900000),
+            // No real Member ID exists yet at this point — the backend
+            // doesn't return one from this endpoint, and the previous
+            // code was sending a random fabricated number that never
+            // matched the account's real wrId. Omitted rather than lied
+            // about; the template should handle this field being absent.
             accountCreationDate: new Date().toLocaleDateString(),
             verifyEmailUrl: `${window.location.origin}/verify-email`,
             completeProfileUrl: `${window.location.origin}/profile`,
@@ -331,8 +346,16 @@ export default function PatientSignupPage() {
         })
       }).catch(err => console.error("Failed to send welcome email:", err));
 
+      // New Google sign-ups land on the profile completion step instead
+      // of the dashboard. The backend only received a full name and phone
+      // from this flow — first/last name split, and anything else the
+      // profile needs, was never collected. Provider accounts keep their
+      // existing destination since this gap was specifically observed on
+      // the patient path.
       if (data?.user?.accountType === "user") {
-        navigate("/patient/overview");
+        navigate("/patient/settings?complete=1", {
+          state: { fullName: data.user.fullName },
+        });
       } else {
         navigate("/provider/overview");
       }

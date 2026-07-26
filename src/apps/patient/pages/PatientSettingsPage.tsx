@@ -19,7 +19,7 @@ import {
   FileText,
   Fingerprint,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { health_companion_image } from "@/assets";
 import { fetchProfile } from "@/shared/utils/utilityFunction";
 import { toast } from "react-toastify";
@@ -338,6 +338,12 @@ export function PatientSettingsPage() {
   const navigate = useNavigate();
   const [tab, setTab] = useState<SettingsTab>("profile");
   const [saved, setSaved] = useState(false);
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  // Set by the Google sign-up redirect (see PatientSignupPage) when the
+  // backend never received a first/last name split or full profile data.
+  const isCompletingProfile = searchParams.get("complete") === "1";
+  const incomingFullName = (location.state as { fullName?: string } | null)?.fullName || "";
 
   // Full name change flow
   const [nameEditing, setNameEditing] = useState(false);
@@ -394,12 +400,15 @@ export function PatientSettingsPage() {
         ...(data?.notificationPreferences || {}),
       }));
 
+      const [fallbackFirst, ...fallbackRest] = incomingFullName.trim().split(/\s+/).filter(Boolean);
+      const fallbackLast = fallbackRest.join(" ");
+
       setForm({
         avatar: data?.avatar || "",
-        firstName: data?.firstName || "",
+        firstName: data?.firstName || fallbackFirst || "",
         middleName: data?.middleName || "",
-        lastName: data?.lastName || "",
-        fullName: data?.fullName || "",
+        lastName: data?.lastName || fallbackLast || "",
+        fullName: data?.fullName || incomingFullName || "",
         dateOfBirth: data?.dateOfBirth
           ? new Date(data.dateOfBirth).toISOString().split("T")[0]
           : "",
@@ -664,6 +673,16 @@ export function PatientSettingsPage() {
                 <ProfileSkeleton />
               ) : (
                <>
+  {isCompletingProfile && (!form.firstName || !form.lastName || !form.phone) && (
+    <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+      <p className="font-semibold">Finish setting up your profile</p>
+      <p className="mt-1">
+        Your Google account only gave us your name and email. Please confirm your
+        details below, including a phone number — WelliRecord uses this to reach
+        you and to protect your account.
+      </p>
+    </div>
+  )}
   <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
     <h2 className="mb-6 border-b border-gray-100 pb-2 text-base font-bold text-gray-900">
       Personal Information
