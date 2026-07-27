@@ -343,7 +343,8 @@ export function PatientSettingsPage() {
   // Set by the Google sign-up redirect (see PatientSignupPage) when the
   // backend never received a first/last name split or full profile data.
   const isCompletingProfile = searchParams.get("complete") === "1";
-  const incomingFullName = (location.state as { fullName?: string } | null)?.fullName || "";
+  const incomingFullName = (location.state as { fullName?: string; phone?: string } | null)?.fullName || "";
+  const incomingPhone = (location.state as { fullName?: string; phone?: string } | null)?.phone || "";
 
   // Full name change flow
   const [nameEditing, setNameEditing] = useState(false);
@@ -389,6 +390,15 @@ export function PatientSettingsPage() {
   const canEditGender = !profile?.gender;
 
   const fetchUserProfile = async () => {
+    // Computed upfront so it's available to both the success and failure
+    // paths below — previously this only existed inside the try block's
+    // success case, so a failed fetchProfile() call (observed as a 401
+    // immediately after the Google redirect, likely the access token not
+    // yet being recognized by /api/v1/user/me at that exact moment) meant
+    // setForm() never ran at all and the form stayed fully blank.
+    const [fallbackFirst, ...fallbackRest] = incomingFullName.trim().split(/\s+/).filter(Boolean);
+    const fallbackLast = fallbackRest.join(" ");
+
     try {
       setLoadingProfile(true);
       const data = await fetchProfile();
@@ -400,9 +410,6 @@ export function PatientSettingsPage() {
         ...(data?.notificationPreferences || {}),
       }));
 
-      const [fallbackFirst, ...fallbackRest] = incomingFullName.trim().split(/\s+/).filter(Boolean);
-      const fallbackLast = fallbackRest.join(" ");
-
       setForm({
         avatar: data?.avatar || "",
         firstName: data?.firstName || fallbackFirst || "",
@@ -412,7 +419,7 @@ export function PatientSettingsPage() {
         dateOfBirth: data?.dateOfBirth
           ? new Date(data.dateOfBirth).toISOString().split("T")[0]
           : "",
-        phone: data?.phone || "",
+        phone: data?.phone || incomingPhone || "",
         gender: data?.gender || "",
         emergencyContacts: Array.isArray(data?.emergencyContacts)
           ? data.emergencyContacts
@@ -420,6 +427,18 @@ export function PatientSettingsPage() {
       });
     } catch (error) {
       console.error("Failed to load profile", error);
+      // Profile fetch failed (e.g. the 401 seen right after Google
+      // sign-up) — still show what we already know from the signup step
+      // rather than leaving every field blank with no explanation.
+      if (incomingFullName || incomingPhone) {
+        setForm((prev) => ({
+          ...prev,
+          firstName: prev.firstName || fallbackFirst || "",
+          lastName: prev.lastName || fallbackLast || "",
+          fullName: prev.fullName || incomingFullName || "",
+          phone: prev.phone || incomingPhone || "",
+        }));
+      }
     } finally {
       setLoadingProfile(false);
     }

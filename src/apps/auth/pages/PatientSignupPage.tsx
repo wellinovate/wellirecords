@@ -354,7 +354,7 @@ export default function PatientSignupPage() {
       // the patient path.
       if (data?.user?.accountType === "user") {
         navigate("/patient/settings?complete=1", {
-          state: { fullName: data.user.fullName },
+          state: { fullName: data.user.fullName, phone: form.phone.trim() },
         });
       } else {
         navigate("/provider/overview");
