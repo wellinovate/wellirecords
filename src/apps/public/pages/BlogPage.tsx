@@ -54,18 +54,18 @@ const POSTS: Post[] = [
   },
   {
     slug: 'simple-allergy-check-saved-life',
-    title: 'How a Simple Penicillin Allergy Check Saved a Life',
-    excerpt: 'A family emergency in Abuja illustrated why having one secure, instant-access health record matters most when seconds count.',
+    title: 'How an Undocumented Allergy in an Abuja Emergency Room Led to WelliRecord',
+    excerpt: 'Before WelliRecord existed, a family emergency in Abuja showed exactly what happens when allergy history doesn\'t travel with the patient. This is the story that started it.',
     date: 'June 28, 2026',
     readTime: '4 min read',
     author: 'WelliRecord Editorial',
-    category: 'Patient Stories',
+    category: 'Our Story',
     content: [
       'In a medical emergency, the most important question is often the simplest: "Does the patient have any allergies?" When someone is unconscious or unable to speak, the answer to that question can mean the difference between recovery and fatal complications.',
-      'A family emergency in Abuja was the catalyst that started WelliRecord. A patient was rushed to the clinic. The medical team was preparing to administer antibiotics, including penicillin. The patient was unable to communicate, and the family members present were unsure of their complete medical history.',
-      'Fortunately, a quick check of an allergy note from a previous consultation at a different clinic was located in a secure personal vault within seconds. The patient had a documented anaphylactic reaction to penicillin. The team immediately switched the treatment course.',
-      'This situation is far too common. Most Nigerians visit multiple hospitals, diagnostic labs, and pharmacies over their lifetimes. Their medical history is fragmented across paper folders in different basements. In an emergency, those fragments are inaccessible.',
-      'WelliRecord was built to ensure that critical, life-saving information—starting with your severe allergies and blood group—is instantly accessible to responders via a secure QR code on your Emergency Card. It is one trusted record, accessible when it matters.'
+      'The patient had a documented allergic reaction to penicillin from an earlier consultation at a different clinic — but nothing about that history existed in a form the treating team could check. It had never left the clinic that first wrote it down. The situation nearly caused real harm before it was caught.',
+      'There was no WelliRecord to check that day, because WelliRecord didn\'t exist yet. That near-miss is what made the gap impossible to ignore: if the allergy note had been reachable in that room, in that moment, none of it would have depended on chance.',
+      'This situation is far too common. Most Nigerians visit multiple hospitals, diagnostic labs, and pharmacies over their lifetimes. Their medical history is fragmented across paper folders in different basements. In an emergency, those fragments are inaccessible — not because anyone loses them on purpose, but because there was never a way for them to follow the patient.',
+      'That gap is what WelliRecord was built to close: critical, life-saving information — starting with severe allergies and blood group — instantly accessible to responders via a secure QR code on an Emergency Card, with the patient in control of who can see it. One trusted record, accessible when it matters, built because a family in Abuja learned firsthand what happens when it isn\'t.'
     ]
   },
   {
