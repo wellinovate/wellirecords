@@ -193,12 +193,22 @@ export default function PatientSignupPage() {
     const newErrors: any = {};
 
     if (!form.fullName.trim()) newErrors.fullName = "Full name is required";
-    if (!form.email.trim()) newErrors.email = "Email is required";
+
+    if (!form.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
     if (!form.phone.trim()) {
       newErrors.phone = "Phone number is required";
-    } else if (form.phone.trim().length < 10) {
-      newErrors.phone = "Please enter a valid phone number";
+    } else if (!/^\+?[0-9]{10,15}$/.test(form.phone.trim().replace(/[\s-]/g, ""))) {
+      // Digits only (an optional leading + for international format),
+      // 10-15 digits. Previously this only checked string length, so
+      // "0000000000" or "abcdefghij" both passed as "valid".
+      newErrors.phone = "Please enter a valid phone number (digits only)";
     }
+
     if (!form.gender) newErrors.gender = "Gender is required";
 
     if (!form.password) {
@@ -288,6 +298,10 @@ export default function PatientSignupPage() {
     // of the /auth/login checkpoint the regular flow goes through.
     if (!form.phone.trim()) {
       toast.error("Please enter your phone number before continuing with Google.");
+      return;
+    }
+    if (!/^\+?[0-9]{10,15}$/.test(form.phone.trim().replace(/[\s-]/g, ""))) {
+      toast.error("Please enter a valid phone number (digits only) before continuing with Google.");
       return;
     }
 

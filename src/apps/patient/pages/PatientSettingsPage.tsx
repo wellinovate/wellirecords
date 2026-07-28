@@ -466,6 +466,18 @@ export function PatientSettingsPage() {
     }) !== JSON.stringify(form);
 
   const save = async () => {
+    // Phone locks permanently after this save (see the readOnly/canEditPhone
+    // logic below), so it's worth catching bad input here rather than
+    // letting it become a permanent, unfixable value on the account.
+    if (
+      canEditPhone &&
+      form.phone.trim() &&
+      !/^\+?[0-9]{10,15}$/.test(form.phone.trim().replace(/[\s-]/g, ""))
+    ) {
+      toast.error("Please enter a valid phone number (digits only) before saving.");
+      return;
+    }
+
     try {
       setSaving(true);
 
