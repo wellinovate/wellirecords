@@ -142,7 +142,7 @@ export default function PatientSignupPage() {
     address: "",
     password: "",
     confirmPassword: "",
-    role: "Patient",
+    role: "",
     agree: false,
   });
 
