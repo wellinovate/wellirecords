@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { MedicalProfileWizard } from "@/apps/patient/components/MedicalProfileWizard";
 
 const patientNav = [
   {
@@ -141,6 +142,9 @@ export function PatientLayout() {
   const [open, setOpen] = useState(false);
   const [showOrgDrop, setShowOrgDrop] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const [showWizard, setShowWizard] = useState(
+    () => localStorage.getItem("wrShowWelcomeWizard") === "1",
+  );
 
   const handleSignOut = () => {
     signOut();
@@ -622,6 +626,9 @@ export function PatientLayout() {
         </button>
       </nav>
 
+      {showWizard && (
+        <MedicalProfileWizard onClose={() => setShowWizard(false)} />
+      )}
       <WelliMateWidget />
     </div>
   );

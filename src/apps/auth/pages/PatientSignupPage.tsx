@@ -367,6 +367,8 @@ export default function PatientSignupPage() {
       // existing destination since this gap was specifically observed on
       // the patient path.
       if (data?.user?.accountType === "user") {
+        // Signal PatientLayout to show the onboarding wizard on first load.
+        localStorage.setItem("wrShowWelcomeWizard", "1");
         navigate("/patient/settings?complete=1", {
           state: { fullName: data.user.fullName, phone: form.phone.trim() },
         });

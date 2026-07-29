@@ -160,6 +160,8 @@ export function PatientOverview() {
   // "record:Allergy") rather than a route — opens the same RecordModal
   // FirstRecordWizard uses, instead of building a second form.
   const [activeRecordType, setActiveRecordType] = useState<string | null>(null);
+  const [bloodGroup, setBloodGroup] = useState<string | null>(null);
+  const [genotype, setGenotype] = useState<string | null>(null);
 
   const displayName =
     user?.fullName ||
@@ -177,16 +179,20 @@ export function PatientOverview() {
         const encounterResult = await getUsersEncounters();
 
         // Best-effort: the completion score still works without this,
-        // it just treats the emergency contact as missing.
+        // it just treats blood/emergency info as missing.
         fetchProfile()
-          .then((profile) =>
+          .then((profile) => {
             setEmergencyContacts(
               Array.isArray(profile?.emergencyContacts)
                 ? profile.emergencyContacts
                 : [],
-            ),
-          )
-          .catch(() => setEmergencyContacts([]));
+            );
+            setBloodGroup(profile?.bloodGroup ?? null);
+            setGenotype(profile?.genotype ?? null);
+          })
+          .catch(() => {
+            setEmergencyContacts([]);
+          });
 
         const rawItems = Array.isArray(encounterResult?.items)
           ? encounterResult.items
@@ -235,9 +241,9 @@ export function PatientOverview() {
   const hasSummaryRecords = recordList.length > 0;
 
   const completionAlerts = useMemo(() => {
-    const result = computeProfileCompletion(records, emergencyContacts);
+    const result = computeProfileCompletion(records, emergencyContacts, bloodGroup, genotype);
     return buildProfileCompletionAlerts(result);
-  }, [records, emergencyContacts]);
+  }, [records, emergencyContacts, bloodGroup, genotype]);
 
   const handleAlertNavigate = (ctaLink: string) => {
     if (ctaLink.startsWith("record:")) {

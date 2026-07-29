@@ -5,11 +5,13 @@ import type { DashboardAlertItem } from "@/apps/components/DashboardAlerts";
 // importing from the page component would create a circular dependency.
 type RecordsResponse = Record<string, { recordCount?: number } | undefined>;
 
-// Checklist-based completion score. Blood group and genotype are
-// deliberately excluded — those fields only belong on a record when
-// they come from a verified lab entry, never patient self-report, so
-// they can't be part of a "fill this in yourself" checklist.
+// Checklist-based completion score.
+// Blood group and genotype are self-reported during the onboarding wizard
+// (the one acceptable self-report path — see MedicalProfileWizard.tsx).
+// They are marked as missing until the patient fills them in.
 const CHECKLIST_ITEMS = [
+  "bloodGroup",
+  "genotype",
   "emergencyContact",
   "allergies",
   "medications",
@@ -29,6 +31,8 @@ export type ProfileCompletionResult = {
 export function computeProfileCompletion(
   records: RecordsResponse | null | undefined,
   emergencyContacts: unknown[] | null | undefined,
+  bloodGroup?: string | null,
+  genotype?: string | null,
 ): ProfileCompletionResult {
   const hasEmergencyContact =
     Array.isArray(emergencyContacts) && emergencyContacts.length > 0;
@@ -37,6 +41,8 @@ export function computeProfileCompletion(
   const hasDiagnosisRecord = (records?.diagnoses?.recordCount ?? 0) > 0;
 
   const missing: Record<ChecklistKey, boolean> = {
+    bloodGroup: !bloodGroup || bloodGroup === "Unknown",
+    genotype: !genotype || genotype === "Unknown",
     emergencyContact: !hasEmergencyContact,
     allergies: !hasAllergyRecord,
     medications: !hasMedicationRecord,
@@ -64,6 +70,18 @@ type MissingItemConfig = {
 };
 
 const MISSING_ITEM_ORDER: MissingItemConfig[] = [
+  {
+    key: "bloodGroup",
+    label: "add your blood group",
+    ctaLabel: "Add blood group",
+    ctaLink: "/patient/settings",
+  },
+  {
+    key: "genotype",
+    label: "add your genotype",
+    ctaLabel: "Add genotype",
+    ctaLink: "/patient/settings",
+  },
   {
     key: "allergies",
     label: "add your allergies",
