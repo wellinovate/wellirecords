@@ -606,6 +606,9 @@ export type BridgeSharedRecord = {
   oneTimeUse: boolean;
   allergies: any[];
   medications: any[];
+  labResults: any[];
+  diagnoses: any[];
+  vitals: any[];
 };
 
 // Deliberately separate from consentApi — this hits a public, unauthenticated
