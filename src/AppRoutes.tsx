@@ -32,6 +32,7 @@ const ProviderLoginPage = lazy(() => import("@/apps/auth/pages/ProviderLoginPage
 const ProviderSignupPage = lazy(() => import("@/apps/auth/pages/ProviderSignupPage").then(m => ({ default: m.ProviderSignupPage })));
 const OrgVerificationPage = lazy(() => import("@/apps/auth/pages/OrgVerificationPage").then(m => ({ default: m.OrgVerificationPage })));
 const VerifyEmailPage = lazy(() => import("@/apps/auth/pages/VerifyEmailPage").then(m => ({ default: m.VerifyEmailPage })));
+const BridgeSharePage = lazy(() => import("@/apps/public/pages/BridgeSharePage"));
 const SuperAdminLoginPage = lazy(() => import("@/apps/auth/pages/SuperAdminLoginPage").then(m => ({ default: m.SuperAdminLoginPage })));
 const UserTypeSelection = lazy(() => import("./apps/auth/pages/UserTypeSelection"));
 const PatientSignupPage = lazy(() => import("./apps/auth/pages/PatientSignupPage"));
@@ -193,6 +194,7 @@ export function AppRoutes() {
           element={<OrgVerificationPage />}
         />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/bridge/:token" element={<BridgeSharePage />} />
         <Route path="/auth/super-admin/login" element={<SuperAdminLoginPage />} />
         <Route path="/super-admin/login" element={<Navigate to="/auth/super-admin/login" replace />} />
 

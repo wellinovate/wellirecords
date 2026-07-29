@@ -36,7 +36,12 @@ export type AccessGrant = {
   grantedBy: string;
   requestedBy?: string | null;
 
-  granteeType: "provider" | "organization" | "caregiver" | "payer" | "other";
+  granteeType: "provider" | "organization" | "caregiver" | "payer" | "other" | "link";
+
+  // Only present for granteeType "link" — a WelliBridge share link/QR grant.
+  shareToken?: string | null;
+  oneTimeUse?: boolean;
+  usedAt?: string | null;
 
   granteeUserId?:
     | {
@@ -129,6 +134,14 @@ export type CreateGrantPayload = {
   //   | "immunizations"
   //   | null;
   durationDays: number;
+  purpose?: string | null;
+};
+
+export type CreateShareLinkPayload = {
+  accessScope: "category" | "full-record";
+  category?: string | null;
+  durationHours: number;
+  oneTimeUse?: boolean;
   purpose?: string | null;
 };
 
@@ -315,6 +328,32 @@ export const consentApi = {
       // }
       console.log("🚀 ~ error:", error)
 
+      throw error;
+    }
+  },
+
+  async createShareLink(
+    patientId: string,
+    payload: CreateShareLinkPayload,
+  ): Promise<{ grant: AccessGrant; shareUrl: string }> {
+    try {
+      const res = await axios.post(
+        `${API_BASE}/api/v1/access-grants/patients/${patientId}/access-grants/share-link`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (res.data.success === false) {
+        console.log(`API error: ${res.status} ${res.statusText}`);
+      }
+
+      return res.data.data;
+    } catch (error) {
+      console.log("🚀 ~ error:", error);
       throw error;
     }
   },
@@ -551,5 +590,36 @@ export const auditApi = {
       // throw error;
       console.log("🚀 ~ error:", error)
     }
+  },
+};
+
+export type BridgeSharedRecord = {
+  patient: {
+    fullName?: string;
+    wrId?: string;
+    dateOfBirth?: string;
+    gender?: string;
+  } | null;
+  scope: string;
+  category?: string | null;
+  expiresAt?: string | null;
+  oneTimeUse: boolean;
+  allergies: any[];
+  medications: any[];
+};
+
+// Deliberately separate from consentApi — this hits a public, unauthenticated
+// endpoint (the WelliBridge Temporary Provider Portal). No Bearer token is
+// sent, by design: a doctor with no WelliRecord account and no login uses
+// this to view a scoped, time-limited share link.
+export const bridgeApi = {
+  async getSharedRecord(shareToken: string): Promise<BridgeSharedRecord> {
+    const res = await axios.get(`${API_BASE}/api/v1/bridge/${shareToken}`);
+
+    if (res.data.success === false) {
+      throw new Error(res.data.message || "This link could not be opened.");
+    }
+
+    return res.data.data;
   },
 };

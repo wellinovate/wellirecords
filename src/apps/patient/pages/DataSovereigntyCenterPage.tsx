@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import QRCode from "react-qr-code";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import {
   consentApi,
@@ -6,6 +7,7 @@ import {
   type AccessGrant,
   type AccessAudit,
   type CreateGrantPayload,
+  type CreateShareLinkPayload,
 } from "@/shared/api/consentApi";
 
 import {
@@ -56,6 +58,14 @@ const DURATION_OPTIONS: {
   { value: "7d", label: "7 days" },
   { value: "30d", label: "30 days" },
   { value: "permanent", label: "Permanent" },
+];
+
+const SHARE_DURATION_OPTIONS: { value: number; label: string }[] = [
+  { value: 1, label: "1 hour" },
+  { value: 6, label: "6 hours" },
+  { value: 24, label: "24 hours" },
+  { value: 24 * 7, label: "7 days" },
+  { value: 24 * 30, label: "30 days" },
 ];
 
 function timeAgo(iso?: string | null) {
@@ -208,6 +218,22 @@ export function DataSovereigntyCenterPage() {
   );
   const [granteeId, setGranteeId] = useState("");
   const [purpose, setPurpose] = useState("");
+
+  // WelliBridge share link — separate from Grant New Access above. A
+  // share link has no known grantee (that's the point — any doctor with
+  // the link/QR, no account needed), so it only needs scope + duration +
+  // one-time-use, not a grantee type/ID.
+  const [showShare, setShowShare] = useState(false);
+  const [shareScope, setShareScope] = useState<"category" | "full-record">("category");
+  const [shareCategory, setShareCategory] = useState<string | null>("allergies");
+  const [shareDurationHours, setShareDurationHours] = useState<number>(24);
+  const [shareOneTimeUse, setShareOneTimeUse] = useState(false);
+  const [sharePurpose, setSharePurpose] = useState("");
+  const [shareLoading, setShareLoading] = useState(false);
+  const [shareError, setShareError] = useState<string | null>(null);
+  const [shareResult, setShareResult] = useState<{ shareUrl: string; expiresAt?: string | null } | null>(null);
+  const [shareCopied, setShareCopied] = useState(false);
+  const [wrIdCopied, setWrIdCopied] = useState(false);
 
   const [requestActionId, setRequestActionId] = useState<string | null>(null);
   const [requestApprovalDuration, setRequestApprovalDuration] =
@@ -410,6 +436,78 @@ export function DataSovereigntyCenterPage() {
     }
   }
 
+  async function handleCreateShareLink() {
+    if (!patientId) return;
+
+    setShareLoading(true);
+    setShareError(null);
+
+    try {
+      const payload: CreateShareLinkPayload = {
+        accessScope: shareScope,
+        category: shareScope === "category" ? shareCategory : null,
+        durationHours: Number(shareDurationHours),
+        oneTimeUse: shareOneTimeUse,
+        purpose: sharePurpose.trim() || null,
+      };
+
+      const result = await consentApi.createShareLink(patientId, payload);
+
+      if (result?.shareUrl) {
+        setShareResult({
+          shareUrl: result.shareUrl,
+          expiresAt: result.grant?.expiresAt,
+        });
+
+        if (result.grant) {
+          setGrants((current) => [result.grant, ...current]);
+        }
+      }
+    } catch (error: any) {
+      console.error("Failed to create share link:", error);
+      setShareError(
+        error?.response?.data?.message ||
+          "Couldn't create the share link. Please try again.",
+      );
+    } finally {
+      setShareLoading(false);
+    }
+  }
+
+  function closeShareModal() {
+    setShowShare(false);
+    setShareResult(null);
+    setShareError(null);
+    setShareCopied(false);
+    setShareScope("category");
+    setShareCategory("allergies");
+    setShareDurationHours(24);
+    setShareOneTimeUse(false);
+    setSharePurpose("");
+  }
+
+  async function handleCopyShareLink() {
+    if (!shareResult?.shareUrl) return;
+    try {
+      await navigator.clipboard.writeText(shareResult.shareUrl);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy share link:", error);
+    }
+  }
+
+  async function handleCopyWrId() {
+    if (!user?.wrId) return;
+    try {
+      await navigator.clipboard.writeText(user.wrId);
+      setWrIdCopied(true);
+      setTimeout(() => setWrIdCopied(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy WelliRecord ID:", error);
+    }
+  }
+
   async function handleApproveRequest(requestId: string) {
     try {
       setRequestActionId(requestId);
@@ -578,12 +676,18 @@ export function DataSovereigntyCenterPage() {
             </div>
 
             <div className="flex gap-2">
-              <button className="flex items-center gap-1 rounded bg-white/10 px-2 py-1 text-[10px] transition hover:bg-white/20">
+              <button
+                onClick={handleCopyWrId}
+                className="flex items-center gap-1 rounded bg-white/10 px-2 py-1 text-[10px] transition hover:bg-white/20"
+              >
                 <Copy className="h-2.5 w-2.5" />
-                Copy ID
+                {wrIdCopied ? "Copied!" : "Copy ID"}
               </button>
 
-              <button className="flex items-center gap-1 rounded bg-white/10 px-2 py-1 text-[10px] transition hover:bg-white/20">
+              <button
+                onClick={() => setShowShare(true)}
+                className="flex items-center gap-1 rounded bg-white/10 px-2 py-1 text-[10px] transition hover:bg-white/20"
+              >
                 <Share2 className="h-2.5 w-2.5" />
                 Share
               </button>
@@ -1424,6 +1528,187 @@ export function DataSovereigntyCenterPage() {
                 Grant Access
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showShare && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg max-h-[90vh] animate-in fade-in slide-in-from-bottom-4 rounded-2xl border-2 border-blue-500 bg-white p-6 shadow-2xl overflow-y-auto">
+            <div className="mb-6 flex items-center justify-between">
+              <h3 className="text-lg font-black text-slate-950">
+                {shareResult ? "Share Link Ready" : "Create a Share Link"}
+              </h3>
+
+              <button
+                onClick={closeShareModal}
+                className="rounded-full p-1 transition hover:bg-slate-100"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {!shareResult ? (
+              <>
+                <div className="mb-4 flex items-start gap-2 rounded-xl border border-blue-100 bg-blue-50 p-3 text-sm text-blue-800">
+                  <QrCode className="mt-0.5 h-4 w-4 shrink-0" />
+                  <p>
+                    Any doctor with this link or QR code can view what you choose to
+                    share — no WelliRecord account needed on their end.
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-slate-800">
+                      What to share
+                    </label>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      {SCOPE_OPTIONS.map((scope) => {
+                        const active =
+                          scope.value === "full-record"
+                            ? shareScope === "full-record"
+                            : shareScope === "category" && shareCategory === scope.category;
+
+                        return (
+                          <button
+                            key={`share-${scope.value}-${scope.category || "all"}`}
+                            onClick={() => {
+                              if (scope.value === "full-record") {
+                                setShareScope("full-record");
+                                setShareCategory(null);
+                              } else {
+                                setShareScope("category");
+                                setShareCategory(scope.category || null);
+                              }
+                            }}
+                            className={`rounded-lg border p-2 text-left text-xs font-bold transition ${
+                              active
+                                ? "border-blue-500 bg-blue-50 text-blue-700"
+                                : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                            }`}
+                          >
+                            {scope.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-slate-800">
+                      Link expires after
+                    </label>
+
+                    <div className="grid grid-cols-3 gap-2">
+                      {SHARE_DURATION_OPTIONS.map((duration) => (
+                        <button
+                          key={duration.value}
+                          onClick={() => setShareDurationHours(duration.value)}
+                          className={`rounded-lg border p-2 text-xs font-bold transition ${
+                            shareDurationHours === duration.value
+                              ? "border-blue-600 bg-blue-600 text-white"
+                              : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                          }`}
+                        >
+                          {duration.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <label className="flex items-center gap-2 rounded-xl border border-slate-200 p-3 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={shareOneTimeUse}
+                      onChange={(event) => setShareOneTimeUse(event.target.checked)}
+                      className="h-4 w-4 rounded border-slate-300"
+                    />
+                    <span className="font-semibold text-slate-800">
+                      One-time use only
+                    </span>
+                    <span className="text-xs text-slate-500">
+                      (link stops working after the first view)
+                    </span>
+                  </label>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-slate-800">
+                      Purpose (optional)
+                    </label>
+
+                    <textarea
+                      value={sharePurpose}
+                      onChange={(event) => setSharePurpose(event.target.value)}
+                      placeholder="Example: Emergency room visit, second opinion..."
+                      rows={2}
+                      className="w-full resize-none rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    />
+                  </div>
+
+                  {shareError && (
+                    <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                      {shareError}
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleCreateShareLink}
+                    disabled={shareLoading}
+                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 py-3 text-sm font-bold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {shareLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <QrCode className="h-4 w-4" />
+                    )}
+                    {shareLoading ? "Creating..." : "Create Share Link"}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex justify-center rounded-xl border border-slate-200 bg-white p-4">
+                  <QRCode value={shareResult.shareUrl} size={180} />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-800">
+                    Share Link
+                  </label>
+
+                  <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2">
+                    <input
+                      readOnly
+                      value={shareResult.shareUrl}
+                      onFocus={(event) => event.target.select()}
+                      className="flex-1 bg-transparent px-2 text-xs text-slate-700 outline-none"
+                    />
+                    <button
+                      onClick={handleCopyShareLink}
+                      className="shrink-0 rounded-lg bg-blue-700 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-blue-800"
+                    >
+                      {shareCopied ? "Copied!" : "Copy"}
+                    </button>
+                  </div>
+                </div>
+
+                {shareResult.expiresAt && (
+                  <p className="text-xs text-slate-500">
+                    Expires{" "}
+                    {new Date(shareResult.expiresAt).toLocaleString()}
+                  </p>
+                )}
+
+                <button
+                  onClick={closeShareModal}
+                  className="flex w-full items-center justify-center rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+                >
+                  Done
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
