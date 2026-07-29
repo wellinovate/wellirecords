@@ -1,8 +1,14 @@
 import { DashboardAlerts } from "@/apps/components/DashboardAlerts";
 import { RecentEncountersCard } from "@/apps/components/RecentEncountersCard";
 import { SummaryRecordsGrid } from "@/apps/components/SummaryRecordsGrid";
+import { RecordModal } from "@/apps/patient/components/FirstRecordWizard";
+import {
+  buildProfileCompletionAlerts,
+  computeProfileCompletion,
+} from "@/apps/patient/utils/profileCompletion";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import {
+  fetchProfile,
   getUsersEncounters,
   getUsersRecord,
 } from "@/shared/utils/utilityFunction";
@@ -138,24 +144,7 @@ export type DashboardAlertItem = {
   ctaLink: string;
 };
 
-const DUMMY_ALERTS: DashboardAlertItem[] = [
-  // {
-  //   id: "alert-001",
-  //   type: "warning",
-  //   title: "Follow-up needed",
-  //   message: "Your recent emergency room visit may need a follow-up review.",
-  //   ctaLabel: "Review Visit",
-  //   ctaLink: "/patient/encounters",
-  // },
-  // {
-  //   id: "alert-002",
-  //   type: "info",
-  //   title: "Missing immunization records",
-  //   message: "No immunization records found yet in your health record.",
-  //   ctaLabel: "Upload Record",
-  //   ctaLink: "/patient/vault",
-  // },
-];
+
 
 export function PatientOverview() {
   const { user } = useAuth();
@@ -164,8 +153,13 @@ export function PatientOverview() {
 
   const [records, setRecords] = useState<RecordsResponse>({});
   const [recentEncounters, setRecentEncounters] = useState<UiEncounter[]>([]);
+  const [emergencyContacts, setEmergencyContacts] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  // Set when a completion alert's CTA points at a record type (e.g.
+  // "record:Allergy") rather than a route — opens the same RecordModal
+  // FirstRecordWizard uses, instead of building a second form.
+  const [activeRecordType, setActiveRecordType] = useState<string | null>(null);
 
   const displayName =
     user?.fullName ||
@@ -181,6 +175,18 @@ export function PatientOverview() {
       try {
         const result = await getUsersRecord(1, 10);
         const encounterResult = await getUsersEncounters();
+
+        // Best-effort: the completion score still works without this,
+        // it just treats the emergency contact as missing.
+        fetchProfile()
+          .then((profile) =>
+            setEmergencyContacts(
+              Array.isArray(profile?.emergencyContacts)
+                ? profile.emergencyContacts
+                : [],
+            ),
+          )
+          .catch(() => setEmergencyContacts([]));
 
         const rawItems = Array.isArray(encounterResult?.items)
           ? encounterResult.items
@@ -228,6 +234,28 @@ export function PatientOverview() {
   const recordList = useMemo(() => Object.values(records || {}), [records]);
   const hasSummaryRecords = recordList.length > 0;
 
+  const completionAlerts = useMemo(() => {
+    const result = computeProfileCompletion(records, emergencyContacts);
+    return buildProfileCompletionAlerts(result);
+  }, [records, emergencyContacts]);
+
+  const handleAlertNavigate = (ctaLink: string) => {
+    if (ctaLink.startsWith("record:")) {
+      setActiveRecordType(ctaLink.slice("record:".length));
+      return;
+    }
+    navigate(ctaLink);
+  };
+
+  const handleRecordModalClose = () => {
+    setActiveRecordType(null);
+    // Refresh the summary so a newly added allergy/medication/diagnosis
+    // clears its alert immediately instead of waiting for a reload.
+    getUsersRecord(1, 10)
+      .then((result) => setRecords(result?.data ?? result ?? {}))
+      .catch(() => {});
+  };
+
   return (
     <div className="animate-fade-in">
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -274,7 +302,7 @@ export function PatientOverview() {
 
       <div className="space-y-6">
         <div className="flex lg:flex-row flex-col gap-4">
-          <DashboardAlerts alerts={DUMMY_ALERTS} onNavigate={navigate} />
+          <DashboardAlerts alerts={completionAlerts} onNavigate={handleAlertNavigate} />
 
           <RecentEncountersCard
             encounters={recentEncounters}
@@ -317,6 +345,13 @@ export function PatientOverview() {
           </div>
         )}
       </div>
+
+      {activeRecordType && (
+        <RecordModal
+          type={activeRecordType}
+          onClose={handleRecordModalClose}
+        />
+      )}
     </div>
   );
 }
