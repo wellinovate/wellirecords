@@ -81,11 +81,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (users) {
       fetchProfile()
         .then((profile) => {
-          if (typeof profile?.isVerified !== "undefined") {
-            setUser((prev) =>
-              prev ? { ...prev, isVerified: profile.isVerified } : prev,
-            );
-          }
+          setUser((prev) => {
+            if (!prev) return prev;
+            const next = { ...prev };
+            if (typeof profile?.isVerified !== "undefined") {
+              next.isVerified = profile.isVerified;
+            }
+            // Without this, a page refresh re-derives `user` from the
+            // stale name captured at login (see getCurrentUser/ui_user),
+            // undoing the updateProfile fix above the moment the tab
+            // reloads.
+            if (profile?.fullName) {
+              next.fullName = profile.fullName;
+            }
+            return next;
+          });
         })
         .catch((err) => {
           console.error("Failed to refresh verification status", err);
@@ -235,6 +245,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   ): Promise<SearchPatientResponse> => {
     const res = await authApi.updateProfile(payload);
     console.log("🚀 ~ signIn ~ u:", res);
+
+    // Keep the in-memory user (and therefore the "Hello, {name}" greeting
+    // in PatientLayout) in sync with whatever the patient just saved.
+    // Previously this only updated PatientSettingsPage's local `profile`
+    // state, so the greeting stayed stuck on the fullName captured at
+    // login until the next sign-in.
+    const updatedProfile = res?.data;
+    if (updatedProfile?.fullName) {
+      setUser((prev) =>
+        prev ? { ...prev, fullName: updatedProfile.fullName } : prev,
+      );
+    }
+
     return res;
   };
 

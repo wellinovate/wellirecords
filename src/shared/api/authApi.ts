@@ -640,7 +640,12 @@ return data.data;
     throw new Error(data?.message || "Failed to link patient");
   }
 
-  return data.message;
+  // Previously returned only `data.message` (a string), which silently
+  // discarded the updated profile the backend sends back in `data.data`.
+  // Callers (PatientSettingsPage, AuthProvider) need the actual updated
+  // fields — most importantly fullName, since that's what drives the
+  // "Hello, {name}" greeting in PatientLayout.
+  return data;
 },
 
   async  createAllergy(payload: any) {
