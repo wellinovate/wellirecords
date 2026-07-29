@@ -645,6 +645,21 @@ return data.data;
   // Callers (PatientSettingsPage, AuthProvider) need the actual updated
   // fields — most importantly fullName, since that's what drives the
   // "Hello, {name}" greeting in PatientLayout.
+  //
+  // The backend also now reissues the access token here, since fullName
+  // is embedded in the token at login and doesn't otherwise update until
+  // the next sign-in. Storing it immediately means the NEXT page load
+  // decodes the correct name directly, instead of relying on the
+  // fetchProfile-on-mount race in AuthProvider to correct it after the
+  // fact.
+  if (data?.accessToken) {
+    Cookies.set("accessToken", data.accessToken, {
+      expires: 1, // days
+      secure: true, // only over HTTPS (important in prod)
+      sameSite: "lax",
+    });
+  }
+
   return data;
 },
 
