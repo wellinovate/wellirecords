@@ -663,6 +663,31 @@ return data.data;
   return data;
 },
 
+  async uploadAvatar(file: File) {
+  const token = Cookies.get("accessToken");
+  const formData = new FormData();
+  formData.append("avatar", file);
+
+  const response = await fetch(`${apiUrl}/api/v1/user/avatar`, {
+    method: "POST",
+    headers: {
+      // No Content-Type here — the browser sets the multipart boundary
+      // automatically. Setting it manually breaks the upload.
+      Authorization: `Bearer ${token}`,
+    },
+    credentials: "include",
+    body: formData,
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data?.message || "Failed to upload avatar");
+  }
+
+  return data;
+},
+
   async  createAllergy(payload: any) {
   const token = Cookies.get("accessToken");
   const response = await fetch(`${apiUrl}/api/v1/allergies`, {
