@@ -536,17 +536,17 @@ export const RecordModal: React.FC<RecordModalProps> = ({ type, onClose }) => {
   const renderContent = () => {
     switch (type) {
       case "vitals":
-        return <VitalRecordForm patientId={patientId}  onClose={onClose}/>;
+        return <VitalRecordForm patientId={patientId}  onClose={onClose} onSuccess={onClose} />;
       case "Prescription":
-        return <MedicationRecordForm patientId={patientId}  onClose={onClose} />;
+        return <MedicationRecordForm patientId={patientId}  onClose={onClose} onSuccess={onClose} />;
       case "Allergy":
-        return <AllergyRecordForm patientId={patientId} onClose={onClose} />;
+        return <AllergyRecordForm patientId={patientId} onClose={onClose} onSuccess={onClose} />;
       case "Dianosis":
-        return <DiagnosisRecordForm patientId={patientId} onClose={onClose} />;
+        return <DiagnosisRecordForm patientId={patientId} onClose={onClose} onSuccess={onClose} />;
       case "Procedures":
-        return <ProcedureRecordForm patientId={patientId} onClose={onClose} />;
+        return <ProcedureRecordForm patientId={patientId} onClose={onClose} onSuccess={onClose} />;
       case "Lab Result":
-        return <LabResultRecordForm patientId={patientId} onClose={onClose} />;
+        return <LabResultRecordForm patientId={patientId} onClose={onClose} onSuccess={onClose} />;
       case "Vaccination":
         return <MedicalRecords  filter="vaccination" />; 
       default:
