@@ -162,6 +162,11 @@ export function PatientOverview() {
   const [activeRecordType, setActiveRecordType] = useState<string | null>(null);
   const [bloodGroup, setBloodGroup] = useState<string | null>(null);
   const [genotype, setGenotype] = useState<string | null>(null);
+  const [confirmedNone, setConfirmedNone] = useState<{
+    allergies?: boolean;
+    medications?: boolean;
+    diagnoses?: boolean;
+  } | null>(null);
 
   const displayName =
     user?.fullName ||
@@ -189,6 +194,7 @@ export function PatientOverview() {
             );
             setBloodGroup(profile?.bloodGroup ?? null);
             setGenotype(profile?.genotype ?? null);
+            setConfirmedNone(profile?.confirmedNone ?? null);
           })
           .catch(() => {
             setEmergencyContacts([]);
@@ -241,9 +247,15 @@ export function PatientOverview() {
   const hasSummaryRecords = recordList.length > 0;
 
   const completionAlerts = useMemo(() => {
-    const result = computeProfileCompletion(records, emergencyContacts, bloodGroup, genotype);
+    const result = computeProfileCompletion(
+      records,
+      emergencyContacts,
+      bloodGroup,
+      genotype,
+      confirmedNone,
+    );
     return buildProfileCompletionAlerts(result);
-  }, [records, emergencyContacts, bloodGroup, genotype]);
+  }, [records, emergencyContacts, bloodGroup, genotype, confirmedNone]);
 
   const handleAlertNavigate = (ctaLink: string) => {
     if (ctaLink.startsWith("record:")) {
