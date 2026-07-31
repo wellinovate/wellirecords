@@ -1,53 +1,48 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { CheckCircle, XCircle, Loader2, Mail } from "lucide-react";
+import { CheckCircle, XCircle, Loader2, Mail, ShieldCheck } from "lucide-react";
 import { apiUrl } from "@/shared/api/authApi";
 
-type VerifyState = "verifying" | "success" | "error" | "missing_token";
+type VerifyState = "idle" | "verifying" | "success" | "error" | "missing_token";
 
 export function VerifyEmailPage() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const token = searchParams.get("token");
 
-    const [state, setState] = useState<VerifyState>("verifying");
+    const [state, setState] = useState<VerifyState>(token ? "idle" : "missing_token");
     const [message, setMessage] = useState("");
 
     const [resendEmail, setResendEmail] = useState("");
     const [resending, setResending] = useState(false);
     const [resendMessage, setResendMessage] = useState("");
-    const hasAttemptedVerify = useRef(false);
 
-    useEffect(() => {
+    const handleVerify = async () => {
         if (!token) {
             setState("missing_token");
             return;
         }
 
-        if (hasAttemptedVerify.current) return;
-        hasAttemptedVerify.current = true;
+        try {
+            setState("verifying");
+            const res = await fetch(`${apiUrl}/api/v1/auth/verify-email`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ token }),
+            });
+            const json = await res.json();
 
-        const verify = async () => {
-            try {
-                const res = await fetch(
-                    `${apiUrl}/api/v1/auth/verify-email?token=${encodeURIComponent(token)}`,
-                );
-                const json = await res.json();
-
-                if (!res.ok || !json?.success) {
-                    throw new Error(json?.message || "This verification link is invalid or has expired.");
-                }
-
-                setMessage(json.message || "Your email has been verified.");
-                setState("success");
-            } catch (err: any) {
-                setMessage(err?.message || "This verification link is invalid or has expired.");
-                setState("error");
+            if (!res.ok || !json?.success) {
+                throw new Error(json?.message || "This verification link is invalid or has expired.");
             }
-        };
 
-        verify();
-    }, [token]);
+            setMessage(json.message || "Your email has been verified.");
+            setState("success");
+        } catch (err: any) {
+            setMessage(err?.message || "This verification link is invalid or has expired.");
+            setState("error");
+        }
+    };
 
     const handleResend = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -79,6 +74,22 @@ export function VerifyEmailPage() {
     return (
         <div className="min-h-screen flex items-center justify-center bg-[#F3F4F5] px-4">
             <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-sm border border-gray-100 text-center">
+                {state === "idle" && (
+                    <>
+                        <ShieldCheck size={48} className="mx-auto mb-4 text-[#071B3F]" />
+                        <h1 className="text-xl font-bold text-[#062B67] mb-2">Verify your email address</h1>
+                        <p className="text-sm text-gray-600 mb-6">
+                            Click the button below to confirm your email and activate your account.
+                        </p>
+                        <button
+                            onClick={handleVerify}
+                            className="w-full h-11 rounded-md bg-[#071B3F] text-white text-sm font-semibold hover:bg-[#0c2d66] transition"
+                        >
+                            Verify Email Address
+                        </button>
+                    </>
+                )}
+
                 {state === "verifying" && (
                     <>
                         <Loader2 size={40} className="mx-auto mb-4 animate-spin text-[#071B3F]" />
@@ -93,7 +104,7 @@ export function VerifyEmailPage() {
                         <h1 className="text-xl font-bold text-[#062B67] mb-2">Email verified</h1>
                         <p className="text-sm text-gray-600 mb-6">{message}</p>
                         <button
-                            onClick={() => navigate("/auth")}
+                            onClick={() => navigate("/auth/login")}
                             className="w-full h-11 rounded-md bg-[#071B3F] text-white text-sm font-semibold hover:bg-[#0c2d66] transition"
                         >
                             Continue to login
@@ -142,7 +153,7 @@ export function VerifyEmailPage() {
                         )}
 
                         <Link
-                            to="/auth"
+                            to="/auth/login"
                             className="mt-6 inline-block text-xs font-semibold text-[#071B3F] hover:underline"
                         >
                             Back to login
