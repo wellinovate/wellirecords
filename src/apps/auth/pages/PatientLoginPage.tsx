@@ -349,6 +349,21 @@ export function PatientLoginPage() {
 
       toast.success("Google sign-in successful");
 
+      // First-time Google sign-ins from this page create an account the
+      // same way the signup page does, but this page never collects a
+      // phone number or shows onboarding. Route new accounts to profile
+      // completion instead of the dashboard, same destination the signup
+      // page's Google flow uses. Existing accounts logging back in are
+      // unaffected and keep the "welcome-back" email + normal redirect.
+      if (data?.user?.isNewAccount && data?.user?.accountType === "user") {
+        localStorage.setItem("wrShowWelcomeWizard", "1");
+        localStorage.setItem("activeProfileType", profileType);
+        navigate("/patient/settings?complete=1", {
+          state: { fullName: data.user.fullName },
+        });
+        return;
+      }
+
       if (data?.user?.email) {
         fetch("/api/send-email", {
           method: "POST",
