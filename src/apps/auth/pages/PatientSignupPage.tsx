@@ -303,7 +303,7 @@ export default function PatientSignupPage() {
             }
           })
         }).catch(err => console.error("Failed to send welcome email:", err));
-        navigate("/auth/login");
+        navigate("/auth/patient/signup-success", { state: { email: payload.email } });
       }
     } catch (error) {
       console.log("Signup error:", error);

@@ -36,6 +36,8 @@ const BridgeSharePage = lazy(() => import("@/apps/public/pages/BridgeSharePage")
 const SuperAdminLoginPage = lazy(() => import("@/apps/auth/pages/SuperAdminLoginPage").then(m => ({ default: m.SuperAdminLoginPage })));
 const UserTypeSelection = lazy(() => import("./apps/auth/pages/UserTypeSelection"));
 const PatientSignupPage = lazy(() => import("./apps/auth/pages/PatientSignupPage"));
+const PatientSignupSuccessPage = lazy(() => import("@/apps/auth/pages/PatientSignupSuccessPage").then(m => ({ default: m.PatientSignupSuccessPage })));
+const ProviderSignupSuccessPage = lazy(() => import("@/apps/auth/pages/ProviderSignupSuccessPage").then(m => ({ default: m.ProviderSignupSuccessPage })));
 const UserTypeSelectionLogin = lazy(() => import("./apps/auth/pages/UserTypeSelectionLogin"));
 
 // ─── Patient Portal (lazy — largest chunk) ───────────────────────────────────
@@ -174,6 +176,14 @@ export function AppRoutes() {
           }
         />
         <Route
+          path="/auth/patient/signup-success"
+          element={
+            <PublicOnlyRoute>
+              <PatientSignupSuccessPage />
+            </PublicOnlyRoute>
+          }
+        />
+        <Route
           path="/auth/provider/login"
           element={
             <PublicOnlyRoute>
@@ -186,6 +196,14 @@ export function AppRoutes() {
           element={
             <PublicOnlyRoute>
               <ProviderSignupPage />
+            </PublicOnlyRoute>
+          }
+        />
+        <Route
+          path="/auth/provider/signup-success"
+          element={
+            <PublicOnlyRoute>
+              <ProviderSignupSuccessPage />
             </PublicOnlyRoute>
           }
         />

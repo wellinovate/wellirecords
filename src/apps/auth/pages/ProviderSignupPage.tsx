@@ -417,7 +417,7 @@ export function ProviderSignupPage() {
             }
           })
         }).catch(err => console.error("Failed to send welcome email:", err));
-        navigate("/auth/provider/login");
+        navigate("/auth/provider/signup-success", { state: { email: payload.email } });
       }
     } catch (error: any) {
       console.log("Organization signup error:", error);
@@ -476,7 +476,7 @@ export function ProviderSignupPage() {
             }
           })
         }).catch(err => console.error("Failed to send welcome email:", err));
-        navigate("/auth/provider/login");
+        navigate("/auth/provider/signup-success", { state: { email: payload.email } });
       }
     } catch (error: any) {
       console.log("Individual provider signup error:", error);
