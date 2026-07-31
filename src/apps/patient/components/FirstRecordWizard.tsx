@@ -524,13 +524,37 @@ interface RecordModalProps {
 }
 
 
+// Maps a record type to the confirmedNone key it should set when the
+// patient skips with "I don't have any of these" instead of filling in
+// the full clinical form. Only categories with a meaningful "none" answer
+// are included — vitals, procedures, and lab results don't have one.
+const SKIPPABLE_TYPES: Record<string, { key: string; label: string }> = {
+  Allergy: { key: "allergies", label: "I don't have any known allergies" },
+  Prescription: { key: "medications", label: "I'm not currently taking any medications" },
+  Dianosis: { key: "diagnoses", label: "I don't have any existing conditions" },
+};
+
 export const RecordModal: React.FC<RecordModalProps> = ({ type, onClose }) => {
-    const {user } = useAuth();
+    const { user, updateProfile } = useAuth();
     const patientId = user?.sub; // Replace with actual patient ID context
   const record = RECORD_TYPES.find(r => r.id === type);
+  const [skipping, setSkipping] = useState(false);
 
   if (!record) return null;
 
+  const skippable = SKIPPABLE_TYPES[type];
+
+  const handleSkip = async () => {
+    if (!skippable) return;
+    setSkipping(true);
+    try {
+      await updateProfile({ confirmedNone: { [skippable.key]: true } });
+      onClose();
+    } catch (err) {
+      console.error("Failed to record confirmed-none answer", err);
+      setSkipping(false);
+    }
+  };
 
   // Dynamically render the corresponding form/component
   const renderContent = () => {
@@ -565,6 +589,16 @@ export const RecordModal: React.FC<RecordModalProps> = ({ type, onClose }) => {
           <h2 className="text-lg font-bold ml-2">{record.label}</h2>
         </div>
         <p className="text-sm text-gray-600 mb-4">{record.desc}</p>
+        {skippable && (
+          <button
+            type="button"
+            onClick={handleSkip}
+            disabled={skipping}
+            className="text-sm text-blue-600 hover:text-blue-800 underline mb-4 disabled:opacity-50"
+          >
+            {skipping ? "Saving…" : skippable.label + " — skip this"}
+          </button>
+        )}
         <div className="">{renderContent()}</div>
       </div>
     </div>
