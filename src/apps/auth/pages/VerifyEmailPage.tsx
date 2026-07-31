@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { CheckCircle, XCircle, Loader2, Mail } from "lucide-react";
 import { apiUrl } from "@/shared/api/authApi";
@@ -16,12 +16,16 @@ export function VerifyEmailPage() {
     const [resendEmail, setResendEmail] = useState("");
     const [resending, setResending] = useState(false);
     const [resendMessage, setResendMessage] = useState("");
+    const hasAttemptedVerify = useRef(false);
 
     useEffect(() => {
         if (!token) {
             setState("missing_token");
             return;
         }
+
+        if (hasAttemptedVerify.current) return;
+        hasAttemptedVerify.current = true;
 
         const verify = async () => {
             try {
