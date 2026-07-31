@@ -7,6 +7,7 @@ import axios from "axios";
 import { apiUrl } from "@/shared/api/authApi";
 import Cookies from "js-cookie";
 import { signups } from "@/assets";
+import OTPForm from "@/apps/patient/components/OTPInput";
 
 type InputFieldProps = {
   label: string;
@@ -117,12 +118,33 @@ type FormState = {
 };
 
 export default function PatientSignupPage() {
-  const { signUpPatient, setUser } = useAuth();
+  const { signUpPatient, setUser, verifyLoginCodeApi, resendVerifyLoginCodeApi } = useAuth();
   const navigate = useNavigate();
   const [googleLoading, setGoogleLoading] = useState(false);
   const googleBtnRef = useRef<HTMLDivElement | null>(null);
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
   const [passwordTouched, setPasswordTouched] = useState(false);
+
+  // Google sign-up now goes through an SMS OTP step before finishing,
+  // same mechanism password login already uses. Kept as a separate screen
+  // rather than threading through the existing form JSX below.
+  const [signupStep, setSignupStep] = useState<"form" | "otp">("form");
+  const [code, setCode] = useState("");
+  const [isCodeValid, setIsCodeValid] = useState(false);
+  const [challengeToken, setChallengeToken] = useState("");
+  const [maskedPhone, setMaskedPhone] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(300);
+  const [otpError, setOtpError] = useState("");
+  // Whether the account behind this OTP challenge was just created here vs
+  // already existed (e.g. someone with a password account clicking
+  // "Sign up with Google"). Only genuinely new accounts get routed to
+  // onboarding after verification; existing ones go straight to their
+  // dashboard, same as a normal login would.
+  const [pendingIsNewAccount, setPendingIsNewAccount] = useState(false);
+
+  useEffect(() => setIsCodeValid(code.length === 6), [code]);
 
   const [errors, setErrors] = useState({
     fullName: "",
@@ -316,6 +338,19 @@ export default function PatientSignupPage() {
 
       const data = res.data;
 
+      // Signup always collects a phone number before this request fires
+      // (see the guard above), so the backend will almost always require
+      // OTP here. The token branch below stays as a fallback in case the
+      // backend ever returns without it.
+      if (data?.requiresOtp && data?.challengeToken) {
+        setChallengeToken(data.challengeToken);
+        setMaskedPhone(data.maskedPhone || "your phone number");
+        setPendingIsNewAccount(Boolean(data.isNewAccount));
+        setSignupStep("otp");
+        toast.success("Verification code sent");
+        return;
+      }
+
       Cookies.set("accessToken", data.token, {
         expires: 1,
         secure: true,
@@ -386,6 +421,139 @@ export default function PatientSignupPage() {
     }
   };
 
+  const handleVerifySignupOtp = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+
+    if (!challengeToken) {
+      setOtpError("Verification session expired. Please try again.");
+      setSignupStep("form");
+      return;
+    }
+
+    if (!isCodeValid) {
+      setOtpError("Enter the 6-digit code.");
+      return;
+    }
+
+    try {
+      setVerifying(true);
+      setOtpError("");
+
+      const res = await verifyLoginCodeApi(challengeToken, code);
+      const payload = (res as any)?.data || res;
+
+      const account = payload?.account;
+      const profile = payload?.profile;
+      const accessToken = payload?.accessToken || payload?.token;
+
+      if (accessToken) {
+        Cookies.set("accessToken", accessToken, {
+          expires: 1,
+          secure: true,
+          sameSite: "lax",
+        });
+      }
+
+      const userPayload = {
+        id: account?._id || account?.id,
+        accountType: account?.accountType,
+        role: account?.role,
+        fullName: profile?.fullName,
+        email: account?.email || profile?.email,
+      };
+
+      localStorage.setItem("ui_user", JSON.stringify(userPayload));
+      setUser?.(userPayload);
+
+      toast.success("Google sign-up successful");
+
+      if (userPayload.email) {
+        fetch("/api/send-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            to: userPayload.email,
+            templateId: "patient-welcome",
+            variables: {
+              patientName: userPayload.fullName,
+              // See original handleGoogleCredential comment: no real
+              // Member ID is available at this point, so it's omitted
+              // rather than fabricated.
+              accountCreationDate: new Date().toLocaleDateString(),
+              verifyEmailUrl: `${window.location.origin}/verify-email`,
+              completeProfileUrl: `${window.location.origin}/profile`,
+              dashboardUrl: `${window.location.origin}/dashboard`,
+              privacyPolicyUrl: `${window.location.origin}/privacy`,
+              contactSupportUrl: `${window.location.origin}/support`
+            }
+          })
+        }).catch(err => console.error("Failed to send welcome email:", err));
+      }
+
+      if (userPayload.accountType !== "user") {
+        navigate("/provider/overview");
+        return;
+      }
+
+      if (pendingIsNewAccount) {
+        localStorage.setItem("wrShowWelcomeWizard", "1");
+        navigate("/patient/settings?complete=1", {
+          state: { fullName: userPayload.fullName, phone: form.phone.trim() },
+        });
+        return;
+      }
+
+      // Existing account that happened to sign up again via Google — this
+      // is really a login, not a first-time signup, so skip onboarding.
+      navigate("/patient/overview");
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Invalid or expired code.";
+
+      setOtpError(message);
+      toast.error(message);
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  const handleResendSignupOtp = async () => {
+    if (!challengeToken) {
+      setOtpError("Verification session expired. Please try again.");
+      setSignupStep("form");
+      return;
+    }
+
+    if (resending) return;
+
+    try {
+      setResending(true);
+      setCode("");
+      setOtpError("");
+
+      const res = await resendVerifyLoginCodeApi(challengeToken);
+      const payload = (res as any)?.data || res;
+
+      if (!payload?.challengeToken) {
+        throw new Error("Failed to resend code");
+      }
+
+      setChallengeToken(payload.challengeToken);
+      setMaskedPhone(payload.maskedPhone || maskedPhone);
+      setTimeLeft(300);
+
+      toast.success("Code resent successfully");
+    } catch (err: any) {
+      const message =
+        err?.response?.data?.message || err?.message || "Unable to resend code";
+      toast.error(message);
+    } finally {
+      setResending(false);
+    }
+  };
+
   // const update =
   //   (key: keyof FormState) =>
   //   (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -444,6 +612,70 @@ export default function PatientSignupPage() {
       }));
     }
   };
+
+  if (signupStep === "otp") {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="relative min-h-screen max-w-full overflow-x-hidden border border-[#D9D9D9] bg-white">
+          <div className="absolute left-4 top-4 z-50 sm:left-6 sm:top-6 lg:left-10 lg:top-10">
+            <button
+              onClick={() => {
+                setSignupStep("form");
+                setCode("");
+                setChallengeToken("");
+                setMaskedPhone("");
+                setOtpError("");
+              }}
+              className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-[#062B67] transition hover:opacity-70 sm:px-4"
+            >
+              <ArrowLeft size={22} className="sm:hidden" />
+              <ArrowLeft size={30} className="hidden sm:block" />
+              <span className="text-sm sm:text-base font-bold">Back</span>
+            </button>
+          </div>
+
+          <div className="mx-auto flex min-h-screen w-full max-w-[520px] flex-col justify-center px-5 sm:px-8">
+            <h1 className="text-center text-3xl md:text-4xl font-extrabold tracking-[-0.03em] text-[#082E6A]">
+              Verify it's you
+            </h1>
+            <p className="mt-2 text-center text-base text-[#49576A]">
+              Enter the code we sent to finish setting up your account.
+            </p>
+
+            {otpError && (
+              <p className="mt-4 text-center text-sm text-red-600">{otpError}</p>
+            )}
+
+            <form onSubmit={handleVerifySignupOtp} className="mt-6">
+              <OTPForm
+                maskedPhone={maskedPhone}
+                code={code}
+                setCode={setCode}
+                isCodeValid={isCodeValid}
+                verifying={verifying}
+                handleResend={handleResendSignupOtp}
+                resending={resending}
+                timeLeft={timeLeft}
+                setTimeLeft={setTimeLeft}
+              />
+
+              <button
+                type="submit"
+                disabled={verifying || !isCodeValid}
+                className={`mt-6 w-full rounded-xl py-3 text-white font-bold transition-all ${
+                  verifying || !isCodeValid
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-[#071B3F] hover:bg-[#0c2d66]"
+                }`}
+              >
+                {verifying ? "Verifying..." : "Verify and continue"}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">

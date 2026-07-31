@@ -287,7 +287,7 @@ export function PatientLoginPage() {
             variables: {
               patientName: profile?.fullName || account?.fullName || "",
               loginDateTime: new Date().toLocaleString(),
-              loginMethod: "Email & Password",
+              loginMethod: pendingGoogleAccountType ? "Google" : "Email & Password",
               deviceInfo: navigator.userAgent,
               dashboardUrl: `${window.location.origin}/dashboard`,
               secureAccountUrl: `${window.location.origin}/security`
@@ -318,7 +318,10 @@ export function PatientLoginPage() {
     setChallengeToken("");
     setMaskedPhone("");
     setError("");
+    setPendingGoogleAccountType("");
   };
+
+  const [pendingGoogleAccountType, setPendingGoogleAccountType] = useState("");
 
   const handleGoogleCredential = async (response: GoogleCredentialResponse) => {
     try {
@@ -331,6 +334,19 @@ export function PatientLoginPage() {
       });
 
       const data = res.data;
+
+      // Existing accounts get sent through the same SMS OTP step password
+      // login already uses, instead of finishing sign-in immediately. Only
+      // brand-new accounts (no phone on file yet) skip straight through —
+      // handled below.
+      if (data?.requiresOtp && data?.challengeToken) {
+        setChallengeToken(data.challengeToken);
+        setMaskedPhone(data.maskedPhone || "your phone number");
+        setPendingGoogleAccountType("user");
+        setStep("otp");
+        toast.success("Login code sent");
+        return;
+      }
 
       Cookies.set("accessToken", data.token, {
         expires: 1,
@@ -355,7 +371,7 @@ export function PatientLoginPage() {
       // completion instead of the dashboard, same destination the signup
       // page's Google flow uses. Existing accounts logging back in are
       // unaffected and keep the "welcome-back" email + normal redirect.
-      if (data?.user?.isNewAccount && data?.user?.accountType === "user") {
+      if (!data?.user?.hasPhone && data?.user?.accountType === "user") {
         localStorage.setItem("wrShowWelcomeWizard", "1");
         localStorage.setItem("activeProfileType", profileType);
         navigate("/patient/settings?complete=1", {
