@@ -1,5 +1,5 @@
 import { health_companion_image, logos, welliIcon } from "@/assets";
-import { orgApi } from "@/shared/api/orgApi";
+import { getMyOrganization, type MyOrganization } from "@/shared/api/organizationApi";import { orgApi } from "@/shared/api/orgApi";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { useWelliMate } from "@/shared/context/WelliMateContext";
 import { useNetwork } from "@/shared/hooks/useNetwork";
@@ -155,8 +155,14 @@ export function ProviderLayout() {
   // console.log("🚀 ~ ProviderLayout ~ user:", user);
   const navigate = useNavigate();
   const location = useLocation();
-  const org = user?.orgId ? orgApi.getById(user.orgId) : undefined;
+  const [org, setOrg] = useState<MyOrganization | null>(null);
   const orgs = orgApi.getAll();
+
+  useEffect(() => {
+    getMyOrganization()
+      .then(setOrg)
+      .catch(() => setOrg(null));
+  }, []);
   const [showOrgDrop, setShowOrgDrop] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { isOnline } = useNetwork();
@@ -257,17 +263,17 @@ export function ProviderLayout() {
                 border: "1px solid rgba(126, 159, 255, 0.12)",
               }}
             >
-              {orgApi.getOrgTypeIcon(org?.type ?? "hospital")}
+              {orgApi.getOrgTypeIcon(org?.organizationType ?? "hospital")}
             </div>
             <div className="flex-1 min-w-0 hidden lg:block">
               <div
                 className="text-xs font-semibold truncate"
                 style={{ color: "#e2eaf4" }}
               >
-                {org?.name ?? "Unknown Org"}
+                {org?.organizationName ?? "Unknown Org"}
               </div>
               <div className="text-[10px]" style={{ color: "#7ba3c8" }}>
-                {orgApi.getOrgTypeLabel(org?.type ?? "hospital")}
+                {orgApi.getOrgTypeLabel(org?.organizationType ?? "hospital")}
               </div>
             </div>
             <ChevronDown
