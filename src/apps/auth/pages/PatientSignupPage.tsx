@@ -296,6 +296,7 @@ export default function PatientSignupPage() {
               // than a fabricated random number.
               accountCreationDate: new Date().toLocaleDateString(),
               verifyEmailUrl: `${window.location.origin}/verify-email`,
+              loginUrl: `${window.location.origin}/auth/login`,
               completeProfileUrl: `${window.location.origin}/profile`,
               dashboardUrl: `${window.location.origin}/dashboard`,
               privacyPolicyUrl: `${window.location.origin}/privacy`,
@@ -387,6 +388,7 @@ export default function PatientSignupPage() {
             // about; the template should handle this field being absent.
             accountCreationDate: new Date().toLocaleDateString(),
             verifyEmailUrl: `${window.location.origin}/verify-email`,
+              loginUrl: `${window.location.origin}/auth/login`,
             completeProfileUrl: `${window.location.origin}/profile`,
             dashboardUrl: `${window.location.origin}/dashboard`,
             privacyPolicyUrl: `${window.location.origin}/privacy`,
@@ -481,6 +483,7 @@ export default function PatientSignupPage() {
               // rather than fabricated.
               accountCreationDate: new Date().toLocaleDateString(),
               verifyEmailUrl: `${window.location.origin}/verify-email`,
+              loginUrl: `${window.location.origin}/auth/login`,
               completeProfileUrl: `${window.location.origin}/profile`,
               dashboardUrl: `${window.location.origin}/dashboard`,
               privacyPolicyUrl: `${window.location.origin}/privacy`,

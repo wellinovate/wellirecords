@@ -187,7 +187,7 @@ Hi ${vars.patientName || 'there'}, thank you for signing up. Your secure persona
 <table role="presentation" cellpadding="0" cellspacing="0" style="margin-bottom:12px;">
 <tr>
 <td style="padding-right:12px; padding-bottom:12px;">
-<a href="${vars.verifyEmailUrl || 'https://www.wellirecord.com/verify'}" style="display:inline-block; background-color:#0A1F44; color:#FFFFFF; font-size:14px; font-weight:600; text-decoration:none; padding:12px 20px; border-radius:6px;">Verify Email</a>
+<a href="${vars.loginUrl || 'https://www.wellirecord.com/auth/login'}" style="display:inline-block; background-color:#0A1F44; color:#FFFFFF; font-size:14px; font-weight:600; text-decoration:none; padding:12px 20px; border-radius:6px;">Verify Email</a>
 </td>
 <td style="padding-bottom:12px;">
 <a href="${vars.completeProfileUrl || 'https://www.wellirecord.com/profile'}" style="display:inline-block; background-color:#FFFFFF; color:#0A1F44; font-size:14px; font-weight:600; text-decoration:none; padding:12px 20px; border-radius:6px; border:1px solid #0A1F44;">Complete Profile</a>
