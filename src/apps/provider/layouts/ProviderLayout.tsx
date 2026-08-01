@@ -156,14 +156,12 @@ export function ProviderLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [org, setOrg] = useState<MyOrganization | null>(null);
-  const orgs = orgApi.getAll();
 
   useEffect(() => {
     getMyOrganization()
       .then(setOrg)
       .catch(() => setOrg(null));
   }, []);
-  const [showOrgDrop, setShowOrgDrop] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { isOnline } = useNetwork();
   const { isWelliMateEnabled, setWelliMateEnabled } = useWelliMate();
@@ -247,7 +245,7 @@ export function ProviderLayout() {
           style={{ borderColor: "var(--prov-border)" }}
         >
           <button
-            onClick={() => setShowOrgDrop((p) => !p)}
+            
             className="flex items-center gap-2 p-2 lg:p-2.5 rounded-xl w-full text-left hover:bg-white/5 justify-center lg:justify-start"
             // className="ml-2 lg:block text-[16px] font-bold rounded-lg tracking-widest uppercase mt-2 py-2 px-3 text-white"
             style={{
@@ -276,41 +274,7 @@ export function ProviderLayout() {
                 {orgApi.getOrgTypeLabel(org?.organizationType ?? "hospital")}
               </div>
             </div>
-            <ChevronDown
-              size={14}
-              style={{ color: "#7ba3c8" }}
-              className="hidden lg:block"
-            />
           </button>
-          {showOrgDrop && (
-            <div
-              className="absolute left-2 right-2 top-full mt-1 rounded-xl z-40 shadow-2xl overflow-hidden"
-              style={{
-                background: "var(--prov-surface)",
-                border: "1px solid var(--prov-border)",
-              }}
-            >
-              {orgs.map((o) => (
-                <button
-                  key={o.id}
-                  onClick={() => setShowOrgDrop(false)}
-                  className="flex items-center gap-2 px-3 py-2.5 w-full text-left text-sm hover:bg-white/5 border-b last:border-0"
-                  style={{
-                    borderColor: "var(--prov-border)",
-                    color: "#e2eaf4",
-                  }}
-                >
-                  <span>{orgApi.getOrgTypeIcon(o.type)}</span>
-                  <span>{o.name}</span>
-                  {o.id === user?.orgId && (
-                    <span className="ml-auto badge badge-active text-xs">
-                      Current
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
         {/* Role badge */}
         <div
