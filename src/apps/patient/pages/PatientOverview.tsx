@@ -13,7 +13,7 @@ import {
   getUsersRecord,
 } from "@/shared/utils/utilityFunction";
 import { FolderHeart, Shield, UploadCloud } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 type RecordCategory = {
@@ -173,9 +173,7 @@ export function PatientOverview() {
     user?.data?.account?.fullName ||
     user?.data?.account?.firstName ||
     "there";
-
-  useEffect(() => {
-    const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
       setLoading(true);
       setError("");
 
@@ -239,10 +237,11 @@ export function PatientOverview() {
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchDashboardData();
   }, []);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
   const recordList = useMemo(() => Object.values(records || {}), [records]);
   const hasSummaryRecords = recordList.length > 0;
 
@@ -267,11 +266,7 @@ export function PatientOverview() {
 
   const handleRecordModalClose = () => {
     setActiveRecordType(null);
-    // Refresh the summary so a newly added allergy/medication/diagnosis
-    // clears its alert immediately instead of waiting for a reload.
-    getUsersRecord(1, 10)
-      .then((result) => setRecords(result?.data ?? result ?? {}))
-      .catch(() => {});
+    fetchDashboardData();
   };
 
   return (
