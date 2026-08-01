@@ -1,5 +1,6 @@
 import { api } from "@/shared/lib/api";
 import { apiUrl } from "@/shared/api/authApi";
+import Cookies from "js-cookie";
 
 export interface MyOrganization {
   _id: string;
@@ -17,6 +18,11 @@ export interface MyOrganization {
 }
 
 export async function getMyOrganization(): Promise<MyOrganization> {
-  const { data } = await api.get(`${apiUrl}/api/v1/organization/me`);
+  const token = Cookies.get("accessToken");
+  const { data } = await api.get(`${apiUrl}/api/v1/organization/me`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   return data.data;
 }
