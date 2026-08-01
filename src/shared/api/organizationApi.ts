@@ -1,4 +1,5 @@
 import { api } from "@/shared/lib/api";
+import { apiUrl } from "@/shared/api/authApi";
 
 export interface MyOrganization {
   _id: string;
@@ -16,6 +17,6 @@ export interface MyOrganization {
 }
 
 export async function getMyOrganization(): Promise<MyOrganization> {
-  const { data } = await api.get("/organization/me");
+  const { data } = await api.get(`${apiUrl}/api/v1/organization/me`);
   return data.data;
 }
