@@ -149,7 +149,13 @@ export function VerifyEmailPage() {
                         </form>
 
                         {resendMessage && (
-                            <p className="mt-3 text-xs text-gray-600">{resendMessage}</p>
+                            <div className="mt-3 flex items-start gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-left">
+                                <Mail size={16} className="text-blue-500 flex-shrink-0 mt-0.5" />
+                                <p className="text-sm text-blue-800">
+                                    {resendMessage} Please check your inbox (and your Spam or Promotions
+                                    folder) for the new verification link.
+                                </p>
+                            </div>
                         )}
 
                         <Link
