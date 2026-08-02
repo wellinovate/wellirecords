@@ -10,14 +10,14 @@ const EMPTY_ACUITY: VisionAcuity = {
 
 interface VisionRecordFormProps {
   patientId: string;
-  onSaved: () => void;
-  onCancel: () => void;
+  onSuccess: () => void;
+  onClose: () => void;
 }
 
 // Provider-only form. There is no equivalent component on the patient
 // side — patients read this data, they don't submit it. See spec
 // section 2 (entry rule).
-export function VisionRecordForm({ patientId, onSaved, onCancel }: VisionRecordFormProps) {
+export function VisionRecordForm({ patientId, onSuccess, onClose }: VisionRecordFormProps) {
   const [clinicName, setClinicName] = useState("");
   const [acuity, setAcuity] = useState<VisionAcuity>(EMPTY_ACUITY);
   const [colorVision, setColorVision] = useState<"normal" | "deficient" | "not_tested">("not_tested");
@@ -49,7 +49,7 @@ export function VisionRecordForm({ patientId, onSaved, onCancel }: VisionRecordF
         photos,
       });
       toast.success("Vision record entry saved");
-      onSaved();
+      onSuccess();
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Failed to save entry");
     } finally {
@@ -181,7 +181,7 @@ export function VisionRecordForm({ patientId, onSaved, onCancel }: VisionRecordF
       </div>
 
       <div className="flex gap-3 justify-end">
-        <button type="button" onClick={onCancel} className="px-4 py-2 rounded-lg border">
+        <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border">
           Cancel
         </button>
         <button

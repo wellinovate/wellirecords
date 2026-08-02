@@ -10,6 +10,8 @@ import { ProcedureRecordForm } from "@/apps/components/ProcedureRecordForm";
 import PatientProfile from "@/apps/components/shared/PatientProfile";
 import { SharedDashboardSection } from "@/apps/components/shared/SharedDashboardSection";
 import { VitalRecordForm } from "@/apps/components/VitalRecordForm";
+import { VisionRecordForm } from "@/apps/provider/components/VisionRecordForm";
+import { VisionRecordSection } from "@/apps/patient/components/VisionRecordSection";
 import { TimelineNode } from "@/apps/patient/pages/HealthHistory";
 import { mapApiEncounterToUi, RecordsResponse } from "@/apps/patient/pages/PatientOverview";
 import { useAuth } from "@/shared/auth/AuthProvider";
@@ -45,6 +47,7 @@ const TABS = [
   "Medical Records",
   "Lab Results",
   "Prescriptions",
+  "Vision",
   "Access",
   // "Vitals",
   // "Medications",
@@ -204,6 +207,12 @@ export function EHRViewerPage() {
   const [procedures, setProcedures] = useState<ProcedureItem[]>([]);
   const [loadingProcedures, setLoadingProcedures] = useState(false);
   const [proceduresError, setProceduresError] = useState("");
+  // VisionRecordSection fetches its own data on mount (unlike vitals/
+  // medications/etc., which this page fetches and passes down). It has
+  // no external refresh trigger, so bumping this key forces a remount
+  // after a new entry is saved — same end result as the loadX() calls
+  // used by every other create form below.
+  const [visionRefreshKey, setVisionRefreshKey] = useState(0);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [encounterDetails, setEncounterDetails] = useState<Record<string, any>>(
     {},
@@ -806,6 +815,27 @@ export function EHRViewerPage() {
             </div>
           )}
 
+          {tab === "Vision" && (
+            <div className="px-3">
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-[#edf5ff]">
+                  Vision record
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => handleOpenCreateModal("Vision")}
+                  className="rounded-md border border-[#3d72ab] bg-[#12355f] px-4 py-2 text-[13px] font-medium text-white"
+                >
+                  Add Vision Record
+                </button>
+              </div>
+              <VisionRecordSection
+                key={visionRefreshKey}
+                patientId={patientId}
+              />
+            </div>
+          )}
+
           {activeCreateTab && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4 py-10">
               <div className="w-full py-10 h-[90vh] overflow-y-auto max-w-5xl rounded-2xl border border-[#1d3f69] bg-[#081b35] p-5 shadow-[0_20px_80px_rgba(0,0,0,0.55)]">
@@ -925,6 +955,18 @@ export function EHRViewerPage() {
                     onSuccess={async () => {
                       await loadProcedures();
                       setTab("Procedures");
+                      handleCloseCreateModal();
+                    }}
+                  />
+                )}
+
+                {activeCreateTab === "Vision" && (
+                  <VisionRecordForm
+                    patientId={patientId}
+                    onClose={handleCloseCreateModal}
+                    onSuccess={() => {
+                      setVisionRefreshKey((k) => k + 1);
+                      setTab("Vision");
                       handleCloseCreateModal();
                     }}
                   />

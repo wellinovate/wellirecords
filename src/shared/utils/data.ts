@@ -187,6 +187,10 @@ export const TAB_CONFIG = {
     title: "Documents",
     actionLabel: "Add Document",
   },
+  Vision: {
+    title: "Vision",
+    actionLabel: "Add Vision Record",
+  },
 } as const;
 
 
