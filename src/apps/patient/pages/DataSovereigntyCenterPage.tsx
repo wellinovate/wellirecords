@@ -47,6 +47,7 @@ const SCOPE_OPTIONS: {
   { value: "category", label: "Vitals", category: "vitals" },
   { value: "category", label: "Diagnoses", category: "diagnoses" },
   { value: "category", label: "Allergies", category: "allergies" },
+  { value: "category", label: "Vision", category: "vision" },
 ];
 
 const DURATION_OPTIONS: {
@@ -431,8 +432,13 @@ export function DataSovereigntyCenterPage() {
          
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to create grant:", error);
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to grant access. Please check the ID and try again.";
+      alert(message);
     }
   }
 
