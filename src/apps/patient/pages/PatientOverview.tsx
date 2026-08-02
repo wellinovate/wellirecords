@@ -2,7 +2,6 @@ import { DashboardAlerts } from "@/apps/components/DashboardAlerts";
 import { RecentEncountersCard } from "@/apps/components/RecentEncountersCard";
 import { SummaryRecordsGrid } from "@/apps/components/SummaryRecordsGrid";
 import { RecordModal } from "@/apps/patient/components/FirstRecordWizard";
-import { VisionRecordSection } from "@/apps/patient/components/VisionRecordSection";
 import {
   buildProfileCompletionAlerts,
   computeProfileCompletion,
@@ -13,9 +12,9 @@ import {
   getUsersEncounters,
   getUsersRecord,
 } from "@/shared/utils/utilityFunction";
-import { FolderHeart, Shield, UploadCloud } from "lucide-react";
+import { ChevronRight, FolderHeart, Shield, UploadCloud } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 type RecordCategory = {
   category: string;
@@ -336,18 +335,21 @@ export function PatientOverview() {
           }
         />
 
-        {/* Vision data lives in its own collection (VisionRecord), not in
-            the getUsersRecord response that feeds SummaryRecordsGrid — so
-            it can't just be added as another category there. It fetches
-            itself, keyed off the logged-in patient's own account id. */}
-        {user?.data?.account?.id && (
-          <div className="rounded-2xl border border-gray-200 bg-white p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Vision record
-            </h3>
-            <VisionRecordSection patientId={user.data.account.id} />
+        {/* Vision now has its own standalone page (/patient/vision) — see
+            PatientVisionPage.tsx — so Overview just links to it rather
+            than rendering the full VisionRecordSection inline twice. */}
+        <Link
+          to="/patient/vision"
+          className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white p-6 transition hover:-translate-y-[1px] hover:shadow-md"
+        >
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">Vision record</h3>
+            <p className="text-sm text-gray-500 mt-1">
+              View vision visits recorded by your providers.
+            </p>
           </div>
-        )}
+          <ChevronRight size={20} className="text-gray-400" />
+        </Link>
 
         {/* {error && (
           <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">

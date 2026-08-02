@@ -16,6 +16,7 @@ import {
   CreditCard,
   Crown,
   ExternalLink,
+  Eye,
   FolderHeart,
   HeartPulse,
   LayoutDashboard,
@@ -51,6 +52,12 @@ const patientNav = [
     to: "/patient/vault",
     label: "Health Record",
     icon: FolderHeart,
+    premium: true,
+  },
+  {
+    to: "/patient/vision",
+    label: "Vision",
+    icon: Eye,
     premium: true,
   },
   {

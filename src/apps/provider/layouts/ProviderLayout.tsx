@@ -13,6 +13,7 @@ import {
   ChevronDown,
   ChevronRight,
   ClipboardList,
+  Eye,
   FlaskConical,
   HeartPulse,
   LayoutDashboard,
@@ -59,6 +60,7 @@ const ALL_NAV = [
     roles: ["*"],
   },
   { to: "/provider/patients", label: "Patients", icon: Users, roles: ["*"] },
+  { to: "/provider/vision", label: "Vision", icon: Eye, roles: ["*"] },
   {
     to: "/provider/doctors",
     label: "Doctors",

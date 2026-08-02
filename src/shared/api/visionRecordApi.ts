@@ -36,6 +36,29 @@ export const getVisionRecord = async (patientId: string): Promise<VisionRecord> 
   return response.data.data;
 };
 
+// One flattened visit as returned by the org-wide list — same shape as
+// a VisionVisit but with patientId included, since these visits span
+// every patient in the provider's organization rather than one patient.
+export interface VisionVisitListItem extends Omit<VisionVisit, "_id" | "provenance"> {
+  id: string;
+  patientId: string;
+}
+
+export interface VisionVisitListResponse {
+  items: VisionVisitListItem[];
+  pagination: { total: number; page: number; limit: number; totalPages: number };
+}
+
+export const getAllPatientVision = async (
+  page = 1,
+  limit = 10,
+): Promise<VisionVisitListResponse> => {
+  const response = await apiClient.get(`/records/vision/patients`, {
+    params: { page, limit },
+  });
+  return response.data.data;
+};
+
 export interface CreateVisionVisitInput {
   patientId: string;
   clinicName: string;
