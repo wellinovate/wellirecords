@@ -1,7 +1,11 @@
-import axios from "axios";
-
+// Deliberately appends /api/v1 here rather than relying on
+// VITE_API_BASE_URL to already include it. The env var is the bare
+// domain (see authApi.ts, which uses it the same way) — coding the
+// suffix here keeps this file correct regardless of how the var is
+// set on any given deployment, instead of silently 404ing if it isn't.
+const rawBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api/v1",
+  baseURL: `${rawBaseUrl}/api/v1`,
   timeout: 15000,
   headers: {
     "Content-Type": "application/json",
