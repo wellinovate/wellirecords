@@ -174,69 +174,69 @@ export function PatientOverview() {
     user?.data?.account?.firstName ||
     "there";
   const fetchDashboardData = useCallback(async () => {
-      setLoading(true);
-      setError("");
+    setLoading(true);
+    setError("");
 
-      try {
-        const result = await getUsersRecord(1, 10);
-        const encounterResult = await getUsersEncounters();
+    try {
+      const result = await getUsersRecord(1, 10);
+      const encounterResult = await getUsersEncounters();
 
-        // Best-effort: the completion score still works without this,
-        // it just treats blood/emergency info as missing.
-        fetchProfile()
-          .then((profile) => {
-            setEmergencyContacts(
-              Array.isArray(profile?.emergencyContacts)
-                ? profile.emergencyContacts
-                : [],
-            );
-            setBloodGroup(profile?.bloodGroup ?? null);
-            setGenotype(profile?.genotype ?? null);
-            setConfirmedNone(profile?.confirmedNone ?? null);
-          })
-          .catch(() => {
-            setEmergencyContacts([]);
-          });
+      // Best-effort: the completion score still works without this,
+      // it just treats blood/emergency info as missing.
+      fetchProfile()
+        .then((profile) => {
+          setEmergencyContacts(
+            Array.isArray(profile?.emergencyContacts)
+              ? profile.emergencyContacts
+              : [],
+          );
+          setBloodGroup(profile?.bloodGroup ?? null);
+          setGenotype(profile?.genotype ?? null);
+          setConfirmedNone(profile?.confirmedNone ?? null);
+        })
+        .catch(() => {
+          setEmergencyContacts([]);
+        });
 
-        const rawItems = Array.isArray(encounterResult?.items)
-          ? encounterResult.items
-          : [];
+      const rawItems = Array.isArray(encounterResult?.items)
+        ? encounterResult.items
+        : [];
 
-        const twoWeeksAgo = new Date();
-        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+      const twoWeeksAgo = new Date();
+      twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
-        const formattedEncounters = rawItems
-          .filter((item: any) => item?.visibilityToPatient !== false)
-          .filter((item: any) => {
-            const encounterDate = new Date(
-              item?.startedAt || item?.createdAt || item?.updatedAt,
-            );
-            return (
-              !Number.isNaN(encounterDate.getTime()) &&
-              encounterDate >= twoWeeksAgo
-            );
-          })
-          .sort((a: any, b: any) => {
-            const dateA = new Date(
-              a?.startedAt || a?.createdAt || a?.updatedAt,
-            ).getTime();
-            const dateB = new Date(
-              b?.startedAt || b?.createdAt || b?.updatedAt,
-            ).getTime();
-            return dateB - dateA;
-          })
-          .map(mapApiEncounterToUi);
+      const formattedEncounters = rawItems
+        .filter((item: any) => item?.visibilityToPatient !== false)
+        .filter((item: any) => {
+          const encounterDate = new Date(
+            item?.startedAt || item?.createdAt || item?.updatedAt,
+          );
+          return (
+            !Number.isNaN(encounterDate.getTime()) &&
+            encounterDate >= twoWeeksAgo
+          );
+        })
+        .sort((a: any, b: any) => {
+          const dateA = new Date(
+            a?.startedAt || a?.createdAt || a?.updatedAt,
+          ).getTime();
+          const dateB = new Date(
+            b?.startedAt || b?.createdAt || b?.updatedAt,
+          ).getTime();
+          return dateB - dateA;
+        })
+        .map(mapApiEncounterToUi);
 
-        setRecentEncounters(formattedEncounters);
+      setRecentEncounters(formattedEncounters);
 
-        const data: RecordsResponse = result?.data ?? result ?? {};
-        setRecords(data);
-      } catch (err: any) {
-        setError(err?.message || "Failed to load dashboard data");
-        setRecentEncounters([]);
-      } finally {
-        setLoading(false);
-      }
+      const data: RecordsResponse = result?.data ?? result ?? {};
+      setRecords(data);
+    } catch (err: any) {
+      setError(err?.message || "Failed to load dashboard data");
+      setRecentEncounters([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
