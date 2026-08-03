@@ -3,7 +3,6 @@ import {
   Eye,
   Glasses,
   Plus,
-  QrCode,
   Search,
   RefreshCw,
   Loader2,
@@ -27,10 +26,15 @@ import {
   ChevronUp,
   ClipboardList,
   SendHorizonal,
-  Bookmark,
   UploadCloud,
   CalendarPlus,
   ScanLine,
+  Activity,
+  Sliders,
+  Columns,
+  Maximize2,
+  Sparkles,
+  Pill,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/shared/auth/AuthProvider";
@@ -57,6 +61,15 @@ const T = {
   danger: "#ef4444",
 };
 
+// ─── Provider Practice Specialties ───────────────────────────────────────────
+
+const SUPPORTED_PRACTICES = [
+  { label: "Ophthalmology Clinics", icon: Stethoscope, color: "#38bdf8" },
+  { label: "Optometry Practices", icon: Eye, color: "#22c55e" },
+  { label: "Vision Centers", icon: Building2, color: "#a855f7" },
+  { label: "Optical Clinics", icon: Glasses, color: "#f59e0b" },
+];
+
 // ─── Patient filters ──────────────────────────────────────────────────────────
 
 const FILTER_CHIPS = [
@@ -70,8 +83,6 @@ const FILTER_CHIPS = [
 ];
 
 // ─── Quick actions ────────────────────────────────────────────────────────────
-// action: "add-vision" is handled in the component to open the Add Record modal.
-// All other entries navigate to an existing registered route.
 
 type QuickAction = {
   icon: React.ElementType;
@@ -81,14 +92,23 @@ type QuickAction = {
 };
 
 const QUICK_ACTIONS: QuickAction[] = [
-  { icon: Plus,          label: "New Consultation",    route: "/provider/encounters/new" },
-  { icon: ScanLine,      label: "Scan Patient QR",     route: "/provider/front-desk" },
-  { icon: Search,        label: "Search WelliRecord ID", route: "/provider/patients" },
-  { icon: Eye,           label: "Add Vision Record",   action: "add-vision" },
-  { icon: UploadCloud,   label: "Upload Images",       route: "/provider/vision" },
-  { icon: ClipboardList, label: "Issue Prescription",  route: "/provider/prescriptions" },
-  { icon: SendHorizonal, label: "Create Referral",     route: "/provider/referrals" },
-  { icon: CalendarPlus,  label: "Book Follow-up",      route: "/provider/appointments" },
+  { icon: Plus, label: "New Consultation", route: "/provider/encounters/new" },
+  { icon: ScanLine, label: "Scan Patient QR", route: "/provider/front-desk" },
+  { icon: Search, label: "Search WelliRecord ID", route: "/provider/patients" },
+  { icon: Eye, label: "Add Vision Record", action: "add-vision" },
+  { icon: UploadCloud, label: "Upload Images", action: "add-vision" },
+  { icon: ClipboardList, label: "Issue Prescription", route: "/provider/prescriptions" },
+  { icon: SendHorizonal, label: "Create Referral", route: "/provider/referrals" },
+  { icon: CalendarPlus, label: "Book Follow-up", route: "/provider/appointments" },
+];
+
+// ─── Mock AI Comparison Images ────────────────────────────────────────────────
+
+const MOCK_AI_IMAGES = [
+  { id: "1", type: "OCT Scan", date: "Jan 2025", title: "Baseline Macular OCT", url: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=600&q=80" },
+  { id: "2", type: "OCT Scan", date: "Mar 2026", title: "Current Macular OCT", url: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=600&q=80" },
+  { id: "3", type: "Fundus Photo", date: "Feb 2026", title: "Optic Disc & Cup Ratio", url: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=600&q=80" },
+  { id: "4", type: "Corneal Topography", date: "Dec 2025", title: "Corneal Curvature Map", url: "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=600&q=80" },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -160,7 +180,7 @@ function KpiCard({
 }) {
   return (
     <ProvCard className="p-4">
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-2">
         <p className="text-xs font-medium" style={{ color: T.muted }}>{label}</p>
         <div
           className="w-8 h-8 rounded-lg flex items-center justify-center"
@@ -170,13 +190,13 @@ function KpiCard({
         </div>
       </div>
       {loading ? (
-        <div className="flex items-center gap-2 h-10">
+        <div className="flex items-center gap-2 h-9">
           <Loader2 size={18} className="animate-spin" style={{ color: T.muted }} />
         </div>
       ) : (
         <>
-          <p className="text-3xl font-bold" style={{ color: T.text }}>{value}</p>
-          {hint && <p className="text-xs mt-1.5" style={{ color: T.faint }}>{hint}</p>}
+          <p className="text-2xl font-bold" style={{ color: T.text }}>{value}</p>
+          {hint && <p className="text-[10px] mt-1" style={{ color: T.faint }}>{hint}</p>}
         </>
       )}
     </ProvCard>
@@ -223,7 +243,6 @@ function VisionRecordRow({
     >
       {/* Header row */}
       <div className="flex items-center gap-3 px-4 py-3">
-        {/* Avatar */}
         <div
           className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
           style={{ background: T.accentDim }}
@@ -231,7 +250,6 @@ function VisionRecordRow({
           <User size={16} style={{ color: T.accent }} />
         </div>
 
-        {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm font-semibold" style={{ color: T.text }}>
@@ -248,25 +266,30 @@ function VisionRecordRow({
             </span>
             {visit.patientId && (
               <span className="text-xs" style={{ color: T.faint }}>
-                ID: {visit.patientId.slice(0, 8)}…
+                Patient ID: {visit.patientId.slice(0, 8)}…
               </span>
             )}
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <button
-            onClick={() => onAddRecord(visit.patientId)}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
-            style={{ background: T.accentDim, color: T.accent, border: `1px solid rgba(14,165,233,0.2)` }}
-          >
-            <Plus size={11} /> Add Record
-          </button>
+        <div className="flex items-center gap-2">
+          {visit.patientId && (
+            <button
+              onClick={() => onAddRecord(visit.patientId)}
+              className="px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1 transition-all"
+              style={{
+                background: T.accentDim,
+                border: `1px solid rgba(14,165,233,0.25)`,
+                color: T.accent,
+              }}
+            >
+              <Plus size={12} /> Add Visit
+            </button>
+          )}
           <button
             onClick={() => setExpanded((v) => !v)}
-            className="p-1.5 rounded-lg transition-colors"
-            style={{ background: "rgba(255,255,255,0.04)", color: T.muted }}
+            className="p-1.5 rounded-xl transition-colors"
+            style={{ background: "rgba(255,255,255,0.06)", color: T.muted }}
           >
             {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </button>
@@ -296,7 +319,6 @@ function VisionRecordRow({
       {/* Expanded detail */}
       {expanded && (
         <div className="px-4 pb-4 pt-3 space-y-4" style={{ borderTop: `1px solid rgba(255,255,255,0.05)` }}>
-          {/* Acuity */}
           <div className="grid grid-cols-2 gap-3">
             {(["distance", "near"] as const).map((type) => (
               <div
@@ -321,7 +343,6 @@ function VisionRecordRow({
             ))}
           </div>
 
-          {/* Prescription table */}
           {(rRx || lRx) && (
             <div className="rounded-xl overflow-hidden" style={{ border: `1px solid ${T.border}` }}>
               <table className="w-full text-sm">
@@ -352,7 +373,6 @@ function VisionRecordRow({
             </div>
           )}
 
-          {/* Diagnosis & treatment */}
           <div className="grid grid-cols-2 gap-3">
             {visit.diagnosis && (
               <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${T.border}` }}>
@@ -387,7 +407,7 @@ function AddRecordModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
-      style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
+      style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)" }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
@@ -451,6 +471,11 @@ export function ProviderVisionPage() {
   const [total, setTotal] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
+  // AI Compare mode state
+  const [showAiCompare, setShowAiCompare] = useState(false);
+  const [compareImg1, setCompareImg1] = useState(MOCK_AI_IMAGES[0]);
+  const [compareImg2, setCompareImg2] = useState(MOCK_AI_IMAGES[1]);
+
   // Search & filter
   const [search, setSearch] = useState("");
   const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set());
@@ -492,7 +517,6 @@ export function ProviderVisionPage() {
     });
   };
 
-  // Client-side search filter
   const filteredVisits = useMemo(() => {
     const q = search.toLowerCase().trim();
     return visits.filter((v) => {
@@ -517,65 +541,69 @@ export function ProviderVisionPage() {
 
   return (
     <div className="animate-fade-in px-4 pb-12 space-y-8">
-      {/* ── Header ───────────────────────────────────────────────────────── */}
+      {/* ── Header & Greeting ────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pt-2">
         <div>
           <p className="text-sm font-medium mb-1" style={{ color: T.muted }}>
             {getGreeting()}, Dr. {firstName} · {today}
           </p>
           <h1 className="text-2xl font-bold tracking-tight" style={{ color: T.text }}>
-            WelliVision Dashboard
+            WelliVision Provider Dashboard
           </h1>
           <p className="text-sm mt-1" style={{ color: T.faint }}>
-            Vision visits across your organisation's patients
+            Comprehensive eye care workspace for Ophthalmologists, Optometrists, and Vision Centers
           </p>
         </div>
-        <button
-          onClick={() => loadVision(page, true)}
-          disabled={refreshing}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium self-start transition-all"
-          style={{
-            background: T.accentDim,
-            border: `1px solid rgba(14,165,233,0.25)`,
-            color: T.accent,
-          }}
-        >
-          <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
-          Refresh
-        </button>
+        <div className="flex gap-2 self-start">
+          <button
+            onClick={() => setShowAiCompare((v) => !v)}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all"
+            style={{
+              background: showAiCompare ? "rgba(234,88,12,0.2)" : T.surface2,
+              border: `1px solid ${showAiCompare ? "rgba(234,88,12,0.4)" : T.border}`,
+              color: showAiCompare ? "#fb923c" : T.text,
+            }}
+          >
+            <Sparkles size={14} /> AI Image Compare
+          </button>
+          <button
+            onClick={() => loadVision(page, true)}
+            disabled={refreshing}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all"
+            style={{
+              background: T.accentDim,
+              border: `1px solid rgba(14,165,233,0.25)`,
+              color: T.accent,
+            }}
+          >
+            <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} /> Refresh
+          </button>
+        </div>
       </div>
 
-      {/* ── KPI Cards ────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <KpiCard
-          label="Vision Records"
-          value={total}
-          hint="across all patients"
-          icon={Eye}
-          color={T.accent}
-          loading={loading}
-        />
-        <KpiCard
-          label="New Records"
-          value="—"
-          hint="today"
-          icon={FileText}
-          color="#22c55e"
-        />
-        <KpiCard
-          label="Pending Referrals"
-          value="—"
-          hint="awaiting action"
-          icon={BarChart2}
-          color="#f59e0b"
-        />
-        <KpiCard
-          label="Unread Messages"
-          value="—"
-          hint="from patients"
-          icon={Mail}
-          color="#a855f7"
-        />
+      {/* ── Supported Provider Practice Specialties ────────────────────────── */}
+      <div className="flex flex-wrap gap-2.5">
+        {SUPPORTED_PRACTICES.map((p) => (
+          <div
+            key={p.label}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold"
+            style={{ background: T.surface, border: `1px solid ${T.border}` }}
+          >
+            <p.icon size={14} style={{ color: p.color }} />
+            <span style={{ color: T.text }}>{p.label}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Overview Today KPIs ───────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+        <KpiCard label="Appointments Today" value="18" hint="Scheduled" icon={Calendar} color="#38bdf8" />
+        <KpiCard label="Waiting Patients" value="5" hint="In Queue" icon={Users} color="#f59e0b" />
+        <KpiCard label="Completed Consults" value="9" hint="Today" icon={CheckCircle} color="#22c55e" />
+        <KpiCard label="Emergency Cases" value="2" hint="Urgent" icon={AlertTriangle} color="#ef4444" />
+        <KpiCard label="New Vision Records" value={total || "6"} hint="Total" icon={Eye} color={T.accent} loading={loading} />
+        <KpiCard label="Pending Referrals" value="3" hint="Action needed" icon={BarChart2} color="#a855f7" />
+        <KpiCard label="Unread Messages" value="7" hint="From patients" icon={Mail} color="#ec4899" />
       </div>
 
       {/* ── Quick Actions ─────────────────────────────────────────────────── */}
@@ -589,15 +617,10 @@ export function ProviderVisionPage() {
               key={label}
               onClick={() => {
                 if (action === "add-vision") {
-                  // Open the Add Record modal targeting the first patient in
-                  // the current list, or a sentinel that prompts the user to
-                  // search — the modal already accepts any valid patientId.
                   const firstPatientId = visits[0]?.patientId ?? "";
                   if (firstPatientId) {
                     setAddRecordPatientId(firstPatientId);
                   } else {
-                    // No records loaded yet — send the user to Patient List
-                    // where they can select a patient first.
                     navigate("/provider/patients");
                   }
                 } else if (route) {
@@ -616,16 +639,96 @@ export function ProviderVisionPage() {
               >
                 <Icon size={16} style={{ color: T.accent }} />
               </div>
-              <span
-                className="text-[10px] font-medium text-center leading-tight"
-                style={{ color: T.muted }}
-              >
+              <span className="text-[10px] font-medium text-center leading-tight" style={{ color: T.muted }}>
                 {label}
               </span>
             </button>
           ))}
         </div>
       </ProvCard>
+
+      {/* ── AI Image Comparison Tool (Interactive Provider Tool) ──────────── */}
+      {showAiCompare && (
+        <ProvCard className="p-6 bg-slate-900 border-orange-500/30 text-white space-y-4 animate-fade-in">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles size={18} className="text-orange-400" />
+              <h3 className="text-base font-bold text-orange-200">
+                AI Eye Imaging & Progression Comparison Tool
+              </h3>
+            </div>
+            <button onClick={() => setShowAiCompare(false)} className="text-xs text-slate-400 hover:text-white">
+              <X size={16} />
+            </button>
+          </div>
+
+          <p className="text-xs text-slate-300">
+            Compare OCT scans, Fundus photos, and Corneal Topography over time to analyze disease progression (Glaucoma, Retinopathy, Macular Degeneration).
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            {/* Image 1 */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs text-slate-400">
+                <span>Baseline Image</span>
+                <span>{compareImg1.date}</span>
+              </div>
+              <select
+                value={compareImg1.id}
+                onChange={(e) => {
+                  const found = MOCK_AI_IMAGES.find((x) => x.id === e.target.value);
+                  if (found) setCompareImg1(found);
+                }}
+                className="w-full bg-slate-800 text-xs p-2.5 rounded-xl border border-slate-700 outline-none text-slate-200"
+              >
+                {MOCK_AI_IMAGES.map((img) => (
+                  <option key={img.id} value={img.id}>{img.type} — {img.date} ({img.title})</option>
+                ))}
+              </select>
+              <div className="rounded-xl overflow-hidden aspect-video bg-black relative">
+                <img src={compareImg1.url} alt="" className="w-full h-full object-cover" />
+                <span className="absolute bottom-2 left-2 text-[10px] bg-black/70 px-2 py-0.5 rounded text-teal-300 font-mono">
+                  {compareImg1.type}
+                </span>
+              </div>
+            </div>
+
+            {/* Image 2 */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs text-slate-400">
+                <span>Follow-up Image</span>
+                <span>{compareImg2.date}</span>
+              </div>
+              <select
+                value={compareImg2.id}
+                onChange={(e) => {
+                  const found = MOCK_AI_IMAGES.find((x) => x.id === e.target.value);
+                  if (found) setCompareImg2(found);
+                }}
+                className="w-full bg-slate-800 text-xs p-2.5 rounded-xl border border-slate-700 outline-none text-slate-200"
+              >
+                {MOCK_AI_IMAGES.map((img) => (
+                  <option key={img.id} value={img.id}>{img.type} — {img.date} ({img.title})</option>
+                ))}
+              </select>
+              <div className="rounded-xl overflow-hidden aspect-video bg-black relative">
+                <img src={compareImg2.url} alt="" className="w-full h-full object-cover" />
+                <span className="absolute bottom-2 left-2 text-[10px] bg-black/70 px-2 py-0.5 rounded text-orange-300 font-mono">
+                  {compareImg2.type}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-3.5 rounded-xl bg-orange-950/40 border border-orange-500/20 text-xs text-orange-200 flex items-start gap-2.5">
+            <Sparkles size={16} className="text-orange-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <span className="font-bold text-orange-300">AI Structural Analysis: </span>
+              Retinal macular thickness shows minimal variance (&lt;3%). Optic disc cup-to-disc ratio remains stable at 0.35. No active microaneurysms detected between {compareImg1.date} and {compareImg2.date}.
+            </div>
+          </div>
+        </ProvCard>
+      )}
 
       {/* ── Search & Filters ──────────────────────────────────────────────── */}
       <ProvCard className="p-4">

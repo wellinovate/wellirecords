@@ -16,9 +16,16 @@ import {
   X,
   ImageIcon,
   Loader2,
+  Activity,
+  Pill,
+  Sparkles,
+  Layers,
+  Shield,
+  Clock,
+  Sliders,
 } from "lucide-react";
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ─── Constants & Types ────────────────────────────────────────────────────────
 
 const EMPTY_REFRACTION: Refraction = {
   sphere: null,
@@ -26,23 +33,30 @@ const EMPTY_REFRACTION: Refraction = {
   axis: null,
   add: null,
 };
+
 const EMPTY_ACUITY: VisionAcuity = {
   distance: { right: "", left: "" },
   near: { right: "", left: "" },
 };
 
+const PROVIDER_SPECIALTIES = [
+  "Ophthalmology Clinic",
+  "Optometry Practice",
+  "Vision Center",
+  "Optical Clinic",
+];
+
 const CHIEF_COMPLAINTS = [
   "Blurred vision",
   "Eye pain",
-  "Floaters",
+  "Floaters & flashes",
   "Double vision",
-  "Red eye",
-  "Dry eye",
-  "Night blindness",
+  "Red eye / Inflammation",
+  "Dry eye / Irritation",
+  "Night vision difficulty",
   "Photophobia",
   "Watery eyes",
-  "Flashing lights",
-  "Loss of vision",
+  "Sudden loss of vision",
 ];
 
 const COMMON_DIAGNOSES = [
@@ -50,21 +64,57 @@ const COMMON_DIAGNOSES = [
   "Hyperopia",
   "Astigmatism",
   "Presbyopia",
-  "Glaucoma",
   "Cataract",
+  "Glaucoma",
   "Diabetic Retinopathy",
   "Macular Degeneration",
+  "Dry Eye Syndrome",
+  "Keratoconus",
   "Conjunctivitis",
-  "Dry Eye Disease",
-  "Retinal Detachment",
-  "Amblyopia",
+  "Corneal Dystrophy",
+];
+
+const EYE_SURGERIES = [
+  "Cataract Surgery",
+  "LASIK",
+  "PRK",
+  "Retina Surgery / Vitrectomy",
+  "Intravitreal Injections",
+  "Corneal Transplant",
+  "Trabeculectomy",
+];
+
+const CONTRAST_SENSITIVITY_OPTIONS = [
+  "Normal (100%)",
+  "Mild Reduction (75%)",
+  "Moderate Loss (50%)",
+  "Severe Loss (25%)",
+];
+
+const LENS_TYPES = [
+  "Single Vision",
+  "Progressive Lenses",
+  "Reading Glasses",
+  "Bifocals",
+  "Contact Lenses (Daily)",
+  "Contact Lenses (Monthly)",
+];
+
+const IMAGE_TYPES = [
+  "OCT Scan",
+  "Fundus Photo",
+  "Retina Scan",
+  "Corneal Topography",
+  "Visual Field Test",
+  "Eye Ultrasound",
+  "Anterior Segment",
 ];
 
 const STEPS = [
   { label: "History", icon: ClipboardList },
-  { label: "Examination", icon: Eye },
-  { label: "Prescription", icon: Glasses },
-  { label: "Diagnosis", icon: Stethoscope },
+  { label: "Exam & IOP", icon: Eye },
+  { label: "Rx & Imaging", icon: Glasses },
+  { label: "Diagnosis & Meds", icon: Stethoscope },
 ];
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -84,10 +134,7 @@ function InputField({
 }) {
   return (
     <div>
-      <label
-        className="block text-xs font-semibold uppercase tracking-wider mb-1.5"
-        style={{ color: "#7ba3c8" }}
-      >
+      <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#7ba3c8" }}>
         {label}
       </label>
       <input
@@ -101,12 +148,8 @@ function InputField({
           border: "1px solid rgba(255,255,255,0.10)",
           color: "#e2eaf4",
         }}
-        onFocus={(e) =>
-          (e.currentTarget.style.border = "1px solid rgba(14,165,233,0.5)")
-        }
-        onBlur={(e) =>
-          (e.currentTarget.style.border = "1px solid rgba(255,255,255,0.10)")
-        }
+        onFocus={(e) => (e.currentTarget.style.border = "1px solid rgba(14,165,233,0.5)")}
+        onBlur={(e) => (e.currentTarget.style.border = "1px solid rgba(255,255,255,0.10)")}
       />
     </div>
   );
@@ -117,7 +160,7 @@ function TextareaField({
   value,
   onChange,
   placeholder,
-  rows = 3,
+  rows = 2,
 }: {
   label: string;
   value: string;
@@ -127,10 +170,7 @@ function TextareaField({
 }) {
   return (
     <div>
-      <label
-        className="block text-xs font-semibold uppercase tracking-wider mb-1.5"
-        style={{ color: "#7ba3c8" }}
-      >
+      <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#7ba3c8" }}>
         {label}
       </label>
       <textarea
@@ -144,12 +184,8 @@ function TextareaField({
           border: "1px solid rgba(255,255,255,0.10)",
           color: "#e2eaf4",
         }}
-        onFocus={(e) =>
-          (e.currentTarget.style.border = "1px solid rgba(14,165,233,0.5)")
-        }
-        onBlur={(e) =>
-          (e.currentTarget.style.border = "1px solid rgba(255,255,255,0.10)")
-        }
+        onFocus={(e) => (e.currentTarget.style.border = "1px solid rgba(14,165,233,0.5)")}
+        onBlur={(e) => (e.currentTarget.style.border = "1px solid rgba(255,255,255,0.10)")}
       />
     </div>
   );
@@ -170,10 +206,7 @@ function AcuityInput({
 }) {
   return (
     <div>
-      <p
-        className="text-xs font-semibold uppercase tracking-wider mb-2"
-        style={{ color: "#7ba3c8" }}
-      >
+      <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#7ba3c8" }}>
         {label}
       </p>
       <div className="grid grid-cols-2 gap-3">
@@ -192,14 +225,8 @@ function AcuityInput({
               border: "1px solid rgba(255,255,255,0.10)",
               color: "#e2eaf4",
             }}
-            onFocus={(e) =>
-              (e.currentTarget.style.border =
-                "1px solid rgba(14,165,233,0.5)")
-            }
-            onBlur={(e) =>
-              (e.currentTarget.style.border =
-                "1px solid rgba(255,255,255,0.10)")
-            }
+            onFocus={(e) => (e.currentTarget.style.border = "1px solid rgba(14,165,233,0.5)")}
+            onBlur={(e) => (e.currentTarget.style.border = "1px solid rgba(255,255,255,0.10)")}
           />
         ))}
       </div>
@@ -220,15 +247,12 @@ function RefractionRow({
   return (
     <div>
       <p className="text-xs font-semibold mb-2" style={{ color: "#7ba3c8" }}>
-        {eye} Eye
+        {eye} Eye (OD/OS)
       </p>
       <div className="grid grid-cols-4 gap-2">
         {fields.map((field) => (
           <div key={field}>
-            <p
-              className="text-[10px] uppercase tracking-wider mb-1 text-center"
-              style={{ color: "#4a6a8a" }}
-            >
+            <p className="text-[10px] uppercase tracking-wider mb-1 text-center" style={{ color: "#4a6a8a" }}>
               {field === "add" ? "ADD" : field.slice(0, 3).toUpperCase()}
             </p>
             <input
@@ -237,8 +261,7 @@ function RefractionRow({
               placeholder="—"
               value={value[field] ?? ""}
               onChange={(e) => {
-                const v =
-                  e.target.value === "" ? null : Number(e.target.value);
+                const v = e.target.value === "" ? null : Number(e.target.value);
                 onChange({ ...value, [field]: v });
               }}
               className="w-full rounded-lg px-2 py-2 text-sm font-mono text-center outline-none"
@@ -255,45 +278,63 @@ function RefractionRow({
   );
 }
 
-// ─── Step Components ──────────────────────────────────────────────────────────
+// ─── Step 1: History ──────────────────────────────────────────────────────────
 
 function Step1History({
+  clinicName,
+  setClinicName,
+  providerSpecialty,
+  setProviderSpecialty,
   chiefComplaint,
   setChiefComplaint,
   presentIllness,
   setPresentIllness,
-  pastOcular,
-  setPastOcular,
+  selectedSurgeries,
+  setSelectedSurgeries,
   familyHistory,
   setFamilyHistory,
-  clinicName,
-  setClinicName,
 }: {
+  clinicName: string;
+  setClinicName: (v: string) => void;
+  providerSpecialty: string;
+  setProviderSpecialty: (v: string) => void;
   chiefComplaint: string;
   setChiefComplaint: (v: string) => void;
   presentIllness: string;
   setPresentIllness: (v: string) => void;
-  pastOcular: string;
-  setPastOcular: (v: string) => void;
+  selectedSurgeries: string[];
+  setSelectedSurgeries: (v: string[]) => void;
   familyHistory: string;
   setFamilyHistory: (v: string) => void;
-  clinicName: string;
-  setClinicName: (v: string) => void;
 }) {
   return (
     <div className="space-y-5">
-      <InputField
-        label="Clinic / Facility Name *"
-        value={clinicName}
-        onChange={setClinicName}
-        placeholder="e.g. Vision Plus Eye Clinic"
-      />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <InputField
+          label="Clinic / Facility Name *"
+          value={clinicName}
+          onChange={setClinicName}
+          placeholder="e.g. Vision Plus Eye Center"
+        />
+
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#7ba3c8" }}>
+            Provider Specialty / Practice Type
+          </label>
+          <select
+            value={providerSpecialty}
+            onChange={(e) => setProviderSpecialty(e.target.value)}
+            className="w-full rounded-xl px-3 py-2.5 text-sm outline-none bg-slate-900 text-slate-200 border border-slate-700"
+          >
+            {PROVIDER_SPECIALTIES.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </div>
+      </div>
 
       <div>
-        <label
-          className="block text-xs font-semibold uppercase tracking-wider mb-1.5"
-          style={{ color: "#7ba3c8" }}
-        >
+        <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#7ba3c8" }}>
           Chief Complaint
         </label>
         <div className="flex flex-wrap gap-2 mb-2">
@@ -301,22 +342,12 @@ function Step1History({
             <button
               key={c}
               type="button"
-              onClick={() =>
-                setChiefComplaint(chiefComplaint === c ? "" : c)
-              }
+              onClick={() => setChiefComplaint(chiefComplaint === c ? "" : c)}
               className="px-3 py-1 rounded-full text-xs font-medium transition-all"
               style={
                 chiefComplaint === c
-                  ? {
-                      background: "rgba(14,165,233,0.2)",
-                      border: "1px solid rgba(14,165,233,0.5)",
-                      color: "#38bdf8",
-                    }
-                  : {
-                      background: "rgba(255,255,255,0.05)",
-                      border: "1px solid rgba(255,255,255,0.08)",
-                      color: "#7ba3c8",
-                    }
+                  ? { background: "rgba(14,165,233,0.2)", border: "1px solid rgba(14,165,233,0.5)", color: "#38bdf8" }
+                  : { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "#7ba3c8" }
               }
             >
               {c}
@@ -324,15 +355,11 @@ function Step1History({
           ))}
         </div>
         <input
-          placeholder="Or describe complaint..."
+          placeholder="Or specify custom chief complaint..."
           value={chiefComplaint}
           onChange={(e) => setChiefComplaint(e.target.value)}
           className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
-          style={{
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.10)",
-            color: "#e2eaf4",
-          }}
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)", color: "#e2eaf4" }}
         />
       </div>
 
@@ -340,42 +367,87 @@ function Step1History({
         label="History of Present Illness"
         value={presentIllness}
         onChange={setPresentIllness}
-        placeholder="Duration, onset, progression, associated symptoms..."
+        placeholder="Onset, duration, progression, associated symptoms..."
       />
+
+      {/* Ocular Surgeries History */}
+      <div>
+        <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#7ba3c8" }}>
+          Eye Surgeries & Procedures History
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {EYE_SURGERIES.map((s) => {
+            const active = selectedSurgeries.includes(s);
+            return (
+              <button
+                key={s}
+                type="button"
+                onClick={() => {
+                  setSelectedSurgeries(
+                    active ? selectedSurgeries.filter((x) => x !== s) : [...selectedSurgeries, s]
+                  );
+                }}
+                className="px-3 py-1 rounded-full text-xs font-medium transition-all"
+                style={
+                  active
+                    ? { background: "rgba(234,88,12,0.2)", border: "1px solid rgba(234,88,12,0.5)", color: "#fb923c" }
+                    : { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "#7ba3c8" }
+                }
+              >
+                {s}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       <TextareaField
-        label="Past Ocular History"
-        value={pastOcular}
-        onChange={setPastOcular}
-        placeholder="Previous eye conditions, surgeries, treatments..."
-      />
-      <TextareaField
-        label="Family History"
+        label="Family Eye History"
         value={familyHistory}
         onChange={setFamilyHistory}
-        placeholder="Glaucoma, diabetes, macular degeneration in family..."
+        placeholder="Glaucoma, diabetes, macular degeneration, keratoconus in family..."
       />
     </div>
   );
 }
+
+// ─── Step 2: Exam & IOP ────────────────────────────────────────────────────────
 
 function Step2Examination({
   acuity,
   setAcuity,
   colorVision,
   setColorVision,
+  contrastSensitivity,
+  setContrastSensitivity,
+  iopRight,
+  setIopRight,
+  iopLeft,
+  setIopLeft,
+  slitLampFindings,
+  setSlitLampFindings,
+  fundusFindings,
+  setFundusFindings,
 }: {
   acuity: VisionAcuity;
   setAcuity: (a: VisionAcuity) => void;
   colorVision: "normal" | "deficient" | "not_tested";
   setColorVision: (v: "normal" | "deficient" | "not_tested") => void;
+  contrastSensitivity: string;
+  setContrastSensitivity: (v: string) => void;
+  iopRight: string;
+  setIopRight: (v: string) => void;
+  iopLeft: string;
+  setIopLeft: (v: string) => void;
+  slitLampFindings: string;
+  setSlitLampFindings: (v: string) => void;
+  fundusFindings: string;
+  setFundusFindings: (v: string) => void;
 }) {
   return (
     <div className="space-y-6">
       <div>
-        <p
-          className="text-xs font-bold uppercase tracking-wider mb-3"
-          style={{ color: "#38bdf8" }}
-        >
+        <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "#38bdf8" }}>
           Visual Acuity
         </p>
         <div className="space-y-4">
@@ -383,75 +455,103 @@ function Step2Examination({
             label="Distance"
             right={acuity.distance.right ?? ""}
             left={acuity.distance.left ?? ""}
-            onChangeRight={(v) =>
-              setAcuity({ ...acuity, distance: { ...acuity.distance, right: v } })
-            }
-            onChangeLeft={(v) =>
-              setAcuity({ ...acuity, distance: { ...acuity.distance, left: v } })
-            }
+            onChangeRight={(v) => setAcuity({ ...acuity, distance: { ...acuity.distance, right: v } })}
+            onChangeLeft={(v) => setAcuity({ ...acuity, distance: { ...acuity.distance, left: v } })}
           />
           <AcuityInput
             label="Near"
             right={acuity.near.right ?? ""}
             left={acuity.near.left ?? ""}
-            onChangeRight={(v) =>
-              setAcuity({ ...acuity, near: { ...acuity.near, right: v } })
-            }
-            onChangeLeft={(v) =>
-              setAcuity({ ...acuity, near: { ...acuity.near, left: v } })
-            }
+            onChangeRight={(v) => setAcuity({ ...acuity, near: { ...acuity.near, right: v } })}
+            onChangeLeft={(v) => setAcuity({ ...acuity, near: { ...acuity.near, left: v } })}
           />
         </div>
       </div>
 
+      {/* IOP Glaucoma Screening */}
       <div>
-        <p
-          className="text-xs font-bold uppercase tracking-wider mb-3"
-          style={{ color: "#38bdf8" }}
-        >
-          Color Vision (Ishihara)
+        <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "#38bdf8" }}>
+          Intraocular Pressure (IOP Glaucoma Screening - mmHg)
         </p>
-        <div className="flex gap-3">
-          {(
-            [
-              { val: "normal", label: "Normal" },
-              { val: "deficient", label: "Deficient" },
-              { val: "not_tested", label: "Not Tested" },
-            ] as const
-          ).map(({ val, label }) => (
-            <button
-              key={val}
-              type="button"
-              onClick={() => setColorVision(val)}
-              className="flex-1 py-2.5 rounded-xl text-sm font-medium transition-all"
-              style={
-                colorVision === val
-                  ? {
-                      background: "rgba(14,165,233,0.20)",
-                      border: "1px solid rgba(14,165,233,0.5)",
-                      color: "#38bdf8",
-                    }
-                  : {
-                      background: "rgba(255,255,255,0.04)",
-                      border: "1px solid rgba(255,255,255,0.08)",
-                      color: "#7ba3c8",
-                    }
-              }
-            >
-              {label}
-            </button>
-          ))}
+        <div className="grid grid-cols-2 gap-3">
+          <InputField label="Right Eye (OD)" value={iopRight} onChange={setIopRight} placeholder="e.g. 15 mmHg" />
+          <InputField label="Left Eye (OS)" value={iopLeft} onChange={setIopLeft} placeholder="e.g. 16 mmHg" />
         </div>
       </div>
+
+      {/* Color Vision & Contrast Sensitivity */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "#38bdf8" }}>
+            Color Vision (Ishihara)
+          </p>
+          <div className="flex gap-2">
+            {(
+              [
+                { val: "normal", label: "Normal" },
+                { val: "deficient", label: "Deficient" },
+                { val: "not_tested", label: "Not Tested" },
+              ] as const
+            ).map(({ val, label }) => (
+              <button
+                key={val}
+                type="button"
+                onClick={() => setColorVision(val)}
+                className="flex-1 py-2 rounded-xl text-xs font-medium transition-all"
+                style={
+                  colorVision === val
+                    ? { background: "rgba(14,165,233,0.20)", border: "1px solid rgba(14,165,233,0.5)", color: "#38bdf8" }
+                    : { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#7ba3c8" }
+                }
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "#38bdf8" }}>
+            Contrast Sensitivity
+          </p>
+          <select
+            value={contrastSensitivity}
+            onChange={(e) => setContrastSensitivity(e.target.value)}
+            className="w-full rounded-xl px-3 py-2 text-xs outline-none bg-slate-900 text-slate-200 border border-slate-700"
+          >
+            {CONTRAST_SENSITIVITY_OPTIONS.map((o) => (
+              <option key={o} value={o}>{o}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Slit Lamp & Fundus Findings */}
+      <TextareaField
+        label="Slit Lamp Findings (Cornea, Lens, Lids)"
+        value={slitLampFindings}
+        onChange={setSlitLampFindings}
+        placeholder="Corneal clarity, anterior chamber depth, cataract grading..."
+      />
+      <TextareaField
+        label="Fundus & Retina Examination (Optic Disc, Macula, Vessels)"
+        value={fundusFindings}
+        onChange={setFundusFindings}
+        placeholder="Cup-to-disc ratio, macular reflex, retinal vascular changes..."
+      />
     </div>
   );
 }
+
+// ─── Step 3: Rx & Imaging ────────────────────────────────────────────────────
 
 function Step3Prescription({
   rightRx,
   setRightRx,
   leftRx,
   setLeftRx,
+  lensType,
+  setLensType,
   photos,
   setPhotos,
 }: {
@@ -459,6 +559,8 @@ function Step3Prescription({
   setRightRx: (v: Refraction) => void;
   leftRx: Refraction;
   setLeftRx: (v: Refraction) => void;
+  lensType: string;
+  setLensType: (v: string) => void;
   photos: File[];
   setPhotos: (v: File[]) => void;
 }) {
@@ -467,43 +569,56 @@ function Step3Prescription({
   return (
     <div className="space-y-6">
       <div>
-        <p
-          className="text-xs font-bold uppercase tracking-wider mb-3"
-          style={{ color: "#38bdf8" }}
-        >
-          Spectacle Prescription
+        <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "#38bdf8" }}>
+          Refraction & Spectacle Prescription
         </p>
         <div className="space-y-4">
-          <RefractionRow
-            eye="Right"
-            value={rightRx}
-            onChange={setRightRx}
-          />
+          <RefractionRow eye="Right" value={rightRx} onChange={setRightRx} />
           <RefractionRow eye="Left" value={leftRx} onChange={setLeftRx} />
         </div>
       </div>
 
       <div>
-        <p
-          className="text-xs font-bold uppercase tracking-wider mb-3"
-          style={{ color: "#38bdf8" }}
-        >
-          Clinical Images (up to 6)
+        <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#7ba3c8" }}>
+          Lens / Eyewear Type
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {LENS_TYPES.map((l) => (
+            <button
+              key={l}
+              type="button"
+              onClick={() => setLensType(l)}
+              className="px-3 py-1 rounded-full text-xs font-medium transition-all"
+              style={
+                lensType === l
+                  ? { background: "rgba(14,165,233,0.2)", border: "1px solid rgba(14,165,233,0.5)", color: "#38bdf8" }
+                  : { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "#7ba3c8" }
+              }
+            >
+              {l}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "#38bdf8" }}>
+          Clinical Imaging Uploads (OCT, Fundus, Retina, Topography)
         </p>
+        <div className="flex flex-wrap gap-1.5 mb-2 text-[10px] text-slate-400">
+          <span>Supported scans:</span>
+          {IMAGE_TYPES.map((t) => (
+            <span key={t} className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">{t}</span>
+          ))}
+        </div>
+
         <label
           className="flex flex-col items-center justify-center rounded-xl py-6 cursor-pointer transition-colors"
-          style={{
-            border: "2px dashed rgba(14,165,233,0.3)",
-            background: "rgba(14,165,233,0.04)",
-          }}
+          style={{ border: "2px dashed rgba(14,165,233,0.3)", background: "rgba(14,165,233,0.04)" }}
         >
           <ImageIcon size={24} style={{ color: "#38bdf8", marginBottom: 8 }} />
-          <p className="text-sm font-medium" style={{ color: "#7ba3c8" }}>
-            Click to upload images
-          </p>
-          <p className="text-xs mt-1" style={{ color: "#3e5a78" }}>
-            JPEG, PNG, WebP · max 6 files
-          </p>
+          <p className="text-sm font-medium" style={{ color: "#7ba3c8" }}>Click to upload clinical scans</p>
+          <p className="text-xs mt-1" style={{ color: "#3e5a78" }}>JPEG, PNG, WebP · up to 6 files</p>
           <input
             type="file"
             accept="image/jpeg,image/png,image/webp"
@@ -520,16 +635,10 @@ function Step3Prescription({
           <div className="flex flex-wrap gap-2 mt-3">
             {previews.map((src, i) => (
               <div key={i} className="relative">
-                <img
-                  src={src}
-                  alt=""
-                  className="w-16 h-16 object-cover rounded-xl"
-                />
+                <img src={src} alt="" className="w-16 h-16 object-cover rounded-xl" />
                 <button
                   type="button"
-                  onClick={() =>
-                    setPhotos(photos.filter((_, j) => j !== i))
-                  }
+                  onClick={() => setPhotos(photos.filter((_, j) => j !== i))}
                   className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center"
                   style={{ background: "#dc2626" }}
                 >
@@ -544,76 +653,92 @@ function Step3Prescription({
   );
 }
 
+// ─── Step 4: Diagnosis & Meds ────────────────────────────────────────────────
+
 function Step4Diagnosis({
   diagnosis,
   setDiagnosis,
   treatment,
   setTreatment,
+  eyeDropMeds,
+  setEyeDropMeds,
+  complianceReminder,
+  setComplianceReminder,
 }: {
   diagnosis: string;
   setDiagnosis: (v: string) => void;
   treatment: string;
   setTreatment: (v: string) => void;
+  eyeDropMeds: string;
+  setEyeDropMeds: (v: string) => void;
+  complianceReminder: string;
+  setComplianceReminder: (v: string) => void;
 }) {
   return (
     <div className="space-y-6">
       <div>
-        <p
-          className="text-xs font-bold uppercase tracking-wider mb-3"
-          style={{ color: "#38bdf8" }}
-        >
-          Diagnosis
+        <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "#38bdf8" }}>
+          Eye Disease Diagnosis & Tracking
         </p>
         <div className="flex flex-wrap gap-2 mb-3">
-          {COMMON_DIAGNOSES.map((d) => (
-            <button
-              key={d}
-              type="button"
-              onClick={() => {
-                const parts = diagnosis
-                  .split(",")
-                  .map((s) => s.trim())
-                  .filter(Boolean);
-                const already = parts.includes(d);
-                const next = already
-                  ? parts.filter((p) => p !== d)
-                  : [...parts, d];
-                setDiagnosis(next.join(", "));
-              }}
-              className="px-3 py-1 rounded-full text-xs font-medium transition-all"
-              style={
-                diagnosis.includes(d)
-                  ? {
-                      background: "rgba(14,165,233,0.2)",
-                      border: "1px solid rgba(14,165,233,0.5)",
-                      color: "#38bdf8",
-                    }
-                  : {
-                      background: "rgba(255,255,255,0.05)",
-                      border: "1px solid rgba(255,255,255,0.08)",
-                      color: "#7ba3c8",
-                    }
-              }
-            >
-              {d}
-            </button>
-          ))}
+          {COMMON_DIAGNOSES.map((d) => {
+            const parts = diagnosis.split(",").map((s) => s.trim()).filter(Boolean);
+            const active = parts.includes(d);
+            return (
+              <button
+                key={d}
+                type="button"
+                onClick={() => {
+                  const next = active ? parts.filter((p) => p !== d) : [...parts, d];
+                  setDiagnosis(next.join(", "));
+                }}
+                className="px-3 py-1 rounded-full text-xs font-medium transition-all"
+                style={
+                  active
+                    ? { background: "rgba(14,165,233,0.2)", border: "1px solid rgba(14,165,233,0.5)", color: "#38bdf8" }
+                    : { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "#7ba3c8" }
+                }
+              >
+                {d}
+              </button>
+            );
+          })}
         </div>
         <TextareaField
-          label="Full Diagnosis Notes"
+          label="Full Diagnosis & Progression Notes"
           value={diagnosis}
           onChange={setDiagnosis}
-          placeholder="Diagnosis details, ICD codes, severity..."
-          rows={3}
+          placeholder="Detailed clinical diagnosis, stage/grade..."
+          rows={2}
+        />
+      </div>
+
+      {/* Eye Drops & Medications Prescribed */}
+      <div className="space-y-3">
+        <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "#38bdf8" }}>
+          Prescribed Eye Drops & Medications
+        </p>
+        <TextareaField
+          label="Eye Drops & Dosage (Name, Drops per day, Duration)"
+          value={eyeDropMeds}
+          onChange={setEyeDropMeds}
+          placeholder="e.g. Timolol 0.5% — 1 drop twice daily for 30 days"
+          rows={2}
+        />
+        <InputField
+          label="Compliance & Patient Reminder Schedule"
+          value={complianceReminder}
+          onChange={setComplianceReminder}
+          placeholder="e.g. 8:00 AM & 8:00 PM daily"
         />
       </div>
 
       <TextareaField
-        label="Treatment Plan"
+        label="Overall Treatment & Follow-up Plan"
         value={treatment}
         onChange={setTreatment}
-        placeholder="Medications, procedures, lifestyle advice, follow-up plan..."
-        rows={4}
+        placeholder="Surgery recommendations, follow-up timeline, emergency precautions..."
+        rows={3}
       />
     </div>
   );
@@ -627,9 +752,6 @@ interface VisionRecordFormProps {
   onClose: () => void;
 }
 
-// Provider-only form. There is no equivalent component on the patient
-// side — patients read this data, they don't submit it. See spec
-// section 2 (entry rule).
 export function VisionRecordForm({
   patientId,
   onSuccess,
@@ -640,25 +762,32 @@ export function VisionRecordForm({
 
   // Step 1
   const [clinicName, setClinicName] = useState("");
+  const [providerSpecialty, setProviderSpecialty] = useState("Ophthalmology Clinic");
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [presentIllness, setPresentIllness] = useState("");
-  const [pastOcular, setPastOcular] = useState("");
+  const [selectedSurgeries, setSelectedSurgeries] = useState<string[]>([]);
   const [familyHistory, setFamilyHistory] = useState("");
 
   // Step 2
   const [acuity, setAcuity] = useState<VisionAcuity>(EMPTY_ACUITY);
-  const [colorVision, setColorVision] = useState<
-    "normal" | "deficient" | "not_tested"
-  >("not_tested");
+  const [colorVision, setColorVision] = useState<"normal" | "deficient" | "not_tested">("not_tested");
+  const [contrastSensitivity, setContrastSensitivity] = useState("Normal (100%)");
+  const [iopRight, setIopRight] = useState("");
+  const [iopLeft, setIopLeft] = useState("");
+  const [slitLampFindings, setSlitLampFindings] = useState("");
+  const [fundusFindings, setFundusFindings] = useState("");
 
   // Step 3
   const [rightRx, setRightRx] = useState<Refraction>(EMPTY_REFRACTION);
   const [leftRx, setLeftRx] = useState<Refraction>(EMPTY_REFRACTION);
+  const [lensType, setLensType] = useState("Single Vision");
   const [photos, setPhotos] = useState<File[]>([]);
 
   // Step 4
   const [diagnosis, setDiagnosis] = useState("");
   const [treatment, setTreatment] = useState("");
+  const [eyeDropMeds, setEyeDropMeds] = useState("");
+  const [complianceReminder, setComplianceReminder] = useState("");
 
   const canNext = step === 0 ? clinicName.trim().length > 0 : true;
 
@@ -670,16 +799,31 @@ export function VisionRecordForm({
     }
     setSaving(true);
     try {
-      const fullDiagnosis = [diagnosis, chiefComplaint]
+      // Structure findings cleanly into diagnosis & treatment strings for storage
+      const fullDiagnosis = [
+        diagnosis,
+        chiefComplaint ? `Complaint: ${chiefComplaint}` : "",
+        iopRight || iopLeft ? `IOP R:${iopRight || "—"} L:${iopLeft || "—"}` : "",
+        contrastSensitivity ? `Contrast: ${contrastSensitivity}` : "",
+        selectedSurgeries.length ? `Prior Surgeries: ${selectedSurgeries.join(", ")}` : "",
+      ]
         .filter(Boolean)
         .join(" · ");
-      const fullTreatment = [treatment, presentIllness]
+
+      const fullTreatment = [
+        treatment,
+        eyeDropMeds ? `Rx Meds: ${eyeDropMeds}` : "",
+        complianceReminder ? `Reminders: ${complianceReminder}` : "",
+        lensType ? `Lens: ${lensType}` : "",
+        slitLampFindings ? `Slit Lamp: ${slitLampFindings}` : "",
+        fundusFindings ? `Fundus: ${fundusFindings}` : "",
+      ]
         .filter(Boolean)
         .join(" · ");
 
       await createVisionVisit({
         patientId,
-        clinicName,
+        clinicName: `${clinicName} (${providerSpecialty})`,
         acuity,
         colorVision,
         lensPrescription: { right: rightRx, left: leftRx },
@@ -687,19 +831,17 @@ export function VisionRecordForm({
         treatment: fullTreatment,
         photos,
       });
-      toast.success("Vision record entry saved");
+      toast.success("Vision record entry saved successfully");
       onSuccess();
     } catch (error: any) {
-      toast.error(
-        error?.response?.data?.message || "Failed to save entry"
-      );
+      toast.error(error?.response?.data?.message || "Failed to save entry");
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <div className="flex flex-col h-full max-h-[80vh]">
+    <div className="flex flex-col h-full max-h-[85vh]">
       {/* Step indicator */}
       <div className="flex items-center gap-0 mb-6 px-1">
         {STEPS.map((s, i) => {
@@ -715,16 +857,8 @@ export function VisionRecordForm({
                     done
                       ? { background: "#0ea5e9", color: "white" }
                       : active
-                      ? {
-                          background: "rgba(14,165,233,0.2)",
-                          border: "2px solid #0ea5e9",
-                          color: "#38bdf8",
-                        }
-                      : {
-                          background: "rgba(255,255,255,0.06)",
-                          border: "1px solid rgba(255,255,255,0.10)",
-                          color: "#3e5a78",
-                        }
+                      ? { background: "rgba(14,165,233,0.2)", border: "2px solid #0ea5e9", color: "#38bdf8" }
+                      : { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.10)", color: "#3e5a78" }
                   }
                 >
                   {done ? <Check size={14} /> : <Icon size={14} />}
@@ -739,11 +873,7 @@ export function VisionRecordForm({
               {i < STEPS.length - 1 && (
                 <div
                   className="flex-1 h-px mx-2 mt-[-12px]"
-                  style={{
-                    background: i < step
-                      ? "#0ea5e9"
-                      : "rgba(255,255,255,0.08)",
-                  }}
+                  style={{ background: i < step ? "#0ea5e9" : "rgba(255,255,255,0.08)" }}
                 />
               )}
             </div>
@@ -755,16 +885,18 @@ export function VisionRecordForm({
       <div className="flex-1 overflow-y-auto pr-1">
         {step === 0 && (
           <Step1History
+            clinicName={clinicName}
+            setClinicName={setClinicName}
+            providerSpecialty={providerSpecialty}
+            setProviderSpecialty={setProviderSpecialty}
             chiefComplaint={chiefComplaint}
             setChiefComplaint={setChiefComplaint}
             presentIllness={presentIllness}
             setPresentIllness={setPresentIllness}
-            pastOcular={pastOcular}
-            setPastOcular={setPastOcular}
+            selectedSurgeries={selectedSurgeries}
+            setSelectedSurgeries={setSelectedSurgeries}
             familyHistory={familyHistory}
             setFamilyHistory={setFamilyHistory}
-            clinicName={clinicName}
-            setClinicName={setClinicName}
           />
         )}
         {step === 1 && (
@@ -773,6 +905,16 @@ export function VisionRecordForm({
             setAcuity={setAcuity}
             colorVision={colorVision}
             setColorVision={setColorVision}
+            contrastSensitivity={contrastSensitivity}
+            setContrastSensitivity={setContrastSensitivity}
+            iopRight={iopRight}
+            setIopRight={setIopRight}
+            iopLeft={iopLeft}
+            setIopLeft={setIopLeft}
+            slitLampFindings={slitLampFindings}
+            setSlitLampFindings={setSlitLampFindings}
+            fundusFindings={fundusFindings}
+            setFundusFindings={setFundusFindings}
           />
         )}
         {step === 2 && (
@@ -781,6 +923,8 @@ export function VisionRecordForm({
             setRightRx={setRightRx}
             leftRx={leftRx}
             setLeftRx={setLeftRx}
+            lensType={lensType}
+            setLensType={setLensType}
             photos={photos}
             setPhotos={setPhotos}
           />
@@ -791,6 +935,10 @@ export function VisionRecordForm({
             setDiagnosis={setDiagnosis}
             treatment={treatment}
             setTreatment={setTreatment}
+            eyeDropMeds={eyeDropMeds}
+            setEyeDropMeds={setEyeDropMeds}
+            complianceReminder={complianceReminder}
+            setComplianceReminder={setComplianceReminder}
           />
         )}
       </div>
@@ -799,56 +947,33 @@ export function VisionRecordForm({
       <div className="flex items-center justify-between gap-3 pt-5 mt-5 border-t" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
         <button
           type="button"
-          onClick={step === 0 ? onClose : () => setStep((s) => s - 1)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
-          style={{
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.10)",
-            color: "#9db2d3",
-          }}
+          onClick={() => (step > 0 ? setStep(step - 1) : onClose())}
+          className="px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1 transition-all"
+          style={{ background: "rgba(255,255,255,0.05)", color: "#7ba3c8" }}
         >
-          {step === 0 ? <X size={15} /> : <ChevronLeft size={15} />}
-          {step === 0 ? "Cancel" : "Back"}
+          <ChevronLeft size={14} /> {step === 0 ? "Cancel" : "Back"}
         </button>
 
         {step < STEPS.length - 1 ? (
           <button
             type="button"
             disabled={!canNext}
-            onClick={() => setStep((s) => s + 1)}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-40"
-            style={{
-              background: "linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%)",
-              color: "white",
-              boxShadow: "0 4px 14px rgba(14,165,233,0.35)",
-            }}
+            onClick={() => setStep(step + 1)}
+            className="px-5 py-2.5 rounded-xl text-xs font-semibold text-white flex items-center gap-1 transition-all disabled:opacity-40"
+            style={{ background: "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)" }}
           >
-            Continue
-            <ChevronRight size={15} />
+            Next <ChevronRight size={14} />
           </button>
         ) : (
           <button
             type="button"
             disabled={saving}
             onClick={handleSubmit}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
-            style={{
-              background: "linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%)",
-              color: "white",
-              boxShadow: "0 4px 14px rgba(14,165,233,0.35)",
-            }}
+            className="px-6 py-2.5 rounded-xl text-xs font-bold text-white flex items-center gap-2 transition-all disabled:opacity-40"
+            style={{ background: "linear-gradient(135deg, #059669 0%, #10b981 100%)" }}
           >
-            {saving ? (
-              <>
-                <Loader2 size={15} className="animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Check size={15} />
-                Save Entry
-              </>
-            )}
+            {saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+            Save Vision Entry
           </button>
         )}
       </div>
