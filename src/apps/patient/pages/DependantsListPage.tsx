@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/shared/auth/AuthProvider';
-import { dependantApi } from '@/shared/api/dependantApi';
 import {
   Baby, Plus, ShieldCheck, Activity, AlertCircle, ChevronRight,
   Syringe, Droplets, Dna, CalendarClock, Ruler, Weight,
