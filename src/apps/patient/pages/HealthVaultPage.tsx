@@ -53,7 +53,6 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 const FILTER_TYPES = [
-  // "All",
   "vitals",
   "Allergy",
   "Prescription/Medications",
@@ -62,7 +61,6 @@ const FILTER_TYPES = [
   "Vaccination",
   "Procedures / Surgeries",
   "Clinical Note",
-  // "Immunizations",
 ];
 
 /* ─── Record-type showcase for the onboarding empty state ─────── */
@@ -88,7 +86,6 @@ const SHOWCASE_TYPES = [
     color: "#1a6b42",
     example: "Visit summaries, SOAP notes…",
   },
-
   {
     label: "Diagnoses",
     link: "diagnoses",
@@ -103,13 +100,6 @@ const SHOWCASE_TYPES = [
     color: "#3b82f6",
     example: "Blood work, urinalysis, HIV, HBA1C…",
   },
-  // {
-  //   label: "Immunizations",
-  //   link: "immunizations",
-  //   icon: Activity,
-  //   color: "#ef4444",
-  //   example: "Hypertension, diabetes, asthma…",
-  // },
   {
     label: "Procedures / Surgeries",
     link: "procedures",
@@ -117,32 +107,27 @@ const SHOWCASE_TYPES = [
     color: "#ec4899",
     example: "X-ray, MRI, CT scan reports…",
   },
-  // {
-  //   label: "Clinical Notes",
-  //   link: "note",
-  //   icon: Stethoscope,
-  //   color: "#1a6b42",
-  //   example: "Visit summaries, SOAP notes…",
-  // },
-  // {
-  //   label: "Vaccinations",
-  //   link: "vaccinations",
-  //   icon: Syringe,
-  //   color: "#f59e0b",
-  //   example: "Yellow fever, COVID, travel shots…",
-  // },
 ];
 
 /* ─── Main page component ─────────────────────────────────────── */
 export function HealthVaultPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const records = vaultApi.getRecords(user?.userId ?? "");
-  const journeys = vaultApi.getJourneys(user?.userId ?? "");
+  const patientId = user?.sub || user?.userId;
+  const [records, setRecords] = useState<HealthRecord[]>([]);
+  const [recordsLoading, setRecordsLoading] = useState(true);
+  const journeys: any[] = vaultApi.getJourneys(patientId || "pat_001");
   const [search, setSearch] = useState("");
   const [summary, setSummary] = useState([]);
   const [activeType, setActiveType] = useState("All");
   const [wizardOpen, setWizardOpen] = useState(false);
+
+  useEffect(() => {
+    setRecordsLoading(true);
+    const recs = vaultApi.getRecords(patientId || "pat_001");
+    setRecords(recs.length > 0 ? recs : vaultApi.getRecords("pat_001"));
+    setRecordsLoading(false);
+  }, [patientId]);
 
   const loadVitals = async () => {
     try {
@@ -150,8 +135,6 @@ export function HealthVaultPage() {
       setSummary(result.items || []);
     } catch (err: any) {
       console.log("🚀 ~ loadVitals ~ err.message:", err.message);
-    } finally {
-      // setLoadingVitals(false);
     }
   };
 
@@ -159,7 +142,7 @@ export function HealthVaultPage() {
     loadVitals();
   }, []);
 
-  const vaultIsEmpty = records.length === 0;
+  const vaultIsEmpty = !recordsLoading && records.length === 0;
 
   const groupedByType = records.reduce<Record<string, HealthRecord[]>>(
     (acc, record) => {
@@ -201,7 +184,12 @@ export function HealthVaultPage() {
       </div>
 
       {/* ─── EMPTY-VAULT STATE (zero records at all) ─────────────── */}
-      {vaultIsEmpty ? (
+      {recordsLoading ? (
+        <div className="flex items-center gap-3 py-16 justify-center">
+          <div className="w-5 h-5 rounded-full border-2 animate-spin" style={{ borderColor: "#1e3a8a", borderTopColor: "transparent" }} />
+          <span className="text-sm" style={{ color: "#5a7a63" }}>Loading your records...</span>
+        </div>
+      ) : vaultIsEmpty ? (
         <VaultOnboarding onAddRecord={() => setWizardOpen(true)} />
       ) : (
         <RecordsTimelineSection
@@ -222,167 +210,89 @@ export function HealthVaultPage() {
   );
 }
 
-/* ─── Onboarding empty state sub-component ───────────────────── */
+/* ─── Sub-component: Vault onboarding (empty state) ──────────── */
 function VaultOnboarding({ onAddRecord }: { onAddRecord: () => void }) {
   return (
-    <div className="animate-fade-in">
+    <div className="space-y-8">
       {/* Hero card */}
       <div
-        className="rounded-3xl overflow-hidden mb-6"
+        className="rounded-2xl p-8 relative overflow-hidden"
         style={{
-          background:
-            "linear-gradient(135deg, #1e3a8a 0%,#1e3a8a 60%,#1e3a8a 100%)",
+          background: "linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%)",
+          color: "white",
         }}
       >
-        <div className="px-8 py-4 relative">
-          {/* Decorative blobs */}
-          <div
-            className="absolute top-0 right-0 w-48 h-48 rounded-full opacity-10"
-            style={{ background: "#fff", transform: "translate(30%,-30%)" }}
-          />
-          <div
-            className="absolute bottom-0 left-0 w-32 h-32 rounded-full opacity-10"
-            style={{ background: "#fff", transform: "translate(-30%,30%)" }}
-          />
+        <div
+          className="absolute -right-8 -bottom-8 w-64 h-64 rounded-full opacity-10 pointer-events-none"
+          style={{
+            background: "radial-gradient(circle, #ffffff, transparent 70%)",
+          }}
+        />
 
-          <div className="relative">
-            <div className="flex items-center gap-3 mb-4">
-              <div
-                className="w-12 h-12 rounded-2xl flex items-center justify-center"
-                style={{ background: "rgba(255,255,255,0.15)" }}
-              >
-                <HardDrive size={24} color="#fff" />
-              </div>
-              <div>
-                <div className="text-white font-bold text-lg leading-tight">
-                 Your Vault
-                </div>
-                <div
-                  className="text-sm"
-                  style={{ color: "rgba(255,255,255,0.65)" }}
-                >
-                  Let's build your lifetime health record
-                </div>
-              </div>
-            </div>
+        <div className="max-w-2xl space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 border border-white/20">
+            <Lock size={12} /> Encrypted & Private to You
+          </div>
 
-            <p
-              className="text-sm leading-relaxed mb-6"
-              style={{ color: "rgba(255,255,255,0.8)" }}
-            >
-              Your <strong style={{ color: "#fff" }}>WelliFile</strong> is a
-              portable, encrypted container that holds every piece of your
-              medical history in one place. Unlike hospital portals that lock
-              your data away, your WelliFile belongs <em>only to you</em>.
-            </p>
+          <h2 className="text-2xl font-bold font-display leading-tight">
+            Your Health Story Starts Here
+          </h2>
 
-            {/* Primary CTA */}
+          <p className="text-sm text-blue-100 leading-relaxed">
+            WelliRecord keeps your complete health history — lab results,
+            prescriptions, imaging, and visit notes — organized in one secure
+            vault that you control.
+          </p>
+
+          <div className="pt-2 flex items-center gap-3">
             <button
               onClick={onAddRecord}
-              className="flex items-center gap-2 px-6 py-2 rounded-xl font-bold text-sm transition-all"
-              style={{
-                background: "#fff",
-                color: "#1e3a8a",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-              }}
+              className="px-6 py-3 rounded-xl text-sm font-bold text-blue-900 bg-white hover:bg-blue-50 transition-all flex items-center gap-2 shadow-lg"
             >
-              <UploadCloud size={18} />
-              Upload Record
-              <ChevronRight size={16} />
+              <UploadCloud size={16} /> Add Your First Record
             </button>
           </div>
         </div>
       </div>
 
-      {/* "What to add" grid */}
-      <div className="mb-6">
-        <h2 className="font-bold text-sm mb-3" style={{ color: "#1a2e1e" }}>
-          What kinds of records can you store?
-        </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-  {SHOWCASE_TYPES.map(({ label, link, icon: Icon, color, example }) => (
-    <Link
-      to={`/patient/vault/${link}`}
-      key={label}
-      className="card-patient p-4 cursor-pointer hover:shadow-md transition-all rounded-2xl border border-gray-200 bg-white"
-      style={{
-        borderLeft: `4px solid ${color}`,
-      }}
-    >
-      <div
-        className="w-9 h-9 rounded-xl flex items-center justify-center mb-3"
-        style={{ background: `${color}15` }}
-      >
-        <Icon size={18} style={{ color }} />
-      </div>
-
-      <div
-        className="font-semibold text-sm mb-1"
-        style={{ color: "#1a2e1e" }}
-      >
-        {label}
-      </div>
-
-      <div
-        className="text-xs leading-tight"
-        style={{ color: "#6b7280" }}
-      >
-        {example}
-      </div>
-    </Link>
-  ))}
-</div>
-      </div>
-
-      {/* Trust indicators */}
-      <div className="hidden md:grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {[
-          {
-            icon: Lock,
-            color: "#1e3a8a",
-            title: "End-to-end Encrypted",
-            body: "Only you hold the keys to your data",
-          },
-          {
-            icon: ShieldCheck,
-            color: "#3b82f6",
-            title: "WelliChain Verified",
-            body: "Every record is tamper-proof on the blockchain",
-          },
-          {
-            icon: Sparkles,
-            color: "#8b5cf6",
-            title: "Share in Seconds",
-            body: "Send any record to a provider via QR",
-          },
-        ].map(({ icon: Icon, color, title, body }) => (
-          <div
-            key={title}
-            className="flex items-start gap-3 p-4 rounded-2xl"
-            style={{ background: `${color}07`, border: `1px solid ${color}18` }}
-          >
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-              style={{ background: `${color}15` }}
-            >
-              <Icon size={15} style={{ color }} />
-            </div>
-            <div>
+      {/* Record types grid */}
+      <div>
+        <h3 className="text-sm font-bold mb-4" style={{ color: "#1a2e1e" }}>
+          What you can store in your vault
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {SHOWCASE_TYPES.map((t) => {
+            const Icon = t.icon;
+            return (
               <div
-                className="font-bold text-xs mb-0.5"
-                style={{ color: "#1a2e1e" }}
+                key={t.label}
+                className="rounded-xl p-5 border transition-all hover:border-blue-300 group"
+                style={{
+                  background: "white",
+                  borderColor: "rgba(30,58,138,0.1)",
+                }}
               >
-                {title}
+                <div className="flex items-center gap-3 mb-2">
+                  <div
+                    className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                    style={{ background: `${t.color}15`, color: t.color }}
+                  >
+                    <Icon size={18} />
+                  </div>
+                  <h4
+                    className="font-bold text-sm"
+                    style={{ color: "#1a2e1e" }}
+                  >
+                    {t.label}
+                  </h4>
+                </div>
+                <p className="text-xs" style={{ color: "#5a7a63" }}>
+                  {t.example}
+                </p>
               </div>
-              <div
-                className="text-xs leading-tight"
-                style={{ color: "#6b7280" }}
-              >
-                {body}
-              </div>
-            </div>
-          </div>
-        ))}
+            );
+          })}
+        </div>
       </div>
     </div>
   );

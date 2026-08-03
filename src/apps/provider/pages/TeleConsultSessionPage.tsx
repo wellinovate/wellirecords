@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { teleMedApi } from '@/shared/api/teleMedApi';
-import { vaultApi } from '@/shared/api/vaultApi';
 import {
     Video, VideoOff, Mic, MicOff, PhoneOff, Brain, FileText,
     Pill, FlaskConical, Stethoscope, ShieldCheck, AlertTriangle,
@@ -44,7 +43,10 @@ export function TeleConsultSessionPage() {
     const { sessionId } = useParams<{ sessionId: string }>();
     const navigate = useNavigate();
     const session = teleMedApi.getSession(sessionId ?? 'sess_001');
-    const records = vaultApi.getRecords(session?.patientId ?? 'pat_001');
+    // No real telemedicine backend exists yet, so there's no real
+    // patient tied to this session to fetch records for — showing an
+    // empty list rather than a fabricated fallback patient's records.
+    const records: any[] = [];
     const intake = session?.intakeId ? teleMedApi.getIntake(session.intakeId) : null;
 
     const [micOn, setMicOn] = useState(true);
