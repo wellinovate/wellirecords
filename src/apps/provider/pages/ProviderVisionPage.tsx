@@ -1,3 +1,5 @@
+import { getPatientDetail, type PatientDetailResponse } from "@/shared/utils/utilityFunction";
+import { getPatientRecords } from "@/shared/api/clinicalApi";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Eye,
@@ -100,32 +102,27 @@ const FILTER_CHIPS = [
 ];
 
 const WORKSPACE_TABS = [
-  { id: "dashboard", label: "Dashboard", icon: BarChart2 },
-  { id: "consultation", label: "Consultation Workspace", icon: Stethoscope },
-  { id: "profile", label: "Patient Profile & Consent", icon: UserCheck },
-  { id: "timeline", label: "Vision Timeline", icon: History },
-  { id: "imaging", label: "Imaging & AI Assistant", icon: ImageIcon },
-  { id: "referrals", label: "Referral & Collaboration", icon: SendHorizonal },
+  { id: "overview", label: "Dashboard Overview", icon: BarChart2 },
+  { id: "records", label: "Vision Records & Consultations", icon: Eye },
+  { id: "profile", label: "Patient Profile & Identity", icon: UserCheck },
+  { id: "timeline", label: "Vision History Timeline", icon: History },
+  { id: "imaging", label: "Imaging & AI Assistant", icon: ScanLine },
+  { id: "referrals", label: "Specialist Referral", icon: Share2 },
   { id: "messages", label: "Patient Communication", icon: MessageSquare },
-];
-
-const AI_INSIGHT_ALERT_ITEMS = [
-  { type: "Glaucoma Risk", desc: "Cup-to-disc ratio increased to 0.55 OD. Consider IOP baseline check.", severity: "high" },
-  { type: "Diabetic Retinopathy", desc: "Microaneurysms detected in macular region OS. Endocrine consult recommended.", severity: "high" },
-  { type: "Prescription Shift", desc: "Significant SPH change (-0.75D) since 2024. Screen for hyperglycemia.", severity: "medium" },
-  { type: "Missed Follow-up", desc: "Patient missed 3-month Glaucoma IOP screening.", severity: "medium" },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmt(val: number | null | undefined, suffix = "") {
   if (val == null) return "—";
-  return `${val > 0 ? "+" : ""}${val}${suffix}`;
+  const sign = val > 0 ? "+" : "";
+  return `${sign}${val.toFixed(2)}${suffix}`;
 }
 
-function formatDateShort(iso: string) {
+function formatDateShort(iso?: string | null) {
+  if (!iso) return "—";
   try {
-    return new Date(iso).toLocaleDateString("en-GB", {
+    return new Date(iso).toLocaleDateString("en-NG", {
       day: "numeric",
       month: "short",
       year: "numeric",
@@ -135,19 +132,48 @@ function formatDateShort(iso: string) {
   }
 }
 
-function getGreeting() {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  return "Good evening";
-}
+// ─── Sub-Components ────────────────────────────────────────────────────────────
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+function StatCard({
+  label,
+  value,
+  subtext,
+  color = "text-sky-400",
+  bgColor = "bg-sky-500/10",
+  icon: Icon,
+}: {
+  label: string;
+  value: string | number;
+  subtext?: string;
+  color?: string;
+  bgColor?: string;
+  icon?: any;
+}) {
+  return (
+    <div
+      className="rounded-2xl p-4 transition-all hover:scale-[1.01]"
+      style={{ background: T.surface, border: `1px solid ${T.border}` }}
+    >
+      <div className="flex items-center justify-between">
+        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+          {label}
+        </span>
+        {Icon && (
+          <div className={`p-2 rounded-xl ${bgColor}`}>
+            <Icon size={16} className={color} />
+          </div>
+        )}
+      </div>
+      <div className="mt-2 text-2xl font-black text-white">{value}</div>
+      {subtext && <div className="mt-1 text-xs text-slate-400">{subtext}</div>}
+    </div>
+  );
+}
 
 function ProvCard({
   children,
   className = "",
-  style = {},
+  style,
 }: {
   children: React.ReactNode;
   className?: string;
@@ -155,11 +181,10 @@ function ProvCard({
 }) {
   return (
     <div
-      className={`rounded-2xl ${className}`}
+      className={`rounded-2xl border transition-all ${className}`}
       style={{
         background: T.surface,
-        border: `1px solid ${T.border}`,
-        boxShadow: "0 4px 20px rgba(0,0,0,0.18)",
+        borderColor: T.border,
         ...style,
       }}
     >
@@ -168,584 +193,607 @@ function ProvCard({
   );
 }
 
-function KpiCard({
-  label,
-  value,
-  hint,
-  icon: Icon,
-  color = T.accent,
-  loading = false,
-}: {
-  label: string;
-  value: string | number;
-  hint?: string;
-  icon: React.ElementType;
-  color?: string;
-  loading?: boolean;
-}) {
-  return (
-    <ProvCard className="p-4">
-      <div className="flex items-center justify-between mb-2">
-        <p className="text-xs font-medium" style={{ color: T.muted }}>{label}</p>
-        <div
-          className="w-8 h-8 rounded-lg flex items-center justify-center"
-          style={{ background: `${color}1a` }}
-        >
-          <Icon size={16} style={{ color }} />
-        </div>
-      </div>
-      {loading ? (
-        <div className="flex items-center gap-2 h-9">
-          <Loader2 size={18} className="animate-spin" style={{ color: T.muted }} />
-        </div>
-      ) : (
-        <>
-          <p className="text-2xl font-bold" style={{ color: T.text }}>{value}</p>
-          {hint && <p className="text-[10px] mt-1" style={{ color: T.faint }}>{hint}</p>}
-        </>
-      )}
-    </ProvCard>
-  );
-}
-
-// ─── Main Component ───────────────────────────────────────────────────────────
+// ─── Main Component ────────────────────────────────────────────────────────────
 
 export function ProviderVisionPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const providerName = user?.fullName || "Doctor";
-  const firstName = providerName.split(" ").slice(-1)[0];
+  // Active Workspace Tab
+  const [activeTab, setActiveTab] = useState("overview");
 
-  const [activeTab, setActiveTab] = useState("dashboard");
+  // State: Visits from backend
   const [visits, setVisits] = useState<VisionVisitListItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Search & Filter state
-  const [searchBy, setSearchBy] = useState("Name");
+  // Filters & Search State
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set());
+  const [searchBy, setSearchBy] = useState("Name");
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
+
+  // Add / Edit Modal State
+  const [addRecordPatientId, setAddRecordPatientId] = useState<string | null>(
+    null,
+  );
 
   // Patient Profile & Consent State
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
-  const [consentGranted, setConsentGranted] = useState(true);
-  const [consentScope, setConsentScope] = useState("Full Eye History");
+  const [profilePatient, setProfilePatient] = useState<PatientDetailResponse | null>(null);
+  const [profileAllergies, setProfileAllergies] = useState<any[]>([]);
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  useEffect(() => {
+    if (!selectedPatientId) {
+      setProfilePatient(null);
+      setProfileAllergies([]);
+      return;
+    }
+    let cancelled = false;
+    setProfileLoading(true);
+    Promise.all([
+      getPatientDetail(selectedPatientId).catch(() => null),
+      getPatientRecords("allergies", selectedPatientId, { limit: 20 }).catch(() => null),
+    ]).then(([detail, allergyRes]) => {
+      if (cancelled) return;
+      setProfilePatient(detail);
+      setProfileAllergies((allergyRes as any)?.data?.items ?? []);
+    }).finally(() => {
+      if (!cancelled) setProfileLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [selectedPatientId]);
 
   // Communication & Referral modal states
   const [toastMsg, setToastMsg] = useState<string | null>(null);
-  const [addRecordPatientId, setAddRecordPatientId] = useState<string | null>(null);
 
-  const showToast = (msg: string) => {
+  const showToast = useCallback((msg: string) => {
     setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 3000);
-  };
+    setTimeout(() => setToastMsg(null), 3500);
+  }, []);
 
-  const loadVision = useCallback(
-    async (targetPage: number, silent = false) => {
-      try {
-        if (!silent) setLoading(true);
-        else setRefreshing(true);
-        setError("");
-        const result = await getAllPatientVision(targetPage, 12);
-        setVisits(result.items || []);
-        setTotalPages(result.pagination?.totalPages || 1);
-        setTotal(result.pagination?.total || 0);
-      } catch (err: any) {
-        setError(err?.message || "Failed to load vision records");
-      } finally {
-        setLoading(false);
-        setRefreshing(false);
-      }
-    },
-    []
-  );
+  // Fetch list of vision records
+  const loadVisits = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await getAllPatientVision(1, 50);
+      setVisits(res.items || []);
+    } catch (err: any) {
+      setError(err?.message || "Failed to load provider vision records.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    loadVision(page);
-  }, [page, loadVision]);
+    loadVisits();
+  }, [loadVisits]);
 
-  const toggleFilter = (id: string) => {
-    setActiveFilters((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
+  // Filtered List Computation
   const filteredVisits = useMemo(() => {
-    const q = searchQuery.toLowerCase().trim();
     return visits.filter((v) => {
-      if (q) {
-        const matches =
-          v.clinicName?.toLowerCase().includes(q) ||
-          v.providerName?.toLowerCase().includes(q) ||
-          v.diagnosis?.toLowerCase().includes(q) ||
-          v.patientId?.toLowerCase().includes(q);
-        if (!matches) return false;
+      // Search term filter
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const pName = (v.patientName || "").toLowerCase();
+        const pId = (v.patientId || "").toLowerCase();
+        const diag = (v.diagnosis || "").toLowerCase();
+        if (!pName.includes(q) && !pId.includes(q) && !diag.includes(q)) {
+          return false;
+        }
       }
       return true;
     });
   }, [visits, searchQuery]);
 
-  const todayStr = new Date().toLocaleDateString("en-GB", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  // Calculated Dashboard Overview Stats
+  const stats = useMemo(() => {
+    const total = visits.length;
+    const today = new Date().toISOString().slice(0, 10);
+    const todayCount = visits.filter(
+      (v) => (v.date || "").slice(0, 10) === today,
+    ).length;
+    const cataractCount = visits.filter((v) =>
+      (v.diagnosis || "").toLowerCase().includes("cataract"),
+    ).length;
+    const glaucomaCount = visits.filter((v) =>
+      (v.diagnosis || "").toLowerCase().includes("glaucoma"),
+    ).length;
+    const refractiveCount = visits.filter(
+      (v) =>
+        (v.diagnosis || "").toLowerCase().includes("myopia") ||
+        (v.diagnosis || "").toLowerCase().includes("astigmatism") ||
+        (v.diagnosis || "").toLowerCase().includes("refraction"),
+    ).length;
+    return {
+      total,
+      todayCount,
+      cataractCount,
+      glaucomaCount,
+      refractiveCount,
+    };
+  }, [visits]);
+
+  const toggleFilterChip = (id: string) => {
+    setActiveFilters((prev) =>
+      prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id],
+    );
+  };
 
   return (
-    <div className="animate-fade-in px-4 pb-12 space-y-7">
-      {/* Toast Notification */}
+    <div
+      className="min-h-screen text-slate-100 p-4 sm:p-6 lg:p-8 space-y-6 animate-fade-in"
+      style={{ background: T.bg }}
+    >
+      {/* ── Toast Notification Banner ────────────────────────────────────── */}
       {toastMsg && (
-        <div className="fixed top-5 right-5 z-50 flex items-center gap-2 px-4 py-3 rounded-xl bg-slate-900 text-white text-sm shadow-xl border border-sky-500/30 animate-fade-in">
-          <CheckCircle size={16} className="text-teal-400" />
+        <div className="fixed top-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-2xl bg-emerald-500 text-white font-bold text-xs shadow-2xl animate-fade-in-up">
+          <CheckCircle size={16} />
           {toastMsg}
         </div>
       )}
 
-      {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pt-2">
+      {/* ── TOP HEADER BAR ───────────────────────────────────────────────── */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-800">
         <div>
-          <p className="text-xs font-medium mb-1" style={{ color: T.muted }}>
-            {getGreeting()}, Dr. {firstName} · {todayStr}
-          </p>
-          <h1 className="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
-            <Eye size={24} className="text-sky-400" /> WelliVision Provider Workspace
-          </h1>
-          <p className="text-xs mt-1" style={{ color: T.faint }}>
-            Ophthalmologists · Optometrists · Vision Centers · Optical Clinics
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-white tracking-tight">
+              WelliVision™ Provider Portal
+            </h1>
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20 flex items-center gap-1.5">
+              <Eye size={14} /> Eye Care Specialist Suite
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            Welcome, Dr. {user?.fullName || "Practitioner"} · Complete
+            Ophthalmology & Optometry EHR Command Center
           </p>
         </div>
-        <div className="flex items-center gap-2 self-start">
+
+        {/* Quick Action Button Group */}
+        <div className="flex items-center gap-2 flex-wrap">
           <button
-            onClick={() => loadVision(page, true)}
-            disabled={refreshing}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all"
-            style={{ background: T.accentDim, border: `1px solid rgba(14,165,233,0.25)`, color: T.accent }}
+            onClick={() => {
+              if (visits.length > 0) {
+                setAddRecordPatientId(visits[0].patientId || "pat_001");
+              } else {
+                setAddRecordPatientId("pat_001");
+              }
+            }}
+            className="px-4 py-2.5 rounded-2xl font-bold text-xs text-white bg-sky-600 hover:bg-sky-500 transition-all flex items-center gap-1.5 shadow-lg shadow-sky-600/20"
           >
-            <RefreshCw size={13} className={refreshing ? "animate-spin" : ""} /> Refresh
+            <Plus size={16} /> Add Vision Record
+          </button>
+          <button
+            onClick={loadVisits}
+            className="p-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all"
+            title="Refresh Data"
+          >
+            <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
           </button>
         </div>
       </div>
 
-      {/* ── Today Overview KPIs ───────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
-        <KpiCard label="Appts Today" value="18" hint="Scheduled" icon={Calendar} color="#38bdf8" />
-        <KpiCard label="Waiting Patients" value="5" hint="In Queue" icon={Users} color="#f59e0b" />
-        <KpiCard label="Completed Consults" value="9" hint="Today" icon={CheckCircle} color="#22c55e" />
-        <KpiCard label="Emergency Cases" value="2" hint="Urgent" icon={AlertTriangle} color="#ef4444" />
-        <KpiCard label="New Vision Records" value={total || "6"} hint="Total" icon={Eye} color={T.accent} loading={loading} />
-        <KpiCard label="Pending Referrals" value="3" hint="Action needed" icon={BarChart2} color="#a855f7" />
-        <KpiCard label="Unread Messages" value="7" hint="From patients" icon={Mail} color="#ec4899" />
+      {/* ── METRIC CARDS / CLINICAL OVERVIEW ─────────────────────────────── */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+        <StatCard
+          label="Total Vision Records"
+          value={stats.total}
+          subtext="Across all patients"
+          icon={Eye}
+          color="text-sky-400"
+          bgColor="bg-sky-500/10"
+        />
+        <StatCard
+          label="Today's Consultations"
+          value={stats.todayCount}
+          subtext="Scheduled & Walk-ins"
+          icon={CalendarClock}
+          color="text-emerald-400"
+          bgColor="bg-emerald-500/10"
+        />
+        <StatCard
+          label="Refraction & Glasses"
+          value={stats.refractiveCount}
+          subtext="Myopia, Hyperopia, Astig."
+          icon={Glasses}
+          color="text-purple-400"
+          bgColor="bg-purple-500/10"
+        />
+        <StatCard
+          label="Cataract Tracked"
+          value={stats.cataractCount}
+          subtext="Pre & Post Surgery"
+          icon={AlertCircle}
+          color="text-amber-400"
+          bgColor="bg-amber-500/10"
+        />
+        <StatCard
+          label="Glaucoma Screened"
+          value={stats.glaucomaCount}
+          subtext="IOP & Cup/Disc Ratio"
+          icon={Activity}
+          color="text-rose-400"
+          bgColor="bg-rose-500/10"
+        />
       </div>
 
-      {/* ── Quick Actions Grid ─────────────────────────────────────────────── */}
+      {/* ── QUICK ACTIONS TOOLBAR ────────────────────────────────────────── */}
       <ProvCard className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5" style={{ color: T.muted }}>
-            <Sparkles size={13} style={{ color: T.accent }} /> Provider Quick Actions
-          </p>
+        <div className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 mb-3">
+          Specialist Quick Actions
         </div>
-        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 lg:grid-cols-8">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
           {[
-            { icon: Plus, label: "+ New Consultation", route: "/provider/encounters/new" },
-            { icon: ScanLine, label: "Scan Patient QR", route: "/provider/front-desk" },
-            { icon: Search, label: "Search WelliRecord ID", route: "/provider/patients" },
-            { icon: Eye, label: "Add Vision Record", action: "add-record" },
-            { icon: UploadCloud, label: "Upload Images", action: "upload" },
-            { icon: ClipboardList, label: "Issue Prescription", route: "/provider/prescriptions" },
-            { icon: SendHorizonal, label: "Create Referral", route: "/provider/referrals" },
-            { icon: CalendarPlus, label: "Book Follow-up", route: "/provider/appointments" },
-          ].map(({ icon: Icon, label, route, action }) => (
+            { label: "New Consult", icon: Plus, action: "add-record" },
+            { label: "Scan Patient QR", icon: ScanLine, route: "/provider/qr-scanner" },
+            { label: "Add Vision Record", icon: Eye, action: "add-record" },
+            { label: "Upload Images", icon: UploadCloud, action: "upload" },
+            { label: "Issue Prescription", icon: Pill, route: "/provider/prescriptions" },
+            { label: "Create Referral", icon: Share2, route: "/provider/referrals" },
+            { label: "Book Follow-up", icon: CalendarPlus, route: "/provider/appointments" },
+            { label: "Triage Queue", icon: Stethoscope, route: "/provider/triage" },
+          ].map(({ label, icon: Icon, action, route }) => (
             <button
               key={label}
               onClick={() => {
                 if (action === "add-record" || action === "upload") {
-                  const pid = visits[0]?.patientId || "sample-patient-id";
-                  setAddRecordPatientId(pid);
+                  const pid = visits[0]?.patientId;
+                  if (pid) setAddRecordPatientId(pid);
+                  else showToast("No patients on file yet — record a visit from a patient's row first.");
                 } else if (route) {
                   navigate(route);
                 }
               }}
-              className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl transition-all hover:-translate-y-0.5 text-center group"
-              style={{ background: T.surface2, border: `1px solid ${T.border}` }}
+              className="p-3 rounded-xl bg-slate-900/60 hover:bg-slate-800 border border-slate-800/80 text-slate-300 hover:text-white transition-all flex flex-col items-center justify-center gap-1.5 text-center group"
             >
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform" style={{ background: T.accentDim }}>
-                <Icon size={15} style={{ color: T.accent }} />
-              </div>
-              <span className="text-[10px] font-semibold" style={{ color: T.text }}>{label}</span>
+              <Icon size={16} className="text-sky-400 group-hover:scale-110 transition-transform" />
+              <span className="text-[11px] font-semibold leading-tight">{label}</span>
             </button>
           ))}
         </div>
       </ProvCard>
 
-      {/* ── Search & Filter Criteria ───────────────────────────────────────── */}
-      <ProvCard className="p-4 space-y-3">
-        <div className="flex flex-col sm:flex-row gap-3">
-          {/* Search type select */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold" style={{ color: T.muted }}>Search using:</span>
-            <select
-              value={searchBy}
-              onChange={(e) => setSearchBy(e.target.value)}
-              className="rounded-xl px-3 py-2 text-xs font-medium outline-none bg-slate-900 text-slate-200 border border-slate-700"
-            >
-              {SEARCH_BY_OPTIONS.map((o) => (
-                <option key={o} value={o}>{o}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Search input */}
-          <div className="flex-1 flex items-center gap-2 px-3 rounded-xl" style={{ background: T.surface2, border: `1px solid ${T.border}` }}>
-            <Search size={14} style={{ color: T.muted }} />
-            <input
-              placeholder={`Search by ${searchBy}…`}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 bg-transparent py-2 text-xs outline-none text-white"
-            />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery("")}>
-                <X size={13} style={{ color: T.muted }} />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Filter Chips */}
-        <div className="flex flex-wrap gap-2 pt-2 border-t" style={{ borderColor: T.border }}>
-          {FILTER_CHIPS.map(({ id, label }) => {
-            const active = activeFilters.has(id);
-            return (
-              <button
-                key={id}
-                onClick={() => toggleFilter(id)}
-                className="px-3 py-1 rounded-full text-xs font-medium transition-all"
-                style={
-                  active
-                    ? { background: T.accentDim, border: `1px solid rgba(14,165,233,0.5)`, color: T.accent }
-                    : { background: T.surface2, border: `1px solid ${T.border}`, color: T.muted }
-                }
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
-      </ProvCard>
-
-      {/* ── Main Navigation Workspace Tabs ─────────────────────────────────── */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
-        {WORKSPACE_TABS.map(({ id, label, icon: Icon }) => {
-          const active = activeTab === id;
-          return (
-            <button
-              key={id}
-              onClick={() => setActiveTab(id)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap"
-              style={
-                active
-                  ? { background: "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)", color: "white", boxShadow: "0 4px 14px rgba(14,165,233,0.25)" }
-                  : { background: T.surface, border: `1px solid ${T.border}`, color: T.muted }
-              }
-            >
-              <Icon size={14} />
-              {label}
-            </button>
-          );
-        })}
+      {/* ── WORKSPACE TAB NAVIGATION ────────────────────────────────────── */}
+      <div className="flex items-center gap-1 overflow-x-auto pb-2 border-b border-slate-800 scrollbar-none">
+        {WORKSPACE_TABS.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            onClick={() => setActiveTab(id)}
+            className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 whitespace-nowrap transition-all ${
+              activeTab === id
+                ? "bg-sky-500/20 text-sky-400 border border-sky-500/30"
+                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+            }`}
+          >
+            <Icon size={15} />
+            {label}
+          </button>
+        ))}
       </div>
 
-      {/* ── TAB 1: DASHBOARD OVERVIEW & VISIT RECORDS ───────────────────────── */}
-      {activeTab === "dashboard" && (
+      {/* ── TAB 1: DASHBOARD OVERVIEW & RECENT PATIENTS ──────────────────── */}
+      {activeTab === "overview" && (
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-slate-300">
-              Vision Visits & Patient Consultations ({filteredVisits.length})
-            </h2>
-          </div>
+          {/* Patient Directory Search & Filter Bar */}
+          <ProvCard className="p-4 sm:p-5 space-y-4">
+            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+              {/* Search Bar */}
+              <div className="relative flex-1">
+                <Search
+                  size={16}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={`Search patient directory by ${searchBy}...`}
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500"
+                />
+              </div>
 
-          {loading ? (
-            <div className="flex items-center gap-3 py-16 justify-center">
-              <Loader2 size={20} className="animate-spin" style={{ color: T.accent }} />
-              <span className="text-sm" style={{ color: T.muted }}>Loading vision records…</span>
-            </div>
-          ) : filteredVisits.length === 0 ? (
-            <ProvCard className="p-12 text-center">
-              <Eye size={28} style={{ color: T.faint, margin: "0 auto 12px" }} />
-              <p className="text-base font-medium" style={{ color: T.muted }}>No vision records found</p>
-              <p className="text-sm mt-1" style={{ color: T.faint }}>
-                Vision visits recorded for patients in your clinic will appear here.
-              </p>
-            </ProvCard>
-          ) : (
-            <div className="space-y-3">
-              {filteredVisits.map((visit) => (
-                <div
-                  key={visit.id}
-                  className="rounded-2xl p-4 transition-all hover:border-sky-500/30"
-                  style={{ background: T.surface2, border: `1px solid ${T.border}` }}
+              {/* Search Criteria Selector */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[11px] font-bold text-slate-400 flex items-center gap-1">
+                  <Filter size={13} /> Search By:
+                </span>
+                <select
+                  value={searchBy}
+                  onChange={(e) => setSearchBy(e.target.value)}
+                  className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-200 focus:outline-none"
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-bold text-white">{visit.clinicName}</p>
-                        <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                          Authorized Provider
-                        </span>
-                      </div>
-                      <p className="text-xs mt-1 text-slate-400">
-                        {formatDateShort(visit.date)} · Provider: {visit.providerName}
-                      </p>
-                      {visit.diagnosis && (
-                        <p className="text-xs mt-1.5 text-sky-400">
-                          Diagnosis: {visit.diagnosis}
-                        </p>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => {
-                        const pid = visit.patientId || "sample-id";
-                        setAddRecordPatientId(pid);
-                      }}
-                      className="px-3.5 py-2 rounded-xl text-xs font-semibold text-sky-400 bg-sky-500/10 border border-sky-500/20 hover:bg-sky-500/20 flex items-center gap-1 self-start"
-                    >
-                      <Plus size={13} /> Add Follow-up Visit
-                    </button>
-                  </div>
-                </div>
-              ))}
+                  {SEARCH_BY_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-          )}
+
+            {/* Filter Chips */}
+            <div className="flex items-center gap-1.5 flex-wrap pt-2 border-t border-slate-800/60">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mr-1">
+                Filters:
+              </span>
+              {FILTER_CHIPS.map((chip) => {
+                const isActive = activeFilters.includes(chip.id);
+                return (
+                  <button
+                    key={chip.id}
+                    onClick={() => toggleFilterChip(chip.id)}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                      isActive
+                        ? "bg-sky-500 text-white font-bold"
+                        : "bg-slate-900 text-slate-400 border border-slate-800 hover:border-slate-700"
+                    }`}
+                  >
+                    {chip.label}
+                  </button>
+                );
+              })}
+            </div>
+          </ProvCard>
+
+          {/* Patient Vision Visit Feed */}
+          <ProvCard className="p-5 sm:p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Eye size={18} className="text-sky-400" /> Recent Vision Examinations
+              </h3>
+              <span className="text-xs text-slate-400 font-semibold">
+                Showing {filteredVisits.length} of {visits.length} records
+              </span>
+            </div>
+
+            {loading ? (
+              <div className="py-12 text-center text-slate-400 text-xs flex items-center justify-center gap-2">
+                <Loader2 size={18} className="animate-spin text-sky-400" />
+                Fetching patient vision records...
+              </div>
+            ) : error ? (
+              <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs">
+                {error}
+              </div>
+            ) : filteredVisits.length === 0 ? (
+              <div className="py-12 text-center text-slate-500 text-xs">
+                No vision examination records found matching your search.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredVisits.map((visit) => (
+                  <div
+                    key={visit.id}
+                    className="rounded-2xl p-4 transition-all hover:border-sky-500/30"
+                    style={{ background: T.surface2, border: `1px solid ${T.border}`, cursor: visit.patientId ? "pointer" : "default" }}
+                    onClick={() => {
+                      if (!visit.patientId) return;
+                      setSelectedPatientId(visit.patientId);
+                      setActiveTab("profile");
+                    }}
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-sm text-white">
+                            {visit.patientName || "Anonymous Patient"}
+                          </span>
+                          <span className="text-[10px] font-mono text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded">
+                            {visit.patientId}
+                          </span>
+                          <span className="text-xs text-slate-400">
+                            · {formatDateShort(visit.date)}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-300 mt-1 font-semibold">
+                          Diagnosis: {visit.diagnosis || "Routine Refraction Check"}
+                        </p>
+                        {visit.clinicName && (
+                          <p className="text-[11px] text-slate-400 mt-0.5">
+                            Facility: {visit.clinicName} ({visit.providerName})
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!visit.patientId) return;
+                          setAddRecordPatientId(visit.patientId);
+                        }}
+                        disabled={!visit.patientId}
+                        className="px-3.5 py-2 rounded-xl text-xs font-semibold text-sky-400 bg-sky-500/10 border border-sky-500/20 hover:bg-sky-500/20 flex items-center gap-1 self-start disabled:opacity-40"
+                      >
+                        <Plus size={13} /> Add Follow-up Visit
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </ProvCard>
         </div>
       )}
 
-      {/* ── TAB 2: CONSULTATION WORKSPACE ──────────────────────────────────── */}
-      {activeTab === "consultation" && (
-        <ProvCard className="p-6 space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-base font-bold text-white">Clinical Consultation Workspace</h3>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Structured clinical documentation for Ophthalmologists & Optometrists
-              </p>
-            </div>
+      {/* ── TAB 2: VISION RECORDS & CONSULTATION BUILDER ──────────────────── */}
+      {activeTab === "records" && (
+        <div className="space-y-6">
+          <ProvCard className="p-6">
+            <h3 className="text-base font-bold text-white mb-2">
+              Vision Consultation Record & EHR Submission
+            </h3>
+            <p className="text-xs text-slate-400 mb-6">
+              Enter comprehensive Visual Acuity, Refraction (SPH/CYL/AXIS/ADD), Slit Lamp, Fundus, OCT, Cataract & Glaucoma findings.
+            </p>
             <button
               onClick={() => {
-                const pid = visits[0]?.patientId || "sample-patient-id";
+                const pid = visits[0]?.patientId || "pat_001";
                 setAddRecordPatientId(pid);
               }}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-sky-600 hover:bg-sky-500 flex items-center gap-1.5"
+              className="px-5 py-3 rounded-2xl font-bold text-xs text-white bg-sky-600 hover:bg-sky-500 transition-all flex items-center gap-2 shadow-lg"
             >
-              <Plus size={14} /> Open 4-Step Record Wizard
+              <Plus size={16} /> Open Complete Vision Record Form
             </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="rounded-xl p-4 bg-slate-900/60 border border-slate-800 space-y-2">
-              <p className="text-xs font-bold uppercase text-sky-400">1. Refraction & Acuity</p>
-              <p className="text-xs text-slate-300">Distance & Near OD/OS, SPH, CYL, AXIS, ADD, Color Vision (Ishihara), Contrast Sensitivity.</p>
-            </div>
-            <div className="rounded-xl p-4 bg-slate-900/60 border border-slate-800 space-y-2">
-              <p className="text-xs font-bold uppercase text-sky-400">2. Examination & IOP</p>
-              <p className="text-xs text-slate-300">Glaucoma IOP (mmHg), Slit Lamp (Cornea, Lens, Lids), Fundus & Retina cup-to-disc ratio.</p>
-            </div>
-            <div className="rounded-xl p-4 bg-slate-900/60 border border-slate-800 space-y-2">
-              <p className="text-xs font-bold uppercase text-sky-400">3. Diseases & Drops Rx</p>
-              <p className="text-xs text-slate-300">ICD Eye Disease coding, Cataract/Glaucoma tracking, Eye Drop dosage & Compliance schedule.</p>
-            </div>
-          </div>
-        </ProvCard>
+          </ProvCard>
+        </div>
       )}
 
       {/* ── TAB 3: PATIENT PROFILE & CONSENT CENTER ────────────────────────── */}
       {activeTab === "profile" && (
         <div className="space-y-6">
-          {/* Clinical Identity Card */}
-          <ProvCard className="p-6">
-            <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-              <UserCheck size={18} className="text-sky-400" /> Patient Clinical Identity
-            </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-              <div>
-                <p className="text-[10px] uppercase font-bold text-slate-400">Full Name</p>
-                <p className="font-bold text-white mt-0.5">Chibuike Joshua Nwogha</p>
-              </div>
-              <div>
-                <p className="text-[10px] uppercase font-bold text-slate-400">WelliRecord ID</p>
-                <p className="font-mono font-bold text-sky-400 mt-0.5">WR-NGA-2026-8891</p>
-              </div>
-              <div>
-                <p className="text-[10px] uppercase font-bold text-slate-400">Blood Group / Genotype</p>
-                <p className="font-bold text-white mt-0.5">O+ / AA</p>
-              </div>
-              <div>
-                <p className="text-[10px] uppercase font-bold text-slate-400">Known Allergies</p>
-                <p className="font-bold text-rose-400 mt-0.5">Penicillin, Latex</p>
-              </div>
-            </div>
-          </ProvCard>
-
-          {/* Connected Providers & Systemic Link */}
-          <ProvCard className="p-6">
-            <h3 className="text-base font-bold text-white mb-2 flex items-center gap-2">
-              <Building2 size={18} className="text-teal-400" /> Authorized Connected Providers & Specialists
-            </h3>
-            <p className="text-xs text-slate-400 mb-4">
-              Systemic links (Endocrinology, Neurology) associated with diabetic retinopathy & hypertensive optic neuropathy.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-              {[
-                { name: "Silver Cross Eye Clinic", role: "Primary Eye Clinic", status: "Active" },
-                { name: "Vision Plus Optical", role: "Optical Provider", status: "Active" },
-                { name: "University Teaching Hospital", role: "Endocrinology & Retina Specialist", status: "Connected" },
-              ].map((p) => (
-                <div key={p.name} className="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
-                  <p className="font-bold text-white">{p.name}</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">{p.role}</p>
-                  <span className="inline-block text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 mt-2">
-                    {p.status}
-                  </span>
+          {!selectedPatientId ? (
+            <ProvCard className="p-10 text-center">
+              <UserCheck size={28} className="mx-auto mb-3 text-slate-600" />
+              <p className="text-sm font-semibold text-slate-300">No patient selected</p>
+              <p className="text-xs text-slate-500 mt-1">Click a patient's row in the Vision Records list to view their profile here.</p>
+            </ProvCard>
+          ) : profileLoading ? (
+            <ProvCard className="p-10 text-center">
+              <p className="text-sm text-slate-400">Loading patient profile…</p>
+            </ProvCard>
+          ) : !profilePatient ? (
+            <ProvCard className="p-10 text-center">
+              <p className="text-sm text-rose-400">Couldn't load this patient's profile.</p>
+            </ProvCard>
+          ) : (
+            <>
+              {/* Clinical Identity Card — real data only. Blood group /
+                  genotype is deliberately not shown here: per this
+                  product's own clinical-accuracy rule, self-reported
+                  blood type must never be presented as verified fact,
+                  and the patient-detail endpoint doesn't return it. */}
+              <ProvCard className="p-6">
+                <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                  <UserCheck size={18} className="text-sky-400" /> Patient Clinical Identity
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-slate-400">Full Name</p>
+                    <p className="font-bold text-white mt-0.5">{profilePatient.fullName || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-slate-400">WelliRecord ID</p>
+                    <p className="font-mono font-bold text-sky-400 mt-0.5">{profilePatient.wrId || "Not assigned"}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-slate-400">Gender</p>
+                    <p className="font-bold text-white mt-0.5">{profilePatient.gender || "Not on file"}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-slate-400">Known Allergies</p>
+                    <p className={`font-bold mt-0.5 ${profileAllergies.length > 0 ? "text-rose-400" : "text-slate-400"}`}>
+                      {profileAllergies.length > 0 ? profileAllergies.map((a) => a.allergen).join(", ") : "None on record"}
+                    </p>
+                  </div>
                 </div>
-              ))}
-            </div>
-          </ProvCard>
+              </ProvCard>
 
-          {/* Patient Consent Center */}
-          <ProvCard className="p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Shield size={18} className="text-emerald-400" />
-                <h3 className="text-base font-bold text-white">Patient Consent & Access Control</h3>
-              </div>
-              <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${consentGranted ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400'}`}>
-                {consentGranted ? "Access Granted" : "Access Revoked"}
-              </span>
-            </div>
+              {/* No backend concept exists for a directory of "connected
+                  providers/specialists" per patient — honest note
+                  instead of a fabricated clinic list. */}
+              <ProvCard className="p-6">
+                <h3 className="text-base font-bold text-white mb-2 flex items-center gap-2">
+                  <Building2 size={18} className="text-teal-400" /> Connected Providers & Specialists
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Not available yet — there's no directory of connected providers or specialist referral network on the backend.
+                </p>
+              </ProvCard>
 
-            <p className="text-xs text-slate-400">
-              Providers cannot access vision records until the patient grants permission. Access options controlled by patient:
-            </p>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-              {["Full Eye History", "Current Consultation Only", "Last 12 Months", "Emergency Access", "Imaging Only", "Prescription Only"].map((scope) => (
-                <button
-                  key={scope}
-                  onClick={() => setConsentScope(scope)}
-                  className={`p-2.5 rounded-xl text-left border transition-all ${consentScope === scope ? 'bg-sky-500/20 border-sky-400 text-sky-300 font-bold' : 'bg-slate-900/40 border-slate-800 text-slate-400'}`}
-                >
-                  {scope}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <button
-                onClick={() => {
-                  setConsentGranted(true);
-                  showToast("Consent granted by patient");
-                }}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white"
-              >
-                Grant Access
-              </button>
-              <button
-                onClick={() => {
-                  setConsentGranted(false);
-                  showToast("Consent access revoked");
-                }}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600/30 hover:bg-rose-600/50 text-rose-300"
-              >
-                Revoke Access
-              </button>
-            </div>
-          </ProvCard>
+              {/* Consent is patient-controlled and self-service only —
+                  the backend explicitly rejects any grant/revoke or
+                  status request that doesn't come from the patient
+                  themselves (403 "Only the patient can..."). A
+                  provider genuinely cannot see or act on this from
+                  here, so no fake Grant/Revoke buttons. */}
+              <ProvCard className="p-6 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Shield size={18} className="text-emerald-400" />
+                  <h3 className="text-base font-bold text-white">Patient Consent & Access Control</h3>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Consent is managed entirely by the patient. There's no provider-facing way to view or change access grants yet — access to this patient's records already reflects whatever they've currently authorized.
+                </p>
+              </ProvCard>
+            </>
+          )}
         </div>
       )}
 
-      {/* ── TAB 4: VISION TIMELINE ─────────────────────────────────────────── */}
+      {/* ── TAB 4: VISION HISTORY TIMELINE ───────────────────────────────── */}
       {activeTab === "timeline" && (
         <ProvCard className="p-6 space-y-4">
           <h3 className="text-base font-bold text-white flex items-center gap-2">
             <History size={18} className="text-sky-400" /> Chronological Vision History Timeline
           </h3>
-          <div className="space-y-4 relative before:absolute before:left-3 before:top-3 before:bottom-3 before:w-0.5 before:bg-slate-800">
-            {[
-              { year: "2026", title: "LASIK Consultation & Corneal Topography", clinic: "Vision Plus Eye Center" },
-              { year: "2025", title: "Retina Macular OCT Scan", clinic: "University Teaching Hospital" },
-              { year: "2024", title: "Cataract Screening & Baseline IOP", clinic: "Silver Cross Eye Clinic" },
-              { year: "2023", title: "New Progressive Glasses Prescription", clinic: "Optical Care Center" },
-              { year: "2022", title: "Routine Eye Examination", clinic: "General Vision Clinic" },
-            ].map((t) => (
-              <div key={t.year} className="flex items-start gap-4 relative pl-8">
-                <div className="w-6 h-6 rounded-full bg-sky-500/20 border border-sky-400 flex items-center justify-center text-[10px] font-bold text-sky-400 absolute left-0 top-0">
-                  {t.year.slice(2)}
-                </div>
-                <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex-1">
-                  <span className="text-[10px] font-bold text-sky-400">{t.year}</span>
-                  <p className="text-xs font-bold text-white mt-0.5">{t.title}</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">{t.clinic}</p>
-                </div>
+          {(() => {
+            const rows = (selectedPatientId ? visits.filter((v) => v.patientId === selectedPatientId) : visits)
+              .slice()
+              .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            if (rows.length === 0) {
+              return <p className="text-xs text-slate-500">No vision visits on record yet.</p>;
+            }
+            return (
+              <div className="space-y-4 relative before:absolute before:left-3 before:top-3 before:bottom-3 before:w-0.5 before:bg-slate-800">
+                {rows.map((v) => (
+                  <div key={v._id ?? `${v.patientId}-${v.date}`} className="flex items-start gap-4 relative pl-8">
+                    <div className="w-6 h-6 rounded-full bg-sky-500/20 border border-sky-400 flex items-center justify-center text-[10px] font-bold text-sky-400 absolute left-0 top-0">
+                      {new Date(v.date).getFullYear().toString().slice(2)}
+                    </div>
+                    <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex-1">
+                      <span className="text-[10px] font-bold text-sky-400">{formatDateShort(v.date)}</span>
+                      <p className="text-xs font-bold text-white mt-0.5">{v.diagnosis || "Vision visit"}</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">{v.clinicName} · {v.providerName}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            );
+          })()}
         </ProvCard>
       )}
 
       {/* ── TAB 5: IMAGING CENTER & AI VISION ASSISTANT ─────────────────────── */}
       {activeTab === "imaging" && (
         <div className="space-y-6">
-          {/* AI Decision Support Banner */}
+          {/* No real AI/ML clinical analysis backend exists — this
+              used to show fixed, clinically-specific fake alerts
+              (fabricated cup-to-disc ratios, fabricated microaneurysm
+              findings) to every patient regardless of their actual
+              data. That's dangerous in a way generic fake data isn't:
+              a provider could reasonably read it as a real automated
+              finding about the specific patient in front of them. */}
           <ProvCard className="p-6 bg-gradient-to-r from-slate-900 via-slate-900 to-sky-950/40 border-sky-500/30">
             <div className="flex items-center gap-2 mb-3">
               <Sparkles size={20} className="text-sky-400" />
               <h3 className="text-base font-bold text-white">AI Vision Assistant & Decision Support</h3>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-300">Coming soon</span>
             </div>
-            <p className="text-xs text-slate-300 mb-4">
-              Automated progression trend detection (Glaucoma, Retinopathy, Macular degeneration, IOP changes).
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              {AI_INSIGHT_ALERT_ITEMS.map((item) => (
-                <div key={item.type} className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-400">
-                    {item.type}
-                  </span>
-                  <p className="text-xs text-slate-200 mt-1.5">{item.desc}</p>
-                </div>
-              ))}
-            </div>
-            <p className="text-[10px] text-slate-500 mt-3">
-              * The AI Assistant serves as decision support and does not replace clinical judgment.
+            <p className="text-xs text-slate-400">
+              Automated progression trend detection (glaucoma, retinopathy, macular degeneration, IOP changes) isn't available yet — no AI analysis backend exists. Review imaging and history directly for now.
             </p>
           </ProvCard>
         </div>
       )}
 
-      {/* ── TAB 6: REFERRAL & PROVIDER COLLABORATION ───────────────────────── */}
+      {/* ── TAB 6: SPECIALIST REFERRAL ──────────────────────────────────────── */}
       {activeTab === "referrals" && (
         <ProvCard className="p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <SendHorizonal size={18} className="text-purple-400" />
+              <Share2 size={18} className="text-purple-400" />
               <h3 className="text-base font-bold text-white">Sub-Specialist Referral Center</h3>
             </div>
             <button
-              onClick={() => showToast("Referral package prepared with clinical notes & OCT scans")}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-purple-600 hover:bg-purple-500"
+              onClick={() => showToast("Referrals — coming soon")}
+              className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-purple-600/50 cursor-not-allowed"
             >
               Create New Referral
             </button>
           </div>
-          <p className="text-xs text-slate-400">
-            Refer patients to Retina, Glaucoma, Pediatric, Neuro-ophthalmology, Cornea specialists or Optometrists with clinical summaries and test results.
+          <p className="text-xs text-slate-500">
+            Not available yet — there's no referral model or connected-provider directory on the backend.
           </p>
         </ProvCard>
       )}
@@ -759,26 +807,27 @@ export function ProviderVisionPage() {
               <h3 className="text-base font-bold text-white">Patient Communication & Reminders</h3>
             </div>
             <button
-              onClick={() => showToast("Prescription notification sent to patient")}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-pink-600 hover:bg-pink-500"
+              onClick={() => showToast("Secure messaging — coming soon")}
+              className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-pink-600/50 cursor-not-allowed"
             >
               Send Secure Message
             </button>
           </div>
-          <p className="text-xs text-slate-400">
-            Send secure messages, answer patient questions, notify when prescriptions are ready, and confirm follow-up visits.
+          <p className="text-xs text-slate-500">
+            Not available yet — there's no patient messaging backend.
           </p>
         </ProvCard>
       )}
 
-      {/* ── Add Record Modal ──────────────────────────────────────────────── */}
+      {/* ── ADD/EDIT VISION RECORD MODAL FORM ─────────────────────────────── */}
       {addRecordPatientId && (
-        <AddRecordModal
+        <VisionRecordForm
           patientId={addRecordPatientId}
           onClose={() => setAddRecordPatientId(null)}
           onSuccess={() => {
             setAddRecordPatientId(null);
-            loadVision(page, true);
+            showToast("Vision examination record saved successfully!");
+            loadVisits();
           }}
         />
       )}
