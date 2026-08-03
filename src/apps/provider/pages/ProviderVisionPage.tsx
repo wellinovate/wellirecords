@@ -51,6 +51,7 @@ import {
   Clock,
   ExternalLink,
   Award,
+  ImageIcon,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/shared/auth/AuthProvider";
