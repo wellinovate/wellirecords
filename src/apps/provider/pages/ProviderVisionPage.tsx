@@ -70,16 +70,25 @@ const FILTER_CHIPS = [
 ];
 
 // ─── Quick actions ────────────────────────────────────────────────────────────
+// action: "add-vision" is handled in the component to open the Add Record modal.
+// All other entries navigate to an existing registered route.
 
-const QUICK_ACTIONS = [
-  { icon: Plus, label: "New Consultation", route: "/provider/patients" },
-  { icon: ScanLine, label: "Scan Patient QR", route: null },
-  { icon: Search, label: "Search WelliRecord ID", route: "/provider/patients" },
-  { icon: Eye, label: "Add Vision Record", route: null },
-  { icon: UploadCloud, label: "Upload Images", route: null },
-  { icon: ClipboardList, label: "Issue Prescription", route: "/provider/prescriptions" },
-  { icon: SendHorizonal, label: "Create Referral", route: "/provider/referrals" },
-  { icon: CalendarPlus, label: "Book Follow-up", route: "/provider/appointments" },
+type QuickAction = {
+  icon: React.ElementType;
+  label: string;
+  route?: string;
+  action?: string;
+};
+
+const QUICK_ACTIONS: QuickAction[] = [
+  { icon: Plus,          label: "New Consultation",    route: "/provider/encounters/new" },
+  { icon: ScanLine,      label: "Scan Patient QR",     route: "/provider/front-desk" },
+  { icon: Search,        label: "Search WelliRecord ID", route: "/provider/patients" },
+  { icon: Eye,           label: "Add Vision Record",   action: "add-vision" },
+  { icon: UploadCloud,   label: "Upload Images",       route: "/provider/vision" },
+  { icon: ClipboardList, label: "Issue Prescription",  route: "/provider/prescriptions" },
+  { icon: SendHorizonal, label: "Create Referral",     route: "/provider/referrals" },
+  { icon: CalendarPlus,  label: "Book Follow-up",      route: "/provider/appointments" },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -575,14 +584,24 @@ export function ProviderVisionPage() {
           <ChevronRight size={14} style={{ color: T.accent }} /> Quick Actions
         </h2>
         <div className="grid grid-cols-4 gap-3 sm:grid-cols-8">
-          {QUICK_ACTIONS.map(({ icon: Icon, label, route }) => (
+          {QUICK_ACTIONS.map(({ icon: Icon, label, route, action }) => (
             <button
               key={label}
               onClick={() => {
-                if (route) navigate(route);
-                else {
-                  // Coming soon toast — no runtime dependency needed
-                  alert(`${label} — coming soon`);
+                if (action === "add-vision") {
+                  // Open the Add Record modal targeting the first patient in
+                  // the current list, or a sentinel that prompts the user to
+                  // search — the modal already accepts any valid patientId.
+                  const firstPatientId = visits[0]?.patientId ?? "";
+                  if (firstPatientId) {
+                    setAddRecordPatientId(firstPatientId);
+                  } else {
+                    // No records loaded yet — send the user to Patient List
+                    // where they can select a patient first.
+                    navigate("/provider/patients");
+                  }
+                } else if (route) {
+                  navigate(route);
                 }
               }}
               className="flex flex-col items-center gap-2 p-3 rounded-xl transition-all group"
