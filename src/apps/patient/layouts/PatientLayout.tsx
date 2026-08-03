@@ -1,5 +1,4 @@
 import { health_companion_image, logos, welliIcon } from "@/assets";
-import { orgApi } from "@/shared/api/orgApi";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { useWelliMate } from "@/shared/context/WelliMateContext";
 import { useNetwork } from "@/shared/hooks/useNetwork";
@@ -145,10 +144,7 @@ export function PatientLayout() {
   const { isOnline } = useNetwork();
   const { isWelliMateEnabled, setWelliMateEnabled } = useWelliMate();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const org = user?.orgId ? orgApi.getById(user.orgId) : undefined;
-  const orgs = orgApi.getAll();
   const [open, setOpen] = useState(false);
-  const [showOrgDrop, setShowOrgDrop] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const [showWizard, setShowWizard] = useState(
     () => localStorage.getItem("wrShowWelcomeWizard") === "1",
@@ -321,79 +317,6 @@ export function PatientLayout() {
               Patient Portal
             </div>
           </div>
-          { user?.role !== "patient" && (
-
-          <div
-            className="px-2 lg:px-4 py-2 lg:py-3 border-b relative"
-            style={{ borderColor: "var(--prov-border)" }}
-          >
-            <button
-              onClick={() => setShowOrgDrop((p) => !p)}
-              className="flex items-center gap-2 p-2 lg:p-2.5 rounded-xl w-full text-left hover:bg-white/5 justify-center lg:justify-start"
-              style={{
-                background: "linear-gradient(180deg, #163B73 0%, #0F2F5E 100%)",
-                border: "1px solid rgba(124, 164, 255, 0.30)",
-                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
-              }}
-            >
-              <div
-                className="w-7 h-7 lg:w-8 lg:h-8 rounded-lg flex items-center justify-center text-sm flex-shrink-0"
-                style={{
-                  background:
-                    "linear-gradient(180deg, #1B2A55 0%, #162347 100%)",
-                  border: "1px solid rgba(126, 159, 255, 0.12)",
-                }}
-              >
-                {orgApi.getOrgTypeIcon(org?.type ?? "hospital")}
-              </div>
-              <div className="flex-1 min-w-0 hidden lg:block">
-                <div
-                  className="text-xs font-semibold truncate"
-                  style={{ color: "#e2eaf4" }}
-                >
-                  {org?.name ?? "Unknown Org"}
-                </div>
-                <div className="text-[10px]" style={{ color: "#7ba3c8" }}>
-                  {orgApi.getOrgTypeLabel(org?.type ?? "hospital")}
-                </div>
-              </div>
-              <ChevronDown
-                size={14}
-                style={{ color: "#7ba3c8" }}
-                className="hidden lg:block"
-              />
-            </button>
-            {showOrgDrop && (
-              <div
-                className="absolute left-2 right-2 top-full mt-1 rounded-xl z-40 shadow-2xl overflow-hidden"
-                style={{
-                  background: "var(--prov-surface)",
-                  border: "1px solid var(--prov-border)",
-                }}
-              >
-                {orgs.map((o) => (
-                  <button
-                    key={o.id}
-                    onClick={() => setShowOrgDrop(false)}
-                    className="flex items-center gap-2 px-3 py-2.5 w-full text-left text-sm hover:bg-white/5 border-b last:border-0"
-                    style={{
-                      borderColor: "var(--prov-border)",
-                      color: "#e2eaf4",
-                    }}
-                  >
-                    <span>{orgApi.getOrgTypeIcon(o.type)}</span>
-                    <span>{o.name}</span>
-                    {o.id === user?.orgId && (
-                      <span className="ml-auto badge badge-active text-xs">
-                        Current
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          )}
           
         </div>
 
