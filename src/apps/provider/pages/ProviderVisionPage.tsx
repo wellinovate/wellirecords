@@ -431,7 +431,7 @@ export function ProviderVisionPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const providerName = user?.name || user?.profile?.name || "Doctor";
+  const providerName = user?.fullName || "Doctor";
   const firstName = providerName.split(" ").slice(-1)[0];
 
   const [visits, setVisits] = useState<VisionVisitListItem[]>([]);
