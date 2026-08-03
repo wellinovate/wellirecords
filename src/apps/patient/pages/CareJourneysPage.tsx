@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/shared/auth/AuthProvider';
-import { vaultApi } from '@/shared/api/vaultApi';
 import {
     Activity, ChevronRight, Heart, Baby, Stethoscope, AlertCircle,
     Pill, Plus, X, CheckCircle, Sparkles
@@ -15,7 +14,6 @@ const JOURNEY_TEMPLATES = [
     { id: 'tpl_chronic', title: 'Chronic Medication', category: 'Medication', description: 'Track long-term prescriptions, dispensing history, and refill schedules.', icon: Pill, color: '#0ea5e9', bg: '#f0f9ff', border: '#bae6fd' },
     { id: 'tpl_specialist', title: 'Specialist Referral', category: 'Referral', description: 'Bundle all records for a referral — from the initial note to specialist follow-ups.', icon: Stethoscope, color: '#1a6b42', bg: '#f0fdf4', border: '#bbf7d0' },
 ];
-
 
 interface NewJourneyModalProps {
     template: typeof JOURNEY_TEMPLATES[0] | null;
@@ -42,8 +40,8 @@ function NewJourneyModal({ template, onClose, onConfirm }: NewJourneyModalProps)
                         <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4" style={{ background: '#10b98120' }}>
                             <CheckCircle size={32} style={{ color: '#10b981' }} />
                         </div>
-                        <div className="font-bold text-lg mb-1" style={{ color: 'var(--pat-text)' }}>Journey Created!</div>
-                        <div className="text-sm" style={{ color: 'var(--pat-muted)' }}>Your journey is now active</div>
+                        <div className="font-bold text-lg mb-1" style={{ color: 'var(--pat-text)' }}>Journey Added</div>
+                        <div className="text-sm" style={{ color: 'var(--pat-muted)' }}>Saved for this session — journey syncing isn't available yet, so this won't persist after you leave the page.</div>
                     </div>
                 ) : (
                     <>
@@ -116,14 +114,17 @@ function NewJourneyModal({ template, onClose, onConfirm }: NewJourneyModalProps)
 export function CareJourneysPage() {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const [journeys, setJourneys] = useState(vaultApi.getJourneys(user?.userId ?? 'pat_001'));
+    // No backend concept for care journeys exists yet — starts empty,
+    // and anything created here is local to this browser session only
+    // (see the note in NewJourneyModal below).
+    const [journeys, setJourneys] = useState<any[]>([]);
     const [modalTemplate, setModalTemplate] = useState<typeof JOURNEY_TEMPLATES[0] | null>(null);
     const [showBlankModal, setShowBlankModal] = useState(false);
 
     const handleCreate = (title: string, description: string) => {
         const newJourney = {
             id: `j_${Date.now()}`,
-            patientId: user?.userId ?? 'pat_001',
+            patientId: user?.sub ?? '',
             title,
             description,
             status: 'active' as const,
@@ -138,55 +139,41 @@ export function CareJourneysPage() {
     return (
         <div className="animate-fade-in space-y-10">
             {/* Header */}
-            <div className="flex items-center justify-between pb-6 border-b" style={{ borderColor: 'var(--pat-border)' }}>
+            <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div>
-                    <h1 className="font-display font-bold text-2xl mb-1" style={{ color: 'var(--pat-text)' }}>Care Journeys</h1>
-                    <p className="text-sm max-w-xl" style={{ color: 'var(--pat-muted)' }}>
-                        Track your hypertension treatment, diabetes management, or pregnancy — all in one place.
+                    <h1 className="section-header font-display" style={{ color: 'var(--pat-text)' }}>
+                        Care Journeys
+                    </h1>
+                    <p className="text-sm mt-1" style={{ color: 'var(--pat-muted)' }}>
+                        Organise your health records into chronic care episodes, pregnancy tracking, or treatment plans
                     </p>
                 </div>
                 <button
                     onClick={() => setShowBlankModal(true)}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm text-white shadow-sm hover:-translate-y-0.5 transition-all"
-                    style={{ background: 'var(--pat-primary)' }}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-2xl font-bold text-sm text-white shadow-lg transition-all hover:-translate-y-0.5"
+                    style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}
                 >
-                    <Plus size={16} /> New Journey
+                    <Plus size={16} /> Start Custom Journey
                 </button>
             </div>
 
-            {/* Active journeys */}
+            {/* Active Journeys */}
             {journeys.length > 0 && (
                 <div>
-                    <h2 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: 'var(--pat-muted)' }}>Your Active Journeys</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        {journeys.map(journey => (
-                            <div
-                                key={journey.id}
-                                className="group rounded-2xl border shadow-sm hover:shadow-lg transition-all overflow-hidden p-6 cursor-pointer"
-                                style={{ background: 'var(--pat-surface)', borderColor: 'var(--pat-border)' }}
-                                onClick={() => navigate('/patient/vault')}
-                            >
-                                <div className="flex items-start justify-between mb-3">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(26,107,66,.1)', color: 'var(--pat-primary)' }}>
-                                            <Stethoscope size={20} />
-                                        </div>
-                                        <div>
-                                            <h3 className="font-bold text-base" style={{ color: 'var(--pat-text)' }}>{journey.title}</h3>
-                                            <div className="text-xs mt-0.5" style={{ color: 'var(--pat-muted)' }}>
-                                                Since {new Date(journey.startDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                                            </div>
-                                        </div>
+                    <div className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: 'var(--pat-muted)' }}>
+                        Active Journeys ({journeys.length})
+                    </div>
+                    <div className="grid md:grid-cols-2 gap-4">
+                        {journeys.map(j => (
+                            <div key={j.id} className="card-patient p-6 space-y-4 hover:border-emerald-300 transition-all">
+                                <div className="flex items-start justify-between">
+                                    <div>
+                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase" style={{ background: '#10b98118', color: '#10b981' }}>
+                                            Active
+                                        </span>
+                                        <h3 className="font-bold text-lg mt-2" style={{ color: 'var(--pat-text)' }}>{j.title}</h3>
+                                        <p className="text-xs mt-1 leading-relaxed" style={{ color: 'var(--pat-muted)' }}>{j.description}</p>
                                     </div>
-                                    <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full" style={{ background: 'rgba(16,185,129,.1)', color: '#10b981' }}>
-                                        {journey.status}
-                                    </span>
-                                </div>
-                                <p className="text-sm leading-relaxed mb-5" style={{ color: 'var(--pat-muted)' }}>{journey.description}</p>
-                                <div className="flex items-center justify-end pt-4 border-t" style={{ borderColor: 'var(--pat-border)', color: 'var(--pat-primary)' }}>
-                                    <span className="text-xs font-semibold flex items-center gap-1.5 group-hover:underline">
-                                        View in Health Vault <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                                    </span>
                                 </div>
                             </div>
                         ))}
@@ -194,72 +181,59 @@ export function CareJourneysPage() {
                 </div>
             )}
 
-            {/* Empty state — compact inline prompt, not a full-height hero */}
-            {journeys.length === 0 && (
-                <div className="flex items-center gap-5 px-6 py-5 rounded-2xl" style={{ background: 'linear-gradient(135deg,#0d3d22,#1a6b42)', minHeight: 0 }}>
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,.14)' }}>
-                        <Activity size={20} className="text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                        <div className="font-bold text-white text-sm">No journeys yet</div>
-                        <div className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,.7)' }}>Pick a template below or start a blank one — records get tagged automatically.</div>
-                    </div>
-                    <button
-                        onClick={() => setShowBlankModal(true)}
-                        className="flex-shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold text-xs transition-all hover:-translate-y-0.5"
-                        style={{ background: '#fff', color: '#1a6b42' }}
-                    >
-                        <Plus size={13} /> Blank Journey
-                    </button>
-                </div>
-            )}
-
-            {/* Templates — always shown */}
+            {/* Templates Section */}
             <div>
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--pat-muted)' }}>Start from a template</h2>
-                    <div className="flex items-center gap-3 flex-wrap">
-                        {['Cardiovascular', 'Metabolic', 'Infectious', 'Reproductive', 'Medication', 'Referral'].map(cat => (
-                            <span key={cat} className="text-[10px] font-semibold" style={{ color: 'var(--pat-muted)' }}>
-                                ● {cat}
-                            </span>
-                        ))}
-                    </div>
+                <div className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: 'var(--pat-muted)' }}>
+                    Start From a Template
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {JOURNEY_TEMPLATES.map(t => (
-                        <div
-                            key={t.id}
-                            className="group rounded-2xl border p-5 hover:shadow-md transition-all hover:-translate-y-0.5 flex flex-col"
-                            style={{ background: t.bg, borderColor: t.border }}
-                        >
-                            <div className="flex items-start gap-3 mb-2">
-                                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${t.color}22` }}>
-                                    <t.icon size={18} style={{ color: t.color }} />
+                <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {JOURNEY_TEMPLATES.map(t => {
+                        const Icon = t.icon;
+                        return (
+                            <div
+                                key={t.id}
+                                onClick={() => setModalTemplate(t)}
+                                className="card-patient p-5 cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg group flex flex-col justify-between"
+                                style={{ borderColor: t.border }}
+                            >
+                                <div>
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{ background: t.bg }}>
+                                            <Icon size={20} style={{ color: t.color }} />
+                                        </div>
+                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: t.bg, color: t.color }}>
+                                            {t.category}
+                                        </span>
+                                    </div>
+                                    <h4 className="font-bold text-base mb-1 group-hover:text-emerald-700 transition-colors" style={{ color: 'var(--pat-text)' }}>
+                                        {t.title}
+                                    </h4>
+                                    <p className="text-xs leading-relaxed" style={{ color: 'var(--pat-muted)' }}>
+                                        {t.description}
+                                    </p>
                                 </div>
-                                <div className="min-w-0">
-                                    <div className="font-bold text-sm leading-tight" style={{ color: '#1a2e1e' }}>{t.title}</div>
-                                    <div className="text-[10px] font-semibold mt-0.5 uppercase tracking-wider" style={{ color: t.color }}>{t.category}</div>
+                                <div className="mt-4 flex items-center gap-1 text-xs font-bold transition-transform group-hover:translate-x-1" style={{ color: t.color }}>
+                                    Start journey <ChevronRight size={14} />
                                 </div>
                             </div>
-                            <p className="text-xs leading-relaxed mb-4 flex-1" style={{ color: '#6b7280' }}>{t.description}</p>
-                            <button
-                                onClick={() => setModalTemplate(t)}
-                                className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl font-bold text-xs transition-all hover:brightness-95"
-                                style={{ background: t.color, color: '#fff' }}
-                            >
-                                Use this template <ChevronRight size={12} />
-                            </button>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
 
             {/* Modals */}
-            {(modalTemplate || showBlankModal) && (
+            {modalTemplate && (
                 <NewJourneyModal
                     template={modalTemplate}
-                    onClose={() => { setModalTemplate(null); setShowBlankModal(false); }}
+                    onClose={() => setModalTemplate(null)}
+                    onConfirm={handleCreate}
+                />
+            )}
+
+            {showBlankModal && (
+                <NewJourneyModal
+                    template={null}
+                    onClose={() => setShowBlankModal(false)}
                     onConfirm={handleCreate}
                 />
             )}
