@@ -536,7 +536,7 @@ export default function PatientSignupPage() {
       setCode("");
       setOtpError("");
 
-      const res = await resendVerifyLoginCodeApi(challengeToken);
+      const res = await resendVerifyLoginCodeApi(challengeToken, form.email);
       const payload = (res as any)?.data || res;
 
       if (!payload?.challengeToken) {

@@ -304,11 +304,21 @@ export const authApi = {
     }
   },
 
-  async resendVerifyLoginCodeApi(email: string) {
+  async resendVerifyLoginCodeApi(tokenOrEmail: string, email?: string) {
     try {
-      const response = await axios.post(`${apiUrl}/api/v1/auth/resend-verify-code`, {
-        email: email,
-      },
+      const isEmail = Boolean(tokenOrEmail && tokenOrEmail.includes("@"));
+      const body: Record<string, string> = {};
+
+      if (isEmail) {
+        body.email = tokenOrEmail;
+      } else {
+        body.challengeToken = tokenOrEmail;
+        if (email) body.email = email;
+      }
+
+      const response = await axios.post(
+        `${apiUrl}/api/v1/auth/resend-verify-code`,
+        body,
         {
           timeout: 30000,
         }

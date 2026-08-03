@@ -169,7 +169,7 @@ export function ProviderLoginPage() {
             setCode('');
             setError('');
 
-            const res = await resendVerifyLoginCodeApi(challengeToken);
+            const res = await resendVerifyLoginCodeApi(challengeToken, form.email);
             const payload = res?.data || res;
 
             if (!payload?.challengeToken) {

@@ -51,7 +51,7 @@ type AuthContextValue = {
   createProcedure: (payload: any) => any;
   signIn: (email: string, password: string) => AuthUser | null;
   verifyLoginCodeApi: (challengeToken: string, code: string) => AuthUser | null;
-  resendVerifyLoginCodeApi: (email: string) => any;
+  resendVerifyLoginCodeApi: (tokenOrEmail: string, email?: string) => any;
   handleGoogleCredentials: (
     response: GoogleCredentialResponse,
   ) => AuthUser | null;
@@ -141,8 +141,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return res;
   };
 
-  const resendVerifyLoginCodeApi = async (email: string) => {
-    const res = await authApi.resendVerifyLoginCodeApi(email);
+  const resendVerifyLoginCodeApi = async (tokenOrEmail: string, email?: string) => {
+    const res = await authApi.resendVerifyLoginCodeApi(tokenOrEmail, email);
     return res;
   };
 

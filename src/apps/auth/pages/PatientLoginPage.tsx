@@ -150,7 +150,7 @@ export function PatientLoginPage() {
       setCode("");         // clear existing OTP
       setError("");        // clear error messages
 
-      const res = await resendVerifyLoginCodeApi(challengeToken);
+      const res = await resendVerifyLoginCodeApi(challengeToken, form.email);
       const payload = res?.data || res;
 
       if (!payload?.challengeToken) {
