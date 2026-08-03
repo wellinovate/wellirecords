@@ -22,6 +22,9 @@ import {
   CalendarClock,
   ChevronRight,
   Clock,
+  ExternalLink,
+  Eye,
+  EyeOff,
   FileText,
   FolderHeart,
   Heart,
@@ -293,38 +296,59 @@ function UpcomingAppointmentCard({
   );
 }
 
-function VisionSummaryCard() {
+function VisionSummaryCard({ onHide }: { onHide: () => void }) {
   return (
-    <Link
-      to="/patient/vision"
-      className="flex items-center justify-between rounded-2xl p-5 transition-all hover:-translate-y-0.5 group"
+    <div
+      className="relative flex items-center justify-between rounded-2xl p-5 transition-all hover:-translate-y-0.5 group"
       style={{
         background: "linear-gradient(135deg, #0c2340 0%, #0d3358 100%)",
         border: "1px solid rgba(14,165,233,0.20)",
         boxShadow: "0 4px 20px rgba(14,165,233,0.08)",
       }}
     >
-      <div className="flex items-center gap-4">
+      <Link to="/patient/vision" className="flex items-center gap-4 flex-1 min-w-0 pr-3">
         <div
-          className="w-12 h-12 rounded-2xl flex items-center justify-center"
+          className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
           style={{ background: "rgba(14,165,233,0.18)" }}
         >
-          <Heart size={22} style={{ color: "#38bdf8" }} />
+          <Eye size={22} style={{ color: "#38bdf8" }} />
         </div>
-        <div>
-          <p className="text-base font-bold text-white">My Vision Record</p>
-          <p className="text-xs mt-0.5" style={{ color: "#7ba3c8" }}>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <p className="text-base font-bold text-white truncate">My Vision Record</p>
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30">
+              Optional
+            </span>
+          </div>
+          <p className="text-xs mt-0.5 truncate" style={{ color: "#7ba3c8" }}>
             View your complete eye health history
           </p>
         </div>
+      </Link>
+
+      <div className="flex items-center gap-3 flex-shrink-0">
+        <Link
+          to="/patient/vision"
+          className="flex items-center gap-1 text-xs font-semibold transition-transform group-hover:translate-x-1"
+          style={{ color: "#38bdf8" }}
+        >
+          View <ArrowRight size={14} />
+        </Link>
+
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onHide();
+          }}
+          title="Disable Vision Record on Dashboard"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-300 hover:text-white bg-white/10 hover:bg-white/20 transition-all border border-white/10"
+        >
+          <EyeOff size={13} />
+          <span className="hidden sm:inline">Disable on dashboard</span>
+        </button>
       </div>
-      <div
-        className="flex items-center gap-1 text-xs font-semibold transition-transform group-hover:translate-x-1"
-        style={{ color: "#38bdf8" }}
-      >
-        View <ArrowRight size={14} />
-      </div>
-    </Link>
+    </div>
   );
 }
 
@@ -346,6 +370,16 @@ export function PatientOverview() {
     medications?: boolean;
     diagnoses?: boolean;
   } | null>(null);
+
+  const [showVisionOnDashboard, setShowVisionOnDashboard] = useState<boolean>(() => {
+    const saved = localStorage.getItem("wr_show_vision_on_dashboard");
+    return saved !== "0"; // default to enabled/shown
+  });
+
+  const handleToggleVisionDashboard = (enabled: boolean) => {
+    setShowVisionOnDashboard(enabled);
+    localStorage.setItem("wr_show_vision_on_dashboard", enabled ? "1" : "0");
+  };
 
   const patientId = user?.sub;
 
@@ -566,8 +600,29 @@ export function PatientOverview() {
         </div>
       )}
 
-      {/* ── Vision Card ───────────────────────────────────────────── */}
-      <VisionSummaryCard />
+      {/* ── Vision Card (Optional on Dashboard) ──────────────────── */}
+      {showVisionOnDashboard ? (
+        <VisionSummaryCard onHide={() => handleToggleVisionDashboard(false)} />
+      ) : (
+        <div
+          className="flex items-center justify-between rounded-2xl px-5 py-3 text-xs"
+          style={{
+            background: PAT.surface,
+            border: `1px dashed ${PAT.border}`,
+            color: PAT.muted,
+          }}
+        >
+          <span className="flex items-center gap-2">
+            <EyeOff size={14} style={{ color: PAT.muted }} /> Vision Record is disabled on dashboard (always available on sidebar).
+          </span>
+          <button
+            onClick={() => handleToggleVisionDashboard(true)}
+            className="font-semibold text-teal-600 hover:text-teal-700 flex items-center gap-1 px-3 py-1 rounded-xl bg-teal-50 hover:bg-teal-100 transition-colors"
+          >
+            <Eye size={13} /> Enable on Dashboard
+          </button>
+        </div>
+      )}
 
       {/* ── Alerts + Encounters ───────────────────────────────────── */}
       <div className="flex lg:flex-row flex-col gap-4">
