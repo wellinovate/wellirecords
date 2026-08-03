@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/shared/auth/AuthProvider";
-import { vaultApi } from "@/shared/api/vaultApi";
+import { getMyHealthRecords } from "@/shared/api/healthRecordsApi";
 import { HealthRecord } from "@/shared/types/types";
 import {
   Search,
@@ -113,20 +113,23 @@ const SHOWCASE_TYPES = [
 export function HealthVaultPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const patientId = user?.sub || user?.userId;
+  const patientId = user?.sub;
   const [records, setRecords] = useState<HealthRecord[]>([]);
   const [recordsLoading, setRecordsLoading] = useState(true);
-  const journeys: any[] = vaultApi.getJourneys(patientId || "pat_001");
+  // No care-journey concept exists on the backend yet — real records
+  // only, no fabricated journey entries or fallback-to-another-patient.
+  const journeys: any[] = [];
   const [search, setSearch] = useState("");
   const [summary, setSummary] = useState([]);
   const [activeType, setActiveType] = useState("All");
   const [wizardOpen, setWizardOpen] = useState(false);
 
   useEffect(() => {
+    if (!patientId) return;
     setRecordsLoading(true);
-    const recs = vaultApi.getRecords(patientId || "pat_001");
-    setRecords(recs.length > 0 ? recs : vaultApi.getRecords("pat_001"));
-    setRecordsLoading(false);
+    getMyHealthRecords(patientId)
+      .then(setRecords)
+      .finally(() => setRecordsLoading(false));
   }, [patientId]);
 
   const loadVitals = async () => {
