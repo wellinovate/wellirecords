@@ -33,7 +33,11 @@ export interface VisionRecord {
 
 export const getVisionRecord = async (patientId: string): Promise<VisionRecord> => {
   const response = await apiClient.get(`/records/vision/${patientId}`);
-  return response.data.data;
+  // apiClient's response interceptor already unwraps response.data, so
+  // `response` here is the parsed JSON body itself — .data is the
+  // actual payload. .data.data was one level too deep and resolved
+  // to undefined, which crashed the page on render.
+  return response.data;
 };
 
 // One flattened visit as returned by the org-wide list — same shape as
@@ -56,7 +60,8 @@ export const getAllPatientVision = async (
   const response = await apiClient.get(`/records/vision/patients`, {
     params: { page, limit },
   });
-  return response.data.data;
+  // See getVisionRecord above — same interceptor unwrap applies here.
+  return response.data;
 };
 
 export interface CreateVisionVisitInput {
@@ -83,5 +88,5 @@ export const createVisionVisit = async (input: CreateVisionVisitInput): Promise<
   const response = await apiClient.post(`/records/vision/${input.patientId}/visits`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
-  return response.data.data;
+  return response.data;
 };
