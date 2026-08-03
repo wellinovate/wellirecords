@@ -1,3 +1,5 @@
+import axios from "axios";
+
 // Deliberately appends /api/v1 here rather than relying on
 // VITE_API_BASE_URL to already include it. The env var is the bare
 // domain (see authApi.ts, which uses it the same way) — coding the
