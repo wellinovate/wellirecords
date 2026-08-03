@@ -17,10 +17,14 @@ const SPECIALTY_COLORS: Record<string, string> = {
 
 export function ProviderTelemedicinePage() {
     const navigate = useNavigate();
-    const sessions = teleMedApi.getSessionsByProvider('prov_001');
+    // No real telemedicine backend exists yet (teleMedApi is a mock
+    // module) — this used to hardcode 'prov_001', showing every real
+    // provider the same fabricated session list regardless of who was
+    // logged in. Honest empty state until real sessions exist.
+    const sessions: ReturnType<typeof teleMedApi.getSessionsByProvider> = [];
     const upcoming = sessions.filter(s => s.status === 'scheduled' || s.status === 'waiting' || s.status === 'active');
     const past = sessions.filter(s => s.status === 'completed');
-    const readings = teleMedApi.getMonitoringReadings('pat_001');
+    const readings: ReturnType<typeof teleMedApi.getMonitoringReadings> = [];
     const warnings = readings.filter(r => r.flag !== 'normal');
 
     const [alertDismissed, setAlertDismissed] = useState(false);
