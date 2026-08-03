@@ -135,7 +135,7 @@ export default function PatientSignupPage() {
   const [maskedPhone, setMaskedPhone] = useState("");
   const [verifying, setVerifying] = useState(false);
   const [resending, setResending] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(300);
+  const [timeLeft, setTimeLeft] = useState(120);
   const [otpError, setOtpError] = useState("");
   // Whether the account behind this OTP challenge was just created here vs
   // already existed (e.g. someone with a password account clicking
@@ -545,7 +545,7 @@ export default function PatientSignupPage() {
 
       setChallengeToken(payload.challengeToken);
       setMaskedPhone(payload.maskedPhone || maskedPhone);
-      setTimeLeft(300);
+      setTimeLeft(120);
 
       toast.success("Code resent successfully");
     } catch (err: any) {

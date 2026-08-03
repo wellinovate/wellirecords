@@ -104,7 +104,7 @@ export function PatientLoginPage() {
 
   const [step, setStep] = useState<LoginStep>("credentials");
   const [isCodeValid, setIsCodeValid] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
+  const [timeLeft, setTimeLeft] = useState(120); // 2 minutes
 
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -160,7 +160,7 @@ export function PatientLoginPage() {
       // Update challenge token and optionally masked phone
       setChallengeToken(payload.challengeToken);
       setMaskedPhone(payload.maskedPhone || maskedPhone);
-      setTimeLeft(300);    // reset countdown only after a successful resend
+      setTimeLeft(120);    // reset countdown only after a successful resend
 
       toast.success("OTP resent successfully");
 
