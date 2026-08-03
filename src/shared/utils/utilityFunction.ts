@@ -497,7 +497,9 @@ export type MedicationItem = {
   form: string | null;
   route: string | null;
   frequency: string | null;
+  duration: string | null;
   indication: string | null;
+  prescribedByFullName?: string | null;
   prescribedAt: string | null;
   startDate: string | null;
   endDate: string | null;
