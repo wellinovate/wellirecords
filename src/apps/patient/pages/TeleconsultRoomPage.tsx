@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/shared/auth/AuthProvider';
 import { teleMedApi } from '@/shared/api/teleMedApi';
-import { vaultApi } from '@/shared/api/vaultApi';
+import { getMyHealthRecords } from '@/shared/api/healthRecordsApi';
+import { HealthRecord } from '@/shared/types/types';
 import {
     Video, VideoOff, Mic, MicOff, PhoneOff, MessageSquare,
     Brain, FlaskConical, Pill, FileText, AlertTriangle,
@@ -14,8 +15,15 @@ export function TeleconsultRoomPage() {
     const { sessionId } = useParams<{ sessionId: string }>();
     const { user } = useAuth();
     const navigate = useNavigate();
+    // There's no real telemedicine/video backend yet — this session
+    // object is illustrative, not a live call. Patient records below
+    // are real, though, since that's the part that matters for safety.
     const session = teleMedApi.getSession(sessionId ?? '');
-    const records = vaultApi.getRecords(user?.userId ?? 'pat_001');
+    const [records, setRecords] = useState<HealthRecord[]>([]);
+    useEffect(() => {
+        if (!user?.sub) return;
+        getMyHealthRecords(user.sub).then(setRecords);
+    }, [user?.sub]);
     const [micOn, setMicOn] = useState(true);
     const [camOn, setCamOn] = useState(true);
     const [elapsed, setElapsed] = useState(0);
@@ -24,7 +32,7 @@ export function TeleconsultRoomPage() {
 
     // Simulate AI ambient scribe building a note in real time
     const SCRIBE_LINES = [
-        'Patient: Amara Okafor. Session started.',
+        `Patient: ${user?.fullName || 'Patient'}. Session started.`,
         'S: Patient reports recurring headaches and elevated home BP readings over the last 7 days.',
         'S: Currently on Lisinopril 5mg. No drug allergies.',
         'O: Vitals — BP 152/94. HR 84bpm. SpO₂ 98%. Afebrile.',

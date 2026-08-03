@@ -58,7 +58,7 @@ export function TeleConsultSessionPage() {
     const [scribeIdx, setScribeIdx] = useState(0);
 
     const MOCK_SCRIBE = [
-        'Provider: Dr. Fatima Aliyu | Patient: Amara Okafor | Specialty: Cardiology',
+        'Session started | Specialty: Cardiology',
         'Patient reports persistent headaches and elevated home BP readings over the past 7 days.',
         'No chest pain. No dyspnea. No neurological deficits reported.',
         'Currently on Lisinopril 5mg once daily. No allergies.',
