@@ -18,9 +18,9 @@ export function PatientVisionPage() {
         </p>
       </div>
 
-      {user?.data?.account?.id ? (
+      {user?.sub ? (
         <div className="rounded-2xl border border-gray-200 bg-white p-6">
-          <VisionRecordSection patientId={user.data.account.id} />
+          <VisionRecordSection patientId={user.sub} />
         </div>
       ) : (
         <p className="text-sm text-slate-500">Loading...</p>
