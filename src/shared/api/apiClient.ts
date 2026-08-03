@@ -1,4 +1,5 @@
 import axios from "axios";
+import Cookies from "js-cookie";
 
 // Deliberately appends /api/v1 here rather than relying on
 // VITE_API_BASE_URL to already include it. The env var is the bare
@@ -20,7 +21,7 @@ const apiClient = axios.create({
  */
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("accessToken");
+    const token = Cookies.get("accessToken");
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
