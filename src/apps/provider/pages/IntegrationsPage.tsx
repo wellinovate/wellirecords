@@ -22,8 +22,10 @@ export function IntegrationsPage() {
     };
 
     const createKey = () => {
+        // No backend endpoint exists to actually create an API key —
+        // this used to fake a success state ("Key Created!") with
+        // nothing persisted anywhere. Honest instead.
         setCreated(true);
-        setTimeout(() => { setCreated(false); setShowNew(false); setLabel(''); setScopes([]); }, 2000);
     };
 
     return (
@@ -121,7 +123,7 @@ export function IntegrationsPage() {
                     <div className="card-provider w-full max-w-md p-6 animate-fade-in-up">
                         <div className="flex items-center justify-between mb-5">
                             <h3 className="font-bold text-lg" style={{ color: '#e2eaf4' }}>Generate New API Key</h3>
-                            <button onClick={() => setShowNew(false)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10"><X size={16} style={{ color: '#7ba3c8' }} /></button>
+                            <button onClick={() => { setShowNew(false); setCreated(false); }} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10"><X size={16} style={{ color: '#7ba3c8' }} /></button>
                         </div>
                         <div className="space-y-4">
                             <div><label className="block text-sm font-medium mb-1" style={{ color: '#e2eaf4' }}>Key Label</label><input value={label} onChange={e => setLabel(e.target.value)} className="input input-dark" placeholder="e.g. FHIR Integration" /></div>
@@ -137,9 +139,15 @@ export function IntegrationsPage() {
                                     ))}
                                 </div>
                             </div>
-                            <button onClick={createKey} className="btn btn-provider w-full justify-center gap-2">
-                                {created ? <><CheckCircle size={16} /> Key Created!</> : <><Settings2 size={16} /> Generate Key</>}
-                            </button>
+                            {created ? (
+                                <div className="rounded-xl p-3 text-sm text-center" style={{ background: 'rgba(148,163,184,0.1)', color: '#94a3b8', border: '1px solid rgba(148,163,184,0.2)' }}>
+                                    API key generation isn't available yet — no backend endpoint exists to issue or store keys.
+                                </div>
+                            ) : (
+                                <button onClick={createKey} className="btn btn-provider w-full justify-center gap-2">
+                                    <Settings2 size={16} /> Generate Key
+                                </button>
+                            )}
                             <p className="text-[11px] text-center" style={{ color: '#3e5a78' }}>⚠️ Copy the key immediately — it will only be shown once.</p>
                         </div>
                     </div>

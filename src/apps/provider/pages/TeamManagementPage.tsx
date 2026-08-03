@@ -189,28 +189,14 @@ export function TeamManagementPage() {
     const reactivate = (id: string) => setMembers(prev => prev.map(m => m.userId === id ? { ...m, status: 'active' } : m));
 
     const sendInvite = () => {
+        // No backend endpoint exists for inviting a team member — this
+        // used to fetch("/api/send-email"), a relative path that
+        // doesn't match any real route (everything real lives under
+        // /api/v1/...), so it silently failed while still claiming
+        // success regardless. It also fabricated a random fake
+        // organization id ("ORG-" + a random number) to fill into the
+        // email when user.orgId was missing, which it always is.
         setSent(true);
-        fetch("/api/send-email", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                to: inviteEmail,
-                templateId: "provider-welcome",
-                variables: {
-                    providerName: inviteName,
-                    facilityName: org?.name || user?.orgName || "WelliRecord Partner",
-                    organizationId: user?.orgId || "ORG-" + Math.floor(100000 + Math.random() * 900000),
-                    providerDashboardUrl: `${window.location.origin}/provider/dashboard`,
-                    dashboardUrl: `${window.location.origin}/dashboard`,
-                    privacyPolicyUrl: `${window.location.origin}/privacy`,
-                    contactSupportUrl: `${window.location.origin}/support`
-                }
-            })
-        }).catch(err => console.error("Failed to send invite email:", err));
-
-        setTimeout(() => { setSent(false); setShowInvite(false); setInviteEmail(''); setInviteName(''); }, 2000);
     };
 
     return (
@@ -316,7 +302,7 @@ export function TeamManagementPage() {
                         <div className="p-6">
                             <div className="flex items-center justify-between mb-5">
                                 <h3 className="font-bold text-base" style={{ color: '#e2eaf4' }}>Invite Team Member</h3>
-                                <button onClick={() => setShowInvite(false)}
+                                <button onClick={() => { setShowInvite(false); setSent(false); }}
                                     className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-white/10">
                                     <X size={14} style={{ color: '#7ba3c8' }} />
                                 </button>
@@ -360,17 +346,21 @@ export function TeamManagementPage() {
                                     </div>
                                 </div>
 
-                                <div className="rounded-xl px-4 py-3 text-xs" style={{ background: 'rgba(56,189,248,.06)', color: '#7ba3c8' }}>
-                                    📨 An encrypted invite link will be sent. It expires in 48 hours and requires 2FA setup on first login.
+                                <div className="rounded-xl px-4 py-3 text-xs" style={{ background: 'rgba(148,163,184,.08)', color: '#94a3b8' }}>
+                                    Team invites aren't available yet — no backend endpoint exists to send or process them.
                                 </div>
 
-                                <button onClick={sendInvite}
-                                    disabled={!inviteEmail.includes('@') || !inviteName}
-                                    className="btn btn-provider w-full justify-center gap-2 disabled:opacity-40">
-                                    {sent
-                                        ? <><CheckCircle size={15} /> Invite Sent!</>
-                                        : <><Mail size={15} /> Send Secure Invite</>}
-                                </button>
+                                {sent ? (
+                                    <div className="rounded-xl p-3 text-sm text-center" style={{ background: 'rgba(148,163,184,0.1)', color: '#94a3b8', border: '1px solid rgba(148,163,184,0.2)' }}>
+                                        Not sent — this feature isn't wired to a real backend yet.
+                                    </div>
+                                ) : (
+                                    <button onClick={sendInvite}
+                                        disabled={!inviteEmail.includes('@') || !inviteName}
+                                        className="btn btn-provider w-full justify-center gap-2 disabled:opacity-40">
+                                        <Mail size={15} /> Send Secure Invite
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>
