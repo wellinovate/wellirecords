@@ -130,11 +130,12 @@ const patientNav = [
 
 // Bottom nav — 4 primary tabs + "more" button
 const BOTTOM_NAV = [
-  { to: "/patient/overview", label: "Home", icon: LayoutDashboard },
-  { to: "/patient/vault", label: "Vault", icon: FolderHeart },
-  { to: "/patient/appointments", label: "Appts", icon: Calendar },
-  { to: "/patient/messages", label: "Messages", icon: MessageSquare },
+  { to: "/patient/overview",      label: "Home",       icon: LayoutDashboard },
+  { to: "/patient/appointments",  label: "Appts",      icon: Calendar },
+  { to: "/patient/vision",        label: "Vision",     icon: Eye },
+  { to: "/patient/find-care",     label: "Find Care",  icon: MapPin },
 ];
+
 
 export function PatientLayout() {
   const { user, signOut } = useAuth();
