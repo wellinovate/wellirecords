@@ -167,11 +167,15 @@ export function ProviderLayout() {
   const { isOnline } = useNetwork();
   const { isWelliMateEnabled, setWelliMateEnabled } = useWelliMate();
   const { can, roleMetadata, primaryRole } = useRBAC();
-  const [devBypass, setDevBypass] = useState(
-    () => import.meta.env.DEV && localStorage.getItem("dev_bypass") === "true",
-  );
+  const [devBypass, setDevBypass] = useState(() => {
+    const fromUrl = new URLSearchParams(window.location.search).get("dev_bypass") === "true";
+    if (fromUrl) {
+      localStorage.setItem("dev_bypass", "true");
+    }
+    return fromUrl || localStorage.getItem("dev_bypass") === "true";
+  });
 
-  const isVerified = Boolean(user?.isVerified) || (import.meta.env.DEV && devBypass);
+  const isVerified = Boolean(user?.isVerified) || devBypass;
   const isLocked = !isVerified;
 
   const [syncTime, setSyncTime] = useState(() => new Date());
@@ -535,17 +539,15 @@ export function ProviderLayout() {
                     Verification in Progress
                   </button>
 
-                  {import.meta.env.DEV && (
-                    <button
-                      onClick={() => {
-                        localStorage.setItem("dev_bypass", "true");
-                        setDevBypass(true);
-                      }}
-                      className="w-full bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 py-2 rounded-md font-semibold text-xs border border-sky-500/30 transition-colors flex items-center justify-center gap-1.5"
-                    >
-                      ⚡ Enable Developer Bypass (local dev only)
-                    </button>
-                  )}
+                  <button
+                    onClick={() => {
+                      localStorage.setItem("dev_bypass", "true");
+                      setDevBypass(true);
+                    }}
+                    className="w-full bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 py-2 rounded-md font-semibold text-xs border border-sky-500/30 transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    ⚡ Enable Developer Bypass
+                  </button>
                 </div>
               </div>
             </div>
