@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-const TERMII_BASE_URL = 'https://api.ng.termii.com/api/sms/send';
+const TERMII_BASE_URL = 'https://api.termii.com/api/sms/send';
 
 function normalizePhone(phone: string): string {
   const digits = phone.replace(/\D/g, ''); // strip spaces, dashes, etc.
