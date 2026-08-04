@@ -64,6 +64,7 @@ import {
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { getAllPatientLabResults, LabResultItem } from "@/shared/utils/utilityFunction";
 import { createRecord } from "@/shared/api/clinicalApi";
+import { sendCriticalAlertSms } from "@/shared/api/notificationApi";
 
 // ─── Color & Design System Tokens ─────────────────────────────────────────────
 const T = {
@@ -328,7 +329,7 @@ export function LabOrdersPage() {
   };
 
   // Save Results & Critical Alert Trigger
-  const handleSaveResult = (e: React.FormEvent) => {
+  const handleSaveResult = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedOrder) return;
 
@@ -349,7 +350,13 @@ export function LabOrdersPage() {
     );
 
     if (resultForm.isCritical) {
-      showToast(`Result saved and flagged CRITICAL for ${selectedOrder.patientName}. SMS/push alert not yet connected — notify Dr. ${selectedOrder.doctor} directly.`);
+      const alertMessage = `CRITICAL LAB VALUE: ${selectedOrder.patientName} — ${selectedOrder.testName}. Check WelliRecord immediately.`;
+      const result = await sendCriticalAlertSms(selectedOrder.doctorPhone || selectedOrder.phone, alertMessage);
+      if (result.success) {
+        showToast(`Critical result saved. Alert SMS sent to Dr. ${selectedOrder.doctor}.`);
+      } else {
+        showToast(`Result saved and flagged CRITICAL, but SMS alert failed: ${result.error}. Notify Dr. ${selectedOrder.doctor} directly.`);
+      }
     } else {
       showToast(`Lab result saved & verified for ${selectedOrder.patientName}`);
     }
