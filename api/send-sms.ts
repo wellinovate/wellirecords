@@ -1,7 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-const TERMII_API_KEY = process.env.TERMII_API_KEY;
-const TERMII_SENDER_ID = process.env.TERMII_SENDER_ID || 'WelliRecord';
 const TERMII_BASE_URL = 'https://api.ng.termii.com/api/sms/send';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -21,11 +19,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         to,
-        from: TERMII_SENDER_ID,
+        from: 'N-Alert',
         sms: message,
         type: 'plain',
-        channel: 'generic',
-        api_key: TERMII_API_KEY,
+        channel: 'dnd',
+        api_key: process.env.TERMII_API_KEY,
       }),
     });
 
