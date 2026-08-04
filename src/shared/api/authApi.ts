@@ -437,8 +437,12 @@ signInAsRole(role: UserRole): AuthUser {
     const response = await axios.post(`${apiUrl}/api/v1/auth/register`, payload);
 
     if (response.status === 201) {
-      const data = await response.data.message;
-      return data;
+      // Previously only returned response.data.message (a string),
+      // discarding response.data.data — which is where the real
+      // wrOrgId assigned to the new org actually lives. Callers used
+      // to fabricate a random fake org ID instead because this
+      // function never gave them the real one.
+      return response.data;
     }
   } catch (err: any) {
     toast.error(err?.response?.data?.message ?? "registration failed");

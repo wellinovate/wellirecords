@@ -57,7 +57,7 @@ type AuthContextValue = {
   ) => AuthUser | null;
   signInAsRole: (role: UserRole) => AuthUser;
   signUpPatient: (payload: any) => string | null;
-  signUpProvider: (payload: any) => string | null;
+  signUpProvider: (payload: any) => Promise<any>;
   signOut: () => void;
 };
 

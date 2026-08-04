@@ -420,7 +420,7 @@ export function ProviderSignupPage() {
       // Replace this with a dedicated backend function later
       const resp = await signUpProvider(payload);
 
-      if (resp === "Account created successfully") {
+      if (resp?.message === "Account created successfully") {
         fetch("/api/send-email", {
           method: "POST",
           headers: {
@@ -432,7 +432,7 @@ export function ProviderSignupPage() {
             variables: {
               providerName: payload.contactPersonName,
               facilityName: payload.organizationName,
-              organizationId: "ORG-" + Math.floor(100000 + Math.random() * 900000),
+              organizationId: resp?.data?.profile?.wrOrgId || "Pending",
               providerDashboardUrl: `${window.location.origin}/provider/dashboard`,
               dashboardUrl: `${window.location.origin}/dashboard`,
               privacyPolicyUrl: `${window.location.origin}/privacy`,
@@ -479,7 +479,7 @@ export function ProviderSignupPage() {
 
       const resp = await signUpProvider(payload);
 
-      if (resp === "Account created successfully") {
+      if (resp?.message === "Account created successfully") {
         fetch("/api/send-email", {
           method: "POST",
           headers: {
@@ -491,7 +491,7 @@ export function ProviderSignupPage() {
             variables: {
               providerName: payload.contactPersonName,
               facilityName: "Individual Practice",
-              organizationId: "IND-" + Math.floor(100000 + Math.random() * 900000),
+              organizationId: resp?.data?.profile?.wrOrgId || "Pending",
               providerDashboardUrl: `${window.location.origin}/provider/dashboard`,
               dashboardUrl: `${window.location.origin}/dashboard`,
               privacyPolicyUrl: `${window.location.origin}/privacy`,
