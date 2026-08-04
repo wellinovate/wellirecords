@@ -96,6 +96,7 @@ const INITIAL_LAB_ORDERS = [
     source: "Lagos University Teaching Hospital",
     sourceType: "Hospital",
     doctor: "Dr. Olayinka Adeleke",
+    doctorPhone: "+234 803 111 2233",
     date: "2026-08-04 09:15",
     priority: "urgent",
     status: "processing", // requested -> collected -> received -> processing -> quality-control -> verified -> released -> delivered
@@ -240,6 +241,7 @@ export function LabOrdersPage() {
     patientName: "",
     patientWrId: "",
     phone: "",
+    doctorPhone: "",
     testName: "",
     category: "Hematology",
     source: "Hospital Referral",
@@ -350,12 +352,17 @@ export function LabOrdersPage() {
     );
 
     if (resultForm.isCritical) {
-      const alertMessage = `CRITICAL LAB VALUE: ${selectedOrder.patientName} — ${selectedOrder.testName}. Check WelliRecord immediately.`;
-      const result = await sendCriticalAlertSms(selectedOrder.doctorPhone || selectedOrder.phone, alertMessage);
-      if (result.success) {
-        showToast(`Critical result saved. Alert SMS sent to Dr. ${selectedOrder.doctor}.`);
+      const alertPhone = selectedOrder.doctorPhone;
+      if (!alertPhone) {
+        showToast(`Result saved and flagged CRITICAL, but no doctor phone on file — notify Dr. ${selectedOrder.doctor} directly.`);
       } else {
-        showToast(`Result saved and flagged CRITICAL, but SMS alert failed: ${result.error}. Notify Dr. ${selectedOrder.doctor} directly.`);
+        const alertMessage = `CRITICAL LAB VALUE: ${selectedOrder.patientName} — ${selectedOrder.testName}. Check WelliRecord immediately.`;
+        const result = await sendCriticalAlertSms(alertPhone, alertMessage);
+        if (result.success) {
+          showToast(`Critical result saved. Alert SMS sent to Dr. ${selectedOrder.doctor}.`);
+        } else {
+          showToast(`Result saved and flagged CRITICAL, but SMS alert failed: ${result.error}. Notify Dr. ${selectedOrder.doctor} directly.`);
+        }
       }
     } else {
       showToast(`Lab result saved & verified for ${selectedOrder.patientName}`);
@@ -372,6 +379,7 @@ export function LabOrdersPage() {
       patientName: newOrder.patientName || "Walk-in Patient",
       patientWrId: newOrder.patientWrId || `WR-NGA-2026-${Math.floor(1000 + Math.random() * 9000)}`,
       phone: newOrder.phone || "+234 800 000 0000",
+      doctorPhone: newOrder.doctorPhone || "",
       testName: newOrder.testName,
       category: newOrder.category,
       source: newOrder.source,
@@ -1171,6 +1179,30 @@ export function LabOrdersPage() {
                     placeholder="e.g. WR-NGA-2026-5544"
                     value={newOrder.patientWrId}
                     onChange={(e) => setNewOrder({ ...newOrder, patientWrId: e.target.value })}
+                    className="w-full bg-[#081220] border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Ordering Doctor</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Dr. Olayinka Adeleke"
+                    value={newOrder.doctor}
+                    onChange={(e) => setNewOrder({ ...newOrder, doctor: e.target.value })}
+                    className="w-full bg-[#081220] border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Doctor's Phone (for critical alerts)</label>
+                  <input
+                    type="tel"
+                    value={newOrder.doctorPhone}
+                    onChange={(e) => setNewOrder({ ...newOrder, doctorPhone: e.target.value })}
+                    placeholder="+234 800 000 0000"
                     className="w-full bg-[#081220] border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"
                   />
                 </div>
