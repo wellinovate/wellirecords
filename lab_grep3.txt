@@ -1,0 +1,7 @@
+214:  const [orders, setOrders] = useState(INITIAL_LAB_ORDERS);
+215:  const [searchQuery, setSearchQuery] = useState("");
+223:  const [isResultModalOpen, setIsResultModalOpen] = useState(false);
+224:  const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
+228:  const [resultForm, setResultForm] = useState({
+238:  const [newOrder, setNewOrder] = useState({
+252:  const [imagingForm, setImagingForm] = useState({

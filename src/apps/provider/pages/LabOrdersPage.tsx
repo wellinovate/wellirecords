@@ -349,7 +349,7 @@ export function LabOrdersPage() {
     );
 
     if (resultForm.isCritical) {
-      showToast(`🚨 CRITICAL ALERT DISPATCHED via SMS/Push to Dr. ${selectedOrder.doctor} & Patient!`);
+      showToast(`Result saved and flagged CRITICAL for ${selectedOrder.patientName}. SMS/push alert not yet connected — notify Dr. ${selectedOrder.doctor} directly.`);
     } else {
       showToast(`Lab result saved & verified for ${selectedOrder.patientName}`);
     }
