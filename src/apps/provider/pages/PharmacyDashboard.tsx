@@ -119,10 +119,10 @@ export function PharmacyDashboard() {
 
   // State: Medications & Inventory
   const [medications, setMedications] = useState<MedicationItem[]>([]);
-  const [inventory, setInventory] = useState(INITIAL_INVENTORY);
-  const [inboundRx, setInboundRx] = useState(INBOUND_PRESCRIPTIONS);
-  const [refills, setRefills] = useState(REFILL_REQUESTS);
-  const [deliveries, setDeliveries] = useState(HOME_DELIVERIES);
+  const [inventory, setInventory] = useState<any[]>([]);
+  const [inboundRx, setInboundRx] = useState<any[]>([]);
+  const [refills, setRefills] = useState<any[]>([]);
+  const [deliveries, setDeliveries] = useState<any[]>([]);
 
   // Loading & Filter states
   const [loadingMeds, setLoadingMeds] = useState(false);
