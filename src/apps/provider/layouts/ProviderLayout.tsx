@@ -77,10 +77,9 @@ const ALL_NAV = [
   },
 
   {
-    to: "/provider/prescriptions",
-    label: "Prescriptions",
+    to: "/provider/pharmacy",
+    label: "Pharmacy & Prescriptions",
     icon: Pill,
-    // roles: ["clinician", "pharmacist", "provider_admin"],
     roles: ["*"],
   },
   // {

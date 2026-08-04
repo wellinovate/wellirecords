@@ -71,6 +71,7 @@ const EHRViewerPage = lazy(() => import("@/apps/provider/pages/EHRViewerPage").t
 const NewEncounterPage = lazy(() => import("@/apps/provider/pages/NewEncounterPage").then(m => ({ default: m.NewEncounterPage })));
 const LabOrdersPage = lazy(() => import("@/apps/provider/pages/LabOrdersPage").then(m => ({ default: m.LabOrdersPage })));
 const PrescriptionsPage = lazy(() => import("@/apps/provider/pages/PrescriptionsPage").then(m => ({ default: m.PrescriptionsPage })));
+const PharmacyDashboard = lazy(() => import("@/apps/provider/pages/PharmacyDashboard").then(m => ({ default: m.PharmacyDashboard })));
 const ProviderVisionPage = lazy(() => import("@/apps/provider/pages/ProviderVisionPage").then(m => ({ default: m.ProviderVisionPage })));
 const ReferralsPage = lazy(() => import("@/apps/provider/pages/ReferralsPage").then(m => ({ default: m.ReferralsPage })));
 const TeamManagementPage = lazy(() => import("@/apps/provider/pages/TeamManagementPage").then(m => ({ default: m.TeamManagementPage })));
@@ -268,7 +269,8 @@ export function AppRoutes() {
           <Route path="queue" element={<QueuePage />} />
           <Route path="encounters/new" element={<NewEncounterPage />} />
           <Route path="orders/labs" element={<LabOrdersPage />} />
-          <Route path="prescriptions" element={<PrescriptionsPage />} />
+          <Route path="pharmacy" element={<PharmacyDashboard />} />
+          <Route path="prescriptions" element={<PharmacyDashboard />} />
           <Route path="referrals" element={<ReferralsPage />} />
           <Route path="team" element={<TeamManagementPage />} />
           <Route path="audit-logs" element={<AuditLogsPage />} />
