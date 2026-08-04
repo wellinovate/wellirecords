@@ -1,14 +1,11 @@
 import axios from "axios";
+import apiClient from "@/shared/api/apiClient";
 import {
   MOCK_ACCESS_AUDIT,
   MOCK_ACCESS_GRANTS,
   MOCK_ACCESS_REQUESTS,
 } from "@/shared/api/mockConsentData";
-import Cookies from "js-cookie";
 import { apiUrl } from "./authApi";
-
-
-const token = Cookies.get("accessToken");
 
 const API_BASE = apiUrl;
 
@@ -240,171 +237,53 @@ let mockAudit = [...MOCK_ACCESS_AUDIT];
 
 export const consentApi = {
   async getMyGrants(patientId: string) {
-    console.log("🚀 ~ patientId:", patientId)
     try {
-      const res = await axios.get(
-        `${API_BASE}/api/v1/access-grants/patients/${patientId}/access-grants`,
-        {
-      // params,
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    },
+      const res = await apiClient.get(
+        `/access-grants/patients/${patientId}/access-grants`,
       );
 
-      const data = res.data?.data ?? [];
-
-      // if (shouldUseMock(data)) {
-      //   return filterMockByPatient(mockGrants, patientId);
-      // }
-
-      return data;
+      return (res as any)?.data ?? [];
     } catch (error) {
-      // if (USE_MOCK_FALLBACK) {
-      //   console.warn("Using mock grants because backend failed:", error);
-      //   return filterMockByPatient(mockGrants, patientId);
-      // }
-
-      // throw error;
-      console.log("🚀 ~ error:", error)
+      console.error("Failed to fetch grants:", error);
+      throw error;
     }
   },
 
   async getRequests(patientId: string): Promise<AccessGrant[]> {
-    try {
-      const res = await axios.get(
-        `${API_BASE}/patients/${patientId}/access-requests`,
-        {
-          withCredentials: true,
-        },
-      );
-
-      const data = res.data?.data ?? [];
-
-      if (shouldUseMock(data)) {
-        return filterMockByPatient(mockRequests, patientId);
-      }
-
-      return data;
-    } catch (error) {
-      if (USE_MOCK_FALLBACK) {
-        console.warn("Using mock requests because backend failed:", error);
-        return filterMockByPatient(mockRequests, patientId);
-      }
-
-      throw error;
-    }
+    // No backend endpoint exists for this yet (no /access-requests
+    // route anywhere in the API). This used to throw on every call,
+    // which — since it's awaited inside the same Promise.all as the
+    // real getMyGrants call on page load — meant the real grants list
+    // never rendered either, since Promise.all rejects as a whole the
+    // moment any one promise in it rejects.
+    return [];
   },
 
   async createGrant(
     patientId: string,
     payload: CreateGrantPayload,
   ): Promise<AccessGrant> {
-    console.log("🚀 ~ payload:", payload)
-    try {
-      const res = await axios.post(
-        `${API_BASE}/api/v1/access-grants/patients/${patientId}/access-grants`,
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      if(res.data.success === false) {
-        console.log(`API error: ${res.status} ${res.statusText}`);
-      }   
-
-      return res.data.data;
-    } catch (error) {
-      // if (USE_MOCK_FALLBACK) {
-      //   console.warn("Creating mock grant because backend failed:", error);
-
-      //   const grant = createMockGrant(patientId, payload);
-      //   mockGrants = [grant, ...mockGrants];
-
-      //   return grant;
-      // }
-      console.log("🚀 ~ error:", error)
-
-      throw error;
-    }
+    const res = await apiClient.post(
+      `/access-grants/patients/${patientId}/access-grants`,
+      payload,
+    );
+    return (res as any)?.data;
   },
 
   async createShareLink(
     patientId: string,
     payload: CreateShareLinkPayload,
   ): Promise<{ grant: AccessGrant; shareUrl: string }> {
-    try {
-      const res = await axios.post(
-        `${API_BASE}/api/v1/access-grants/patients/${patientId}/access-grants/share-link`,
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      if (res.data.success === false) {
-        console.log(`API error: ${res.status} ${res.statusText}`);
-      }
-
-      return res.data.data;
-    } catch (error) {
-      console.log("🚀 ~ error:", error);
-      throw error;
-    }
+    const res = await apiClient.post(
+      `/access-grants/patients/${patientId}/access-grants/share-link`,
+      payload,
+    );
+    return (res as any)?.data;
   },
 
   async revokeGrant(grantId: string) {
-    console.log("🚀 ~ grantId:", grantId)
-    try {
-      const res = await axios.patch(
-        `${API_BASE}/api/v1/access-grants/${grantId}/revoke`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-      if(res.data.success === false) {
-        console.log(`API error: ${res.status} ${res.statusText}`);
-        return;
-      }
-
-      return res.data.data;
-    } catch (error) {
-      // if (USE_MOCK_FALLBACK) {
-      //   console.warn("Revoking mock grant because backend failed:", error);
-
-      //   let updatedGrant: AccessGrant | null = null;
-
-      //   mockGrants = mockGrants.map((grant) => {
-      //     if (grant._id !== grantId) return grant;
-
-      //     updatedGrant = {
-      //       ...grant,
-      //       status: "revoked",
-      //       revokedAt: new Date().toISOString(),
-      //       updatedAt: new Date().toISOString(),
-      //     };
-
-      //     return updatedGrant;
-      //   });
-
-      //   if (!updatedGrant) {
-      //     throw new Error("Mock grant not found");
-      //   }
-
-      //   return updatedGrant;
-      // }
-
-      // throw error;
-      console.log("🚀 ~ error:", error)
-    }
+    const res = await apiClient.patch(`/access-grants/${grantId}/revoke`, {});
+    return (res as any)?.data;
   },
 
   async approveRequest(
@@ -566,30 +445,10 @@ export const consentApi = {
 
 export const auditApi = {
   async getAuditLog(patientId: string) {
-    try {
-      const res = await axios.get(
-        `${API_BASE}/patients/${patientId}/access-audit`,
-        {
-          withCredentials: true,
-        },
-      );
-
-      const data = res.data?.data ?? [];
-
-      // if (shouldUseMock(data)) {
-      //   return filterMockByPatient(mockAudit, patientId);
-      // }
-
-      return data;
-    } catch (error) {
-      // if (USE_MOCK_FALLBACK) {
-      //   console.warn("Using mock audit because backend failed:", error);
-      //   return filterMockByPatient(mockAudit, patientId);
-      // }
-
-      // throw error;
-      console.log("🚀 ~ error:", error)
-    }
+    // No backend endpoint exists for this yet (no /access-audit
+    // route anywhere in the API) — same Promise.all poisoning issue
+    // as getRequests above.
+    return [];
   },
 };
 
