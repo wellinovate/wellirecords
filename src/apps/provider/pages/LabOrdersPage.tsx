@@ -213,7 +213,7 @@ const REAGENTS_INVENTORY = [
 export function LabOrdersPage() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"pipeline" | "entry" | "imaging" | "inventory" | "analytics">("pipeline");
-  const [orders, setOrders] = useState(INITIAL_LAB_ORDERS);
+  const [orders, setOrders] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchBy, setSearchBy] = useState<"all" | "wrid" | "name" | "phone" | "doctor">("all");
   const [sourceFilter, setSourceFilter] = useState<string>("all");
