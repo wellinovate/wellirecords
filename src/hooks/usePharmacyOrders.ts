@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 
-const API_BASE = (import.meta as any).env?.VITE_API_BASE || 'http://localhost:4000/api';
-const SOCKET_URL = (import.meta as any).env?.VITE_SOCKET_URL || 'http://localhost:4000';
+const SERVER_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+const API_BASE = `${SERVER_URL}/api`;
+const SOCKET_URL = SERVER_URL;
 
 export interface PharmacyOrder {
   _id: string;
