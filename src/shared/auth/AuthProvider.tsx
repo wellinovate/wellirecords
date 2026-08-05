@@ -43,6 +43,7 @@ type AuthContextValue = {
   createVitalRecord: (payload: any) => any;
   createMedication: (payload: any) => any;
   updateProfile: (payload: any) => any;
+  uploadAvatar: (file: File) => any;
   createAllergy: (payload: any) => any;
   createDiagnosis: (payload: any) => any;
   createLabResult: (payload: any) => any;
@@ -50,13 +51,13 @@ type AuthContextValue = {
   createProcedure: (payload: any) => any;
   signIn: (email: string, password: string) => AuthUser | null;
   verifyLoginCodeApi: (challengeToken: string, code: string) => AuthUser | null;
-  resendVerifyLoginCodeApi: (email: string) => any;
+  resendVerifyLoginCodeApi: (tokenOrEmail: string, email?: string) => any;
   handleGoogleCredentials: (
     response: GoogleCredentialResponse,
   ) => AuthUser | null;
   signInAsRole: (role: UserRole) => AuthUser;
   signUpPatient: (payload: any) => string | null;
-  signUpProvider: (payload: any) => string | null;
+  signUpProvider: (payload: any) => Promise<any>;
   signOut: () => void;
 };
 
@@ -140,8 +141,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return res;
   };
 
-  const resendVerifyLoginCodeApi = async (email: string) => {
-    const res = await authApi.resendVerifyLoginCodeApi(email);
+  const resendVerifyLoginCodeApi = async (tokenOrEmail: string, email?: string) => {
+    const res = await authApi.resendVerifyLoginCodeApi(tokenOrEmail, email);
     return res;
   };
 
@@ -261,6 +262,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return res;
   };
 
+  const uploadAvatar = async (file: File): Promise<SearchPatientResponse> => {
+    const res = await authApi.uploadAvatar(file);
+
+    const updatedProfile = res?.data;
+    if (updatedProfile?.avatar) {
+      setUser((prev) =>
+        prev ? { ...prev, avatar: updatedProfile.avatar } : prev,
+      );
+    }
+
+    return res;
+  };
+
   const createAllergy = async (
     payload: any,
   ): Promise<SearchPatientResponse> => {
@@ -354,6 +368,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       searchDoctorRequest,
       createMedication,
       updateProfile,
+      uploadAvatar,
       createAllergy,
       createDiagnosis,
       createLabResult,

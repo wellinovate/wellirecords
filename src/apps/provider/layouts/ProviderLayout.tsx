@@ -1,5 +1,5 @@
 import { health_companion_image, logos, welliIcon } from "@/assets";
-import { orgApi } from "@/shared/api/orgApi";
+import { getMyOrganization, type MyOrganization } from "@/shared/api/organizationApi";import { orgApi } from "@/shared/api/orgApi";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { useWelliMate } from "@/shared/context/WelliMateContext";
 import { useNetwork } from "@/shared/hooks/useNetwork";
@@ -13,6 +13,7 @@ import {
   ChevronDown,
   ChevronRight,
   ClipboardList,
+  Eye,
   FlaskConical,
   HeartPulse,
   LayoutDashboard,
@@ -59,6 +60,7 @@ const ALL_NAV = [
     roles: ["*"],
   },
   { to: "/provider/patients", label: "Patients", icon: Users, roles: ["*"] },
+  { to: "/provider/vision", label: "Vision", icon: Eye, roles: ["*"] },
   {
     to: "/provider/doctors",
     label: "Doctors",
@@ -75,10 +77,9 @@ const ALL_NAV = [
   },
 
   {
-    to: "/provider/prescriptions",
-    label: "Prescriptions",
+    to: "/provider/pharmacy",
+    label: "Pharmacy & Prescriptions",
     icon: Pill,
-    // roles: ["clinician", "pharmacist", "provider_admin"],
     roles: ["*"],
   },
   // {
@@ -155,18 +156,26 @@ export function ProviderLayout() {
   // console.log("🚀 ~ ProviderLayout ~ user:", user);
   const navigate = useNavigate();
   const location = useLocation();
-  const org = user?.orgId ? orgApi.getById(user.orgId) : undefined;
-  const orgs = orgApi.getAll();
-  const [showOrgDrop, setShowOrgDrop] = useState(false);
+  const [org, setOrg] = useState<MyOrganization | null>(null);
+
+  useEffect(() => {
+    getMyOrganization()
+      .then(setOrg)
+      .catch(() => setOrg(null));
+  }, []);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { isOnline } = useNetwork();
   const { isWelliMateEnabled, setWelliMateEnabled } = useWelliMate();
   const { can, roleMetadata, primaryRole } = useRBAC();
-  const [devBypass, setDevBypass] = useState(
-    () => import.meta.env.DEV && localStorage.getItem("dev_bypass") === "true",
-  );
+  const [devBypass, setDevBypass] = useState(() => {
+    const fromUrl = new URLSearchParams(window.location.search).get("dev_bypass") === "true";
+    if (fromUrl) {
+      localStorage.setItem("dev_bypass", "true");
+    }
+    return fromUrl || localStorage.getItem("dev_bypass") === "true";
+  });
 
-  const isVerified = Boolean(user?.isVerified) || (import.meta.env.DEV && devBypass);
+  const isVerified = Boolean(user?.isVerified) || devBypass;
   const isLocked = !isVerified;
 
   const [syncTime, setSyncTime] = useState(() => new Date());
@@ -241,7 +250,7 @@ export function ProviderLayout() {
           style={{ borderColor: "var(--prov-border)" }}
         >
           <button
-            onClick={() => setShowOrgDrop((p) => !p)}
+            
             className="flex items-center gap-2 p-2 lg:p-2.5 rounded-xl w-full text-left hover:bg-white/5 justify-center lg:justify-start"
             // className="ml-2 lg:block text-[16px] font-bold rounded-lg tracking-widest uppercase mt-2 py-2 px-3 text-white"
             style={{
@@ -257,54 +266,20 @@ export function ProviderLayout() {
                 border: "1px solid rgba(126, 159, 255, 0.12)",
               }}
             >
-              {orgApi.getOrgTypeIcon(org?.type ?? "hospital")}
+              {orgApi.getOrgTypeIcon(org?.organizationType ?? "hospital")}
             </div>
             <div className="flex-1 min-w-0 hidden lg:block">
               <div
                 className="text-xs font-semibold truncate"
                 style={{ color: "#e2eaf4" }}
               >
-                {org?.name ?? "Unknown Org"}
+                {org?.organizationName ?? "Unknown Org"}
               </div>
               <div className="text-[10px]" style={{ color: "#7ba3c8" }}>
-                {orgApi.getOrgTypeLabel(org?.type ?? "hospital")}
+                {orgApi.getOrgTypeLabel(org?.organizationType ?? "hospital")}
               </div>
             </div>
-            <ChevronDown
-              size={14}
-              style={{ color: "#7ba3c8" }}
-              className="hidden lg:block"
-            />
           </button>
-          {showOrgDrop && (
-            <div
-              className="absolute left-2 right-2 top-full mt-1 rounded-xl z-40 shadow-2xl overflow-hidden"
-              style={{
-                background: "var(--prov-surface)",
-                border: "1px solid var(--prov-border)",
-              }}
-            >
-              {orgs.map((o) => (
-                <button
-                  key={o.id}
-                  onClick={() => setShowOrgDrop(false)}
-                  className="flex items-center gap-2 px-3 py-2.5 w-full text-left text-sm hover:bg-white/5 border-b last:border-0"
-                  style={{
-                    borderColor: "var(--prov-border)",
-                    color: "#e2eaf4",
-                  }}
-                >
-                  <span>{orgApi.getOrgTypeIcon(o.type)}</span>
-                  <span>{o.name}</span>
-                  {o.id === user?.orgId && (
-                    <span className="ml-auto badge badge-active text-xs">
-                      Current
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
         {/* Role badge */}
         <div
@@ -564,17 +539,15 @@ export function ProviderLayout() {
                     Verification in Progress
                   </button>
 
-                  {import.meta.env.DEV && (
-                    <button
-                      onClick={() => {
-                        localStorage.setItem("dev_bypass", "true");
-                        setDevBypass(true);
-                      }}
-                      className="w-full bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 py-2 rounded-md font-semibold text-xs border border-sky-500/30 transition-colors flex items-center justify-center gap-1.5"
-                    >
-                      ⚡ Enable Developer Bypass (local dev only)
-                    </button>
-                  )}
+                  <button
+                    onClick={() => {
+                      localStorage.setItem("dev_bypass", "true");
+                      setDevBypass(true);
+                    }}
+                    className="w-full bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 py-2 rounded-md font-semibold text-xs border border-sky-500/30 transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    ⚡ Enable Developer Bypass
+                  </button>
                 </div>
               </div>
             </div>

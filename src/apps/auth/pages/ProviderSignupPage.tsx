@@ -19,6 +19,23 @@ const ORG_TYPE_OPTIONS = [
   { value: "other", label: "Other" },
 ];
 
+// Only shown/sent when organizationType is "healthcare_provider" — the
+// backend field this maps to (OrganizationProfile.clinicalScope) is
+// only meaningful for that org type. Selecting "Eye Care" here is what
+// triggers the restrictClinicalScope middleware on the backend: that
+// facility's providers lose access to vitals, immunizations, lab
+// results, and procedures for every patient, structurally, not per
+// grant. Get this wrong at signup and it's wrong for every patient the
+// facility ever sees — so the label is deliberately explicit rather
+// than a vague "specialty" dropdown.
+const CLINICAL_SCOPE_OPTIONS = [
+  { value: "general", label: "General / Multi-specialty" },
+  {
+    value: "eye_care",
+    label: "Eye Care only (Ophthalmology / Optometry)",
+  },
+];
+
 const PROVIDER_ROLE_OPTIONS = [
   { value: "", label: "Select provider role", disabled: true },
   { value: "doctor", label: "Doctor" },
@@ -44,6 +61,7 @@ type SignupTab = "organization" | "individual";
 type OrganizationForm = {
   organizationName: string;
   organizationType: string;
+  clinicalScope: string;
   workEmail: string;
   phone: string;
   contactPersonName: string;
@@ -214,6 +232,7 @@ export function ProviderSignupPage() {
   const [organizationForm, setOrganizationForm] = useState<OrganizationForm>({
     organizationName: "",
     organizationType: "",
+    clinicalScope: "general",
     workEmail: "",
     phone: "",
     contactPersonName: "",
@@ -382,6 +401,10 @@ export function ProviderSignupPage() {
         accountType: "organization",
         organizationName: organizationForm.organizationName,
         organizationType: organizationForm.organizationType,
+        clinicalScope:
+          organizationForm.organizationType === "healthcare_provider"
+            ? organizationForm.clinicalScope
+            : undefined,
         email: organizationForm.workEmail,
         phone: organizationForm.phone,
         country: organizationForm.country,
@@ -397,7 +420,7 @@ export function ProviderSignupPage() {
       // Replace this with a dedicated backend function later
       const resp = await signUpProvider(payload);
 
-      if (resp === "Account created successfully") {
+      if (resp?.message === "Account created successfully") {
         fetch("/api/send-email", {
           method: "POST",
           headers: {
@@ -409,7 +432,7 @@ export function ProviderSignupPage() {
             variables: {
               providerName: payload.contactPersonName,
               facilityName: payload.organizationName,
-              organizationId: "ORG-" + Math.floor(100000 + Math.random() * 900000),
+              organizationId: resp?.data?.profile?.wrOrgId || "Pending",
               providerDashboardUrl: `${window.location.origin}/provider/dashboard`,
               dashboardUrl: `${window.location.origin}/dashboard`,
               privacyPolicyUrl: `${window.location.origin}/privacy`,
@@ -417,7 +440,7 @@ export function ProviderSignupPage() {
             }
           })
         }).catch(err => console.error("Failed to send welcome email:", err));
-        navigate("/auth/provider/login");
+        navigate("/auth/provider/signup-success", { state: { email: payload.email } });
       }
     } catch (error: any) {
       console.log("Organization signup error:", error);
@@ -456,7 +479,7 @@ export function ProviderSignupPage() {
 
       const resp = await signUpProvider(payload);
 
-      if (resp === "Account created successfully") {
+      if (resp?.message === "Account created successfully") {
         fetch("/api/send-email", {
           method: "POST",
           headers: {
@@ -468,7 +491,7 @@ export function ProviderSignupPage() {
             variables: {
               providerName: payload.contactPersonName,
               facilityName: "Individual Practice",
-              organizationId: "IND-" + Math.floor(100000 + Math.random() * 900000),
+              organizationId: resp?.data?.profile?.wrOrgId || "Pending",
               providerDashboardUrl: `${window.location.origin}/provider/dashboard`,
               dashboardUrl: `${window.location.origin}/dashboard`,
               privacyPolicyUrl: `${window.location.origin}/privacy`,
@@ -476,7 +499,7 @@ export function ProviderSignupPage() {
             }
           })
         }).catch(err => console.error("Failed to send welcome email:", err));
-        navigate("/auth/provider/login");
+        navigate("/auth/provider/signup-success", { state: { email: payload.email } });
       }
     } catch (error: any) {
       console.log("Individual provider signup error:", error);
@@ -582,6 +605,16 @@ export function ProviderSignupPage() {
                     options={ORG_TYPE_OPTIONS}
                     error={orgErrors.organizationType}
                   />
+
+                  {organizationForm.organizationType === "healthcare_provider" ? (
+                    <FormSelect
+                      label="Clinical Scope"
+                      value={organizationForm.clinicalScope}
+                      onChange={updateOrganization("clinicalScope")}
+                      options={CLINICAL_SCOPE_OPTIONS}
+                      error={orgErrors.clinicalScope}
+                    />
+                  ) : null}
 
                   <FormInput
                     label="Work Email"

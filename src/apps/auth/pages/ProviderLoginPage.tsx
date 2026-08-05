@@ -55,7 +55,7 @@ export function ProviderLoginPage() {
 
     const [code, setCode] = useState('');
     const [isCodeValid, setIsCodeValid] = useState(false);
-    const [timeLeft, setTimeLeft] = useState(300);
+    const [timeLeft, setTimeLeft] = useState(120);
     const [challengeToken, setChallengeToken] = useState('');
     const [maskedPhone, setMaskedPhone] = useState('');
 
@@ -169,7 +169,7 @@ export function ProviderLoginPage() {
             setCode('');
             setError('');
 
-            const res = await resendVerifyLoginCodeApi(challengeToken);
+            const res = await resendVerifyLoginCodeApi(challengeToken, form.email);
             const payload = res?.data || res;
 
             if (!payload?.challengeToken) {
@@ -178,7 +178,7 @@ export function ProviderLoginPage() {
 
             setChallengeToken(payload.challengeToken);
             setMaskedPhone(payload.maskedPhone || maskedPhone);
-            setTimeLeft(300);
+            setTimeLeft(120);
         } catch (err: any) {
             const message =
                 err?.response?.data?.message || err?.message || 'Unable to resend OTP';

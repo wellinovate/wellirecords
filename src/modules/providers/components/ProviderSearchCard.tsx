@@ -1,4 +1,5 @@
-import { Building2, MapPin, Stethoscope, Video } from "lucide-react";
+import { Building2, Copy, Check, MapPin, Stethoscope, Video } from "lucide-react";
+import { useState, type MouseEvent } from "react";
 import type { ProviderSearchItem } from "../types";
 import { health_companion_image, hopistal } from "@/assets";
 
@@ -8,8 +9,17 @@ type Props = {
 };
 
 export function ProviderSearchCard({ item, onSelect }: Props) {
+  const [copied, setCopied] = useState(false);
   const isIndividualProvider =
     item.organizationType === "individaul_provider";
+
+  const copyId = (e: MouseEvent) => {
+    e.stopPropagation();
+    if (!item.wrOrgId) return;
+    navigator.clipboard.writeText(item.wrOrgId);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
 
   const imageSrc =
     item.avatar ||
@@ -79,8 +89,21 @@ export function ProviderSearchCard({ item, onSelect }: Props) {
               </span>
             </div>
 
+            {item.wrOrgId && (
+              <button
+                onClick={copyId}
+                className="flex w-full items-center justify-between gap-2 rounded-xl border border-[#E7EEF8] bg-white px-2.5 py-1.5 text-left transition hover:border-[#4F8FEF]"
+                title="Copy this ID to grant consent access from My Consents"
+              >
+                <span className="font-mono text-xs font-semibold text-[#315DA8]">{item.wrOrgId}</span>
+                {copied ? (
+                  <Check size={13} className="shrink-0 text-[#1D8348]" />
+                ) : (
+                  <Copy size={13} className="shrink-0 text-[#4F8FEF]" />
+                )}
+              </button>
+            )}
 
-            
           </div>
 
           <div className="mt-2 flex flex-wrap justify-center gap-2">

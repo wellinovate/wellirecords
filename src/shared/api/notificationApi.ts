@@ -80,3 +80,20 @@ export const notificationApi = {
         return MOCK_DELIVERY_SUMMARY;
     },
 };
+
+export async function sendCriticalAlertSms(to: string, message: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await fetch('/api/send-sms', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ to, message, type: 'critical-lab' }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      return { success: false, error: data.error || 'SMS send failed' };
+    }
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Network error' };
+  }
+}

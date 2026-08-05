@@ -104,7 +104,7 @@ export function PatientLoginPage() {
 
   const [step, setStep] = useState<LoginStep>("credentials");
   const [isCodeValid, setIsCodeValid] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
+  const [timeLeft, setTimeLeft] = useState(120); // 2 minutes
 
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -150,7 +150,7 @@ export function PatientLoginPage() {
       setCode("");         // clear existing OTP
       setError("");        // clear error messages
 
-      const res = await resendVerifyLoginCodeApi(challengeToken);
+      const res = await resendVerifyLoginCodeApi(challengeToken, form.email);
       const payload = res?.data || res;
 
       if (!payload?.challengeToken) {
@@ -160,7 +160,7 @@ export function PatientLoginPage() {
       // Update challenge token and optionally masked phone
       setChallengeToken(payload.challengeToken);
       setMaskedPhone(payload.maskedPhone || maskedPhone);
-      setTimeLeft(300);    // reset countdown only after a successful resend
+      setTimeLeft(120);    // reset countdown only after a successful resend
 
       toast.success("OTP resent successfully");
 
@@ -287,7 +287,7 @@ export function PatientLoginPage() {
             variables: {
               patientName: profile?.fullName || account?.fullName || "",
               loginDateTime: new Date().toLocaleString(),
-              loginMethod: "Email & Password",
+              loginMethod: pendingGoogleAccountType ? "Google" : "Email & Password",
               deviceInfo: navigator.userAgent,
               dashboardUrl: `${window.location.origin}/dashboard`,
               secureAccountUrl: `${window.location.origin}/security`
@@ -318,7 +318,10 @@ export function PatientLoginPage() {
     setChallengeToken("");
     setMaskedPhone("");
     setError("");
+    setPendingGoogleAccountType("");
   };
+
+  const [pendingGoogleAccountType, setPendingGoogleAccountType] = useState("");
 
   const handleGoogleCredential = async (response: GoogleCredentialResponse) => {
     try {
@@ -331,6 +334,19 @@ export function PatientLoginPage() {
       });
 
       const data = res.data;
+
+      // Existing accounts get sent through the same SMS OTP step password
+      // login already uses, instead of finishing sign-in immediately. Only
+      // brand-new accounts (no phone on file yet) skip straight through —
+      // handled below.
+      if (data?.requiresOtp && data?.challengeToken) {
+        setChallengeToken(data.challengeToken);
+        setMaskedPhone(data.maskedPhone || "your phone number");
+        setPendingGoogleAccountType("user");
+        setStep("otp");
+        toast.success("Login code sent");
+        return;
+      }
 
       Cookies.set("accessToken", data.token, {
         expires: 1,
@@ -348,6 +364,21 @@ export function PatientLoginPage() {
       setUser?.(uiUser);
 
       toast.success("Google sign-in successful");
+
+      // First-time Google sign-ins from this page create an account the
+      // same way the signup page does, but this page never collects a
+      // phone number or shows onboarding. Route new accounts to profile
+      // completion instead of the dashboard, same destination the signup
+      // page's Google flow uses. Existing accounts logging back in are
+      // unaffected and keep the "welcome-back" email + normal redirect.
+      if (!data?.user?.hasPhone && data?.user?.accountType === "user") {
+        localStorage.setItem("wrShowWelcomeWizard", "1");
+        localStorage.setItem("activeProfileType", profileType);
+        navigate("/patient/settings?complete=1", {
+          state: { fullName: data.user.fullName },
+        });
+        return;
+      }
 
       if (data?.user?.email) {
         fetch("/api/send-email", {

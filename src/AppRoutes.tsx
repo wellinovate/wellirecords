@@ -36,11 +36,14 @@ const BridgeSharePage = lazy(() => import("@/apps/public/pages/BridgeSharePage")
 const SuperAdminLoginPage = lazy(() => import("@/apps/auth/pages/SuperAdminLoginPage").then(m => ({ default: m.SuperAdminLoginPage })));
 const UserTypeSelection = lazy(() => import("./apps/auth/pages/UserTypeSelection"));
 const PatientSignupPage = lazy(() => import("./apps/auth/pages/PatientSignupPage"));
+const PatientSignupSuccessPage = lazy(() => import("@/apps/auth/pages/PatientSignupSuccessPage").then(m => ({ default: m.PatientSignupSuccessPage })));
+const ProviderSignupSuccessPage = lazy(() => import("@/apps/auth/pages/ProviderSignupSuccessPage").then(m => ({ default: m.ProviderSignupSuccessPage })));
 const UserTypeSelectionLogin = lazy(() => import("./apps/auth/pages/UserTypeSelectionLogin"));
 
 // ─── Patient Portal (lazy — largest chunk) ───────────────────────────────────
 const PatientLayout = lazy(() => import("@/apps/patient/layouts/PatientLayout").then(m => ({ default: m.PatientLayout })));
 const PatientOverview = lazy(() => import("@/apps/patient/pages/PatientOverview").then(m => ({ default: m.PatientOverview })));
+const PatientVisionPage = lazy(() => import("@/apps/patient/pages/PatientVisionPage").then(m => ({ default: m.PatientVisionPage })));
 const HealthVaultPage = lazy(() => import("@/apps/patient/pages/HealthVaultPage").then(m => ({ default: m.HealthVaultPage })));
 const CareJourneysPage = lazy(() => import("@/apps/patient/pages/CareJourneysPage").then(m => ({ default: m.CareJourneysPage })));
 const DataSovereigntyCenterPage = lazy(() => import("@/apps/patient/pages/DataSovereigntyCenterPage").then(m => ({ default: m.DataSovereigntyCenterPage })));
@@ -68,6 +71,8 @@ const EHRViewerPage = lazy(() => import("@/apps/provider/pages/EHRViewerPage").t
 const NewEncounterPage = lazy(() => import("@/apps/provider/pages/NewEncounterPage").then(m => ({ default: m.NewEncounterPage })));
 const LabOrdersPage = lazy(() => import("@/apps/provider/pages/LabOrdersPage").then(m => ({ default: m.LabOrdersPage })));
 const PrescriptionsPage = lazy(() => import("@/apps/provider/pages/PrescriptionsPage").then(m => ({ default: m.PrescriptionsPage })));
+const PharmacyDashboard = lazy(() => import("@/apps/provider/pages/PharmacyDashboard").then(m => ({ default: m.PharmacyDashboard })));
+const ProviderVisionPage = lazy(() => import("@/apps/provider/pages/ProviderVisionPage").then(m => ({ default: m.ProviderVisionPage })));
 const ReferralsPage = lazy(() => import("@/apps/provider/pages/ReferralsPage").then(m => ({ default: m.ReferralsPage })));
 const TeamManagementPage = lazy(() => import("@/apps/provider/pages/TeamManagementPage").then(m => ({ default: m.TeamManagementPage })));
 const AuditLogsPage = lazy(() => import("@/apps/provider/pages/AuditLogsPage").then(m => ({ default: m.AuditLogsPage })));
@@ -174,6 +179,14 @@ export function AppRoutes() {
           }
         />
         <Route
+          path="/auth/patient/signup-success"
+          element={
+            <PublicOnlyRoute>
+              <PatientSignupSuccessPage />
+            </PublicOnlyRoute>
+          }
+        />
+        <Route
           path="/auth/provider/login"
           element={
             <PublicOnlyRoute>
@@ -186,6 +199,14 @@ export function AppRoutes() {
           element={
             <PublicOnlyRoute>
               <ProviderSignupPage />
+            </PublicOnlyRoute>
+          }
+        />
+        <Route
+          path="/auth/provider/signup-success"
+          element={
+            <PublicOnlyRoute>
+              <ProviderSignupSuccessPage />
             </PublicOnlyRoute>
           }
         />
@@ -209,6 +230,7 @@ export function AppRoutes() {
         >
           <Route index element={<Navigate to="overview" replace />} />
           <Route path="overview" element={<PatientOverview />} />
+          <Route path="vision" element={<PatientVisionPage />} />
           <Route path="vault" element={<HealthVaultPage />} />
           <Route path="vault/:category" element={<HealthCategoryHistoryPage />} />
           <Route path="journeys" element={<HealthHistoryTimelinePage />} />
@@ -241,12 +263,14 @@ export function AppRoutes() {
           <Route path="overview" element={<ProviderDashboard />} />
           <Route path="patients" element={<PatientListPage />} />
           <Route path="doctors" element={<BestDoctorsPage />} />
+          <Route path="vision" element={<ProviderVisionPage />} />
           <Route path="patients/:id" element={<EHRViewerPage />} />
           <Route path="appointments" element={<ProviderAppointmentsPage />} />
           <Route path="queue" element={<QueuePage />} />
           <Route path="encounters/new" element={<NewEncounterPage />} />
           <Route path="orders/labs" element={<LabOrdersPage />} />
-          <Route path="prescriptions" element={<PrescriptionsPage />} />
+          <Route path="pharmacy" element={<PharmacyDashboard />} />
+          <Route path="prescriptions" element={<PharmacyDashboard />} />
           <Route path="referrals" element={<ReferralsPage />} />
           <Route path="team" element={<TeamManagementPage />} />
           <Route path="audit-logs" element={<AuditLogsPage />} />

@@ -47,6 +47,7 @@ const SCOPE_OPTIONS: {
   { value: "category", label: "Vitals", category: "vitals" },
   { value: "category", label: "Diagnoses", category: "diagnoses" },
   { value: "category", label: "Allergies", category: "allergies" },
+  { value: "category", label: "Vision", category: "vision" },
 ];
 
 const DURATION_OPTIONS: {
@@ -431,8 +432,13 @@ export function DataSovereigntyCenterPage() {
          
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to create grant:", error);
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to grant access. Please check the ID and try again.";
+      alert(message);
     }
   }
 
@@ -557,64 +563,23 @@ export function DataSovereigntyCenterPage() {
   }
 
   async function handleEmergencyToggle() {
-    const nextValue = !emergencyMode;
-
-    try {
-      setEmergencyMode(nextValue);
-      await consentApi.toggleEmergencyAccess(nextValue);
-      
-      if (user?.email) {
-        fetch("/api/send-email", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            to: user.email,
-            templateId: "security-alert",
-            variables: {
-              patientName: user.name || "Patient",
-              eventType: nextValue ? "Emergency Access Mode Enabled" : "Emergency Access Mode Disabled",
-              eventDate: new Date().toLocaleString("en-NG", { timeZone: "Africa/Lagos" }) + " WAT",
-              deviceInfo: navigator.userAgent || "Unknown Device",
-              location: "Lagos, Nigeria",
-              dashboardUrl: `${window.location.origin}/dashboard`,
-              privacyPolicyUrl: `${window.location.origin}/privacy`,
-              contactSupportUrl: `${window.location.origin}/support`,
-              reviewActivityUrl: `${window.location.origin}/security`,
-              secureAccountUrl: `${window.location.origin}/security#secure`
-            }
-          })
-        }).catch(err => console.error("Failed to send security alert email:", err));
-      }
-    } catch (error) {
-      console.error("Failed to toggle emergency access:", error);
-      setEmergencyMode(!nextValue);
-    }
+    // No backend endpoint exists for this yet (no
+    // /patients/me/emergency-access route anywhere in the API). This
+    // used to optimistically flip the toggle on, call the fake
+    // endpoint, then silently flip it back off on failure — visually
+    // it looked like a flicker with zero explanation. It also fired
+    // a fetch("/api/send-email", ...) to a route that doesn't match
+    // any real one (everything real lives under /api/v1/...), so no
+    // security alert email was ever actually sent either.
+    alert("Emergency access mode isn't available yet.");
   }
 
   async function handleExport() {
-    try {
-      setIsExporting(true);
-
-      const blob = await consentApi.exportRecords(exportFormat);
-      const url = window.URL.createObjectURL(blob);
-
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download =
-        exportFormat === "fhir"
-          ? "wellirecord-fhir-export.json"
-          : "wellirecord-health-summary.pdf";
-
-      anchor.click();
-
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Failed to export records:", error);
-    } finally {
-      setIsExporting(false);
-    }
+    // No backend endpoint exists for this yet (no
+    // /patients/me/records/export route anywhere in the API). This
+    // used to spin the loading state, silently fail, and stop with
+    // no explanation.
+    alert("Exporting your records isn't available yet.");
   }
 
   const GRANTEE_TYPE_LABELS = {

@@ -10,6 +10,10 @@ export type ProviderSearchItem = {
     address?: string;
   } | null;
   telemedicineAvailable?: boolean;
+  // The WelliRecord ID (WR-XXXX-XXXX format) — the only identifier a
+  // patient can actually use to grant this org access via Smart
+  // Consent Controls (patients never see raw ObjectIds).
+  wrOrgId?: string | null;
 };
 
 export type ProviderSearchResponse = {

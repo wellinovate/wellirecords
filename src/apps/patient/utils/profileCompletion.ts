@@ -33,6 +33,11 @@ export function computeProfileCompletion(
   emergencyContacts: unknown[] | null | undefined,
   bloodGroup?: string | null,
   genotype?: string | null,
+  confirmedNone?: {
+    allergies?: boolean;
+    medications?: boolean;
+    diagnoses?: boolean;
+  } | null,
 ): ProfileCompletionResult {
   const hasEmergencyContact =
     Array.isArray(emergencyContacts) && emergencyContacts.length > 0;
@@ -44,9 +49,9 @@ export function computeProfileCompletion(
     bloodGroup: !bloodGroup || bloodGroup === "Unknown",
     genotype: !genotype || genotype === "Unknown",
     emergencyContact: !hasEmergencyContact,
-    allergies: !hasAllergyRecord,
-    medications: !hasMedicationRecord,
-    diagnoses: !hasDiagnosisRecord,
+    allergies: !hasAllergyRecord && !confirmedNone?.allergies,
+    medications: !hasMedicationRecord && !confirmedNone?.medications,
+    diagnoses: !hasDiagnosisRecord && !confirmedNone?.diagnoses,
   };
 
   const completedCount = CHECKLIST_ITEMS.length - Object.values(missing).filter(Boolean).length;

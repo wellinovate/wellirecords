@@ -493,8 +493,14 @@ export function TelemedicineHubPage() {
     const [tab, setTab] = useState('Consultations');
     const [showBookModal, setShowBookModal] = useState(false);
 
-    // Always fall back to pat_001 so mock data is always visible
-    const uid = user?.userId ?? 'pat_001';
+    // No real telemedicine backend exists yet (teleMedApi is a mock
+    // module). This used to deliberately fall back to 'pat_001' "so
+    // mock data is always visible" — meaning every real patient saw
+    // Amara Okafor's fabricated sessions, prescriptions, and vitals
+    // monitoring as if it were their own. Uses the real user id now,
+    // which won't match anything in the mock data, so this correctly
+    // shows empty states until a real backend exists.
+    const uid = user?.sub ?? '';
     const sessions = teleMedApi.getSessions(uid);
     const prescriptions = teleMedApi.getPrescriptions(uid);
     const readings = teleMedApi.getMonitoringReadings(uid);

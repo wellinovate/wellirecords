@@ -1,0 +1,19 @@
+400:          <button onClick={() => setToastMessage(null)} className="ml-2 text-slate-400 hover:text-white">
+424:            onClick={() => setIsNewOrderModalOpen(true)}
+430:            onClick={() => showToast("Barcode Label Printer connected via WebUSB / LIS Bridge")}
+437:            onClick={() => showToast("HL7 FHIR / LIS Gateway status: Active & Synchronized")}
+505:          onClick={() => setActiveTab("pipeline")}
+516:          onClick={() => setActiveTab("entry")}
+527:          onClick={() => setActiveTab("imaging")}
+538:          onClick={() => setActiveTab("inventory")}
+549:          onClick={() => setActiveTab("analytics")}
+630:              onClick={() => setStageFilter("all")}
+644:                  onClick={() => setStageFilter(stg.key)}
+753:                        onClick={() => openResultModal(ord)}
+761:                          onClick={() => handleAdvanceStage(ord.id, ord.status)}
+814:                      onClick={() => openResultModal(ord)}
+837:                onClick={() => showToast("DICOM Web PACS server connected successfully")}
+1059:              <button onClick={() => setIsResultModalOpen(false)} className="text-slate-400 hover:text-white">
+1115:                  onClick={() => setIsResultModalOpen(false)}
+1141:              <button onClick={() => setIsNewOrderModalOpen(false)} className="text-slate-400 hover:text-white">
+1245:                  onClick={() => setIsNewOrderModalOpen(false)}

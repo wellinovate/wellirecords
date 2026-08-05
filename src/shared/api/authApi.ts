@@ -305,11 +305,21 @@ export const authApi = {
     }
   },
 
-  async resendVerifyLoginCodeApi(email: string) {
+  async resendVerifyLoginCodeApi(tokenOrEmail: string, email?: string) {
     try {
-      const response = await axios.post(`${apiUrl}/api/v1/auth/resend-verify-code`, {
-        email: email,
-      },
+      const isEmail = Boolean(tokenOrEmail && tokenOrEmail.includes("@"));
+      const body: Record<string, string> = {};
+
+      if (isEmail) {
+        body.email = tokenOrEmail;
+      } else {
+        body.challengeToken = tokenOrEmail;
+        if (email) body.email = email;
+      }
+
+      const response = await axios.post(
+        `${apiUrl}/api/v1/auth/resend-verify-code`,
+        body,
         {
           timeout: 30000,
         }
@@ -428,8 +438,12 @@ signInAsRole(role: UserRole): AuthUser {
     const response = await axios.post(`${apiUrl}/api/v1/auth/register`, payload);
 
     if (response.status === 201) {
-      const data = await response.data.message;
-      return data;
+      // Previously only returned response.data.message (a string),
+      // discarding response.data.data — which is where the real
+      // wrOrgId assigned to the new org actually lives. Callers used
+      // to fabricate a random fake org ID instead because this
+      // function never gave them the real one.
+      return response.data;
     }
   } catch (err: any) {
     toast.error(err?.response?.data?.message ?? "registration failed");
@@ -659,6 +673,31 @@ return data.data;
       secure: true, // only over HTTPS (important in prod)
       sameSite: "lax",
     });
+  }
+
+  return data;
+},
+
+  async uploadAvatar(file: File) {
+  const token = Cookies.get("accessToken");
+  const formData = new FormData();
+  formData.append("avatar", file);
+
+  const response = await fetch(`${apiUrl}/api/v1/user/avatar`, {
+    method: "POST",
+    headers: {
+      // No Content-Type here — the browser sets the multipart boundary
+      // automatically. Setting it manually breaks the upload.
+      Authorization: `Bearer ${token}`,
+    },
+    credentials: "include",
+    body: formData,
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data?.message || "Failed to upload avatar");
   }
 
   return data;

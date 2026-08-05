@@ -32,6 +32,14 @@ export default defineConfig(({ mode }) => {
             if (id.includes('node_modules/recharts') || id.includes('node_modules/d3')) {
               return 'vendor-charts';
             }
+            // Vendor: axios — used by every apiClient consumer, including
+            // lazy-loaded routes. Left to default chunking, it was
+            // sometimes ending up split away from a lazy chunk that
+            // needed it, producing "axios is not defined" at runtime.
+            // Pinning it to a stable chunk fixes that.
+            if (id.includes('node_modules/axios')) {
+              return 'vendor-axios';
+            }
           },
         },
       },

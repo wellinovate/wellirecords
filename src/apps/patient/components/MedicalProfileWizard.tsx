@@ -681,6 +681,23 @@ export function MedicalProfileWizard({ onClose }: MedicalProfileWizardProps) {
         newScores.emergencyContact = true;
       }
 
+      // "No" / "None" answers are checklist metadata, not clinical
+      // records — persisted on the profile so the dashboard can tell
+      // "confirmed none" apart from "not asked yet" without a fake
+      // allergy/medication/diagnosis record.
+      const confirmedNone: Record<string, boolean> = {};
+      if (form.hasAllergies === "no") confirmedNone.allergies = true;
+      if (form.hasMedications === "no") confirmedNone.medications = true;
+      if (
+        form.conditions.includes("None") &&
+        form.conditions.filter((c) => c !== "None").length === 0
+      ) {
+        confirmedNone.diagnoses = true;
+      }
+      if (Object.keys(confirmedNone).length > 0) {
+        profilePayload.confirmedNone = confirmedNone;
+      }
+
       if (Object.keys(profilePayload).length > 0) {
         await updateProfile(profilePayload);
       }
@@ -698,7 +715,6 @@ export function MedicalProfileWizard({ onClose }: MedicalProfileWizardProps) {
         }
         if (validAllergies.length > 0) newScores.allergies = true;
       } else if (form.hasAllergies === "no") {
-        // Explicitly "No" still counts as filled in
         newScores.allergies = true;
       }
 

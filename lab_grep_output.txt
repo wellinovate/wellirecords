@@ -1,0 +1,6 @@
+1:import React, { useState, useEffect, useMemo } from "react";
+2:import {
+64:import { useAuth } from "@/shared/auth/AuthProvider";
+65:import { getAllPatientLabResults, LabResultItem } from "@/shared/utils/utilityFunction";
+66:import { createRecord } from "@/shared/api/clinicalApi";
+211:export function LabOrdersPage() {

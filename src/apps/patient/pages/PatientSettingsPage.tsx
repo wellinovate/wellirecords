@@ -18,6 +18,8 @@ import {
   ArrowRight,
   FileText,
   Fingerprint,
+  Camera,
+  Loader2,
 } from "lucide-react";
 import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { health_companion_image } from "@/assets";
@@ -336,7 +338,7 @@ function DataPortabilitySection() {
 }
 
 export function PatientSettingsPage() {
-  const { user, signOut, updateProfile } = useAuth();
+  const { user, signOut, updateProfile, uploadAvatar } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState<SettingsTab>("profile");
   const [saved, setSaved] = useState(false);
@@ -355,6 +357,8 @@ export function PatientSettingsPage() {
   const [nameValue, setNameValue] = useState(user?.name ?? "");
   const [nameRequested, setNameRequested] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarError, setAvatarError] = useState("");
 
   const defaultNotificationPrefs: Record<string, boolean> = {
     labResultsReady: true,
@@ -472,6 +476,35 @@ export function PatientSettingsPage() {
         ? profile.emergencyContacts
         : [],
     }) !== JSON.stringify(form);
+
+  const handleAvatarSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file later
+    if (!file) return;
+
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      setAvatarError("Please choose a JPG, PNG, or WEBP image.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setAvatarError("Image must be under 5MB.");
+      return;
+    }
+
+    setAvatarError("");
+    setUploadingAvatar(true);
+    try {
+      const result = await uploadAvatar(file);
+      const updated = result?.data || result;
+      setProfile((prev: any) => ({ ...prev, avatar: updated?.avatar }));
+      setForm((prev) => ({ ...prev, avatar: updated?.avatar || "" }));
+    } catch (err: any) {
+      setAvatarError(err?.message || "Failed to upload image");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   const save = async () => {
     // Phone locks permanently after this save (see the readOnly/canEditPhone
@@ -628,14 +661,38 @@ export function PatientSettingsPage() {
       <div className="flex flex-col md:flex-row items-start md:items-center gap-6 mb-8 mt-2">
         <div className="relative flex-shrink-0">
           <img
-            src={user?.avatar || health_companion_image}
+            src={profile?.avatar || user?.avatar || health_companion_image}
             className="w-24 h-24 rounded-full object-cover shadow-sm bg-white"
             style={{ border: "4px solid var(--pat-surface2)" }}
           />
-          <div className="absolute bottom-0 right-0 w-7 h-7 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center shadow-sm">
+          <input
+            id="avatar-upload-input"
+            type="file"
+            accept="image/jpeg,image/jpg,image/png,image/webp"
+            className="hidden"
+            onChange={handleAvatarSelect}
+          />
+          <label
+            htmlFor="avatar-upload-input"
+            className="absolute inset-0 flex items-center justify-center rounded-full bg-black/0 hover:bg-black/40 transition-colors cursor-pointer group"
+            title="Change photo"
+          >
+            {uploadingAvatar ? (
+              <Loader2 size={22} className="text-white animate-spin" />
+            ) : (
+              <Camera
+                size={20}
+                className="text-white opacity-0 group-hover:opacity-100 transition-opacity"
+              />
+            )}
+          </label>
+          <div className="absolute bottom-0 right-0 w-7 h-7 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center shadow-sm pointer-events-none">
             <CheckCircle size={14} color="#fff" />
           </div>
         </div>
+        {avatarError && (
+          <p className="text-xs text-red-600 basis-full">{avatarError}</p>
+        )}
 
         <div className="flex-1">
           <h1
@@ -649,7 +706,10 @@ export function PatientSettingsPage() {
             style={{ color: "#5a7a63" }}
           >
             <span className="flex items-center gap-1 font-semibold text-gray-700">
-              Member since 2024
+              Member since{" "}
+              {profile?.createdAt
+                ? new Date(profile.createdAt).getFullYear()
+                : "—"}
             </span>
             <span>•</span>
             <span className="flex items-center gap-1">
@@ -906,15 +966,10 @@ export function PatientSettingsPage() {
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-semibold text-gray-700">
-          Avatar URL
-        </label>
-        <input
-          value={form.avatar}
-          onChange={updateField("avatar")}
-          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          placeholder="Paste image URL"
-        />
+        <p className="text-xs text-gray-500">
+          To change your photo, click your profile picture at the top of this
+          page.
+        </p>
       </div>
 
       <div className="md:col-span-2">
