@@ -37,19 +37,24 @@ export function usePharmacyOrders() {
 
   useEffect(() => {
     let cancelled = false;
+    let isInitialConnect = true;
 
-    fetch(`${API_BASE}/pharmacy-orders`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (!cancelled && Array.isArray(data)) {
-          setPharmacyOrders(data);
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        console.warn('Failed to fetch pharmacy orders from real-time API:', err);
-        if (!cancelled) setLoading(false);
-      });
+    const fetchOrders = () => {
+      fetch(`${API_BASE}/pharmacy-orders`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (!cancelled && Array.isArray(data)) {
+            setPharmacyOrders(data);
+            setLoading(false);
+          }
+        })
+        .catch((err) => {
+          console.warn('Failed to fetch pharmacy orders from real-time API:', err);
+          if (!cancelled) setLoading(false);
+        });
+    };
+
+    fetchOrders();
 
     const s = getSocket();
     const handleChange = (change: { operationType: string; documentId: string; document: PharmacyOrder | null }) => {
@@ -67,11 +72,24 @@ export function usePharmacyOrders() {
       });
     };
 
+    // The initial connection is already covered by fetchOrders() above.
+    // Every connect event after that means the socket dropped and
+    // reconnected, so re-fetch to catch anything missed while offline.
+    const handleConnect = () => {
+      if (isInitialConnect) {
+        isInitialConnect = false;
+        return;
+      }
+      fetchOrders();
+    };
+
     s.on('pharmacy_order_change', handleChange);
+    s.on('connect', handleConnect);
 
     return () => {
       cancelled = true;
       s.off('pharmacy_order_change', handleChange);
+      s.off('connect', handleConnect);
     };
   }, []);
 

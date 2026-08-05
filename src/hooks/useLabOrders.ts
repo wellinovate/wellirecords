@@ -50,19 +50,24 @@ export function useLabOrders() {
 
   useEffect(() => {
     let cancelled = false;
+    let isInitialConnect = true;
 
-    fetch(`${API_BASE}/lab-orders`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (!cancelled && Array.isArray(data)) {
-          setLabOrders(data);
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        console.warn('Failed to fetch lab orders from real-time API:', err);
-        if (!cancelled) setLoading(false);
-      });
+    const fetchOrders = () => {
+      fetch(`${API_BASE}/lab-orders`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (!cancelled && Array.isArray(data)) {
+            setLabOrders(data);
+            setLoading(false);
+          }
+        })
+        .catch((err) => {
+          console.warn('Failed to fetch lab orders from real-time API:', err);
+          if (!cancelled) setLoading(false);
+        });
+    };
+
+    fetchOrders();
 
     const s = getSocket();
     const handleChange = (change: { operationType: string; documentId: string; document: LabOrder | null }) => {
@@ -80,11 +85,24 @@ export function useLabOrders() {
       });
     };
 
+    // The initial connection is already covered by fetchOrders() above.
+    // Every connect event after that means the socket dropped and
+    // reconnected, so re-fetch to catch anything missed while offline.
+    const handleConnect = () => {
+      if (isInitialConnect) {
+        isInitialConnect = false;
+        return;
+      }
+      fetchOrders();
+    };
+
     s.on('lab_order_change', handleChange);
+    s.on('connect', handleConnect);
 
     return () => {
       cancelled = true;
       s.off('lab_order_change', handleChange);
+      s.off('connect', handleConnect);
     };
   }, []);
 
