@@ -296,6 +296,16 @@ export function PatientLoginPage() {
         }).catch(err => console.error("Failed to send welcome-back email:", err));
       }
 
+      if (account?.accountType !== "user") {
+        Cookies.remove("accessToken");
+        localStorage.removeItem("ui_user");
+        setUser?.(null);
+        setError("This login is for patient accounts. Please use the provider portal to sign in.");
+        toast.error("This login is for patient accounts.");
+        setStep("credentials");
+        return;
+      }
+
       redirectAfterLogin(account?.accountType);
     } catch (error: any) {
       const message =

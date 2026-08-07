@@ -9,6 +9,7 @@ import {
 import { UserRole } from '@/shared/types/types';
 import { ROLE_METADATA } from '@/shared/rbac/permissions';
 import OTPForm from '@/apps/patient/components/OTPInput';
+import Cookies from 'js-cookie';
 
 const BRAND_FEATURES = [
     {
@@ -139,6 +140,15 @@ export function ProviderLoginPage() {
                 orgName: profile?.organizationName,
                 profile,
             };
+
+            if (account?.accountType !== "organization") {
+                Cookies.remove('accessToken');
+                localStorage.removeItem('ui_user');
+                setUser?.(null);
+                setError('This login is for provider accounts. Please use the patient portal to sign in.');
+                setStep('credentials');
+                return;
+            }
 
             localStorage.setItem('ui_user', JSON.stringify(uiUser));
             setUser?.(uiUser);
@@ -411,7 +421,7 @@ export function ProviderLoginPage() {
                             </p>
 
                             {/* Dev-mode demo link — clearly scoped */}
-                            {true && (
+                            {import.meta.env.DEV && isLocalhost && (
                                 <div className="mt-8 rounded-xl p-4 text-left relative"
                                     style={{ background: '#f8fafc', border: '1px dashed #cbd5e1' }}>
                                     <div className="flex items-center justify-between mb-3">

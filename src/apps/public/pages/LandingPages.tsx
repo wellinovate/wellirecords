@@ -221,6 +221,12 @@ export function Navbar() {
             >
               Login
             </Link>
+            <Link
+              to="/auth/provider/login"
+              className="text-base font-semibold text-[#1F4E79] transition hover:text-[#071B3F] xl:text-lg"
+            >
+              Provider Login
+            </Link>
             <PrimaryButton href="/auth/pre-signup">
               Create Health Vault
             </PrimaryButton>
@@ -299,6 +305,14 @@ export function Navbar() {
                     className="rounded-lg border border-slate-200 px-4 py-3 text-center text-base font-semibold text-[#1F4E79] transition hover:bg-slate-50"
                   >
                     Login
+                  </Link>
+
+                  <Link
+                    to="/auth/provider/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="rounded-lg border border-slate-200 px-4 py-3 text-center text-base font-semibold text-[#1F4E79] transition hover:bg-slate-50"
+                  >
+                    Provider Login
                   </Link>
 
                   <Link
