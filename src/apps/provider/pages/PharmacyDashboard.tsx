@@ -51,6 +51,16 @@ import {
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { getAllPatientMedications, MedicationItem } from "@/shared/utils/utilityFunction";
 import { createRecord } from "@/shared/api/clinicalApi";
+import { PatientSearchPicker } from "@/apps/components/shared/PatientSearchPicker";
+import { io, Socket } from "socket.io-client";
+import Cookies from "js-cookie";
+import { apiUrl } from "@/shared/api/authApi";
+import {
+  getAllPharmacyOrders,
+  createPharmacyOrder,
+  dispensePharmacyOrder,
+  mapPharmacyOrderToRxShape,
+} from "@/shared/api/pharmacyOrdersApi";
 
 // ─── Color Palette & Styling Tokens ─────────────────────────────────────────
 
@@ -113,8 +123,19 @@ function formatCurrency(val: number) {
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 
+// Module-level socket singleton — persists across re-renders without reconnecting.
+let pharmacyOrdersSocket: Socket | null = null;
+
+function getPharmacyOrdersSocket() {
+  if (!pharmacyOrdersSocket) {
+    const token = Cookies.get("accessToken");
+    pharmacyOrdersSocket = io(apiUrl, { auth: { token } });
+  }
+  return pharmacyOrdersSocket;
+}
+
 export function PharmacyDashboard() {
-  const { user } = useAuth();
+  const { user, searchPatientRequest } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
 
   // State: Medications & Inventory
@@ -131,6 +152,23 @@ export function PharmacyDashboard() {
   const [selectedRx, setSelectedRx] = useState<typeof INBOUND_PRESCRIPTIONS[0] | null>(null);
   const [showDispenseModal, setShowDispenseModal] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [showNewRxModal, setShowNewRxModal] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState<{
+    id: string;
+    name: string;
+    avatar?: string;
+    raw: any;
+  } | null>(null);
+  const [newRx, setNewRx] = useState({
+    medicationName: "",
+    dosage: "",
+    quantity: 1,
+    instructions: "",
+    priority: "routine",
+    prescribedByName: "",
+    prescribedByPhone: "",
+    price: 5000,
+  });
 
   // Dispense Form state
   const [dispenseBatch, setDispenseBatch] = useState("AUG-2026-901");
@@ -169,6 +207,45 @@ export function PharmacyDashboard() {
     loadMedications();
   }, []);
 
+  // Load real pharmacy orders from the backend on mount.
+  useEffect(() => {
+    getAllPharmacyOrders()
+      .then((res) => setInboundRx(res.items.map(mapPharmacyOrderToRxShape)))
+      .catch((err) => console.error("Failed to load pharmacy orders:", err));
+  }, []);
+
+  // Real-time sync via Socket.IO — applies insert/update/delete diffs.
+  useEffect(() => {
+    const socket = getPharmacyOrdersSocket();
+
+    const handleChange = (change: {
+      operationType: string;
+      documentId: string;
+      document: any | null;
+    }) => {
+      setInboundRx((prev) => {
+        if (change.operationType === "insert" && change.document) {
+          return [mapPharmacyOrderToRxShape(change.document), ...prev];
+        }
+        if (change.operationType === "update" && change.document) {
+          return prev.map((r) =>
+            r.id === change.documentId ? mapPharmacyOrderToRxShape(change.document) : r
+          );
+        }
+        if (change.operationType === "delete") {
+          return prev.filter((r) => r.id !== change.documentId);
+        }
+        return prev;
+      });
+    };
+
+    socket.on("pharmacy_order_change", handleChange);
+
+    return () => {
+      socket.off("pharmacy_order_change", handleChange);
+    };
+  }, []);
+
   // Calculate Metrics
   const metrics = useMemo(() => {
     const totalRx = inboundRx.length + medications.length;
@@ -186,25 +263,59 @@ export function PharmacyDashboard() {
     if (!selectedRx) return;
     setDispensingInProgress(true);
     try {
-      // Sync to real clinical records API
-      await createRecord("medications", selectedRx.patientWrId || "pat_001", {
-        medicationName: selectedRx.drug,
-        dosage: { value: selectedRx.strength, unit: "" },
-        frequency: selectedRx.freq,
-        duration: selectedRx.duration,
-        prescribedByFullName: selectedRx.doctor,
-        notes: `Dispensed at Pharmacy: Batch ${dispenseBatch}, Exp: ${dispenseExpiry}. ${dispenseNotes}`,
-        medicationStatus: "active",
-      }).catch(() => null);
+      await dispensePharmacyOrder(selectedRx.id, {
+        dispensedBy: user?.fullName || "Pharmacist",
+      });
 
-      // Update local state
+      // Local state update is a fallback for immediate feedback; the socket
+      // subscription will also apply the same change when the server
+      // broadcasts it, so this may briefly double-apply — harmless since
+      // both write the same status.
       setInboundRx((prev) => prev.map((r) => (r.id === selectedRx.id ? { ...r, status: "dispensed" } : r)));
       setShowDispenseModal(false);
       triggerToast(`Successfully dispensed ${selectedRx.drug}! Patient medication record updated in WelliRecord.`);
-    } catch (err: any) {
-      triggerToast("Dispensation logged locally.");
+    } catch (err) {
+      console.error(err);
+      triggerToast("Failed to dispense — check console for details.");
     } finally {
       setDispensingInProgress(false);
+    }
+  };
+
+  const handleCreatePrescription = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPatient?.id) {
+      triggerToast("Select a patient before creating the prescription.");
+      return;
+    }
+    try {
+      const created = await createPharmacyOrder({
+        patientId: selectedPatient.id,
+        medicationName: newRx.medicationName,
+        dosage: newRx.dosage,
+        quantity: Number(newRx.quantity),
+        instructions: newRx.instructions,
+        priority: newRx.priority,
+        prescribedByName: newRx.prescribedByName,
+        prescribedByPhone: newRx.prescribedByPhone,
+        price: Number(newRx.price),
+      });
+      triggerToast(`New prescription created for ${selectedPatient.name}!`);
+      setShowNewRxModal(false);
+      setSelectedPatient(null);
+      setNewRx({
+        medicationName: "",
+        dosage: "",
+        quantity: 1,
+        instructions: "",
+        priority: "routine",
+        prescribedByName: "",
+        prescribedByPhone: "",
+        price: 5000,
+      });
+    } catch (err) {
+      console.error(err);
+      triggerToast("Failed to create prescription — check console for details.");
     }
   };
 
@@ -271,6 +382,12 @@ export function PharmacyDashboard() {
             className="px-4 py-2.5 rounded-2xl font-bold text-xs text-purple-300 bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/20 transition-all flex items-center gap-1.5"
           >
             <Sparkles size={16} className="text-purple-400" /> AI Safety Checker
+          </button>
+          <button
+            onClick={() => setShowNewRxModal(true)}
+            className="px-4 py-2.5 rounded-2xl font-bold text-xs text-white bg-emerald-600 hover:bg-emerald-500 transition-all flex items-center gap-1.5 shadow-lg shadow-emerald-600/20"
+          >
+            <Plus size={16} /> New Prescription
           </button>
           <button
             onClick={() => triggerToast("Generating Pharmacy Compliance Report (PDF)...")}
@@ -1028,6 +1145,154 @@ export function PharmacyDashboard() {
                 <CheckCircle size={14} /> {dispensingInProgress ? "Syncing to WelliRecord..." : "Confirm Dispense & Sync"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showNewRxModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-2xl p-6 bg-slate-900 border border-emerald-500/30 space-y-4 animate-fade-in-up">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <h3 className="font-bold text-base text-white flex items-center gap-2">
+                <Pill size={18} className="text-emerald-400" /> New Digital Prescription
+              </h3>
+              <button
+                onClick={() => {
+                  setShowNewRxModal(false);
+                  setSelectedPatient(null);
+                }}
+                className="text-slate-400 hover:text-white"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreatePrescription} className="space-y-4">
+              <PatientSearchPicker
+                open={showNewRxModal}
+                enabled={true}
+                searchPatientRequest={searchPatientRequest}
+                onSelect={setSelectedPatient}
+              />
+
+              {selectedPatient && (
+                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                  <p className="text-xs font-bold text-emerald-300">Selected patient</p>
+                  <p className="text-sm text-white mt-1">{selectedPatient.name}</p>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Medication Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Augmentin 625mg"
+                  value={newRx.medicationName}
+                  onChange={(e) => setNewRx({ ...newRx, medicationName: e.target.value })}
+                  className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Dosage / Strength</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 625mg"
+                    value={newRx.dosage}
+                    onChange={(e) => setNewRx({ ...newRx, dosage: e.target.value })}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Quantity</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={newRx.quantity}
+                    onChange={(e) => setNewRx({ ...newRx, quantity: Number(e.target.value) })}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Instructions</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Twice daily for 7 days"
+                  value={newRx.instructions}
+                  onChange={(e) => setNewRx({ ...newRx, instructions: e.target.value })}
+                  className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Prescribing Doctor</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Dr. Chudi"
+                    value={newRx.prescribedByName}
+                    onChange={(e) => setNewRx({ ...newRx, prescribedByName: e.target.value })}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Doctor's Phone</label>
+                  <input
+                    type="tel"
+                    placeholder="+234 800 000 0000"
+                    value={newRx.prescribedByPhone}
+                    onChange={(e) => setNewRx({ ...newRx, prescribedByPhone: e.target.value })}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Priority</label>
+                  <select
+                    value={newRx.priority}
+                    onChange={(e) => setNewRx({ ...newRx, priority: e.target.value })}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white"
+                  >
+                    <option value="routine">Routine</option>
+                    <option value="urgent">Urgent</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Price (₦)</label>
+                  <input
+                    type="number"
+                    value={newRx.price}
+                    onChange={(e) => setNewRx({ ...newRx, price: Number(e.target.value) })}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowNewRxModal(false);
+                    setSelectedPatient(null);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5"
+                >
+                  <Plus size={14} /> Issue Prescription
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

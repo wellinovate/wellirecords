@@ -1,4 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { getAllLabOrders, createLabOrder, updateLabOrderStatus, enterLabOrderResult } from "@/shared/api/labOrdersApi";
+import { io, Socket } from "socket.io-client";
+import Cookies from "js-cookie";
+import { apiUrl } from "@/shared/api/authApi";
 import {
   FlaskConical,
   Plus,
@@ -62,6 +66,7 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { useAuth } from "@/shared/auth/AuthProvider";
+import { PatientSearchPicker } from "@/apps/components/shared/PatientSearchPicker";
 import { getAllPatientLabResults, LabResultItem } from "@/shared/utils/utilityFunction";
 import { createRecord } from "@/shared/api/clinicalApi";
 import { sendCriticalAlertSms } from "@/shared/api/notificationApi";
@@ -209,11 +214,65 @@ const REAGENTS_INVENTORY = [
   { name: "Gram Stain Reagent Set", cat: "Microbiology", stock: 8, unit: "Sets", expiry: "2027-02-10", alert: false },
   { name: "EDTA Vacutainer Tubes (4mL)", cat: "Consumables", stock: 450, unit: "Pcs", expiry: "2027-05-01", alert: false },
 ];
+// Module-level socket singleton — lives outside the component so it
+// survives re-renders without reconnecting on every render cycle.
+// Auth note: the backend verifies the JWT signature and joins this socket
+// to its organization's room (shared/realtime/socket.js in wellirecord-backend),
+// so lab_order_change events are scoped to the connected org.
+let labOrdersSocket: Socket | null = null;
+
+function getLabOrdersSocket() {
+  if (!labOrdersSocket) {
+    const token = Cookies.get("accessToken");
+    labOrdersSocket = io(apiUrl, {
+      auth: { token },
+    });
+  }
+  return labOrdersSocket;
+}
 
 export function LabOrdersPage() {
-  const { user } = useAuth();
+  const { user, searchPatientRequest } = useAuth();
   const [activeTab, setActiveTab] = useState<"pipeline" | "entry" | "imaging" | "inventory" | "analytics">("pipeline");
   const [orders, setOrders] = useState<any[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+
+  useEffect(() => {
+    getAllLabOrders()
+      .then((res) => setOrders(res.items))
+      .catch((err) => console.error("Failed to load lab orders:", err))
+      .finally(() => setOrdersLoading(false));
+  }, []);
+
+  // Real-time sync: apply insert/update/delete changes pushed by the backend.
+  useEffect(() => {
+    const socket = getLabOrdersSocket();
+
+    const handleChange = (change: {
+      operationType: string;
+      documentId: string;
+      document: any | null;
+    }) => {
+      setOrders((prev) => {
+        if (change.operationType === "insert" && change.document) {
+          return [change.document, ...prev];
+        }
+        if (change.operationType === "update" && change.document) {
+          return prev.map((o) => (o.id === change.documentId ? change.document : o));
+        }
+        if (change.operationType === "delete") {
+          return prev.filter((o) => o.id !== change.documentId);
+        }
+        return prev;
+      });
+    };
+
+    socket.on("lab_order_change", handleChange);
+
+    return () => {
+      socket.off("lab_order_change", handleChange);
+    };
+  }, []);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchBy, setSearchBy] = useState<"all" | "wrid" | "name" | "phone" | "doctor">("all");
   const [sourceFilter, setSourceFilter] = useState<string>("all");
@@ -225,6 +284,12 @@ export function LabOrdersPage() {
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [selectedPatient, setSelectedPatient] = useState<{
+    id: string;
+    name: string;
+    avatar?: string;
+    raw: any;
+  } | null>(null);
 
   // Results Entry Form State
   const [resultForm, setResultForm] = useState({
@@ -372,38 +437,40 @@ export function LabOrdersPage() {
   };
 
   // Handle New Order Submission
-  const handleCreateNewOrder = (e: React.FormEvent) => {
-    e.preventDefault();
-    const created: any = {
-      id: `LAB-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-      patientName: newOrder.patientName || "Walk-in Patient",
-      patientWrId: newOrder.patientWrId || `WR-NGA-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-      phone: newOrder.phone || "+234 800 000 0000",
-      doctorPhone: newOrder.doctorPhone || "",
-      testName: newOrder.testName,
-      category: newOrder.category,
-      source: newOrder.source,
-      sourceType: "Clinic",
-      doctor: newOrder.doctor || "Dr. On-Duty",
-      date: new Date().toISOString().replace("T", " ").substring(0, 16),
-      priority: newOrder.priority,
-      status: "requested",
-      sampleType: newOrder.sampleType,
-      barcode: `BC-${Math.floor(1000000 + Math.random() * 9000000)}`,
-      collector: user?.name || "Lab Intake Desk",
-      measuredValue: "",
-      normalRange: "",
-      interpretation: "",
-      isCritical: false,
-      price: Number(newOrder.price),
-      paymentStatus: "paid",
-      verifiedBy: "Pending",
-    };
-
-    setOrders((prev) => [created, ...prev]);
-    showToast(`New Lab Request ${created.id} generated with Barcode ${created.barcode}!`);
-    setIsNewOrderModalOpen(false);
+  const CATEGORY_MAP: Record<string, string> = {
+    "Hematology": "hematology",
+    "Chemical Pathology": "chemistry",
+    "Microbiology": "microbiology",
+    "Histopathology": "pathology",
+    "Immunology": "serology",
   };
+
+  const handleCreateNewOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPatient?.id) {
+      showToast("Select a patient before creating the request.");
+      return;
+    }
+    try {
+      const created = await createLabOrder({
+        patientId: selectedPatient.id,
+        testName: newOrder.testName,
+        category: CATEGORY_MAP[newOrder.category] || "other",
+        priority: newOrder.priority,
+        sampleType: newOrder.sampleType,
+        doctorName: newOrder.doctor,
+        doctorPhone: newOrder.doctorPhone,
+        price: Number(newOrder.price),
+      });
+      showToast(`New Lab Request generated with Barcode ${created.barcode}!`);
+      setIsNewOrderModalOpen(false);
+      setSelectedPatient(null);
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to create lab order — check console for details.");
+    }
+  };
+
 
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-8 font-sans" style={{ background: T.bg, color: T.text }}>
@@ -1159,30 +1226,19 @@ export function LabOrdersPage() {
             </div>
 
             <form onSubmit={handleCreateNewOrder} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Patient Name</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Olawale Johnson"
-                    value={newOrder.patientName}
-                    onChange={(e) => setNewOrder({ ...newOrder, patientName: e.target.value })}
-                    className="w-full bg-[#081220] border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"
-                    required
-                  />
-                </div>
+              <PatientSearchPicker
+                open={isNewOrderModalOpen}
+                enabled={true}
+                searchPatientRequest={searchPatientRequest}
+                onSelect={setSelectedPatient}
+              />
 
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">WelliRecord ID</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. WR-NGA-2026-5544"
-                    value={newOrder.patientWrId}
-                    onChange={(e) => setNewOrder({ ...newOrder, patientWrId: e.target.value })}
-                    className="w-full bg-[#081220] border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"
-                  />
+              {selectedPatient && (
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+                  <p className="text-sm font-medium text-emerald-200">Selected patient</p>
+                  <p className="mt-1 text-white">{selectedPatient.name}</p>
                 </div>
-              </div>
+              )}
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
