@@ -3,7 +3,7 @@ import * as XLSX from "xlsx";
 import {
   Upload, Users, CheckCircle, AlertCircle, Clock, BarChart3,
   Search, Filter, ChevronDown, X, RefreshCw, FileSpreadsheet,
-  UserCheck, UserX, Link2, Mail, Phone, Calendar,
+  UserCheck, UserX, Link2, Mail, Phone, Calendar, MessageSquare,
   ArrowUpRight, Zap, TrendingUp, Download, Copy, Check, ExternalLink,
   Shield, AlertTriangle
 } from "lucide-react";
@@ -906,8 +906,39 @@ export function PatientImportPage() {
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed">
-              Send this secure invitation link to <strong className="text-white">{inviteModal.customer.fullName}</strong> via SMS, Email, or WhatsApp to claim their record.
+              Send this secure invitation link to <strong className="text-white">{inviteModal.customer.fullName}</strong> via WhatsApp, SMS, or Email to claim their record.
             </p>
+
+            <div className="space-y-2">
+              {/* WhatsApp Button */}
+              {inviteModal.customer.phone && (
+                <a
+                  href={`https://wa.me/${inviteModal.customer.phone.replace(/\D/g, "").replace(/^0/, "234")}?text=${encodeURIComponent(
+                    `Hello ${inviteModal.customer.firstName || inviteModal.customer.fullName}, your healthcare provider has prepared your digital health records on WelliRecord. Access your prescriptions, lab results, and lifelong health vault for FREE here: ${inviteModal.link}`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-2.5 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20"
+                >
+                  <MessageSquare size={16} />
+                  <span>Send via WhatsApp</span>
+                  <ExternalLink size={12} className="opacity-70" />
+                </a>
+              )}
+
+              {/* SMS Button */}
+              {inviteModal.customer.phone && (
+                <a
+                  href={`sms:${inviteModal.customer.phone.replace(/\D/g, "")}?body=${encodeURIComponent(
+                    `Hello ${inviteModal.customer.firstName || inviteModal.customer.fullName}, your healthcare provider has prepared your health records on WelliRecord. Claim free access here: ${inviteModal.link}`
+                  )}`}
+                  className="w-full py-2.5 rounded-xl font-bold text-xs bg-sky-600 hover:bg-sky-500 text-white transition flex items-center justify-center gap-2 shadow-lg shadow-sky-600/20"
+                >
+                  <Phone size={16} />
+                  <span>Send via Mobile SMS</span>
+                </a>
+              )}
+            </div>
 
             <div className="p-3 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
               <p className="text-[11px] font-mono text-emerald-400 break-all">{inviteModal.link}</p>
@@ -917,12 +948,12 @@ export function PatientImportPage() {
                   setCopiedLink(true);
                   setTimeout(() => setCopiedLink(false), 2000);
                 }}
-                className="w-full py-2 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white transition flex items-center justify-center gap-1.5"
+                className="w-full py-2 rounded-xl font-bold text-xs bg-slate-800 hover:bg-slate-700 text-white transition flex items-center justify-center gap-1.5 border border-slate-700"
               >
                 {copiedLink ? (
                   <>
-                    <Check size={14} />
-                    <span>Copied to Clipboard!</span>
+                    <Check size={14} className="text-emerald-400" />
+                    <span className="text-emerald-400">Copied to Clipboard!</span>
                   </>
                 ) : (
                   <>
