@@ -177,6 +177,13 @@ export function PatientLoginPage() {
   const redirectAfterLogin = (accountType?: string) => {
     localStorage.setItem("activeProfileType", profileType);
 
+    const searchParams = new URLSearchParams(window.location.search);
+    const claimToken = searchParams.get("claimToken");
+    if (claimToken) {
+      navigate(`/join/${claimToken}`);
+      return;
+    }
+
     if (accountType === "user") {
       navigate("/patient/overview");
       return;

@@ -38,7 +38,8 @@
     "socket.io": "^4.7.5",
     "socket.io-client": "^4.7.5",
     "viem": "^2.44.1",
-    "wagmi": "^3.7.1"
+    "wagmi": "^3.7.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

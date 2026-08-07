@@ -18,6 +18,7 @@ import {
   HeartPulse,
   LayoutDashboard,
   LifeBuoy,
+  Link2,
   ListOrdered,
   Lock,
   LogOut,
@@ -60,6 +61,12 @@ const ALL_NAV = [
     roles: ["*"],
   },
   { to: "/provider/patients", label: "Patients", icon: Users, roles: ["*"] },
+  {
+    to: "/provider/patients/import",
+    label: "Patient Import & Sync",
+    icon: Link2,
+    roles: ["*"],
+  },
   { to: "/provider/vision", label: "Vision", icon: Eye, roles: ["*"] },
   {
     to: "/provider/doctors",

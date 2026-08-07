@@ -1,8 +1,9 @@
-const express = require('express');
-const http = require('http');
-const cors = require('cors');
-const { Server } = require('socket.io');
-const { MongoClient, ObjectId } = require('mongodb');
+import 'dotenv/config';
+import express from 'express';
+import http from 'http';
+import cors from 'cors';
+import { Server } from 'socket.io';
+import { MongoClient, ObjectId } from 'mongodb';
 
 const app = express();
 app.use(cors());
