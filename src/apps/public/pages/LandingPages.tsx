@@ -37,7 +37,6 @@ const navItems = [
   { label: "Solutions", href: "#solutions", hasChevron: true },
   { label: "How It Works", href: "#how-it-works" },
   // { label: "Pricing", href: "#pricing" },
-  { label: "Partners", href: "#partners" },
   // { label: "Security", href: "#security" },
   { label: "About Us", href: "/about" },
 ];
