@@ -118,6 +118,7 @@ export default function QueuePage({ organizationId, currentProviderId }: Props) 
 
             <div className="flex flex-wrap gap-3">
               <QueueFilters
+                disabled={!items.length}
                 workflowStatus={workflowStatus}
                 source={source}
                 onChange={({ workflowStatus, source }) => {
@@ -246,35 +247,73 @@ export default function QueuePage({ organizationId, currentProviderId }: Props) 
               ))}
 
               {activeCreateTab === "Encounters" && selectedEncounter && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-6">
-    <div className="relative max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-2xl border border-[#163761] bg-[#081b35] shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
-      <button
-        onClick={handleCloseCreateModal}
-        className="absolute right-4 top-4 z-10 rounded-lg bg-white/10 px-3 py-1 text-sm text-white hover:bg-white/20"
-      >
-        Close
-      </button>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-6">
+                  <div className="relative max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-2xl border border-[#163761] bg-[#081b35] shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
+                    <button
+                      onClick={handleCloseCreateModal}
+                      className="absolute right-4 top-4 z-10 rounded-lg bg-white/10 px-3 py-1 text-sm text-white hover:bg-white/20"
+                    >
+                      Close
+                    </button>
 
-      <div className="p-4 md:p-6">
-        <EncounterRecordForm
-          encounterId={selectedEncounter.encounterId}
-          patientId={selectedEncounter.patientId}
-          queueId={selectedEncounter.queueId}
-          organizationId={selectedEncounter.organizationId}
-          providerId={selectedEncounter.providerId}
-          onClose={handleCloseCreateModal}
-          onSuccess={async () => {
-            handleCloseCreateModal();
-          }}
-        />
-      </div>
-    </div>
-  </div>
-)}
+                    <div className="p-4 md:p-6">
+                      <EncounterRecordForm
+                        encounterId={selectedEncounter.encounterId}
+                        patientId={selectedEncounter.patientId}
+                        queueId={selectedEncounter.queueId}
+                        organizationId={selectedEncounter.organizationId}
+                        providerId={selectedEncounter.providerId}
+                        onClose={handleCloseCreateModal}
+                        onSuccess={async () => {
+                          handleCloseCreateModal();
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {!liveQueueItems.length && (
-                <div className="rounded-2xl border border-dashed border-[#163761] px-6 py-12 text-center text-[#9FB3CF]">
-                  No queue items found
+                <div className="rounded-2xl border border-dashed border-[#163761] bg-[#071830]/40 p-6 text-left">
+                  <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-block h-2 w-2 rounded-full bg-slate-500" />
+                        <h3 className="text-sm font-semibold text-gray-200">No active patients in queue</h3>
+                      </div>
+                      <p className="text-xs text-[#9FB3CF] max-w-md">
+                        The live queue is currently clear. New walk-in arrivals or checked-in appointments will automatically populate here.
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => setWalkInOpen(true)}
+                      className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 transition"
+                    >
+                      <Plus size={15} />
+                      Add Walk-in Arrival
+                    </button>
+                  </div>
+
+                  <div className="mt-6 grid gap-4 border-t border-[#163761]/60 pt-5 sm:grid-cols-3">
+                    <div className="rounded-xl border border-[#163761]/60 bg-[#0b2447]/40 p-3.5">
+                      <p className="text-[11px] font-medium text-[#9FB3CF] uppercase tracking-wider">Est. Wait Time</p>
+                      <p className="mt-1 text-lg font-bold text-emerald-400">~0 mins</p>
+                      <p className="text-[11px] text-slate-400">Immediate capacity available</p>
+                    </div>
+
+                    <div className="rounded-xl border border-[#163761]/60 bg-[#0b2447]/40 p-3.5">
+                      <p className="text-[11px] font-medium text-[#9FB3CF] uppercase tracking-wider">Queue Total Today</p>
+                      <p className="mt-1 text-lg font-bold text-white">{items.length}</p>
+                      <p className="text-[11px] text-slate-400">Total patient entries logged</p>
+                    </div>
+
+                    <div className="rounded-xl border border-[#163761]/60 bg-[#0b2447]/40 p-3.5">
+                      <p className="text-[11px] font-medium text-[#9FB3CF] uppercase tracking-wider">Facility Status</p>
+                      <p className="mt-1 text-lg font-bold text-sky-400">Ready for Arrivals</p>
+                      <p className="text-[11px] text-slate-400">Providers & Triage active</p>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

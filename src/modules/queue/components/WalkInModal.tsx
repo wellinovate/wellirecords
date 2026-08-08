@@ -168,13 +168,22 @@ export const WalkInModal = ({
             </div>
           </div>
 
-          <textarea
-            value={chiefComplaint}
-            onChange={(e) => setChiefComplaint(e.target.value)}
-            placeholder="Chief complaint"
-            rows={4}
-            className="w-full rounded-xl border border-[#163761] bg-[#0b2447] px-3 py-2 outline-none"
-          />
+          <div>
+            <div className="mb-1 flex items-center justify-between">
+              <label className="text-xs text-[#9FB3CF]">Chief Complaint</label>
+              <span className="font-mono text-[11px] text-slate-400">
+                {chiefComplaint.length}/250
+              </span>
+            </div>
+            <textarea
+              value={chiefComplaint}
+              maxLength={250}
+              onChange={(e) => setChiefComplaint(e.target.value)}
+              placeholder="e.g., Severe fever, chest pain, routine checkup..."
+              rows={3}
+              className="w-full rounded-xl border border-[#163761] bg-[#0b2447] px-3 py-2 text-sm text-white placeholder:text-slate-400/70 outline-none focus:border-blue-500 transition-colors"
+            />
+          </div>
 
           <button
             onClick={handleSubmit}

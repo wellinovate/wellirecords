@@ -96,131 +96,133 @@ export const PatientSearchPicker = ({
         )}
       </div>
 
-      <div className="rounded-2xl border border-dashed border-[#29527f] p-3.5 bg-[#061730]/60 space-y-3">
-        {!isSearching && query.trim() && !hasAnyResult && (
-          <div className="py-3 text-center space-y-1">
-            <p className="text-xs text-slate-300 font-semibold">No existing record found</p>
-            <p className="text-[11px] text-[#8fb0d5]">
-              You can complete order details as a walk-in patient.
-            </p>
-          </div>
-        )}
-
-        {/* 1. Verified WelliRecord Account */}
-        {searchResult && (
-          <div className="rounded-xl bg-emerald-950/40 border border-emerald-500/40 p-3 space-y-2">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <img
-                    src={searchResult.avatar || "/avatar.png"}
-                    alt={searchResult.fullName}
-                    className="h-10 w-10 rounded-full object-cover border border-emerald-500/50"
-                  />
-                  <CheckCircle2 size={14} className="absolute -bottom-1 -right-1 text-emerald-400 fill-emerald-950" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="font-bold text-sm text-white">{searchResult.fullName}</p>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                      ✓ WelliRecord Verified
-                    </span>
-                  </div>
-                  <p className="text-xs text-emerald-400/80 font-mono mt-0.5">
-                    {searchResult.wrId || "WR-ID Active"}
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() =>
-                  onSelect({
-                    id: searchResult.patientIdentityId || searchResult._id,
-                    name: searchResult.fullName,
-                    avatar: searchResult.avatar,
-                    raw: searchResult,
-                  })
-                }
-                className="rounded-lg bg-emerald-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-emerald-500 transition shadow-md shadow-emerald-600/20"
-              >
-                Select
-              </button>
+      {(isSearching || query.trim() || searchResult || localCustomers.length > 0) && (
+        <div className="rounded-2xl border border-dashed border-[#29527f] p-3.5 bg-[#061730]/60 space-y-3">
+          {!isSearching && query.trim() && !hasAnyResult && (
+            <div className="py-3 text-center space-y-1">
+              <p className="text-xs text-slate-300 font-semibold">No existing record found</p>
+              <p className="text-[11px] text-[#8fb0d5]">
+                You can complete order details as a walk-in patient.
+              </p>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* 2. Local Imported Customers */}
-        {localCustomers.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-1">
-              Local Customer Records ({localCustomers.length})
-            </p>
-            {localCustomers.map((c) => (
-              <div
-                key={c._id}
-                className="rounded-xl bg-[#0d284f] border border-slate-700/60 p-3 flex items-center justify-between gap-3 hover:border-slate-500 transition"
-              >
-                <div className="flex items-center gap-3 overflow-hidden">
-                  <div className="w-9 h-9 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center font-bold text-sm flex-shrink-0">
-                    <User size={16} />
+          {/* 1. Verified WelliRecord Account */}
+          {searchResult && (
+            <div className="rounded-xl bg-emerald-950/40 border border-emerald-500/40 p-3 space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <img
+                      src={searchResult.avatar || "/avatar.png"}
+                      alt={searchResult.fullName}
+                      className="h-10 w-10 rounded-full object-cover border border-emerald-500/50"
+                    />
+                    <CheckCircle2 size={14} className="absolute -bottom-1 -right-1 text-emerald-400 fill-emerald-950" />
                   </div>
-                  <div className="overflow-hidden">
+                  <div>
                     <div className="flex items-center gap-2">
-                      <p className="font-semibold text-xs text-white truncate">{c.fullName}</p>
-                      <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/20 flex-shrink-0">
-                        {c.matchStatus === "matched" ? "Linked" : "Local Record"}
+                      <p className="font-bold text-sm text-white">{searchResult.fullName}</p>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                        ✓ WelliRecord Verified
                       </span>
                     </div>
-                    <div className="flex items-center gap-3 text-[11px] text-[#8fb0d5] mt-0.5">
-                      {c.phone && <span className="flex items-center gap-1"><Phone size={10} /> {c.phone}</span>}
-                      {c.email && <span className="flex items-center gap-1"><Mail size={10} /> {c.email}</span>}
-                    </div>
+                    <p className="text-xs text-emerald-400/80 font-mono mt-0.5">
+                      {searchResult.wrId || "WR-ID Active"}
+                    </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  {c.matchStatus !== "matched" && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    onSelect({
+                      id: searchResult.patientIdentityId || searchResult._id,
+                      name: searchResult.fullName,
+                      avatar: searchResult.avatar,
+                      raw: searchResult,
+                    })
+                  }
+                  className="rounded-lg bg-emerald-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-emerald-500 transition shadow-md shadow-emerald-600/20"
+                >
+                  Select
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 2. Local Imported Customers */}
+          {localCustomers.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-1">
+                Local Customer Records ({localCustomers.length})
+              </p>
+              {localCustomers.map((c) => (
+                <div
+                  key={c._id}
+                  className="rounded-xl bg-[#0d284f] border border-slate-700/60 p-3 flex items-center justify-between gap-3 hover:border-slate-500 transition"
+                >
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <div className="w-9 h-9 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center font-bold text-sm flex-shrink-0">
+                      <User size={16} />
+                    </div>
+                    <div className="overflow-hidden">
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-xs text-white truncate">{c.fullName}</p>
+                        <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/20 flex-shrink-0">
+                          {c.matchStatus === "matched" ? "Linked" : "Local Record"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 text-[11px] text-[#8fb0d5] mt-0.5">
+                        {c.phone && <span className="flex items-center gap-1"><Phone size={10} /> {c.phone}</span>}
+                        {c.email && <span className="flex items-center gap-1"><Mail size={10} /> {c.email}</span>}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {c.matchStatus !== "matched" && (
+                      <button
+                        type="button"
+                        onClick={(e) => handleQuickInvite(e, c)}
+                        className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 transition flex items-center gap-1 border border-blue-500/30"
+                        title="Generate invitation & copy link"
+                      >
+                        {invitedId === c._id ? (
+                          <>
+                            <Check size={12} className="text-emerald-400" />
+                            <span className="text-emerald-400">Copied!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Send size={11} />
+                            <span>Invite</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+
                     <button
                       type="button"
-                      onClick={(e) => handleQuickInvite(e, c)}
-                      className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 transition flex items-center gap-1 border border-blue-500/30"
-                      title="Generate invitation & copy link"
+                      onClick={() =>
+                        onSelect({
+                          id: c._id,
+                          name: c.fullName,
+                          avatar: undefined,
+                          raw: c,
+                        })
+                      }
+                      className="rounded-lg bg-blue-600 px-3 py-1 text-xs font-bold text-white hover:bg-blue-500 transition"
                     >
-                      {invitedId === c._id ? (
-                        <>
-                          <Check size={12} className="text-emerald-400" />
-                          <span className="text-emerald-400">Copied!</span>
-                        </>
-                      ) : (
-                        <>
-                          <Send size={11} />
-                          <span>Invite</span>
-                        </>
-                      )}
+                      Select
                     </button>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      onSelect({
-                        id: c._id,
-                        name: c.fullName,
-                        avatar: undefined,
-                        raw: c,
-                      })
-                    }
-                    className="rounded-lg bg-blue-600 px-3 py-1 text-xs font-bold text-white hover:bg-blue-500 transition"
-                  >
-                    Select
-                  </button>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
