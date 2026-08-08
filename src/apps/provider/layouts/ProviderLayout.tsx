@@ -109,7 +109,7 @@ const ALL_NAV = [
     label: "Telemedicine",
     icon: Video,
     roles: ["clinician", "provider_admin", "telehealth_provider"],
-    // roles: ["*"]
+    badge: "Soon",
   },
   // {
   //   to: "/provider/referrals",
@@ -336,7 +336,11 @@ export function ProviderLayout() {
                 <span className="hidden lg:block flex-1 text-left">
                   {item.label}
                 </span>
-                {locked ? (
+                {item.badge ? (
+                  <span className="hidden lg:inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-sky-500/20 text-sky-300 border border-sky-500/30 uppercase tracking-wider ml-1 flex-shrink-0">
+                    {item.badge}
+                  </span>
+                ) : locked ? (
                   <Lock
                     size={12}
                     style={{ color: "#7ba3c8" }}
