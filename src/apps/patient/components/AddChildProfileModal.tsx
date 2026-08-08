@@ -1,29 +1,54 @@
 import React, { useState } from 'react';
-import { X, Calendar, User, UserPlus, FileText } from 'lucide-react';
+import { X, Calendar, User, UserPlus, FileText, Loader2 } from 'lucide-react';
+import { dependantApi } from '@/shared/api/dependantApi';
 
 interface AddChildProfileModalProps {
     isOpen: boolean;
     onClose: () => void;
+    onSuccess?: () => void;
 }
 
-export function AddChildProfileModal({ isOpen, onClose }: AddChildProfileModalProps) {
+export function AddChildProfileModal({ isOpen, onClose, onSuccess }: AddChildProfileModalProps) {
     const [step, setStep] = useState<1 | 2>(1);
 
     // Step 1: Basic Info
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [dob, setDob] = useState('');
-    const [gender, setGender] = useState('Male');
+    const [gender, setGender] = useState<'Male' | 'Female'>('Male');
 
     // Step 2: EHR & Linking
     const [connectEHR, setConnectEHR] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     if (!isOpen) return null;
 
-    // No backend endpoint exists yet to create a dependant profile.
-    // The Create Profile action used to alert() a fake success message
-    // and close as if the profile were saved. See step-2 footer below
-    // for the honest state instead.
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!firstName || !lastName || !dob) return;
+
+        setLoading(true);
+        setErrorMsg(null);
+        try {
+            await dependantApi.createDependant({
+                fullName: `${firstName.trim()} ${lastName.trim()}`,
+                dateOfBirth: dob,
+                gender: gender as any,
+            });
+            onSuccess?.();
+            onClose();
+            setStep(1);
+            setFirstName('');
+            setLastName('');
+            setDob('');
+        } catch (err: any) {
+            console.error('Failed to create dependant profile:', err);
+            setErrorMsg(err?.message || 'Failed to create dependant profile. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
@@ -191,10 +216,28 @@ export function AddChildProfileModal({ isOpen, onClose }: AddChildProfileModalPr
                                 Continue to Linking
                             </button>
                         ) : (
-                            <div className="flex-[2] rounded-xl p-3 text-xs text-center" style={{ background: 'rgba(26,107,66,.06)', color: '#4a6e58', border: '1px solid rgba(26,107,66,.15)' }}>
-                                Family profiles aren't available yet — no backend endpoint exists to create or store them.
-                            </div>
+                            <button
+                                onClick={handleSubmit}
+                                disabled={loading}
+                                className="flex-[2] py-2.5 rounded-xl font-bold text-sm text-white transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                                style={{ background: 'linear-gradient(135deg, #1a6b42, #248b57)', boxShadow: '0 4px 12px rgba(26,107,66,.2)' }}
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 size={16} className="animate-spin" />
+                                        <span>Creating Profile...</span>
+                                    </>
+                                ) : (
+                                    'Create Profile'
+                                )}
+                            </button>
                         )}
+                    </div>
+                    {errorMsg && (
+                        <p className="mt-2 text-xs text-red-500 text-center font-medium">
+                            {errorMsg}
+                        </p>
+                    )}
                     </div>
                 </div>
 

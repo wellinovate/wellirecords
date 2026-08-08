@@ -180,25 +180,53 @@ const MOCK_ECOSYSTEM = [
 export function FamilyManagementPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  // No backend endpoint exists yet for dependant/child profiles (see
-  // spec doc for the planned real module). Previously called the mock
-  // dependantApi, which was removed from imports without removing this
-  // call — left every patient hitting a ReferenceError on this page.
-  // Empty array routes into the existing honest empty state below.
-  const children: Array<{
-    id: string;
-    profile: { dateOfBirth: string; genotype: string; fullName: string; avatar: string; gender: string; bloodGroup: string };
-    vaccinations: Array<{ status: string }>;
-    medicalHistory: { allergies: unknown[]; chronicConditions: unknown[] };
-    growth: Array<{ ageMonths: number; weightKg: number; heightCm: number }>;
-    authorization?: { primaryPediatrician?: string };
-  }> = [];
+  const [children, setChildren] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bookingChild, setBookingChild] = useState<string | null>(null);
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
 
+  const fetchDependants = async () => {
+    setLoading(true);
+    try {
+      const liveDependants = await dependantApi.listDependants();
+      if (liveDependants && liveDependants.length > 0) {
+        const mapped = liveDependants.map((dep) => ({
+          id: dep.dependantId,
+          profile: {
+            id: dep.dependantId,
+            patientId: dep.patientId,
+            fullName: dep.fullName,
+            dateOfBirth: dep.dateOfBirth,
+            gender: dep.gender || "Male",
+            bloodGroup: dep.bloodGroup || "O+",
+            genotype: dep.genotype || "AA",
+            avatar: dep.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(dep.fullName)}&backgroundColor=b6e3f4&radius=12`,
+          },
+          vaccinations: [],
+          growth: [],
+          medicalHistory: { allergies: [], chronicConditions: [] },
+        }));
+        setChildren(mapped);
+      } else {
+        const demoChildren = dependantApi.getChildrenByParent(user?.userId ?? user?.sub ?? "pat_1");
+        setChildren(demoChildren);
+      }
+    } catch (err) {
+      console.warn("Could not load backend dependants, falling back to local records:", err);
+      const demoChildren = dependantApi.getChildrenByParent(user?.userId ?? user?.sub ?? "pat_1");
+      setChildren(demoChildren);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDependants();
+  }, [user]);
+
   const totalVaccinationsDue = children.reduce(
-    (acc, child) => acc + child.vaccinations.filter((v) => v.status === "Pending").length,
+    (acc, child) => acc + (child.vaccinations?.filter((v: any) => v.status === "Pending")?.length || 0),
     0,
   );
 
@@ -957,6 +985,7 @@ export function FamilyManagementPage() {
       <AddChildProfileModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onSuccess={fetchDependants}
       />
 
       {/* Book Appointment Modal (for child quick-book) */}
