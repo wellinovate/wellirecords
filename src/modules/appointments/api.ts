@@ -3,16 +3,17 @@ import { AppointmentListResponse } from "./types";
 import { apiUrl } from "@/shared/api/authApi";
 import Cookies from "js-cookie";
 
-const token = Cookies.get("accessToken");
+const getAuthHeader = () => {
+  const token = Cookies.get("accessToken") || localStorage.getItem("token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 export const getAppointmentsApi = async (params?: Record<string, any>) => {
   const { data } = await api.get<AppointmentListResponse>(
     `${apiUrl}/api/v1/appointments`,
     {
       params,
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getAuthHeader(),
     },
   );
   return data;
@@ -25,14 +26,9 @@ export const createAppointmentApi = async (payload: {
   scheduledFor: string;
   reasonForVisit?: string;
 }) => {
-  console.log("🚀 ~ createAppointmentApi ~ payload:", payload);
-
   const { data } = await api.post(`${apiUrl}/api/v1/appointments`, payload, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: getAuthHeader(),
   });
-  console.log("🚀 ~ createAppointmentApi ~ data:", data);
   return data;
 };
 
@@ -41,9 +37,7 @@ export const checkInAppointmentApi = async (appointmentId: string) => {
     `${apiUrl}/api/v1/appointments/${appointmentId}/check-in`,
     {},
     {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getAuthHeader(),
     },
   );
   return data;
@@ -54,9 +48,7 @@ export const markAppointmentNoShowApi = async (appointmentId: string) => {
     `${apiUrl}/api/v1/appointments/${appointmentId}/no-show`,
     {},
     {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getAuthHeader(),
     },
   );
   return data;
@@ -69,9 +61,7 @@ export const cancelAppointmentApi = async (appointmentId: string) => {
       status: "cancelled",
     },
     {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getAuthHeader(),
     },
   );
   return data;

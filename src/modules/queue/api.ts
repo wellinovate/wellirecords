@@ -3,15 +3,15 @@ import type { QueueListResponse, StartEncounterResponse } from "./types";
 import { apiUrl } from "@/shared/api/authApi";
 import Cookies from "js-cookie";
 
-const token = Cookies.get("accessToken");
+const getAuthHeader = () => {
+  const token = Cookies.get("accessToken") || localStorage.getItem("token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 export const getQueueApi = async (params?: Record<string, any>) => {
-  // const { data } = await api.get<QueueListResponse>(`${apiUrl}/api/v1/queue`, { params });
   const { data } = await api.get<QueueListResponse>(`${apiUrl}/api/v1/queue`, {
     params,
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: getAuthHeader(),
   });
 
   return data;
@@ -26,9 +26,7 @@ export const createWalkInQueueApi = async (payload: {
   chiefComplaint?: string;
 }) => {
   const { data } = await api.post(`${apiUrl}/api/v1/queue/walk-in`, payload, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: getAuthHeader(),
   });
   return data;
 };
@@ -54,9 +52,7 @@ export const saveTriageApi = async (
     `${apiUrl}/api/v1/queue/${queueId}/triage`,
     payload,
     {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getAuthHeader(),
     },
   );
   return data;
@@ -73,9 +69,13 @@ export const updateQueueStatusApi = async (
     | "cancelled"
     | "no-show",
 ) => {
-  const { data } = await api.patch(`${apiUrl}/api/v1/queue/${queueId}/status`, {
-    workflowStatus,
-  });
+  const { data } = await api.patch(
+    `${apiUrl}/api/v1/queue/${queueId}/status`,
+    { workflowStatus },
+    {
+      headers: getAuthHeader(),
+    },
+  );
   return data;
 };
 
@@ -87,15 +87,19 @@ export const startEncounterFromQueueApi = async (
     `${apiUrl}/api/v1/queue/${queueId}/start-encounter`,
     providerId ? { providerId } : {},
     {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getAuthHeader(),
     },
   );
   return data;
 };
 
 export const completeQueueVisitApi = async (queueId: string) => {
-  const { data } = await api.post(`${apiUrl}/api/v1/queue/${queueId}/complete`);
+  const { data } = await api.post(
+    `${apiUrl}/api/v1/queue/${queueId}/complete`,
+    {},
+    {
+      headers: getAuthHeader(),
+    },
+  );
   return data;
 };

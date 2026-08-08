@@ -37,15 +37,21 @@ export default function QueuePage({ organizationId, currentProviderId }: Props) 
     providerId?: string;
   } | null>(null);
 
+  const resolvedOrgId =
+    organizationId ||
+    user?.organization?._id ||
+    user?.profile?.organizationId ||
+    user?.sub;
+
   const params = useMemo(
     () => ({
-      organizationId: user?.sub,
+      organizationId: resolvedOrgId,
       workflowStatus: workflowStatus || undefined,
       source: source || undefined,
       page: 1,
       limit: 30,
     }),
-    [user?.sub, workflowStatus, source],
+    [resolvedOrgId, workflowStatus, source],
   );
 
   const {
