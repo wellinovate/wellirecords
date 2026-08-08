@@ -82,37 +82,11 @@ const T = {
 
 // ─── Initial Mock Data & Catalogs ───────────────────────────────────────────
 
-const INITIAL_INVENTORY = [
-  { id: "INV-001", name: "Amoxicillin / Clavulanic Acid", generic: "Augmentin", brand: "GSK", category: "Antibiotic", manufacturer: "GlaxoSmithKline", supplier: "MedPlus NG", batchNo: "AUG-2026-901", expiryDate: "2027-04-15", stock: 140, reorderLevel: 30, price: 8500, cost: 6200, status: "in-stock" },
-  { id: "INV-002", name: "Metformin Hydrochloride 500mg", generic: "Glucophage", brand: "Merck", category: "Antidiabetic", manufacturer: "Merck KGaA", supplier: "HealthPlus Ltd", batchNo: "MET-2025-412", expiryDate: "2026-09-30", stock: 18, reorderLevel: 25, price: 3200, cost: 2100, status: "low-stock" },
-  { id: "INV-003", name: "Lisinopril 10mg", generic: "Zestril", brand: "AstraZeneca", category: "Antihypertensive", manufacturer: "AstraZeneca", supplier: "PharmaServ", batchNo: "LIS-2026-118", expiryDate: "2026-11-20", stock: 85, reorderLevel: 20, price: 4500, cost: 3000, status: "in-stock" },
-  { id: "INV-004", name: "Artemether + Lumefantrine 80/480mg", generic: "Coartem", brand: "Novartis", category: "Antimalarial", manufacturer: "Novartis", supplier: "MedPlus NG", batchNo: "AL-2026-004", expiryDate: "2026-08-10", stock: 8, reorderLevel: 20, price: 2800, cost: 1800, status: "low-stock" },
-  { id: "INV-005", name: "Paracetamol 500mg (Emzor)", generic: "Acetaminophen", brand: "Emzor", category: "Analgesic", manufacturer: "Emzor Pharma", supplier: "Emzor Direct", batchNo: "PCM-2025-099", expiryDate: "2025-12-01", stock: 0, reorderLevel: 50, price: 500, cost: 300, status: "expired" },
-  { id: "INV-006", name: "Atorvastatin 20mg", generic: "Lipitor", brand: "Pfizer", category: "Cardiovascular", manufacturer: "Pfizer Inc", supplier: "PharmaServ", batchNo: "ATO-2027-302", expiryDate: "2027-08-18", stock: 220, reorderLevel: 40, price: 9500, cost: 7000, status: "overstocked" },
-];
-
+// ─── Reference shape for the "New Prescription" modal's selectedRx type ────
+// (INBOUND_PRESCRIPTIONS itself was mock data and has been removed — this
+// is kept only so `typeof INBOUND_PRESCRIPTIONS[0]` below still resolves.)
 const INBOUND_PRESCRIPTIONS = [
-  { id: "RX-9012", source: "Lagos University Teaching Hospital", sourceType: "Hospital", doctor: "Dr. Olayinka Adeleke", date: "2026-08-04", drug: "Augmentin 625mg", strength: "625mg", qty: 14, freq: "Twice daily", duration: "7 days", diagnosis: "Acute Bacterial Sinusitis", patientName: "Chibuike Okonkwo", patientWrId: "WR-NGA-2026-8891", status: "pending", priority: "urgent" },
-  { id: "RX-9013", source: "Telemed Consult Room #4", sourceType: "Telemedicine", doctor: "Dr. Fatima Aliyu", date: "2026-08-04", drug: "Coartem 80/480mg", strength: "80/480mg", qty: 6, freq: "As directed", duration: "3 days", diagnosis: "Uncomplicated Malaria", patientName: "Amara Okafor", patientWrId: "WR-NGA-2026-1102", status: "pending", priority: "routine" },
-  { id: "RX-9014", source: "Silver Cross Dental Clinic", sourceType: "Dentist", doctor: "Dr. Emeka Nwosu", date: "2026-08-03", drug: "Ibuprofen 400mg", strength: "400mg", qty: 20, freq: "Every 8 hours", duration: "5 days", diagnosis: "Post-Extraction Inflammation", patientName: "Ibrahim Musa", patientWrId: "WR-NGA-2026-4481", status: "dispensed", priority: "routine" },
-  { id: "RX-9015", source: "Vision Plus Eye Center", sourceType: "Eye Clinic", doctor: "Dr. Grace Oseji", date: "2026-08-03", drug: "Timolol Maleate 0.5% Drops", strength: "0.5%", qty: 1, freq: "1 drop OD", duration: "30 days", diagnosis: "Primary Open-Angle Glaucoma", patientName: "Ngozi Adewale", patientWrId: "WR-NGA-2026-7734", status: "pending", priority: "routine" },
-];
-
-const REFILL_REQUESTS = [
-  { id: "REF-101", patientName: "Chibuike Okonkwo", patientWrId: "WR-NGA-2026-8891", medication: "Glucophage 500mg", type: "Monthly Refill", requestedDate: "2026-08-04", deliveryPreference: "Home Delivery", status: "pending" },
-  { id: "REF-102", patientName: "Ibrahim Musa", patientWrId: "WR-NGA-2026-4481", medication: "Lisinopril 10mg", type: "Chronic Renewal", requestedDate: "2026-08-03", deliveryPreference: "Pharmacy Pickup", status: "approved" },
-];
-
-const HOME_DELIVERIES = [
-  { id: "DEL-8801", patientName: "Chibuike Okonkwo", address: "14 Admiralty Way, Lekki Phase 1, Lagos", phone: "+234 803 111 2233", driver: "Segun Balogun (Rider #4)", status: "In Transit", otpRequired: "4892", items: "Augmentin 625mg x 1 pack" },
-  { id: "DEL-8802", patientName: "Ngozi Adewale", address: "8 Ikeja GRA, Lagos", phone: "+234 802 444 5566", driver: "Tunde Bakare (Rider #2)", status: "Out for Delivery", otpRequired: "1903", items: "Timolol 0.5% Eye Drops x 1 bottle" },
-];
-
-const STAFF_MEMBERS = [
-  { id: "STF-01", name: "Pharm. Olumide Johnson", role: "Pharmacy Manager / Owner", license: "PCN/2018/48912", status: "Active", permissions: ["Full Control", "NAFDAC Approval", "Dispense"] },
-  { id: "STF-02", name: "Pharm. Amina Bello", role: "Senior Pharmacist", license: "PCN/2021/55102", status: "Active", permissions: ["Dispense", "AI Check", "Clinical Notes"] },
-  { id: "STF-03", name: "Emeka Chidi", role: "Pharmacy Technician", license: "PT-NGA-1029", status: "Active", permissions: ["Stock Entry", "Refill Processing"] },
-  { id: "STF-04", name: "Funke Adebayo", role: "Storekeeper & Cashier", license: "N/A", status: "Active", permissions: ["POS Billing", "Inventory View"] },
+  { id: "", source: "", sourceType: "", doctor: "", date: "", drug: "", strength: "", qty: 0, freq: "", duration: "", diagnosis: "", patientName: "", patientWrId: "", status: "", priority: "" },
 ];
 
 // ─── Helper Functions ────────────────────────────────────────────────────────
@@ -1031,24 +1005,10 @@ export function PharmacyDashboard() {
             <h3 className="font-bold text-lg text-white flex items-center gap-2">
               <ShieldCheck size={20} className="text-emerald-400" /> NAFDAC & PCN Compliance Register
             </h3>
-            <p className="text-xs text-slate-400">Immutable records for controlled substances, cold-chain temperature logs, and regulatory inspections.</p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-                <div className="flex items-center justify-between font-bold text-white">
-                  <span>Cold-Chain Fridge Monitor</span>
-                  <span className="text-emerald-400 font-mono">4.2°C (Optimal)</span>
-                </div>
-                <p className="text-slate-400">Automatic temperature log every 15 minutes. NAFDAC compliance range: 2.0°C to 8.0°C.</p>
-              </div>
-              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-                <div className="flex items-center justify-between font-bold text-white">
-                  <span>Controlled Substance Register</span>
-                  <span className="text-sky-400 font-mono">100% Audited</span>
-                </div>
-                <p className="text-slate-400">Morphine, Codeine, and Diazepam transactions locked with pharmacist digital signatures.</p>
-              </div>
-            </div>
+            <p className="text-xs text-slate-400">
+              Cold-chain temperature logging and a controlled-substance register aren't available yet.
+              No sensor or transaction data is being tracked, so nothing here would be real.
+            </p>
           </div>
         </div>
       )}
@@ -1060,38 +1020,10 @@ export function PharmacyDashboard() {
             <h3 className="font-bold text-lg text-white flex items-center gap-2">
               <Users size={20} className="text-sky-400" /> Staff Management & System Integrations
             </h3>
-
-            {/* Staff list */}
-            <div className="space-y-2">
-              <h4 className="font-bold text-xs text-slate-400 uppercase">Pharmacy Personnel & Roles</h4>
-              {STAFF_MEMBERS.map((stf) => (
-                <div key={stf.id} className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex justify-between items-center text-xs">
-                  <div>
-                    <span className="font-bold text-white">{stf.name}</span>
-                    <span className="text-slate-400 ml-2">({stf.role})</span>
-                    <div className="text-[10px] text-slate-500">License: {stf.license}</div>
-                  </div>
-                  <div className="flex gap-1">
-                    {stf.permissions.map((p) => (
-                      <span key={p} className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300">{p}</span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Integration status */}
-            <div className="pt-4 border-t border-slate-800">
-              <h4 className="font-bold text-xs text-slate-400 uppercase mb-3">System Hardware & API Integrations</h4>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                {["FHIR R4 API", "Barcode Scanner", "Receipt Printer", "WhatsApp Gateway", "HMO Clearinghouse", "POS Terminal", "SMS Gateway", "Payment Gateway"].map((sys) => (
-                  <div key={sys} className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
-                    <span className="font-semibold text-slate-200">{sys}</span>
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" title="Connected" />
-                  </div>
-                ))}
-              </div>
-            </div>
+            <p className="text-xs text-slate-400">
+              Staff role management and hardware/API integration status aren't available yet.
+              No staff records or integration connections are being tracked, so nothing here would be real.
+            </p>
           </div>
         </div>
       )}

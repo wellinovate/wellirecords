@@ -90,106 +90,6 @@ const T = {
 
 // ─── Initial Mock & Live Data Seeds ──────────────────────────────────────────
 
-const INITIAL_LAB_ORDERS = [
-  {
-    id: "LAB-2026-9901",
-    patientName: "Chibuike Okonkwo",
-    patientWrId: "WR-NGA-2026-8891",
-    phone: "+234 803 111 2233",
-    testName: "Full Blood Count (FBC) + ESR",
-    category: "Hematology",
-    source: "Lagos University Teaching Hospital",
-    sourceType: "Hospital",
-    doctor: "Dr. Olayinka Adeleke",
-    doctorPhone: "+234 803 111 2233",
-    date: "2026-08-04 09:15",
-    priority: "urgent",
-    status: "processing", // requested -> collected -> received -> processing -> quality-control -> verified -> released -> delivered
-    sampleType: "Blood (EDTA)",
-    barcode: "BC-8890123",
-    collector: "Nurse Blessing Nnamdi",
-    measuredValue: "WBC: 12.4 x10^9/L, Hb: 11.2 g/dL",
-    normalRange: "WBC: 4.0-10.0, Hb: 12.0-16.0",
-    interpretation: "Mild Leukocytosis & Low Hemoglobin",
-    isCritical: true,
-    price: 15500,
-    paymentStatus: "paid",
-    verifiedBy: "Dr. E. Mbakwe (Pathologist)",
-  },
-  {
-    id: "LAB-2026-9902",
-    patientName: "Amara Okafor",
-    patientWrId: "WR-NGA-2026-1102",
-    phone: "+234 802 444 5566",
-    testName: "Fastings Blood Glucose & HbA1c",
-    category: "Chemical Pathology",
-    source: "Telemedicine Consult Room #3",
-    sourceType: "Telemedicine",
-    doctor: "Dr. Fatima Aliyu",
-    date: "2026-08-04 10:30",
-    priority: "routine",
-    status: "verified",
-    sampleType: "Blood (Fluoride Oxalate)",
-    barcode: "BC-8890124",
-    collector: "Phleb. Tunde Bakare",
-    measuredValue: "FBG: 6.8 mmol/L, HbA1c: 7.2%",
-    normalRange: "FBG: 3.9-5.6 mmol/L, HbA1c: <5.7%",
-    interpretation: "Impaired Fasting Glucose / Suboptimal Diabetic Control",
-    isCritical: false,
-    price: 18000,
-    paymentStatus: "paid",
-    verifiedBy: "MLS K. Ogundipe (Senior Sci)",
-  },
-  {
-    id: "LAB-2026-9903",
-    patientName: "Ibrahim Musa",
-    patientWrId: "WR-NGA-2026-4481",
-    phone: "+234 805 777 9900",
-    testName: "Urinalysis Micro & Culture (M/C/S)",
-    category: "Microbiology",
-    source: "Silver Cross Medical Center",
-    sourceType: "Clinic",
-    doctor: "Dr. Emeka Nwosu",
-    date: "2026-08-04 11:00",
-    priority: "home-sample",
-    status: "collected",
-    sampleType: "Urine (Mid-stream)",
-    barcode: "BC-8890125",
-    collector: "Rider #4 (Home Sample Team)",
-    measuredValue: "Pus cells: 15-20/HPF, Nitrite: Positive",
-    normalRange: "Pus cells: 0-5/HPF, Nitrite: Negative",
-    interpretation: "Urinary Tract Infection suspected, culture pending",
-    isCritical: false,
-    price: 12000,
-    paymentStatus: "pending",
-    verifiedBy: "Pending",
-  },
-  {
-    id: "LAB-2026-9904",
-    patientName: "Ngozi Adewale",
-    patientWrId: "WR-NGA-2026-7734",
-    phone: "+234 803 888 1212",
-    testName: "Lipid Profile (TC, HDL, LDL, Triglycerides)",
-    category: "Chemical Pathology",
-    source: "Patient Self-Request",
-    sourceType: "Patient",
-    doctor: "Self / Wellness Program",
-    date: "2026-08-04 08:30",
-    priority: "routine",
-    status: "released",
-    sampleType: "Blood (Serum)",
-    barcode: "BC-8890126",
-    collector: "Phleb. Chidinma Eze",
-    measuredValue: "TC: 240 mg/dL, LDL: 160 mg/dL",
-    normalRange: "TC: <200 mg/dL, LDL: <100 mg/dL",
-    interpretation: "Hypercholesterolemia",
-    isCritical: false,
-    price: 14500,
-    paymentStatus: "paid",
-    verifiedBy: "Dr. E. Mbakwe (Pathologist)",
-  },
-];
-
 const WORKFLOW_STAGES = [
   { key: "requested", label: "Requested", icon: Clock, color: "#94a3b8" },
   { key: "collected", label: "Collected", icon: Syringe, color: "#38bdf8" },
@@ -201,19 +101,6 @@ const WORKFLOW_STAGES = [
   { key: "delivered", label: "Delivered", icon: CheckCircle2, color: "#22c55e" },
 ];
 
-const ANALYZERS = [
-  { name: "Mindray BS-240 Auto-Chemistry Analyzer", code: "CHEM-01", status: "Operational", calibDue: "2026-08-15", qcStatus: "Passed", throughput: "200 tests/hr" },
-  { name: "Sysmex XN-550 Automated Hematology", code: "HEM-02", status: "Operational", calibDue: "2026-08-20", qcStatus: "Passed", throughput: "60 samples/hr" },
-  { name: "Roche Cobas e411 Immunoassay System", code: "IMM-01", status: "Maintenance Due", calibDue: "2026-08-05", qcStatus: "Warning", throughput: "86 tests/hr" },
-  { name: "GeneXpert IV Polymerase Chain Reaction (PCR)", code: "MOL-01", status: "Operational", calibDue: "2026-09-01", qcStatus: "Passed", throughput: "4 cartridges/run" },
-];
-
-const REAGENTS_INVENTORY = [
-  { name: "Glucose GOD-PAP Reagent Kit", cat: "Chemical Pathology", stock: 12, unit: "Kits", expiry: "2026-11-30", alert: false },
-  { name: "Sysmex Cellpack DCL Diluent 20L", cat: "Hematology", stock: 3, unit: "Containers", expiry: "2026-09-15", alert: true },
-  { name: "Gram Stain Reagent Set", cat: "Microbiology", stock: 8, unit: "Sets", expiry: "2027-02-10", alert: false },
-  { name: "EDTA Vacutainer Tubes (4mL)", cat: "Consumables", stock: 450, unit: "Pcs", expiry: "2027-05-01", alert: false },
-];
 // Module-level socket singleton — lives outside the component so it
 // survives re-renders without reconnecting on every render cycle.
 // Auth note: the backend verifies the JWT signature and joins this socket
@@ -1042,59 +929,12 @@ export function LabOrdersPage() {
       {/* TAB 4: ANALYZERS & REAGENTS INVENTORY */}
       {activeTab === "inventory" && (
         <div className="space-y-6">
-          {/* Analyzers Table */}
           <div className="p-6 rounded-2xl border border-slate-800 bg-[#0c192b]">
             <h2 className="text-lg font-bold text-white mb-1">Analyzer & Equipment Monitor</h2>
-            <p className="text-xs text-slate-400 mb-4">Machine calibration status, QC passes, and maintenance logs</p>
-
-            <div className="grid md:grid-cols-2 gap-4">
-              {ANALYZERS.map((eq) => (
-                <div key={eq.code} className="p-4 rounded-xl border border-slate-800 bg-[#081220] space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-sky-400 font-mono">{eq.code}</span>
-                    <span
-                      className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold border ${
-                        eq.status === "Operational"
-                          ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/30"
-                          : "bg-amber-500/10 text-amber-300 border-amber-500/30"
-                      }`}
-                    >
-                      {eq.status}
-                    </span>
-                  </div>
-                  <div className="text-sm font-bold text-white">{eq.name}</div>
-                  <div className="text-xs text-slate-400 flex justify-between pt-2 border-t border-slate-800">
-                    <span>Calibration Due: {eq.calibDue}</span>
-                    <span>QC: {eq.qcStatus}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Reagents Inventory */}
-          <div className="p-6 rounded-2xl border border-slate-800 bg-[#0c192b]">
-            <h2 className="text-lg font-bold text-white mb-1">Reagents & Consumables Stock</h2>
-            <p className="text-xs text-slate-400 mb-4">Inventory levels and expiry tracking for laboratory reagents</p>
-
-            <div className="space-y-3">
-              {REAGENTS_INVENTORY.map((rg, idx) => (
-                <div key={idx} className="p-4 rounded-xl border border-slate-800 bg-[#081220] flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-bold text-white">{rg.name}</div>
-                    <div className="text-xs text-slate-400">{rg.cat} · Expiry: {rg.expiry}</div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-bold text-sky-300">{rg.stock} {rg.unit}</span>
-                    {rg.alert && (
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold">
-                        LOW STOCK
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <p className="text-xs text-slate-400">
+              Equipment calibration tracking and reagent inventory aren't available yet.
+              No machines or stock levels are being tracked, so nothing here would be real.
+            </p>
           </div>
         </div>
       )}
