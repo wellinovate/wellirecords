@@ -190,32 +190,28 @@ export function FamilyManagementPage() {
     setLoading(true);
     try {
       const liveDependants = await dependantApi.listDependants();
-      if (liveDependants && liveDependants.length > 0) {
-        const mapped = liveDependants.map((dep) => ({
+      const mapped = (liveDependants || []).map((dep) => ({
+        id: dep.dependantId,
+        profile: {
           id: dep.dependantId,
-          profile: {
-            id: dep.dependantId,
-            patientId: dep.patientId,
-            fullName: dep.fullName,
-            dateOfBirth: dep.dateOfBirth,
-            gender: dep.gender || "Male",
-            bloodGroup: dep.bloodGroup || "O+",
-            genotype: dep.genotype || "AA",
-            avatar: dep.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(dep.fullName)}&backgroundColor=b6e3f4&radius=12`,
-          },
-          vaccinations: [],
-          growth: [],
-          medicalHistory: { allergies: [], chronicConditions: [] },
-        }));
-        setChildren(mapped);
-      } else {
-        const demoChildren = dependantApi.getChildrenByParent(user?.userId ?? user?.sub ?? "pat_1");
-        setChildren(demoChildren);
-      }
+          patientId: dep.patientId,
+          fullName: dep.fullName,
+          dateOfBirth: dep.dateOfBirth,
+          gender: dep.gender || null,
+          bloodGroup: dep.bloodGroup || null,
+          genotype: dep.genotype || null,
+          avatar: dep.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(dep.fullName)}&backgroundColor=b6e3f4&radius=12`,
+        },
+        vaccinations: [],
+        growth: [],
+        medicalHistory: { allergies: [], chronicConditions: [] },
+      }));
+      setChildren(mapped);
     } catch (err) {
-      console.warn("Could not load backend dependants, falling back to local records:", err);
-      const demoChildren = dependantApi.getChildrenByParent(user?.userId ?? user?.sub ?? "pat_1");
-      setChildren(demoChildren);
+      // No mock fallback here on purpose — an empty or failed fetch
+      // means the honest empty state below, not fabricated children.
+      console.warn("Could not load dependants:", err);
+      setChildren([]);
     } finally {
       setLoading(false);
     }
