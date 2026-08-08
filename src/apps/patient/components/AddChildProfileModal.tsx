@@ -238,7 +238,6 @@ export function AddChildProfileModal({ isOpen, onClose, onSuccess }: AddChildPro
                             {errorMsg}
                         </p>
                     )}
-                    </div>
                 </div>
 
             </div>
