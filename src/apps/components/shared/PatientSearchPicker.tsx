@@ -97,12 +97,6 @@ export const PatientSearchPicker = ({
       </div>
 
       <div className="rounded-2xl border border-dashed border-[#29527f] p-3.5 bg-[#061730]/60 space-y-3">
-        {!isSearching && !query.trim() && (
-          <p className="text-xs text-[#8fb0d5] text-center py-2">
-            Enter a WelliRecord ID, phone number, email, or patient name to search.
-          </p>
-        )}
-
         {!isSearching && query.trim() && !hasAnyResult && (
           <div className="py-3 text-center space-y-1">
             <p className="text-xs text-slate-300 font-semibold">No existing record found</p>
