@@ -180,11 +180,15 @@ const MOCK_ECOSYSTEM = [
 export function FamilyManagementPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  // const children = dependantApi.getChildrenByParent(user?.userId ?? 'pat_1');
-  const children = [];
+  const children = dependantApi.getChildrenByParent(user?.userId ?? user?.sub ?? 'pat_1');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bookingChild, setBookingChild] = useState<string | null>(null);
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
+
+  const totalVaccinationsDue = children.reduce(
+    (acc, child) => acc + child.vaccinations.filter((v) => v.status === "Pending").length,
+    0,
+  );
 
   return (
     <div className="animate-fade-in space-y-8">
@@ -355,7 +359,7 @@ export function FamilyManagementPage() {
                 </div>
                 <TrendingUp size={16} style={{ color: '#10b981' }} />
               </div>
-              <div className="text-3xl font-bold mb-1" style={{ color: 'var(--pat-text)' }}>{MOCK_HEALTH_METRICS.vaccinationsDue}</div>
+              <div className="text-3xl font-bold mb-1" style={{ color: 'var(--pat-text)' }}>{totalVaccinationsDue}</div>
               <div className="text-xs font-medium" style={{ color: 'var(--pat-muted)' }}>Vaccinations Due</div>
             </div>
 
