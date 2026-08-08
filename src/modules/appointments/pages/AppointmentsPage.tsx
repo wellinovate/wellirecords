@@ -42,33 +42,48 @@ export default function AppointmentsPage({ organizationId }: Props) {
   }, [organizationId, filterMode, selectedDate]);
 
   const { items, loading, checkIn, markNoShow } = useAppointments(params);
-  // console.log("🚀 ~ AppointmentsPage ~ items:", items)
 
   const { activeItems, noShowItems, cancelledItems } = useMemo(() => {
-  const booked = items.filter((item) => item.status === "booked");
+    const booked = items.filter((item) => item.status === "booked");
 
-  const inProgress = items.filter(
-    (item) =>
-      item.status !== "booked" &&
-      item.status !== "cancelled" &&
-      item.status !== "no-show"
-  );
+    const inProgress = items.filter(
+      (item) =>
+        item.status !== "booked" &&
+        item.status !== "cancelled" &&
+        item.status !== "no-show"
+    );
 
-  const noShow = items.filter((item) => item.status === "no-show");
-  const cancelled = items.filter((item) => item.status === "cancelled");
+    const noShow = items.filter((item) => item.status === "no-show");
+    const cancelled = items.filter((item) => item.status === "cancelled");
 
-  return {
-    activeItems: [...booked, ...inProgress],
-    noShowItems: noShow,
-    cancelledItems: cancelled,
+    return {
+      activeItems: [...booked, ...inProgress],
+      noShowItems: noShow,
+      cancelledItems: cancelled,
+    };
+  }, [items]);
+
+  const getStatusBadgeStyle = (status: string, isCancelled: boolean) => {
+    if (isCancelled || status === "cancelled") {
+      return "border border-rose-500/30 bg-rose-500/15 text-rose-400 font-medium";
+    }
+    if (status === "no-show") {
+      return "border border-amber-500/30 bg-amber-500/15 text-amber-300 font-medium";
+    }
+    if (status === "booked") {
+      return "border border-sky-500/30 bg-sky-500/15 text-sky-300 font-medium";
+    }
+    if (status === "checked-in" || status === "in-progress" || status === "completed") {
+      return "border border-emerald-500/30 bg-emerald-500/15 text-emerald-300 font-medium";
+    }
+    return "border border-slate-600/30 bg-slate-700/40 text-slate-300 font-medium";
   };
-}, [items]);
 
   const renderRow = (item: any, isCancelled = false) => (
     <tr
       key={item._id}
-      className={`rounded-2xl ${
-        isCancelled ? "bg-[#0b2447]/25 opacity-60" : "bg-[#0b2447]/70"
+      className={`rounded-2xl transition-colors ${
+        isCancelled ? "bg-[#0b2447]/25 opacity-60 hover:opacity-80" : "bg-[#0b2447]/70 hover:bg-[#0b2447]/90"
       }`}
     >
       <td className="px-3 py-4">
@@ -94,49 +109,46 @@ export default function AppointmentsPage({ organizationId }: Props) {
 
       <td className="px-3 py-4">
         <span
-          className={`rounded-full px-3 py-1 text-xs ${
+          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs capitalize ${getStatusBadgeStyle(
+            item.status,
             isCancelled
-              ? "border border-[#4a5568] bg-[#1f2937] text-[#94a3b8]"
-              : "border border-[#274d7e] bg-[#102a4d] text-[#D7E6FA]"
-          }`}
+          )}`}
         >
           {item.status}
         </span>
       </td>
 
       <td className="px-3 py-4">
-        <div className="flex flex-wrap gap-2">
-          {!isCancelled && item.status === "booked" && (
+        <div className="flex flex-wrap items-center gap-2">
+          {!isCancelled && item.status === "booked" ? (
             <>
               <button
                 onClick={() => checkIn(item._id)}
-                className="rounded-xl bg-emerald-600 px-3 py-2 text-sm font-medium hover:bg-emerald-500"
+                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-500 active:scale-95"
               >
                 Check In
               </button>
 
               <button
                 onClick={() => markNoShow(item._id)}
-                className="rounded-xl bg-rose-600 px-3 py-2 text-sm font-medium hover:bg-rose-500"
+                className="rounded-lg bg-rose-600/90 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-rose-500 active:scale-95"
               >
                 No Show
               </button>
             </>
-          )}
-
-          {(isCancelled || item.status !== "booked") && (
-            <span className="text-xs text-[#9FB3CF]">No action available</span>
+          ) : (
+            <span className="text-xs font-medium text-slate-500 px-2">—</span>
           )}
         </div>
       </td>
     </tr>
   );
 
-  const renderTable = (rows: any[], isCancelled = false) => (
+  const renderTable = (rows: any[], isCancelled = false, emptyMessage = "No appointments found") => (
     <div className="overflow-x-auto">
       <table className="min-w-full border-separate border-spacing-y-2">
         <thead>
-          <tr className="text-left text-sm text-[#9FB3CF]">
+          <tr className="text-left text-xs font-medium text-[#9FB3CF] uppercase tracking-wider">
             <th className="px-3 py-2">Patient</th>
             <th className="px-3 py-2">Scheduled</th>
             <th className="px-3 py-2">Reason</th>
@@ -150,8 +162,11 @@ export default function AppointmentsPage({ organizationId }: Props) {
             rows.map((item) => renderRow(item, isCancelled))
           ) : (
             <tr>
-              <td colSpan={6} className="px-3 py-10 text-center text-[#9FB3CF]">
-                {isCancelled ? "No cancelled appointments" : "No appointments found"}
+              <td colSpan={6} className="px-3 py-6 text-left text-xs text-[#7f93ad]">
+                <div className="flex items-center gap-2">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-slate-600/50" />
+                  {emptyMessage}
+                </div>
               </td>
             </tr>
           )}
@@ -177,46 +192,30 @@ export default function AppointmentsPage({ organizationId }: Props) {
               </div>
             </div>
 
+            {/* Segmented Filter Control */}
             <div className="flex flex-wrap items-center gap-3">
-              <button
-                onClick={() => setFilterMode("today")}
-                className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
-                  filterMode === "today"
-                    ? "bg-blue-600 text-white"
-                    : "bg-[#0b2447] text-[#9FB3CF] hover:bg-[#12305b]"
-                }`}
-              >
-                Today
-              </button>
-
-              <button
-                onClick={() => setFilterMode("all")}
-                className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
-                  filterMode === "all"
-                    ? "bg-blue-600 text-white"
-                    : "bg-[#0b2447] text-[#9FB3CF] hover:bg-[#12305b]"
-                }`}
-              >
-                All
-              </button>
-
-              <button
-                onClick={() => setFilterMode("date")}
-                className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
-                  filterMode === "date"
-                    ? "bg-blue-600 text-white"
-                    : "bg-[#0b2447] text-[#9FB3CF] hover:bg-[#12305b]"
-                }`}
-              >
-                By Date
-              </button>
+              <div className="inline-flex rounded-xl bg-[#071830] p-1 border border-[#163761]">
+                {(["today", "all", "date"] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => setFilterMode(mode)}
+                    className={`rounded-lg px-3.5 py-1.5 text-xs transition-all ${
+                      filterMode === mode
+                        ? "bg-blue-600 text-white font-semibold shadow-sm"
+                        : "text-[#9FB3CF] font-medium hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    {mode === "today" ? "Today" : mode === "all" ? "All" : "By Date"}
+                  </button>
+                ))}
+              </div>
 
               {filterMode === "date" && (
                 <input
                   type="date"
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
-                  className="rounded-xl border border-[#163761] bg-[#0b2447] px-3 py-2 text-sm text-white outline-none"
+                  className="rounded-xl border border-[#163761] bg-[#071830] px-3 py-1.5 text-xs text-white outline-none focus:border-blue-500 transition-colors"
                 />
               )}
             </div>
@@ -230,41 +229,59 @@ export default function AppointmentsPage({ organizationId }: Props) {
             </div>
           ) : (
             <>
+              {/* Primary Section: Active Appointments */}
               <div>
-                <div className="mb-3">
-                  <h2 className="text-lg font-semibold text-gray-100">
-                    Active Appointments
-                  </h2>
-                  <p className="text-sm text-[#9FB3CF]">
-                    Booked appointments appear first before checked-in or other statuses
+                <div className="mb-3 border-l-4 border-emerald-500 pl-3.5 py-0.5">
+                  <div className="flex items-center gap-2.5">
+                    <h2 className="text-lg font-bold text-white tracking-tight">
+                      Active Appointments
+                    </h2>
+                    <span className="rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-300">
+                      {activeItems.length}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#9FB3CF] mt-0.5">
+                    Booked appointments appear first before checked-in or other active statuses
                   </p>
                 </div>
-                {renderTable(activeItems)}
+                {renderTable(activeItems, false, "No active appointments found")}
               </div>
 
+              {/* Secondary Section: No-show Appointments */}
               <div>
-  <div className="mb-3">
-    <h2 className="text-lg font-semibold text-gray-100">
-      No-show Appointments
-    </h2>
-    <p className="text-sm text-[#7f93ad]">
-      Patients who did not arrive for their scheduled appointment
-    </p>
-  </div>
-  {renderTable(noShowItems, true)}
-</div>
-
-              <div>
-                <div className="mb-3">
-                  <h2 className="text-lg font-semibold text-gray-100">
-                    Cancelled Appointments
-                  </h2>
-                  
+                <div className="mb-3 border-l-4 border-amber-500/70 pl-3.5 py-0.5">
+                  <div className="flex items-center gap-2.5">
+                    <h2 className="text-base font-semibold text-slate-200">
+                      No-show Appointments
+                    </h2>
+                    <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-400">
+                      {noShowItems.length}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#7f93ad] mt-0.5">
+                    Patients who did not arrive for their scheduled appointment
+                  </p>
                 </div>
-                {renderTable(cancelledItems, true)}
+                {renderTable(noShowItems, true, "No no-show appointments recorded")}
               </div>
 
-              
+              {/* Secondary / Muted Section: Cancelled Appointments */}
+              <div>
+                <div className="mb-3 border-l-4 border-rose-500/40 pl-3.5 py-0.5">
+                  <div className="flex items-center gap-2.5">
+                    <h2 className="text-base font-medium text-slate-400">
+                      Cancelled Appointments
+                    </h2>
+                    <span className="rounded-full bg-rose-500/10 px-2 py-0.5 text-xs font-semibold text-rose-400">
+                      {cancelledItems.length}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Appointments that were cancelled prior to visit
+                  </p>
+                </div>
+                {renderTable(cancelledItems, true, "No cancelled appointments")}
+              </div>
             </>
           )}
         </div>
