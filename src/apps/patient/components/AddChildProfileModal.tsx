@@ -20,13 +20,10 @@ export function AddChildProfileModal({ isOpen, onClose }: AddChildProfileModalPr
 
     if (!isOpen) return null;
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        // In a real app this would call the API
-        alert(`Child Profile Created for ${firstName} ${lastName}`);
-        onClose();
-        setStep(1); // Reset
-    };
+    // No backend endpoint exists yet to create a dependant profile.
+    // The Create Profile action used to alert() a fake success message
+    // and close as if the profile were saved. See step-2 footer below
+    // for the honest state instead.
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
@@ -184,14 +181,20 @@ export function AddChildProfileModal({ isOpen, onClose }: AddChildProfileModalPr
                                 Back
                             </button>
                         )}
-                        <button
-                            onClick={step === 1 ? () => setStep(2) : handleSubmit}
-                            disabled={step === 1 && (!firstName || !lastName || !dob)}
-                            className="flex-[2] py-2.5 rounded-xl font-bold text-sm text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                            style={{ background: 'linear-gradient(135deg, #1a6b42, #248b57)', boxShadow: '0 4px 12px rgba(26,107,66,.2)' }}
-                        >
-                            {step === 1 ? 'Continue to Linking' : 'Create Profile'}
-                        </button>
+                        {step === 1 ? (
+                            <button
+                                onClick={() => setStep(2)}
+                                disabled={!firstName || !lastName || !dob}
+                                className="flex-[2] py-2.5 rounded-xl font-bold text-sm text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                style={{ background: 'linear-gradient(135deg, #1a6b42, #248b57)', boxShadow: '0 4px 12px rgba(26,107,66,.2)' }}
+                            >
+                                Continue to Linking
+                            </button>
+                        ) : (
+                            <div className="flex-[2] rounded-xl p-3 text-xs text-center" style={{ background: 'rgba(26,107,66,.06)', color: '#4a6e58', border: '1px solid rgba(26,107,66,.15)' }}>
+                                Family profiles aren't available yet — no backend endpoint exists to create or store them.
+                            </div>
+                        )}
                     </div>
                 </div>
 

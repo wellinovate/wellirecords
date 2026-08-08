@@ -180,7 +180,19 @@ const MOCK_ECOSYSTEM = [
 export function FamilyManagementPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const children = dependantApi.getChildrenByParent(user?.userId ?? user?.sub ?? 'pat_1');
+  // No backend endpoint exists yet for dependant/child profiles (see
+  // spec doc for the planned real module). Previously called the mock
+  // dependantApi, which was removed from imports without removing this
+  // call — left every patient hitting a ReferenceError on this page.
+  // Empty array routes into the existing honest empty state below.
+  const children: Array<{
+    id: string;
+    profile: { dateOfBirth: string; genotype: string; fullName: string; avatar: string; gender: string; bloodGroup: string };
+    vaccinations: Array<{ status: string }>;
+    medicalHistory: { allergies: unknown[]; chronicConditions: unknown[] };
+    growth: Array<{ ageMonths: number; weightKg: number; heightCm: number }>;
+    authorization?: { primaryPediatrician?: string };
+  }> = [];
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bookingChild, setBookingChild] = useState<string | null>(null);
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
