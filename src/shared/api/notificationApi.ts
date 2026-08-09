@@ -1,99 +1,107 @@
-import { NotificationTemplate } from '@/shared/types/types';
+import apiClient from './apiClient';
 
-// ─── Templates ────────────────────────────────────────────────────────────────
+export interface AppNotification {
+  _id: string;
+  type: 'appointment' | 'consent_request' | 'lab_result' | 'team_invite_accepted' | 'critical_alert' | 'system';
+  title: string;
+  body: string;
+  link: string | null;
+  isRead: boolean;
+  createdAt: string;
+}
 
-export const MOCK_TEMPLATES: NotificationTemplate[] = [
-    {
-        id: 'tmpl_001', name: 'OTP Verification', channel: 'sms',
-        body: 'Your WelliRecord verification code is {{otp}}. Valid for 10 minutes. Do not share with anyone.',
-        variables: ['otp'], isActive: true,
-        lastModifiedAt: '2026-01-15T10:00:00Z', lastModifiedBy: 'admin_001',
-    },
-    {
-        id: 'tmpl_002', name: 'Consent Request Notification', channel: 'sms',
-        body: '{{provider_name}} from {{org_name}} has requested access to your WelliRecord. Log in to approve or decline: {{link}}',
-        variables: ['provider_name', 'org_name', 'link'], isActive: true,
-        lastModifiedAt: '2026-01-20T10:00:00Z', lastModifiedBy: 'admin_001',
-    },
-    {
-        id: 'tmpl_003', name: 'Welcome Email', channel: 'email',
-        subject: 'Welcome to WelliRecord — Your Health Vault is Ready',
-        body: 'Hi {{name}},\n\nWelcome to WelliRecord. Your secure personal health vault has been created.\n\nYou can now start uploading records, granting provider access, and viewing your health history — all in one place.\n\n{{cta_link}}\n\nOne patient. One trusted record. Accessible when it matters.\nThe WelliRecord Team',
-        variables: ['name', 'cta_link'], isActive: true,
-        lastModifiedAt: '2026-01-10T10:00:00Z', lastModifiedBy: 'admin_001',
-    },
-    {
-        id: 'tmpl_004', name: 'Appointment Reminder', channel: 'whatsapp',
-        body: '👋 Hi {{patient_name}}, this is a reminder that you have an appointment with *{{provider_name}}* at *{{org_name}}* on *{{date}}* at *{{time}}*.\n\nReply CONFIRM to confirm or CANCEL to cancel.',
-        variables: ['patient_name', 'provider_name', 'org_name', 'date', 'time'], isActive: true,
-        lastModifiedAt: '2026-02-01T10:00:00Z', lastModifiedBy: 'admin_001',
-    },
-    {
-        id: 'tmpl_005', name: 'Lab Result Ready', channel: 'sms',
-        body: 'Your lab results from {{org_name}} are now available in your WelliRecord. Log in to view: {{link}}',
-        variables: ['org_name', 'link'], isActive: true,
-        lastModifiedAt: '2026-02-05T10:00:00Z', lastModifiedBy: 'admin_001',
-    },
-    {
-        id: 'tmpl_006', name: 'Invoice Due Reminder', channel: 'email',
-        subject: 'WelliRecord Invoice {{invoice_id}} is Due',
-        body: 'Hi {{name}},\n\nYour invoice for *{{plan_name}}* ({{invoice_id}}) of ₦{{amount}} is due by {{due_date}}.\n\nPay now: {{payment_link}}\n\nQuestions? Reply to this email.',
-        variables: ['name', 'plan_name', 'invoice_id', 'amount', 'due_date', 'payment_link'], isActive: true,
-        lastModifiedAt: '2026-02-10T10:00:00Z', lastModifiedBy: 'admin_001',
-    },
-    {
-        id: 'tmpl_007', name: 'System Maintenance Broadcast', channel: 'in_app',
-        body: '🔧 WelliRecord will undergo scheduled maintenance on {{date}} from {{start_time}} to {{end_time}} WAT. Services may be briefly unavailable during this window.',
-        variables: ['date', 'start_time', 'end_time'], isActive: false,
-        lastModifiedAt: '2026-02-15T10:00:00Z', lastModifiedBy: 'admin_001',
-    },
-];
+export interface NotificationListResult {
+  items: AppNotification[];
+  unreadCount: number;
+  pagination: { page: number; limit: number; total: number; totalPages: number };
+}
 
-// ─── Delivery reports (mock) ──────────────────────────────────────────────────
+export interface NotificationTemplate {
+  _id: string;
+  name: string;
+  channel: 'sms' | 'email' | 'whatsapp' | 'in_app';
+  subject?: string;
+  body: string;
+  variables: string[];
+  isActive: boolean;
+  lastModifiedBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
-export const MOCK_DELIVERY_SUMMARY = {
-    last30Days: {
-        sms: { sent: 14820, delivered: 14231, failed: 589, deliveryRate: 96.0 },
-        email: { sent: 3241, delivered: 3108, failed: 133, deliveryRate: 95.9 },
-        whatsapp: { sent: 2190, delivered: 2144, failed: 46, deliveryRate: 97.9 },
-        in_app: { sent: 8870, delivered: 8870, failed: 0, deliveryRate: 100 },
-    },
-    optOutCount: 312,
-};
+export interface DeliveryChannelStats {
+  sent: number;
+  delivered: number;
+  failed: number;
+  deliveryRate: number | null;
+}
 
-// ─── notificationApi ──────────────────────────────────────────────────────────
+export interface DeliverySummary {
+  sms: DeliveryChannelStats;
+  email: DeliveryChannelStats;
+  whatsapp: DeliveryChannelStats;
+  in_app: DeliveryChannelStats;
+  note: string;
+}
 
 export const notificationApi = {
-    getTemplates(channel?: NotificationTemplate['channel']): NotificationTemplate[] {
-        if (channel) return MOCK_TEMPLATES.filter(t => t.channel === channel);
-        return MOCK_TEMPLATES;
-    },
-    getTemplateById(id: string): NotificationTemplate | undefined {
-        return MOCK_TEMPLATES.find(t => t.id === id);
-    },
-    toggleTemplate(id: string): NotificationTemplate | undefined {
-        const t = MOCK_TEMPLATES.find(t => t.id === id);
-        if (t) t.isActive = !t.isActive;
-        return t;
-    },
-    getDeliverySummary() {
-        return MOCK_DELIVERY_SUMMARY;
-    },
+  list: async (page = 1, limit = 20): Promise<NotificationListResult> => {
+    const res: any = await apiClient.get('/notifications', { params: { page, limit } });
+    return res?.data;
+  },
+
+  getUnreadCount: async (): Promise<number> => {
+    const res: any = await apiClient.get('/notifications/unread-count');
+    return res?.data?.unreadCount ?? 0;
+  },
+
+  markAsRead: async (notificationId: string) => {
+    const res: any = await apiClient.patch(`/notifications/${notificationId}/read`);
+    return res?.data;
+  },
+
+  markAllAsRead: async () => {
+    const res: any = await apiClient.patch('/notifications/read-all');
+    return res?.data;
+  },
+
+  // ─── Admin: templates ───────────────────────────────────────────────────
+  getTemplates: async (channel?: NotificationTemplate['channel']): Promise<NotificationTemplate[]> => {
+    const res: any = await apiClient.get('/notifications/templates', { params: channel ? { channel } : {} });
+    return res?.data || [];
+  },
+
+  toggleTemplate: async (templateId: string): Promise<NotificationTemplate> => {
+    const res: any = await apiClient.patch(`/notifications/templates/${templateId}/toggle`);
+    return res?.data;
+  },
+
+  getDeliverySummary: async (): Promise<DeliverySummary> => {
+    const res: any = await apiClient.get('/notifications/delivery-summary');
+    // Backend nests real numbers under last30Days; flattened here since
+    // that's the shape NotificationTemplatesPage.tsx already reads
+    // (delivery[channel].deliveryRate, not delivery.last30Days[channel]...).
+    const data = res?.data;
+    return { ...data?.last30Days, note: data?.note };
+  },
 };
 
-export async function sendCriticalAlertSms(to: string, message: string): Promise<{ success: boolean; error?: string }> {
+export async function sendCriticalAlertSms(phoneNumber: string, message: string): Promise<{ success: boolean; error?: string }> {
   try {
-    const res = await fetch('/api/send-sms', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ to, message, type: 'critical-lab' }),
-    });
-    const data = await res.json();
-    if (!res.ok || !data.success) {
-      return { success: false, error: data.error || 'SMS send failed' };
-    }
+    await apiClient.post('/notifications/critical-alert-sms', { phoneNumber, message });
     return { success: true };
   } catch (err: any) {
-    return { success: false, error: err.message || 'Network error' };
+    return { success: false, error: err?.response?.data?.message || err?.message || 'SMS send failed' };
   }
 }
+
+// NotificationBell.tsx imports this exact name (plural) with these
+// exact method names — kept separate from notificationApi (singular,
+// used by the admin templates page) rather than forcing one shape to
+// serve two different, already-written consumers.
+export const notificationsApi = {
+  unreadCount: async (): Promise<number> => notificationApi.getUnreadCount(),
+  list: (page = 1, limit = 20) => notificationApi.list(page, limit),
+  markAsRead: (notificationId: string) => notificationApi.markAsRead(notificationId),
+  markAllAsRead: () => notificationApi.markAllAsRead(),
+};

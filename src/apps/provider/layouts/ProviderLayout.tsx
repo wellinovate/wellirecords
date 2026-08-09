@@ -1,4 +1,5 @@
 import { health_companion_image, logos, welliIcon } from "@/assets";
+import { NotificationBell } from "@/shared/ui/NotificationBell";
 import { getMyOrganization, type MyOrganization } from "@/shared/api/organizationApi";import { orgApi } from "@/shared/api/orgApi";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { useWelliMate } from "@/shared/context/WelliMateContext";
@@ -8,7 +9,6 @@ import { useRBAC } from "@/shared/rbac/useRBAC";
 import { WelliMateWidget } from "@/shared/ui/WelliMateWidget";
 import {
   Activity,
-  Bell,
   CalendarClock,
   ChevronDown,
   ChevronRight,
@@ -493,10 +493,7 @@ export function ProviderLayout() {
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Synced {syncLabel}
             </div>
-            <button className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-white/5 relative">
-              <Bell size={18} style={{ color: "#7ba3c8" }} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-sky-400" />
-            </button>
+            <NotificationBell />
           </div>
         </header>
         {/* Offline Banner */}
