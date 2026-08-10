@@ -319,7 +319,7 @@ function HeroIllustration() {
       <img
         src={hero}
         alt="WelliRecord Hero"
-        className="h-full w-full object-cover"
+        className="absolute inset-0 h-full w-full object-cover"
       />
       <div className="absolute left-4 top-4 rounded-full bg-[#071B3F] px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm flex items-center gap-1.5 z-10">
         <Shield className="h-3.5 w-3.5 text-emerald-400" />
@@ -1012,12 +1012,12 @@ function FoundingStory() {
     <section id="story" className="bg-slate-50/70 py-12 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <div className="rounded-3xl bg-[#071B3F] text-white p-8 sm:p-12 lg:p-16 border border-[#1e3a8a]/40 shadow-xl relative overflow-hidden">
-          <div className="relative z-10 grid gap-10 lg:grid-cols-2 lg:gap-16 items-center">
+          <div className="relative z-10 grid gap-10 lg:grid-cols-2 lg:gap-16 items-start">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.26em] text-[#60A5FA] mb-4">
                 Why We Built This
               </p>
-              <blockquote className="text-2xl sm:text-3xl font-bold leading-tight tracking-tight text-white font-display">
+              <blockquote className="text-xl sm:text-2xl font-bold leading-snug tracking-tight text-white font-display">
                 "A doctor needed one piece of information — an allergy — and it wasn't there. We almost lost someone because a record didn't follow the patient."
               </blockquote>
               <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-[#10B981]">
@@ -1025,7 +1025,7 @@ function FoundingStory() {
               </p>
             </div>
 
-            <div className="space-y-6 text-slate-300 text-base sm:text-lg leading-relaxed">
+            <div className="space-y-6 text-slate-300 text-base leading-relaxed">
               <p>
                 Nigeria has some of Africa's finest doctors. But patient records don't travel with patients.
                 Every hospital visit starts from zero — hand-written forms, verbal histories, repeated tests.
