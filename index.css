@@ -3,7 +3,7 @@
    Two-portal theming: Provider (navy/teal) + Patient (forest green/ochre)
    ───────────────────────────────────────────────────────────────────────────── */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Bricolage+Grotesque:wght@400;600;800&display=swap');
+@import "tailwindcss";
 
 /* ─── CSS Variables ─────────────────────────────────────────────────────────── */
 /* Provider Portal — Deep Navy/Teal */
