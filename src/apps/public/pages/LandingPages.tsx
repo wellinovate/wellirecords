@@ -315,49 +315,19 @@ export function Navbar() {
 
 function HeroIllustration() {
   return (
-    <div className="relative min-h-[440px] w-full overflow-hidden rounded-[24px] bg-gradient-to-br from-slate-50 via-sky-50/60 to-white p-6 shadow-sm border border-slate-200/80 flex items-center justify-center">
+    <div className="relative min-h-[440px] w-full overflow-hidden rounded-[24px] shadow-sm border border-slate-200/80 bg-slate-100">
+      <img
+        src={hero}
+        alt="WelliRecord Hero"
+        className="h-full w-full object-cover"
+      />
       <div className="absolute left-4 top-4 rounded-full bg-[#071B3F] px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm flex items-center gap-1.5 z-10">
         <Shield className="h-3.5 w-3.5 text-emerald-400" />
         Trusted Health Vault
       </div>
-
-      <div className="relative flex h-[330px] w-[190px] flex-col rounded-[32px] border-[6px] border-slate-900 bg-white p-4 shadow-xl">
-        <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-300" />
-        <div className="rounded-2xl bg-slate-50 p-3.5 shadow-xs">
-          <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-[#1e3a8a]" />
-            <span className="text-xs font-bold text-slate-800">
-              WelliVault
-            </span>
-          </div>
-          <div className="mt-4 space-y-2.5">
-            {[1, 2, 3].map((item) => (
-              <div
-                key={item}
-                className="rounded-xl border border-slate-200 bg-white p-2.5 shadow-2xs"
-              >
-                <div className="h-2 w-20 rounded bg-slate-300" />
-                <div className="mt-1.5 h-2 w-12 rounded bg-slate-200" />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-auto flex items-center justify-between px-2 text-slate-400">
-          <span className="h-2 w-2 rounded-full bg-slate-400" />
-          <span className="h-2 w-2 rounded-full bg-slate-300" />
-          <span className="h-2 w-2 rounded-full bg-slate-300" />
-        </div>
-      </div>
-
-      <div className="absolute right-6 top-16 flex items-center gap-2 rounded-xl bg-white px-3.5 py-2.5 shadow-md border border-slate-200/80 z-10">
+      <div className="absolute right-6 top-12 flex items-center gap-2 rounded-xl bg-white/95 backdrop-blur px-3.5 py-2.5 shadow-md border border-slate-200/80 z-10">
         <BadgeCheck className="h-5 w-5 text-emerald-600" />
         <span className="text-xs font-semibold text-slate-800">NDPA Compliant</span>
-      </div>
-
-      <div className="absolute left-6 bottom-12 flex items-center gap-2 rounded-xl bg-white px-3.5 py-2.5 shadow-md border border-slate-200/80 z-10">
-        <Pill className="h-5 w-5 text-[#1e3a8a]" />
-        <span className="text-xs font-semibold text-slate-800">Full Records Access</span>
       </div>
     </div>
   );
