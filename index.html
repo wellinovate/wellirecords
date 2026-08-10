@@ -146,6 +146,22 @@
         });
       });
     }
+
+    // Prevent text copying outside form input elements
+    document.addEventListener('copy', function (e) {
+      const activeEl = document.activeElement;
+      const isInput = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable);
+      if (!isInput) {
+        e.preventDefault();
+      }
+    });
+    document.addEventListener('cut', function (e) {
+      const activeEl = document.activeElement;
+      const isInput = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable);
+      if (!isInput) {
+        e.preventDefault();
+      }
+    });
   </script>
 </body>
 
