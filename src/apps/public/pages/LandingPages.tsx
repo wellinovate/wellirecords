@@ -94,18 +94,10 @@ const stakeholders = [
   { label: "Government", icon: government },
 ];
 
-const partners = [
-  "General Hospital Abuja",
-  "Evercare Hospital Lekki",
-  "AXA Mansard",
-  "Citylab Diagnostics",
-  "Reddington Hospital",
-];
-
 function SectionHeading({ title, subtitle }) {
   return (
     <div className="mx-auto max-w-5xl mb-12 text-center">
-      <h2 className="text-3xl font-bold tracking-tight text-[#1F4E79] md:text-5xl mb-1">
+      <h2 className="text-3xl font-bold tracking-tight text-[#1F4E79] md:text-5xl mb-2">
         {title}
       </h2>
       {subtitle ? (
@@ -323,16 +315,15 @@ export function Navbar() {
 
 function HeroIllustration() {
   return (
-    <div className="relative min-h-[460px] overflow-hidden rounded-[24px] bg-gradient-to-br from-slate-50 via-sky-50/60 to-white p-6 shadow-sm border border-slate-200/80 flex items-center justify-center">
-      <div className="absolute left-4 top-4 rounded-full bg-[#071B3F] px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm flex items-center gap-1.5">
+    <div className="relative min-h-[440px] w-full overflow-hidden rounded-[24px] bg-gradient-to-br from-slate-50 via-sky-50/60 to-white p-6 shadow-sm border border-slate-200/80 flex items-center justify-center">
+      <div className="absolute left-4 top-4 rounded-full bg-[#071B3F] px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm flex items-center gap-1.5 z-10">
         <Shield className="h-3.5 w-3.5 text-emerald-400" />
         Trusted Health Vault
       </div>
 
-      {/* Simplified central vault mockup */}
-      <div className="relative flex h-[340px] w-[200px] flex-col rounded-[32px] border-[6px] border-slate-900 bg-white p-4 shadow-xl">
+      <div className="relative flex h-[330px] w-[190px] flex-col rounded-[32px] border-[6px] border-slate-900 bg-white p-4 shadow-xl">
         <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-300" />
-        <div className="rounded-2xl bg-slate-50 p-4 shadow-xs">
+        <div className="rounded-2xl bg-slate-50 p-3.5 shadow-xs">
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-[#1e3a8a]" />
             <span className="text-xs font-bold text-slate-800">
@@ -359,13 +350,12 @@ function HeroIllustration() {
         </div>
       </div>
 
-      {/* 2 Floating badges max */}
-      <div className="absolute right-6 top-16 flex items-center gap-2 rounded-xl bg-white px-3.5 py-2.5 shadow-md border border-slate-200/80">
+      <div className="absolute right-6 top-16 flex items-center gap-2 rounded-xl bg-white px-3.5 py-2.5 shadow-md border border-slate-200/80 z-10">
         <BadgeCheck className="h-5 w-5 text-emerald-600" />
         <span className="text-xs font-semibold text-slate-800">NDPA Compliant</span>
       </div>
 
-      <div className="absolute left-6 bottom-12 flex items-center gap-2 rounded-xl bg-white px-3.5 py-2.5 shadow-md border border-slate-200/80">
+      <div className="absolute left-6 bottom-12 flex items-center gap-2 rounded-xl bg-white px-3.5 py-2.5 shadow-md border border-slate-200/80 z-10">
         <Pill className="h-5 w-5 text-[#1e3a8a]" />
         <span className="text-xs font-semibold text-slate-800">Full Records Access</span>
       </div>
@@ -375,7 +365,7 @@ function HeroIllustration() {
 
 function ProblemVisual() {
   return (
-    <div className="relative mt-8 sm:mt-10">
+    <div className="relative mt-6 sm:mt-8">
       <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg">
         <img
           src={HealthRecord}
@@ -550,42 +540,38 @@ function Features() {
 
 function StakeholderCard({ label, icon: Icon }) {
   return (
-    <div className="rounded-2xl bg-white p-8 text-center cursor-pointer shadow-md ring-1 ring-slate-200 transition hover:-translate-y-1 hover:shadow-lg">
-      <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-sky-600 text-white shadow-sm">
-        <img src={Icon} alt="" className="w-full h-full" />
+    <div className="rounded-2xl bg-white p-6 sm:p-8 text-center cursor-pointer shadow-md ring-1 ring-slate-200 transition hover:-translate-y-1 hover:shadow-lg">
+      <div className="mx-auto flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center rounded-full bg-sky-600 text-white shadow-sm overflow-hidden p-2">
+        <img src={Icon} alt="" className="w-full h-full object-contain" />
       </div>
-      <p className="mt-3 text-base font-medium text-[#002353]">{label}</p>
+      <p className="mt-4 text-base font-semibold text-[#002353]">{label}</p>
     </div>
   );
 }
 
 function Solutions() {
   return (
-    <section id="solutions" className="bg-white pt-12 py-24">
-      <div className="w-full">
+    <section id="solutions" className="bg-white border-t border-slate-100 px-4 py-20 sm:px-6 sm:py-24 lg:px-8">
+      <div className="mx-auto max-w-7xl">
         <SectionHeading title="One Platform, Every Healthcare Stakeholder." />
 
-        <div className="mt-4 w-full bg-gradient-to-b from-[#FAF8FB] to-[#D9D8E6] px-8 py-12">
-          <div className="bg-[#FAF8FB] py-10 max-w-7xl mx-auto rounded-2xl px-6">
-            <div className="mx-auto grid max-w-5xl gap-14 md:grid-cols-2 xl:grid-cols-4">
-              {stakeholders.map((item) => (
-                <StakeholderCard
-                  key={item.label}
-                  label={item.label}
-                  icon={item.icon}
-                />
-              ))}
-            </div>
+        <div className="mt-12 mx-auto grid max-w-5xl gap-6 sm:gap-8 grid-cols-2 md:grid-cols-4">
+          {stakeholders.map((item) => (
+            <StakeholderCard
+              key={item.label}
+              label={item.label}
+              icon={item.icon}
+            />
+          ))}
+        </div>
 
-            <div className="mt-14 text-center">
-              <Link
-                to="/auth/provider/signup"
-                className="font-semibold text-base bg-[#071B3F] py-4 px-6 text-white shadow-md transition hover:bg-[#0c2d66] rounded-2xl inline-block"
-              >
-                Register Your Organisation
-              </Link>
-            </div>
-          </div>
+        <div className="mt-14 text-center">
+          <Link
+            to="/auth/provider/signup"
+            className="font-semibold text-base bg-[#071B3F] py-4 px-8 text-white shadow-md transition hover:bg-[#0c2d66] rounded-2xl inline-block"
+          >
+            Register Your Organisation
+          </Link>
         </div>
       </div>
     </section>
@@ -768,7 +754,7 @@ function SocialProof() {
         }
       `}</style>
 
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-5xl">
         <div className="mb-12 text-center">
           <p className="text-xs font-bold uppercase tracking-[0.26em] text-[#1e3a8a] mb-3">
             Pilot Programme
@@ -920,7 +906,7 @@ function FAQ() {
   const [openIndex, setOpenIndex] = React.useState<number | null>(null);
 
   return (
-    <section className="bg-white px-4 py-20 sm:px-6 sm:py-24 lg:px-8 border-t border-slate-100">
+    <section className="bg-slate-50/80 px-4 py-20 sm:px-6 sm:py-24 lg:px-8 border-t border-slate-100">
       <div className="mx-auto max-w-4xl">
         <div className="text-center mb-14">
           <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#1e3a8a] mb-3">Common Questions</p>
@@ -1019,83 +1005,30 @@ function FAQ() {
 
 function ConversionBanner() {
   return (
-    <section className="cta-redesign">
-      <style>{`
-        .cta-redesign {
-          position: relative;
-          padding: 80px 24px 64px;
-          background:
-            radial-gradient(900px 420px at 50% -10%, rgba(18,48,105,0.9), transparent 70%),
-            #071B3F;
-          text-align: center;
-          overflow: hidden;
-          font-family: 'Inter', system-ui, -apple-system, sans-serif;
-          color: #FFFFFF;
-        }
-        .cta-redesign .eyebrow {
-          font-size: 12px;
-          letter-spacing: 0.22em;
-          text-transform: uppercase;
-          color: #9FB2D6;
-          font-weight: 600;
-          display: block;
-          margin-bottom: 22px;
-        }
-        .cta-redesign h2 {
-          font-family: 'Bricolage Grotesque', 'Inter', sans-serif;
-          font-size: clamp(36px, 5.4vw, 60px);
-          line-height: 1.06;
-          font-weight: 700;
-          letter-spacing: -0.015em;
-          max-width: 820px;
-          margin: 0 auto 20px;
-        }
-        .cta-redesign .sub {
-          font-size: 18px;
-          line-height: 1.6;
-          color: #9FB2D6;
-          max-width: 640px;
-          margin: 0 auto 34px;
-        }
-        .cta-redesign .btn-row {
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
-          gap: 14px;
-          margin-bottom: 18px;
-        }
-        .cta-redesign .btn {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          padding: 14px 28px;
-          border-radius: 12px;
-          font-size: 15px;
-          font-weight: 600;
-          text-decoration: none;
-          transition: transform .15s ease, box-shadow .15s ease;
-        }
-        .cta-redesign .btn-primary {
-          background: #FFFFFF;
-          color: #071B3F;
-        }
-        .cta-redesign .btn-primary:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 8px 24px rgba(255,255,255,0.2);
-        }
-      `}</style>
+    <section className="bg-[#071B3F] text-white px-4 py-20 sm:py-24 text-center border-t border-white/10 relative overflow-hidden">
+      <div className="mx-auto max-w-4xl relative z-10">
+        <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#9FB2D6] mb-4">
+          Now onboarding partner facilities in Abuja
+        </p>
+        <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white mb-6 font-display">
+          Create your health vault in minutes, not paperwork.
+        </h2>
+        <p className="text-lg text-[#9FB2D6] max-w-2xl mx-auto mb-8">
+          Your complete medical history — hospitals, labs, prescriptions — in one secure, private vault. You control who sees it, always.
+        </p>
 
-      <span className="eyebrow">Ready to get started?</span>
-      <h2>Own your complete medical history</h2>
-      <p className="sub">
-        Join Nigerian families securing their health data in one trusted, patient-controlled vault.
-      </p>
+        <div className="flex flex-wrap items-center justify-center gap-4 mb-6">
+          <Link
+            to="/auth/patient/signup"
+            className="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-bold text-[#071B3F] shadow-lg transition hover:bg-slate-100"
+          >
+            Create Health Vault — Free <ArrowRight className="h-5 w-5" />
+          </Link>
+        </div>
 
-      <div className="btn-row">
-        <Link to="/auth/patient/signup" className="btn btn-primary">
-          Create Free Health Vault <ArrowRight className="h-4 w-4" />
-        </Link>
+        <p className="text-xs font-medium text-slate-400">
+          NDPA Compliant • Encrypted at Rest & Transit • Patient-Controlled Access
+        </p>
       </div>
     </section>
   );
