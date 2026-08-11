@@ -622,7 +622,7 @@ export function DataSovereigntyCenterPage() {
           </div>
         </div>
 
-        <div className="flex w-full shrink-0 items-start gap-4 rounded-2xl bg-gradient-to-br from-slate-950 to-blue-900 p-5 shadow-sm lg:w-80">
+        <div className="grad-id-card flex w-full shrink-0 items-start gap-4 rounded-2xl p-5 shadow-sm lg:w-80">
           <div className="rounded-xl bg-white p-2 shadow-inner">
             <QrCode className="h-14 w-14 text-slate-950" />
           </div>

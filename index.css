@@ -691,6 +691,13 @@ body {
   background: var(--prov-surface);
 }
 
+/* ─── ID card gradient (plain linear-gradient, no oklab interpolation —
+   Tailwind's bg-gradient-to-br utility fails silently on older Safari /
+   Android WebView / in-app browsers, leaving the background transparent) ── */
+.grad-id-card {
+  background: linear-gradient(135deg, #020617 0%, #1e3a8a 100%);
+}
+
 /* ─── QR card ───────────────────────────────────────────────────────────────── */
 .qr-wrapper {
   background: #fff;

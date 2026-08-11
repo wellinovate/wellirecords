@@ -1,42 +1,35 @@
 import React, { useState } from "react";
 import { Menu, X } from "lucide-react";
+import howItWorksHub from "./how-it-works-hub.jpg";
 
 import {
   ArrowRight,
   BadgeCheck,
-  ChevronDown,
   Clock,
   Eye,
   FileText,
-  Hospital,
   Lock,
-  Microscope,
-  Pill,
   Shield,
   Stethoscope,
-  Store,
   UserRound,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-import WelliFooter from "../../../../components/ui/Footer";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import {
-  control_access_image,
   diagonize,
   government,
   hopistal,
   insurance,
-  logos,
   NGOs,
   pharmacies,
-  qr_card_image,
   telehealth,
   wearable,
-  yourhealthrecord,
 } from "../../../assets";
 import { hero, welliIcon } from "@/assets";
-import { getCurrentUser } from "@/shared/utils/utilityFunction";
 
+/* ─────────────────────────────────────────────
+   NAV DATA
+───────────────────────────────────────────── */
 const navItems = [
   { label: "Solution", href: "#solutions" },
   { label: "How It Works", href: "#how-it-works" },
@@ -44,6 +37,9 @@ const navItems = [
   { label: "Ecosystem", href: "#ecosystem" },
 ];
 
+/* ─────────────────────────────────────────────
+   SETUP STEPS (FEATURES)
+───────────────────────────────────────────── */
 const setupSteps = [
   {
     number: "01",
@@ -63,7 +59,6 @@ const setupSteps = [
     number: "03",
     icon: Eye,
     title: "Control of Your Health History",
-    // NOTE: "any provider globally" is a reach claim — confirm before shipping.
     description:
       "Grant granular, time-limited access to any provider, with instant revocation capabilities.",
   },
@@ -71,13 +66,14 @@ const setupSteps = [
     number: "04",
     icon: Clock,
     title: "Grant Secure Access to Doctors",
-    // NOTE: "offline mode" and "cross-border compatibility" are unconfirmed
-    // features — confirm before this ships. Emergency QR codes are live.
     description:
       "Access your records anywhere with emergency QR codes, offline mode, and cross-border compatibility.",
   },
 ];
 
+/* ─────────────────────────────────────────────
+   TIMELINE STEPS (HOW IT WORKS)
+───────────────────────────────────────────── */
 const timelineSteps = [
   {
     icon: Stethoscope,
@@ -100,31 +96,14 @@ const timelineSteps = [
   {
     icon: ArrowRight,
     title: "Access When It Matters",
-    // NOTE: "when connectivity is limited" describes offline mode — confirm this
-    // is actually built before this line ships. Left as-is per design text.
     description:
       "Your critical health information is available when you need it most, including during emergencies and when connectivity is limited.",
   },
 ];
 
-const featureCards = [
-  {
-    title: "Own Your Health Record",
-    description: "Your complete medical history in one secure vault.",
-    icon: yourhealthrecord,
-  },
-  {
-    title: "Control Access Instantly",
-    description: "Grant or revoke provider access anytime.",
-    icon: control_access_image,
-  },
-  {
-    title: "Emergency QR Card",
-    description: "Share critical health data instantly in emergencies.",
-    icon: qr_card_image,
-  },
-];
-
+/* ─────────────────────────────────────────────
+   STAKEHOLDERS
+───────────────────────────────────────────── */
 const stakeholders = [
   { label: "Hospitals", icon: hopistal },
   { label: "Diagnostic Labs", icon: diagonize },
@@ -136,14 +115,31 @@ const stakeholders = [
   { label: "Government", icon: government },
 ];
 
-function SectionHeading({ title, subtitle }) {
+/* ─────────────────────────────────────────────
+   STATS
+───────────────────────────────────────────── */
+const stats = [
+  { value: "100%", label: "Patient data ownership" },
+  { value: "0", label: "Central key repositories" },
+  { value: "∞", label: "Lifetime record storage" },
+];
+
+/* ─────────────────────────────────────────────
+   COMPONENTS
+───────────────────────────────────────────── */
+function SectionHeading({ title, subtitle, eyebrow = "" }) {
   return (
-    <div className="mx-auto max-w-5xl mb-12 text-center">
-      <h2 className="text-3xl font-bold tracking-tight text-[#1F4E79] md:text-5xl mb-2">
+    <div className="mx-auto max-w-4xl text-center mb-10 sm:mb-12">
+      {eyebrow && (
+        <span className="inline-block px-4 py-1.5 rounded-full bg-sky-50 text-[#1F4E79] text-xs font-bold uppercase tracking-widest mb-3.5 border border-sky-100 shadow-sm">
+          {eyebrow}
+        </span>
+      )}
+      <h2 className="text-3xl sm:text-4xl lg:text-[42px] font-extrabold tracking-tight text-[#002353] leading-tight">
         {title}
       </h2>
       {subtitle ? (
-        <p className="mx-auto mt-4 max-w-[850px] text-base leading-7 text-slate-500 md:text-xl">
+        <p className="mx-auto mt-3.5 max-w-2xl text-base sm:text-lg text-slate-500 leading-relaxed">
           {subtitle}
         </p>
       ) : null}
@@ -151,21 +147,22 @@ function SectionHeading({ title, subtitle }) {
   );
 }
 
-function PrimaryButton({ children, href = "" }) {
+function PrimaryButton({ children, href = "", className = "" }) {
   return (
     <Link
       to={href}
-      className="inline-flex items-center justify-center rounded-xl bg-[#071B3F] px-6 py-3.5 text-sm font-semibold text-white shadow-md transition hover:bg-[#0c2d66] focus:outline-none focus:ring-2 focus:ring-[#071B3F] focus:ring-offset-2"
+      className={`inline-flex items-center justify-center rounded-xl bg-[#071B3F] px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm transition-all hover:bg-[#0c2d66] hover:shadow whitespace-nowrap ${className}`}
     >
       {children}
     </Link>
   );
 }
 
+/* ─────────────────────────────────────────────
+   NAVBAR
+───────────────────────────────────────────── */
 export function Navbar() {
-  const users = getCurrentUser();
   const { user, signOut } = useAuth();
-  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSignOut = () => {
@@ -174,58 +171,48 @@ export function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-100 bg-white/95 backdrop-blur overflow-x-hidden">
-      <div className="mx-auto flex w-full sm:max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 border-b border-slate-100 bg-white/95 backdrop-blur-md">
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6 lg:px-8">
         {/* Logo */}
         <div className="flex items-center min-w-0">
-          <Link to="/" className="flex items-center gap-2.5 cursor-pointer">
-            <img src={welliIcon} alt="WelliRecord" className="h-8 w-8 sm:h-9 sm:w-9 object-contain flex-shrink-0" />
+          <Link to="/" className="flex items-center gap-2.5 cursor-pointer group">
+            <img src={welliIcon} alt="WelliRecord" className="h-8 w-8 sm:h-9 sm:w-9 object-contain flex-shrink-0 transition-transform group-hover:scale-105" />
             <div className="flex flex-col leading-tight">
               <span className="text-[#1e3a8a] font-black text-base sm:text-lg tracking-tight" style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '-0.02em' }}>
                 Welli<span className="font-normal">Record</span><sup className="text-[10px] font-normal align-super">™</sup>
               </span>
-              <span className="text-[#1e3a8a] text-[7px] sm:text-[8px] font-bold tracking-[0.12em] uppercase opacity-60">One patient. One trusted record. Accessible when it matters.</span>
+              <span className="text-[#1e3a8a] text-[7px] sm:text-[8px] font-bold tracking-[0.12em] uppercase opacity-70">
+                One patient. One trusted record. Accessible when it matters.
+              </span>
             </div>
           </Link>
         </div>
 
-        {/* Desktop Nav */}
+        {/* Desktop Nav Links */}
         <nav className="hidden items-center gap-6 lg:flex">
-          {navItems.map((item) =>
-            item.href.startsWith("/") ? (
-              <Link
-                key={item.label}
-                to={item.href}
-                className="inline-flex items-center gap-1 text-base font-semibold text-[#1F4E79] transition hover:text-slate-950 xl:text-lg"
-              >
-                {item.label}
-                {item.hasChevron ? <ChevronDown className="h-4 w-4" /> : null}
-              </Link>
-            ) : (
-              <a
-                key={item.label}
-                href={item.href}
-                className="inline-flex items-center gap-1 text-base font-semibold text-[#1F4E79] transition hover:text-slate-950 xl:text-lg"
-              >
-                {item.label}
-                {item.hasChevron ? <ChevronDown className="h-4 w-4" /> : null}
-              </a>
-            )
-          )}
+          {navItems.map((item) => (
+            <a
+              key={item.label}
+              href={item.href}
+              className="text-sm font-semibold text-[#1F4E79] transition-colors hover:text-[#071B3F]"
+            >
+              {item.label}
+            </a>
+          ))}
         </nav>
 
         {/* Desktop Actions */}
         {!user ? (
-          <div className="hidden items-center gap-4 lg:flex">
+          <div className="hidden items-center gap-2.5 lg:flex">
             <Link
               to="/auth/login"
-              className="rounded-lg border border-slate-200 px-4 py-2 text-base font-semibold text-[#1F4E79] transition hover:bg-slate-50 xl:text-lg"
+              className="rounded-xl border border-slate-200 px-3.5 py-2 text-xs sm:text-sm font-semibold text-[#1F4E79] transition hover:bg-slate-50 hover:border-slate-300 whitespace-nowrap"
             >
               Patient Sign in
             </Link>
             <Link
               to="/auth/provider/login"
-              className="rounded-lg border border-slate-200 px-4 py-2 text-base font-semibold text-[#1F4E79] transition hover:bg-slate-50 xl:text-lg"
+              className="rounded-xl border border-slate-200 px-3.5 py-2 text-xs sm:text-sm font-semibold text-[#1F4E79] transition hover:bg-slate-50 hover:border-slate-300 whitespace-nowrap"
             >
               Provider Sign in
             </Link>
@@ -234,10 +221,10 @@ export function Navbar() {
             </PrimaryButton>
           </div>
         ) : (
-          <div className="hidden items-center gap-4 lg:flex">
+          <div className="hidden items-center gap-3 lg:flex">
             <button
               onClick={handleSignOut}
-              className="text-base font-semibold text-[#1F4E79] transition hover:text-[#071B3F] xl:text-lg"
+              className="text-sm font-semibold text-[#1F4E79] transition hover:text-[#071B3F]"
             >
               Log Out
             </button>
@@ -257,7 +244,7 @@ export function Navbar() {
         <button
           type="button"
           onClick={() => setMobileMenuOpen((prev) => !prev)}
-          className="inline-flex items-center justify-center rounded-md p-2 text-[#1F4E79] transition hover:bg-slate-100 lg:hidden"
+          className="inline-flex items-center justify-center rounded-lg p-2 text-[#1F4E79] transition hover:bg-slate-100 lg:hidden"
           aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
         >
           {mobileMenuOpen ? (
@@ -271,40 +258,27 @@ export function Navbar() {
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="border-t border-slate-200 bg-white lg:hidden">
-          <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6">
+          <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-5 sm:px-6">
             <nav className="flex flex-col gap-3">
-              {navItems.map((item) =>
-                item.href.startsWith("/") ? (
-                  <Link
-                    key={item.label}
-                    to={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="inline-flex items-center justify-between rounded-lg px-2 py-2 text-base font-semibold text-[#1F4E79] transition hover:bg-slate-50"
-                  >
-                    <span>{item.label}</span>
-                    {item.hasChevron ? <ChevronDown className="h-4 w-4" /> : null}
-                  </Link>
-                ) : (
-                  <a
-                    key={item.label}
-                    href={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="inline-flex items-center justify-between rounded-lg px-2 py-2 text-base font-semibold text-[#1F4E79] transition hover:bg-slate-50"
-                  >
-                    <span>{item.label}</span>
-                    {item.hasChevron ? <ChevronDown className="h-4 w-4" /> : null}
-                  </a>
-                )
-              )}
+              {navItems.map((item) => (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="rounded-lg px-3 py-2 text-base font-semibold text-[#1F4E79] transition hover:bg-slate-50"
+                >
+                  {item.label}
+                </a>
+              ))}
             </nav>
 
-            <div className="flex flex-col gap-3 pt-2">
+            <div className="flex flex-col gap-2.5 pt-3 border-t border-slate-100">
               {!user ? (
                 <>
                   <Link
                     to="/auth/login"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="rounded-lg border border-slate-200 px-4 py-3 text-center text-base font-semibold text-[#1F4E79] transition hover:bg-slate-50"
+                    className="rounded-xl border border-slate-200 px-4 py-3 text-center text-sm font-semibold text-[#1F4E79] transition hover:bg-slate-50"
                   >
                     Patient Sign in
                   </Link>
@@ -312,7 +286,7 @@ export function Navbar() {
                   <Link
                     to="/auth/provider/login"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="rounded-lg border border-slate-200 px-4 py-3 text-center text-base font-semibold text-[#1F4E79] transition hover:bg-slate-50"
+                    className="rounded-xl border border-slate-200 px-4 py-3 text-center text-sm font-semibold text-[#1F4E79] transition hover:bg-slate-50"
                   >
                     Provider Sign in
                   </Link>
@@ -320,7 +294,7 @@ export function Navbar() {
                   <Link
                     to="/auth/pre-signup"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="rounded-lg bg-[#071B3F] px-4 py-3 text-center text-base font-semibold text-white transition hover:bg-[#0c2d66]"
+                    className="rounded-xl bg-[#071B3F] px-4 py-3 text-center text-sm font-bold text-white transition hover:bg-[#0c2d66] shadow-md"
                   >
                     Create Health Vault
                   </Link>
@@ -334,14 +308,14 @@ export function Navbar() {
                         : "/provider/overview"
                     }
                     onClick={() => setMobileMenuOpen(false)}
-                    className="rounded-lg bg-[#071B3F] px-4 py-3 text-center text-base font-semibold text-white transition hover:bg-[#0c2d66]"
+                    className="rounded-xl bg-[#071B3F] px-4 py-3 text-center text-sm font-bold text-white transition hover:bg-[#0c2d66] shadow-md"
                   >
                     My Dashboard
                   </Link>
 
                   <button
                     onClick={handleSignOut}
-                    className="rounded-lg border border-slate-200 px-4 py-3 text-base font-semibold text-[#1F4E79] transition hover:bg-slate-50"
+                    className="rounded-xl border border-slate-200 px-4 py-3 text-center text-sm font-semibold text-[#1F4E79] transition hover:bg-slate-50"
                   >
                     Log Out
                   </button>
@@ -355,831 +329,63 @@ export function Navbar() {
   );
 }
 
+/* ─────────────────────────────────────────────
+   HERO ILLUSTRATION
+───────────────────────────────────────────── */
 function HeroIllustration() {
   return (
-    <div className="relative min-h-[440px] w-full overflow-hidden rounded-[24px] shadow-sm border border-slate-200/80 bg-slate-100">
+    <div className="relative min-h-[360px] sm:min-h-[420px] w-full overflow-hidden rounded-3xl shadow-lg border border-slate-200/80 bg-slate-100 group">
       <img
         src={hero}
         alt="WelliRecord Hero"
-        className="absolute inset-0 h-full w-full object-cover"
+        className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
       />
-      <div className="absolute left-4 top-4 rounded-full bg-[#071B3F] px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm flex items-center gap-1.5 z-10">
-        <Shield className="h-3.5 w-3.5 text-emerald-400" />
+      <div className="absolute left-4 top-4 rounded-full bg-white/95 backdrop-blur-md px-3.5 py-1.5 text-xs font-semibold text-[#071B3F] shadow-sm border border-slate-200/80 flex items-center gap-1.5 z-10">
+        <Shield className="h-3.5 w-3.5 text-emerald-600" />
         Trusted Health Vault
       </div>
-      <div className="absolute right-6 top-12 flex items-center gap-2 rounded-xl bg-white/95 backdrop-blur px-3.5 py-2.5 shadow-md border border-slate-200/80 z-10">
-        <BadgeCheck className="h-5 w-5 text-emerald-600" />
-        <span className="text-xs font-semibold text-slate-800">NDPA Compliant</span>
+      <div className="absolute right-4 top-4 flex items-center gap-1.5 rounded-full bg-white/95 backdrop-blur-md px-3.5 py-1.5 text-xs font-semibold text-slate-800 shadow-sm border border-slate-200/80 z-10">
+        <BadgeCheck className="h-4 w-4 text-emerald-600" />
+        <span>NDPA Compliant</span>
       </div>
     </div>
-  );
-}
-
-function SetupSteps() {
-  return (
-    <section
-      id="features"
-      className="bg-white border-y border-slate-100 px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24"
-    >
-      <div className="mx-auto max-w-7xl">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1F4E79] mb-3">
-          WelliRecord Medical Management
-        </p>
-        <h2 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl max-w-2xl">
-          Set up your health vault
-        </h2>
-        <p className="mt-4 max-w-2xl text-base leading-7 text-slate-500 sm:text-lg">
-          Healthcare data across Nigeria is fragmented, siloed, and difficult
-          to access when it matters most.
-        </p>
-
-        <div className="mt-10 grid grid-cols-1 gap-6 sm:mt-12 sm:grid-cols-2 lg:grid-cols-4">
-          {setupSteps.map((step) => (
-            <div
-              key={step.number}
-              className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-            >
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-sky-50 text-xs font-bold text-[#1F4E79]">
-                {step.number}
-              </span>
-              <div className="mt-4 flex h-9 w-9 items-center justify-center rounded-lg bg-sky-50 text-[#1F4E79]">
-                <step.icon className="h-5 w-5" />
-              </div>
-              <h3 className="mt-4 text-base font-bold text-slate-950">
-                {step.title}
-              </h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
-                {step.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Timeline() {
-  return (
-    <div className="w-full max-w-xl">
-      <div className="space-y-7 sm:space-y-8">
-        {timelineSteps.map((step) => (
-          <div key={step.title} className="flex items-start gap-4">
-            <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-[#1F4E79]">
-              <step.icon className="h-4.5 w-4.5" />
-            </div>
-
-            <div className="min-w-0 flex-1">
-              <h3 className="text-base font-bold text-slate-950 sm:text-lg">
-                {step.title}
-              </h3>
-              <p className="mt-1.5 text-sm leading-6 text-slate-600">
-                {step.description}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/*
- * Built from icons already in the codebase — not the Figma photo composite,
- * which is a custom asset I can't extract. Swap in a real export if the
- * designer provides one.
- */
-function WorkflowVisual() {
-  const nodes = [
-    { Icon: Hospital, position: "top-0 left-1/2 -translate-x-1/2" },
-    { Icon: Microscope, position: "top-1/4 right-0" },
-    { Icon: Stethoscope, position: "bottom-0 right-1/4" },
-    { Icon: Store, position: "bottom-0 left-1/4" },
-    { Icon: UserRound, position: "top-1/4 left-0" },
-  ];
-
-  return (
-    <div className="relative mx-auto aspect-square w-full max-w-md">
-      <div className="absolute inset-[15%] rounded-full border border-dashed border-sky-200" />
-
-      <div className="absolute inset-[32%] flex items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-lg">
-        <div className="flex flex-col items-center gap-1.5">
-          <Lock className="h-6 w-6 text-[#1F4E79]" />
-          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-            Health Vault
-          </span>
-        </div>
-      </div>
-
-      {nodes.map(({ Icon, position }, i) => (
-        <div
-          key={i}
-          className={`absolute ${position} flex h-16 w-16 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white shadow-md sm:h-20 sm:w-20`}
-        >
-          <Icon className="h-7 w-7 text-[#1F4E79] sm:h-8 sm:w-8" />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function HowItWorks() {
-  return (
-    <section
-      id="how-it-works"
-      className="bg-white px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24"
-    >
-      <div className="mx-auto max-w-7xl">
-        <div className="grid items-center gap-12 lg:grid-cols-[1fr_1fr] lg:gap-16 xl:gap-20">
-          <div className="w-full">
-            <WorkflowVisual />
-          </div>
-
-          <div>
-            <h2 className="max-w-xl text-3xl font-bold tracking-tight text-[#1F4E79] sm:text-4xl">
-              How WelliRecord Works
-            </h2>
-
-            <div className="mt-8 sm:mt-10">
-              <Timeline />
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function FeatureVisual({ icon: Icon }) {
-  return (
-    <div className="relative h-52 overflow-hidden rounded-t-xl bg-[linear-gradient(135deg,#e7f0fb_0%,#ffffff_50%,#eef4f8_100%)]">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(148,163,184,0.18),transparent_35%)]" />
-      <div className="absolute inset-0 h-full w-full rounded-t-2xl overflow-hidden">
-        <img src={Icon} alt="" className="h-full w-full object-cover" />
-      </div>
-    </div>
-  );
-}
-
-function Features() {
-  return (
-    <section className="bg-slate-50/70 border-t border-slate-100 px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
-      <div className="mx-auto max-w-7xl">
-        <SectionHeading
-          title="Core Features"
-          subtitle="What can you actually do with WelliRecord?"
-        />
-
-        <div className="relative mt-8 sm:mt-12">
-          <div className="relative grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
-            {featureCards.map((feature) => (
-              <div
-                key={feature.title}
-                className="mx-auto w-full max-w-[340px] overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-slate-200 transition hover:-translate-y-1 hover:shadow-xl"
-              >
-                <FeatureVisual icon={feature.icon} />
-
-                <div className="px-5 pb-8 pt-6 text-center sm:px-6">
-                  <h3 className="text-base font-bold text-slate-950">
-                    {feature.title}
-                  </h3>
-                  <p className="mt-3 text-sm leading-7 text-slate-600">
-                    {feature.description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function StakeholderCard({ label, icon: Icon }) {
-  return (
-    <div className="rounded-2xl bg-white p-6 sm:p-8 text-center cursor-pointer shadow-md ring-1 ring-slate-200 transition hover:-translate-y-1 hover:shadow-lg">
-      <div className="mx-auto flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center rounded-full bg-sky-600 text-white shadow-sm overflow-hidden p-2">
-        <img src={Icon} alt="" className="w-full h-full object-contain" />
-      </div>
-      <p className="mt-4 text-base font-semibold text-[#002353]">{label}</p>
-    </div>
-  );
-}
-
-function Solutions() {
-  return (
-    <section id="solutions" className="bg-white border-t border-slate-100 px-4 py-20 sm:px-6 sm:py-24 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        <div id="ecosystem" className="scroll-mt-24">
-          <p className="text-center text-xs font-bold uppercase tracking-[0.2em] text-[#1F4E79] mb-3">
-            WelliRecord Stakeholder
-          </p>
-          <SectionHeading
-            title="WelliRecord Healthcare Stakeholders"
-            subtitle="Integrated into the WelliRecord ecosystem, so every provider type can access, manage, and share secure, patient-owned records with consent."
-          />
-        </div>
-
-        <div className="mt-12 mx-auto grid max-w-5xl gap-6 sm:gap-8 grid-cols-2 md:grid-cols-4">
-          {stakeholders.map((item) => (
-            <StakeholderCard
-              key={item.label}
-              label={item.label}
-              icon={item.icon}
-            />
-          ))}
-        </div>
-
-        <div className="mt-14 text-center">
-          <Link
-            to="/auth/provider/signup"
-            className="font-semibold text-base text-[#1F4E79] underline underline-offset-4 hover:text-[#0c2d66]"
-          >
-            Register Your Organisation
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/*
- * NOTE: "0 central key repositories" and "∞ lifetime record storage" both
- * assert specific architecture/retention decisions — confirm both are
- * actually true of the current build before this ships. Country-count stat
- * from the original design has already been dropped per prior review.
- */
-const stats = [
-  { value: "100%", label: "Patient data ownership" },
-  { value: "0", label: "Central key repositories" },
-  { value: "∞", label: "Lifetime record storage" },
-];
-
-function StatsBar() {
-  return (
-    <section className="bg-white px-4 pb-20 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-4xl grid grid-cols-3 gap-6 text-center">
-        {stats.map((stat) => (
-          <div key={stat.label}>
-            <p className="text-3xl font-extrabold text-[#1F4E79] sm:text-4xl">
-              {stat.value}
-            </p>
-            <p className="mt-2 text-xs font-medium text-slate-500 sm:text-sm">
-              {stat.label}
-            </p>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/*
- * NOTE: "thousands" is an unverified scale claim — you're pre-pilot with no
- * confirmed anchor facility. Confirm real numbers before this ships, or
- * rework the line entirely.
- */
-function VoicesHeading() {
-  return (
-    <section className="bg-white px-4 pb-16 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-4xl text-center">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1F4E79] mb-4">
-          Voices
-        </p>
-        <h2 className="text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
-          Join thousands across Nigeria and beyond who have taken control of their health data
-        </h2>
-      </div>
-    </section>
-  );
-}
-
-function SocialProof() {
-  return (
-    <section
-      id="proof"
-      className="border-t border-slate-100 bg-[#F8FAFC] px-4 py-20 sm:px-6 sm:py-24 lg:px-8"
-    >
-      <style>{`
-        /* ── Pilot Programme block ─────────────────── */
-        .pilot-block {
-          background: #FFFFFF;
-          border: 1px solid #E2E8F0;
-          border-radius: 24px;
-          overflow: hidden;
-          box-shadow: 0 4px 32px rgba(0,0,0,0.06);
-          max-width: 900px;
-          margin: 0 auto;
-        }
-        .pilot-header {
-          background: linear-gradient(135deg, #071B3F 0%, #0c2d66 100%);
-          padding: 40px 48px;
-          position: relative;
-          overflow: hidden;
-        }
-        .pilot-header::before {
-          content: "";
-          position: absolute;
-          inset: 0;
-          background: radial-gradient(ellipse 500px 250px at 110% 50%, rgba(16,185,129,0.14), transparent 65%);
-          pointer-events: none;
-        }
-        .pilot-header-eyebrow {
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: 0.2em;
-          text-transform: uppercase;
-          color: #34D399;
-          margin: 0 0 12px;
-        }
-        .pilot-header h2 {
-          font-family: 'Bricolage Grotesque', 'Inter', sans-serif;
-          font-size: clamp(22px, 3.5vw, 32px);
-          font-weight: 700;
-          color: #FFFFFF;
-          line-height: 1.2;
-          letter-spacing: -0.015em;
-          margin: 0 0 10px;
-        }
-        .pilot-header p {
-          font-size: 15px;
-          color: #9FB2D6;
-          margin: 0;
-          line-height: 1.6;
-        }
-        .pilot-body {
-          padding: 40px 48px;
-        }
-        .pilot-what-label {
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: 0.18em;
-          text-transform: uppercase;
-          color: #64748B;
-          margin: 0 0 20px;
-        }
-        .pilot-items {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 20px 24px;
-          margin-bottom: 32px;
-        }
-        @media (min-width: 640px) {
-          .pilot-items {
-            grid-template-columns: 1fr 1fr;
-          }
-        }
-        .pilot-item {
-          display: flex;
-          align-items: flex-start;
-          gap: 12px;
-        }
-        .pilot-item-icon {
-          width: 36px;
-          height: 36px;
-          border-radius: 10px;
-          background: rgba(30, 58, 138, 0.07);
-          border: 1px solid rgba(30, 58, 138, 0.18);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex: none;
-        }
-        .pilot-item-text strong {
-          display: block;
-          font-size: 14px;
-          font-weight: 600;
-          color: #0F172A;
-          margin-bottom: 2px;
-        }
-        .pilot-item-text span {
-          font-size: 13px;
-          color: #64748B;
-          line-height: 1.5;
-        }
-        .pilot-metric {
-          background: #EFF6FF;
-          border: 1px solid #BFDBFE;
-          border-radius: 14px;
-          padding: 18px 22px;
-          display: flex;
-          align-items: center;
-          gap: 14px;
-          margin-bottom: 32px;
-        }
-        .pilot-metric-icon {
-          flex: none;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .pilot-metric-text {
-          font-size: 14px;
-          color: #1e3a8a;
-          line-height: 1.55;
-        }
-        .pilot-metric-text strong {
-          font-weight: 700;
-        }
-        .pilot-footer {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 20px;
-          flex-wrap: wrap;
-          border-top: 1px solid #F1F5F9;
-          padding-top: 28px;
-        }
-        .pilot-footer-note {
-          font-size: 14px;
-          color: #64748B;
-          line-height: 1.6;
-          max-width: 440px;
-        }
-        .pilot-cta-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          background: #071B3F;
-          color: #FFFFFF;
-          font-size: 14px;
-          font-weight: 600;
-          padding: 12px 24px;
-          border-radius: 10px;
-          text-decoration: none;
-          transition: background .15s ease, transform .15s ease, box-shadow .15s ease;
-          white-space: nowrap;
-          flex: none;
-        }
-        .pilot-cta-btn:hover {
-          background: #0c2d66;
-          transform: translateY(-1px);
-          box-shadow: 0 6px 20px rgba(7,27,63,0.25);
-        }
-        .pilot-cta-btn svg {
-          width: 15px;
-          height: 15px;
-          transition: transform .15s ease;
-        }
-        .pilot-cta-btn:hover svg {
-          transform: translateX(2px);
-        }
-        @media (max-width: 600px) {
-          .pilot-header, .pilot-body { padding: 28px 24px; }
-          .pilot-footer { flex-direction: column; align-items: flex-start; }
-        }
-      `}</style>
-
-      <div className="mx-auto max-w-5xl">
-        <div className="mb-12 text-center">
-          <p className="text-xs font-bold uppercase tracking-[0.26em] text-[#1e3a8a] mb-3">
-            Pilot Programme
-          </p>
-          <h2 className="text-3xl font-bold tracking-tight text-[#1F4E79] sm:text-4xl mb-4">
-            Building with anchor facilities in Abuja
-          </h2>
-          <p className="mx-auto max-w-xl text-base text-slate-500 leading-7">
-            In conversation with hospitals, diagnostic centres and HMOs across the FCT.
-          </p>
-        </div>
-
-        <div className="pilot-block">
-          {/* Header */}
-          <div className="pilot-header">
-            <p className="pilot-header-eyebrow">What the pilot includes</p>
-            <h2>A structured first cohort</h2>
-            <p>
-              A small, deliberate group of anchor facilities in Abuja testing one
-              thing: whether a patient's record, created at one facility, is
-              immediately accessible at the next.
-            </p>
-          </div>
-
-          {/* Body */}
-          <div className="pilot-body">
-            <p className="pilot-what-label">Each pilot partner gets</p>
-
-            <div className="pilot-items">
-              <div className="pilot-item">
-                <div className="pilot-item-icon">
-                  <svg className="text-[#1e3a8a]" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"/>
-                    <path d="M9 22V12h6v10"/>
-                    <path d="M12 5V2"/>
-                    <path d="M10 3h4"/>
-                  </svg>
-                </div>
-                <div className="pilot-item-text">
-                  <strong>Free setup &amp; onboarding</strong>
-                  <span>We configure the platform for your facility at no cost during the pilot.</span>
-                </div>
-              </div>
-              <div className="pilot-item">
-                <div className="pilot-item-icon">
-                  <svg className="text-emerald-600" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                  </svg>
-                </div>
-                <div className="pilot-item-text">
-                  <strong>Patient-owned records</strong>
-                  <span>Records belong to the patient — shared with your facility by consent, not by default.</span>
-                </div>
-              </div>
-              <div className="pilot-item">
-                <div className="pilot-item-icon">
-                  <svg className="text-emerald-600" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                  </svg>
-                </div>
-                <div className="pilot-item-text">
-                  <strong>NDPA-compliant data handling</strong>
-                  <span>Full compliance with the Nigeria Data Protection Act 2023 built in from day one.</span>
-                </div>
-              </div>
-              <div className="pilot-item">
-                <div className="pilot-item-icon">
-                  <svg className="text-emerald-600" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                  </svg>
-                </div>
-                <div className="pilot-item-text">
-                  <strong>Direct input into the product</strong>
-                  <span>Your clinical team's feedback shapes what we build next.</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Success metric */}
-            <div className="pilot-metric">
-              <span className="pilot-metric-icon">
-                <svg className="text-[#1e3a8a]" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"/>
-                  <circle cx="12" cy="12" r="6"/>
-                  <circle cx="12" cy="12" r="2"/>
-                </svg>
-              </span>
-              <p className="pilot-metric-text">
-                <strong>How we define success:</strong> a patient seen at one pilot
-                facility can walk into a second pilot facility and have their record
-                available to the receiving clinician — with consent — before the
-                consultation begins.
-              </p>
-            </div>
-
-            {/* Footer */}
-            <div className="pilot-footer">
-              <p className="pilot-footer-note">
-                Named facilities will be listed here once pilot agreements are
-                signed. If you represent a hospital, diagnostic centre or HMO
-                in Abuja and want to be part of the first cohort, reach out.
-              </p>
-              <a
-                href="mailto:inquiry@wellirecord.com?subject=Pilot%20Partner%20Enquiry"
-                className="pilot-cta-btn"
-              >
-                Become a pilot partner
-                <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function FAQ() {
-  const faqs = [
-    {
-      q: "Who can see my health records?",
-      a: "Only you — and only the providers you explicitly authorise. Access is granted per session: you can open your record for a single consultation, for 24 hours, or permanently for a trusted doctor. You revoke it instantly from your dashboard at any time. WelliRecord staff have zero visibility into your clinical data."
-    },
-    {
-      q: "How does consent work in practice?",
-      a: "When a hospital or lab requests access, you receive a one-time code on your registered phone via SMS or WhatsApp. The provider sees nothing until you read out or type that code. Every access event — who viewed what, at what time — is permanently logged in your audit trail."
-    },
-    {
-      q: "What if I lose my phone or Emergency Card?",
-      a: "Your data lives in our encrypted vault, not on the physical card or your device. If your card is lost or stolen, log into any browser, go to Settings › Emergency Card, and lock or replace it in under 60 seconds. Your records are never interrupted — only the card token is invalidated."
-    },
-    {
-      q: "What's free and what costs money?",
-      a: "Creating your health vault, storing unlimited basic records, WhatsApp registration, and QR emergency card access are permanently free for patients. Optional add-ons — teleconsultations, home lab bookings, and physical card delivery — carry small disclosed fees. Hospitals pay a separate subscription; patients never subsidise that cost."
-    },
-    {
-      q: "What happens the moment I'm brought into an emergency room?",
-      a: "The attending nurse or doctor scans the QR code on your card with any smartphone camera — no app required. Within seconds they see your critical allergy warning, blood group, active medications, and two emergency contacts. Your full medical history stays locked unless you (or your listed next-of-kin) grant explicit access."
-    },
-    {
-      q: "Is my data stored in Nigeria?",
-      a: "Yes. All personal health data for Nigerian patients is stored on servers located in Nigeria, in full compliance with the Nigeria Data Protection Act (NDPA) 2023. We do not transfer your records to foreign jurisdictions without your written consent."
-    }
-  ];
-
-  const [openIndex, setOpenIndex] = React.useState<number | null>(null);
-
-  return (
-    <section className="bg-slate-50/80 px-4 py-20 sm:px-6 sm:py-24 lg:px-8 border-t border-slate-100">
-      <div className="mx-auto max-w-4xl">
-        <div className="text-center mb-14">
-          <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#1e3a8a] mb-3">Common Questions</p>
-          <h2
-            className="text-3xl font-extrabold text-[#071B3F] sm:text-4xl tracking-tight"
-            style={{ fontFamily: "Bricolage Grotesque, Inter, sans-serif" }}
-          >
-            Every question a Nigerian family asks before enrolling
-          </h2>
-          <p className="mt-4 text-slate-500 max-w-xl mx-auto text-sm">
-            Plain answers. No fine print.
-          </p>
-        </div>
-
-        <div className="space-y-3">
-          {faqs.map((faq, idx) => {
-            const isOpen = openIndex === idx;
-            return (
-              <div
-                key={idx}
-                className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
-                  isOpen
-                    ? "border-[#1e3a8a]/30 bg-blue-50/40 shadow-sm"
-                    : "border-slate-200 bg-white hover:border-slate-300"
-                }`}
-              >
-                <button
-                  onClick={() => setOpenIndex(isOpen ? null : idx)}
-                  className="w-full flex justify-between items-center px-6 py-5 text-left group"
-                  aria-expanded={isOpen}
-                >
-                  <div className="flex items-center gap-4">
-                    <span
-                      className={`flex-shrink-0 text-xs font-black w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
-                        isOpen
-                          ? "bg-[#071B3F] text-white"
-                          : "bg-slate-100 text-slate-400 group-hover:bg-slate-200"
-                      }`}
-                    >
-                      {String(idx + 1).padStart(2, "0")}
-                    </span>
-                    <span
-                      className={`text-sm sm:text-base font-semibold transition-colors ${
-                        isOpen ? "text-[#071B3F]" : "text-slate-800"
-                      }`}
-                    >
-                      {faq.q}
-                    </span>
-                  </div>
-                  <span
-                    className={`ml-4 flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
-                      isOpen
-                        ? "bg-[#071B3F] text-white rotate-45"
-                        : "bg-slate-100 text-slate-400"
-                    }`}
-                  >
-                    +
-                  </span>
-                </button>
-
-                <div
-                  className="overflow-hidden transition-all duration-300"
-                  style={{
-                    maxHeight: isOpen ? "200px" : "0px",
-                    opacity: isOpen ? 1 : 0,
-                  }}
-                >
-                  <div className="px-6 pb-6 ml-11">
-                    <p className="text-sm text-slate-600 leading-relaxed border-l-2 border-[#1e3a8a]/20 pl-4">
-                      {faq.a}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="mt-12 text-center">
-          <p className="text-sm text-slate-500">
-            Still have a question?{" "}
-            <a
-              href="https://wa.me/2348053355504?text=HELLO"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-[#1e3a8a] hover:underline underline-offset-2"
-            >
-              Ask us on WhatsApp →
-            </a>
-          </p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function ConversionBanner() {
-  return (
-    <section className="bg-white px-4 pb-20 sm:px-6 sm:pb-24 lg:px-8">
-      <div className="mx-auto max-w-5xl rounded-3xl bg-[#DCEAE6] px-6 py-16 text-center sm:px-12 sm:py-20">
-        <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#1F4E79] mb-4">
-          Start Today
-        </p>
-        <h2 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl mb-4">
-          Your health passport starts here.
-        </h2>
-        <p className="text-base text-slate-600 max-w-2xl mx-auto mb-8">
-          Set up your free health vault in minutes, with no paperwork or waiting on records from your last hospital.
-        </p>
-
-        <div className="flex flex-wrap items-center justify-center gap-4">
-          <Link
-            to="/auth/patient/signup"
-            className="inline-flex items-center gap-2 rounded-xl bg-[#071B3F] px-8 py-4 text-base font-bold text-white shadow-lg transition hover:bg-[#0c2d66]"
-          >
-            Create Your Health Vault
-          </Link>
-          <Link
-            to="/auth/provider/signup"
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-8 py-4 text-base font-bold text-[#071B3F] transition hover:bg-slate-50"
-          >
-            Register Your Organisation
-          </Link>
-        </div>
-      </div>
-    </section>
   );
 }
 
 /* ─────────────────────────────────────────────
-   FOUNDING STORY CARD
+   HERO SECTION
 ───────────────────────────────────────────── */
-function FoundingStory() {
-  return (
-    <section id="story" className="relative z-0 isolate bg-slate-50/70 mt-8 py-12 px-4 sm:mt-10 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-6xl">
-        <div className="rounded-3xl bg-[#071B3F] text-white p-8 sm:p-12 lg:p-16 border border-[#1e3a8a]/40 shadow-xl relative">
-          <div className="relative z-10 grid gap-10 lg:grid-cols-2 lg:gap-16 items-start">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.26em] text-[#60A5FA] mb-4 break-words">
-                Why We Built This
-              </p>
-              <blockquote className="text-xl sm:text-2xl font-bold leading-snug tracking-tight text-white font-display">
-                "A doctor needed one piece of information — an allergy — and it wasn't there. We almost lost someone because a record didn't follow the patient."
-              </blockquote>
-              <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-[#10B981]">
-                — The moment WelliRecord began, Abuja, Nigeria
-              </p>
-            </div>
-
-            <div className="space-y-6 text-slate-300 text-base leading-relaxed">
-              <p>
-                Nigeria has some of Africa's finest doctors. But patient records don't travel with patients.
-                Every hospital visit starts from zero — hand-written forms, verbal histories, repeated tests.
-                In an emergency, that gap costs lives.
-              </p>
-              <div className="rounded-2xl bg-white/5 border border-white/10 p-5 backdrop-blur">
-                <p className="text-sm text-slate-200 leading-normal">
-                  <strong className="text-white font-semibold">One patient. One trusted record.</strong> Accessible at any facility, with the patient's explicit consent.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function Hero() {
   return (
-    <div className="w-full bg-[#F8FAFC] py-8 pt-4 text-slate-900 sm:py-10 lg:py-12 border-b border-slate-100">
-      <main className="flex w-full flex-col overflow-hidden lg:min-h-[500px] lg:flex-row max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <section className="flex flex-1 items-center justify-center py-8 sm:py-12 lg:py-14">
-          <div className="w-full max-w-2xl">
-            <h1 className="max-w-[580px] text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-[54px] lg:leading-[1.08]">
-              <span className="text-[#002353]">Own Your </span>
-              <span className="text-[#1F4E79]">Complete Medical History.</span>
+    <div className="w-full bg-[#F8FAFC] pt-10 pb-16 sm:pt-14 sm:pb-20 border-b border-slate-200/80">
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-14 xl:gap-16">
+          {/* Left Hero Text */}
+          <div className="flex-1 max-w-2xl">
+            <h1 className="text-4xl font-black leading-[1.12] tracking-tight text-[#002353] sm:text-5xl lg:text-[50px]">
+              Own Your{" "}
+              <span className="text-[#1F4E79] underline decoration-sky-300 decoration-wavy decoration-2">
+                Complete Medical History.
+              </span>
             </h1>
 
-            <p className="mt-6 max-w-[640px] text-base leading-7 text-[#475569] sm:mt-7 sm:text-lg sm:leading-8 lg:text-[19px] lg:leading-[1.45]">
-              The first patient-owned health vault in Africa, WelliRecord
+            <p className="mt-5 text-base sm:text-lg text-slate-600 leading-relaxed">
+              The first patient-owned health vault in Africa. WelliRecord
               securely connects your hospitals, labs, and pharmacies into a
               single private health vault, giving you full control over who can
               access your medical history.
             </p>
 
-            <p className="mt-3 text-sm font-semibold text-[#1F4E79]">
+            <p className="mt-4 text-sm sm:text-base font-bold text-[#1F4E79] flex items-center gap-2">
+              <span className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
               One patient. One trusted record. Accessible when it matters.
             </p>
 
-            {/* Clear, Single Primary CTA + Demoted Secondary Options */}
-            <div className="mt-8 flex flex-col gap-4 sm:mt-10 sm:items-start">
+            {/* CTAs */}
+            <div className="mt-8 flex flex-col gap-4 sm:items-start">
               <Link
                 to="/auth/patient/signup"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#071B3F] px-8 py-4 text-center text-lg font-bold text-white shadow-lg transition hover:bg-[#0c2d66]"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-3 rounded-xl bg-[#071B3F] px-8 py-4 text-base sm:text-lg font-bold text-white shadow-lg transition-all hover:bg-[#0c2d66] hover:shadow-xl hover:gap-4 whitespace-nowrap"
               >
                 Create Health Vault <ArrowRight className="h-5 w-5" />
               </Link>
@@ -1199,59 +405,372 @@ function Hero() {
                 <span className="text-slate-300">•</span>
                 <Link
                   to="/auth/provider/signup"
-                  className="font-medium text-[#1e3a8a] hover:underline"
+                  className="font-semibold text-[#1F4E79] hover:underline"
                 >
                   Healthcare Provider or Hospital? Register Org →
                 </Link>
               </div>
             </div>
-
-            <div className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#5c6f85] sm:text-xs">
-              <Link to="/privacy" className="hover:underline text-[#1e3a8a]">NDPA Compliant</Link>
-              <span className="text-slate-300">•</span>
-              <span>Encrypted Vault</span>
-              <span className="text-slate-300">•</span>
-              <span>Patient-Controlled Access</span>
-            </div>
           </div>
-        </section>
 
-        {/* Hero Illustration / Graphic Container */}
-        <section className="relative min-h-[300px] w-full overflow-hidden sm:min-h-[380px] lg:min-h-[500px] lg:w-[45%] flex items-center justify-center p-4">
-          <HeroIllustration />
-        </section>
+          {/* Right Hero Graphic */}
+          <div className="w-full lg:w-[48%] flex items-center justify-center">
+            <HeroIllustration />
+          </div>
+        </div>
+
+        {/* Hero Trust Bar */}
+        <div className="mt-12 sm:mt-16 pt-8 border-t border-slate-200/80 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs sm:text-sm font-semibold text-slate-600">
+          <span className="inline-flex items-center gap-2">
+            <Shield className="h-4 w-4 text-[#1F4E79]" />
+            <strong className="text-slate-800">End-to-End Encrypted</strong> · Zero-knowledge architecture
+          </span>
+          <span className="hidden sm:inline text-slate-300">•</span>
+          <span className="inline-flex items-center gap-2">
+            <Lock className="h-4 w-4 text-[#1F4E79]" />
+            <strong className="text-slate-800">Patient-Owned Keys</strong> · You control access
+          </span>
+          <span className="hidden sm:inline text-slate-300">•</span>
+          <span className="inline-flex items-center gap-2">
+            <BadgeCheck className="h-4 w-4 text-emerald-600" />
+            <strong className="text-slate-800">NDPA Compliant</strong> · Fully compliant &amp; secured
+          </span>
+        </div>
       </main>
-
-      {/*
-        NOTE: "Zero-knowledge architecture" is a specific, checkable technical
-        claim — same category of risk as the "Blockchain-Verified" badge
-        already removed from an earlier draft. Confirm this is actually
-        implemented before shipping; otherwise soften to "Encrypted at rest &
-        in transit," which matches what's already live in ConversionBanner.
-      */}
-      <div className="mx-auto mt-10 flex w-full max-w-7xl flex-wrap items-center justify-center gap-x-8 gap-y-3 px-4 text-xs text-slate-500 sm:px-6 lg:px-8">
-        <span className="inline-flex items-center gap-2">
-          <Shield className="h-4 w-4 text-[#1F4E79]" />
-          <strong className="font-semibold text-slate-700">End-to-End Encrypted</strong> · Zero-knowledge architecture
-        </span>
-        <span className="inline-flex items-center gap-2">
-          <Lock className="h-4 w-4 text-[#1F4E79]" />
-          <strong className="font-semibold text-slate-700">Patient-Owned Keys</strong> · You control access
-        </span>
-        <span className="inline-flex items-center gap-2">
-          <BadgeCheck className="h-4 w-4 text-[#1F4E79]" />
-          <strong className="font-semibold text-slate-700">NDPA Compliant</strong> · Fully compliant & secured
-        </span>
-      </div>
     </div>
   );
 }
 
+/* ─────────────────────────────────────────────
+   SETUP STEPS (FEATURES)
+───────────────────────────────────────────── */
+function SetupSteps() {
+  return (
+    <section
+      id="features"
+      className="bg-white border-b border-slate-200/80 py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8"
+    >
+      <div className="mx-auto max-w-7xl">
+        <SectionHeading
+          eyebrow="WelliRecord Medical Management"
+          title="Set up your health vault"
+          subtitle="Healthcare data across Nigeria is fragmented, siloed, and difficult to access when it matters most."
+        />
+
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {setupSteps.map((step) => (
+            <div
+              key={step.number}
+              className="group relative rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:border-slate-300 flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-5">
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-[#071B3F] text-xs font-black text-white shadow-sm">
+                    {step.number}
+                  </span>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 border border-sky-100 text-[#1F4E79] transition-colors group-hover:bg-[#071B3F] group-hover:text-white">
+                    <step.icon className="h-5 w-5" />
+                  </div>
+                </div>
+                <h3 className="text-base sm:text-lg font-bold text-[#002353] leading-snug">
+                  {step.title}
+                </h3>
+                <p className="mt-2.5 text-sm text-slate-500 leading-relaxed">
+                  {step.description}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   HOW IT WORKS
+───────────────────────────────────────────── */
+function WorkflowVisual() {
+  return (
+    <div className="mx-auto w-full max-w-lg rounded-3xl p-3 bg-white border border-slate-200/80 shadow-md overflow-hidden group">
+      <img
+        src={howItWorksHub}
+        alt="How WelliRecord connects hospitals, labs, pharmacies, and patients through your health vault"
+        className="w-full h-auto rounded-2xl transition-transform duration-500 group-hover:scale-[1.02]"
+      />
+    </div>
+  );
+}
+
+function HowItWorks() {
+  return (
+    <section
+      id="how-it-works"
+      className="bg-[#F8FAFC] py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 border-b border-slate-200/80"
+    >
+      <div className="mx-auto max-w-7xl">
+        <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-14 xl:gap-16">
+          {/* Left Graphic */}
+          <div className="w-full flex justify-center">
+            <WorkflowVisual />
+          </div>
+
+          {/* Right Steps */}
+          <div>
+            <span className="inline-block px-4 py-1.5 rounded-full bg-sky-50 text-[#1F4E79] text-xs font-bold uppercase tracking-widest mb-4 border border-sky-100 shadow-sm">
+              Simple 4-Step Flow
+            </span>
+            <h2 className="text-3xl font-extrabold tracking-tight text-[#002353] sm:text-4xl lg:text-5xl mb-6 sm:mb-8">
+              How WelliRecord Works
+            </h2>
+
+            <div className="space-y-4 sm:space-y-5">
+              {timelineSteps.map((step) => (
+                <div
+                  key={step.title}
+                  className="flex items-start gap-4 p-4 rounded-2xl bg-white border border-slate-200/70 shadow-sm transition-all hover:shadow-md hover:border-slate-300"
+                >
+                  <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#071B3F] text-white shadow-sm">
+                    <step.icon className="h-5 w-5 text-sky-300" />
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-base sm:text-lg font-bold text-[#002353]">
+                      {step.title}
+                    </h3>
+                    <p className="mt-1 text-sm text-slate-500 leading-relaxed">
+                      {step.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   SOLUTIONS (ECOSYSTEM / STAKEHOLDERS)
+───────────────────────────────────────────── */
+function StakeholderCard({ label, icon: Icon }) {
+  return (
+    <div className="group flex flex-col items-center justify-center rounded-2xl bg-white border border-slate-200/80 p-5 sm:p-6 text-center shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg hover:border-slate-300 cursor-pointer">
+      <div className="mx-auto flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-gradient-to-b from-sky-50 to-blue-100/60 border border-sky-200/80 p-2.5 shadow-inner mb-3 transition-transform duration-300 group-hover:scale-110">
+        <img src={Icon} alt={label} className="w-full h-full object-contain" />
+      </div>
+      <p className="text-sm sm:text-base font-bold text-[#002353]">{label}</p>
+    </div>
+  );
+}
+
+function Solutions() {
+  return (
+    <section
+      id="solutions"
+      className="bg-white py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 border-b border-slate-200/80"
+    >
+      <div className="mx-auto max-w-7xl">
+        <div id="ecosystem" className="scroll-mt-24">
+          <SectionHeading
+            eyebrow="WelliRecord Ecosystem"
+            title="WelliRecord Healthcare Stakeholders"
+            subtitle="Integrated into the WelliRecord ecosystem, so every provider type can access, manage, and share secure, patient-owned records with consent."
+          />
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 max-w-5xl mx-auto mb-12 sm:mb-14">
+          {stakeholders.map((item) => (
+            <StakeholderCard
+              key={item.label}
+              label={item.label}
+              icon={item.icon}
+            />
+          ))}
+        </div>
+
+        <div className="w-full flex justify-center pt-2">
+          <Link
+            to="/auth/provider/signup"
+            className="inline-flex items-center gap-2.5 rounded-xl bg-[#071B3F] px-8 py-4 text-base font-bold text-white shadow-lg transition-all hover:bg-[#0c2d66] hover:shadow-xl whitespace-nowrap"
+          >
+            Register Your Organisation <ArrowRight className="h-5 w-5" />
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   STATS BAR
+───────────────────────────────────────────── */
+function StatsBar() {
+  return (
+    <section className="bg-[#F8FAFC] border-b border-slate-200/80 py-16 sm:py-20 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center divide-y sm:divide-y-0 sm:divide-x divide-slate-200/80">
+          {stats.map((stat, idx) => (
+            <div key={stat.label} className={`pt-4 sm:pt-0 ${idx !== 0 ? "sm:pl-6" : ""}`}>
+              <p className="text-4xl sm:text-5xl font-black text-[#002353] tracking-tight">
+                {stat.value}
+              </p>
+              <p className="mt-2 text-xs sm:text-sm font-semibold uppercase tracking-wider text-slate-500">
+                {stat.label}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   VOICES HEADING
+───────────────────────────────────────────── */
+function VoicesHeading() {
+  return (
+    <section className="bg-white py-16 sm:py-20 px-4 sm:px-6 lg:px-8 border-b border-slate-200/80">
+      <div className="mx-auto max-w-4xl text-center">
+        <span className="inline-block px-4 py-1.5 rounded-full bg-sky-50 text-[#1F4E79] text-xs font-bold uppercase tracking-widest mb-6 border border-sky-100 shadow-sm">
+          Voices Across Africa
+        </span>
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-[#002353] leading-snug max-w-3xl mx-auto">
+          Join thousands across Nigeria and beyond who have taken control of their health data
+        </h2>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   CONVERSION BANNER
+───────────────────────────────────────────── */
+function ConversionBanner() {
+  return (
+    <section className="bg-slate-50/70 py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 border-b border-slate-200/80">
+      <div className="mx-auto max-w-5xl rounded-3xl bg-[#071B3F] p-8 sm:p-12 lg:p-16 text-center text-white relative overflow-hidden shadow-2xl">
+        {/* Subtle radial glow */}
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(96,165,250,0.18),transparent_50%)]" />
+
+        <div className="relative z-10">
+          <span className="inline-block px-4 py-1.5 rounded-full bg-white/10 text-sky-300 text-xs font-bold uppercase tracking-widest mb-4 border border-white/20">
+            Start Today — Free for Patients
+          </span>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white mb-4 leading-tight">
+            Your health passport starts here.
+          </h2>
+          <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto mb-8 leading-relaxed">
+            Set up your free health vault in minutes, with no paperwork or waiting on records from your last hospital.
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              to="/auth/patient/signup"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-bold text-[#071B3F] shadow-lg transition-all hover:bg-slate-100 hover:shadow-xl whitespace-nowrap"
+            >
+              Create Your Health Vault <ArrowRight className="h-5 w-5" />
+            </Link>
+            <Link
+              to="/auth/provider/signup"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 backdrop-blur-sm px-8 py-4 text-base font-bold text-white transition-all hover:bg-white/20 whitespace-nowrap"
+            >
+              Register Your Organisation
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   LANDING FOOTER
+───────────────────────────────────────────── */
+function LandingFooter() {
+  return (
+    <footer className="bg-white py-16 sm:py-20 px-4 sm:px-6 lg:px-8 border-t border-slate-100">
+      <div className="mx-auto max-w-7xl">
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <img src={welliIcon} alt="WelliRecord" className="h-8 w-8 object-contain" />
+              <span className="text-[#1e3a8a] font-black text-lg tracking-tight">
+                Welli<span className="font-normal">Record</span><sup className="text-[10px] font-normal">™</sup>
+              </span>
+            </div>
+            <p className="mt-4 text-sm leading-6 text-slate-500 max-w-[240px]">
+              The first patient-owned health vault platform.
+            </p>
+            <p className="mt-2 text-xs font-bold text-[#1F4E79]">
+              One patient. One trusted record. Accessible when it matters.
+            </p>
+
+            <div className="mt-6">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                Contact us
+              </p>
+              <p className="text-sm font-semibold text-slate-700">inquiry@wellirecord.com</p>
+              <p className="text-sm font-semibold text-slate-700">+234 805 335 5504</p>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
+              Product
+            </p>
+            <ul className="space-y-3 text-sm font-medium text-slate-600">
+              <li className="hover:text-[#1F4E79] cursor-pointer">Patient App</li>
+              <li className="hover:text-[#1F4E79] cursor-pointer">Clinician Dashboard</li>
+              <li className="hover:text-[#1F4E79] cursor-pointer">API &amp; Integrations</li>
+              <li><Link to="/security" className="hover:text-[#1F4E79]">Security</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
+              Ecosystem
+            </p>
+            <ul className="space-y-3 text-sm font-medium text-slate-600">
+              <li className="hover:text-[#1F4E79] cursor-pointer">WelliBridge</li>
+              <li>WelliVerify <span className="text-xs font-normal text-slate-400">(coming soon)</span></li>
+            </ul>
+          </div>
+
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
+              Company
+            </p>
+            <ul className="space-y-3 text-sm font-medium text-slate-600">
+              <li><Link to="/about" className="hover:text-[#1F4E79]">About</Link></li>
+              <li><Link to="/blog" className="hover:text-[#1F4E79]">Blog</Link></li>
+              <li><Link to="/partners" className="hover:text-[#1F4E79]">Partners</Link></li>
+              <li><Link to="/privacy" className="hover:text-[#1F4E79]">Privacy Policy</Link></li>
+              <li><Link to="/terms" className="hover:text-[#1F4E79]">Terms of Service</Link></li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="mt-12 flex flex-col gap-3 border-t border-slate-100 pt-6 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+          <p>© {new Date().getFullYear()} WelliRecord™ — WelliNovate Limited. All rights reserved.</p>
+          <p className="font-semibold text-slate-500">Built for Africa. Designed for the world.</p>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   MAIN APP EXPORT
+───────────────────────────────────────────── */
 export default function App() {
   return (
     <div
       id="top"
-      className="min-h-screen overflow-x-hidden w-full scroll-smooth bg-white text-slate-900"
+      className="min-h-screen overflow-x-hidden w-full scroll-smooth bg-white text-slate-900 font-sans"
     >
       <Navbar />
       <main className="overflow-x-hidden">
@@ -1261,20 +780,8 @@ export default function App() {
         <Solutions />
         <StatsBar />
         <VoicesHeading />
-        {/*
-          NOTE: FoundingStory, Features, SocialProof (Pilot Programme), and
-          FAQ aren't in the new design's screenshots. Rather than delete
-          brand-critical content (the founding story) and honest positioning
-          (Pilot Programme) unasked, they're kept here, appended after the
-          new sections. Tell me if the shorter page is actually what you
-          want and I'll remove them instead of stacking both.
-        */}
-        <FoundingStory />
-        <Features />
-        <SocialProof />
-        <FAQ />
         <ConversionBanner />
-        <WelliFooter />
+        <LandingFooter />
       </main>
     </div>
   );
