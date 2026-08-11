@@ -3,7 +3,23 @@
    Two-portal theming: Provider (navy/teal) + Patient (forest green/ochre)
    ───────────────────────────────────────────────────────────────────────────── */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Bricolage+Grotesque:wght@400;600;800&display=swap');
+@import "tailwindcss";
+
+/* ─── Global Anti-Copy Protection ─────────────────────────────────────────── */
+html, body {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Allow text selection in editable fields so forms remain fully functional */
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+}
 
 /* ─── CSS Variables ─────────────────────────────────────────────────────────── */
 /* Provider Portal — Deep Navy/Teal */

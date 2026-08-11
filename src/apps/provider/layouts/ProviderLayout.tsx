@@ -1,4 +1,5 @@
 import { health_companion_image, logos, welliIcon } from "@/assets";
+import { NotificationBell } from "@/shared/ui/NotificationBell";
 import { getMyOrganization, type MyOrganization } from "@/shared/api/organizationApi";import { orgApi } from "@/shared/api/orgApi";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { useWelliMate } from "@/shared/context/WelliMateContext";
@@ -8,7 +9,6 @@ import { useRBAC } from "@/shared/rbac/useRBAC";
 import { WelliMateWidget } from "@/shared/ui/WelliMateWidget";
 import {
   Activity,
-  Bell,
   CalendarClock,
   ChevronDown,
   ChevronRight,
@@ -18,6 +18,7 @@ import {
   HeartPulse,
   LayoutDashboard,
   LifeBuoy,
+  Link2,
   ListOrdered,
   Lock,
   LogOut,
@@ -60,6 +61,12 @@ const ALL_NAV = [
     roles: ["*"],
   },
   { to: "/provider/patients", label: "Patients", icon: Users, roles: ["*"] },
+  {
+    to: "/provider/patients/import",
+    label: "Patient Import & Sync",
+    icon: Link2,
+    roles: ["*"],
+  },
   { to: "/provider/vision", label: "Vision", icon: Eye, roles: ["*"] },
   {
     to: "/provider/doctors",
@@ -102,7 +109,7 @@ const ALL_NAV = [
     label: "Telemedicine",
     icon: Video,
     roles: ["clinician", "provider_admin", "telehealth_provider"],
-    // roles: ["*"]
+    badge: "Soon",
   },
   // {
   //   to: "/provider/referrals",
@@ -329,7 +336,11 @@ export function ProviderLayout() {
                 <span className="hidden lg:block flex-1 text-left">
                   {item.label}
                 </span>
-                {locked ? (
+                {item.badge ? (
+                  <span className="hidden lg:inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-sky-500/20 text-sky-300 border border-sky-500/30 uppercase tracking-wider ml-1 flex-shrink-0">
+                    {item.badge}
+                  </span>
+                ) : locked ? (
                   <Lock
                     size={12}
                     style={{ color: "#7ba3c8" }}
@@ -482,10 +493,7 @@ export function ProviderLayout() {
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Synced {syncLabel}
             </div>
-            <button className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-white/5 relative">
-              <Bell size={18} style={{ color: "#7ba3c8" }} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-sky-400" />
-            </button>
+            <NotificationBell />
           </div>
         </header>
         {/* Offline Banner */}

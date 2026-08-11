@@ -1,12 +1,12 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Heart, Shield, Users, ArrowRight } from "lucide-react";
+import { ArrowLeft, Heart, Shield } from "lucide-react";
 import { welliIcon } from "@/assets";
 
 export function AboutUsPage() {
   const navigate = useNavigate();
   return (
-    <div className="min-h-screen bg-[#071B3F] text-white font-sans antialiased selection:bg-[#1e3a8a] selection:text-white">
+    <div className="min-h-screen bg-[#071B3F] text-white font-sans antialiased selection:bg-none">
       {/* CSS Styles */}
       <style>{`
         .about-container {
@@ -99,20 +99,34 @@ export function AboutUsPage() {
             </p>
           </div>
 
-          {/* Section 3: Today */}
-          <div className="space-y-6">
-            <h2 className="display-font text-2xl font-bold text-white flex items-center gap-3">
-              <Users className="text-[#60A5FA] shrink-0" size={24} />
-              WelliRecord Today
+          {/* Section 3: Foundation */}
+          <div className="pt-6 space-y-6">
+            <h2 className="display-font text-3xl sm:text-4xl font-bold text-white">
+              The foundation of WelliRecord
             </h2>
             <p className="text-slate-300 text-lg leading-8">
-              Today, WelliRecord™ enrolls families through WhatsApp — registration is free, 
-              consent comes first, and the patient stays at the centre of their health journey.
+              We believe every person has a health story worth remembering. Healthcare
+              is not a collection of separate appointments, diagnoses, and lab results.
+              It's a continuous record of a person's life, following them across
+              places, providers, and circumstances.
+            </p>
+            <p className="text-slate-300 text-lg leading-8">
+              Our approach rests on a few convictions: stewardship of what's entrusted
+              to us, truth before decisions get made, and care that extends past a
+              single moment of need.
+            </p>
+            <p className="text-slate-300 text-lg leading-8">
+              A patient's health information shouldn't fragment because they changed
+              providers, moved cities, or lost paper records. The patient should be
+              able to carry their health story with them. Providers should be able to
+              access what they're authorized to use, when it's needed for care. And
+              every interaction with that information should respect the privacy and
+              agency of the person behind the record.
             </p>
           </div>
 
-          {/* Core Belief Callout */}
-          <div className="border border-white/10 rounded-2xl bg-gradient-to-br from-[#0c2456] to-[#071B3F] p-8 text-center mt-12">
+          {/* Core Motto Card */}
+          <div className="border border-white/10 rounded-2xl bg-gradient-to-br from-[#0c2456] to-[#071B3F] p-8 text-center mt-12 shadow-xl">
             <p className="display-font text-2xl font-bold tracking-tight text-white sm:text-3xl leading-tight">
               "One patient. One trusted record.<br />
               <span className="text-[#60A5FA]">Accessible when it matters.</span>"

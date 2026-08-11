@@ -5,11 +5,17 @@ import {
   ArrowRight,
   BadgeCheck,
   ChevronDown,
+  Clock,
+  Eye,
+  FileText,
   Hospital,
+  Lock,
   Microscope,
   Pill,
   Shield,
   Stethoscope,
+  Store,
+  UserRound,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import WelliFooter from "../../../../components/ui/Footer";
@@ -18,7 +24,6 @@ import {
   control_access_image,
   diagonize,
   government,
-  HealthRecord,
   hopistal,
   insurance,
   logos,
@@ -27,44 +32,78 @@ import {
   qr_card_image,
   telehealth,
   wearable,
-  wellirecordimage,
   yourhealthrecord,
 } from "../../../assets";
 import { hero, welliIcon } from "@/assets";
 import { getCurrentUser } from "@/shared/utils/utilityFunction";
 
 const navItems = [
-  { label: "Solutions", href: "#solutions", hasChevron: true },
+  { label: "Solution", href: "#solutions" },
   { label: "How It Works", href: "#how-it-works" },
-  // { label: "Pricing", href: "#pricing" },
-  { label: "Partners", href: "#partners" },
-  // { label: "Security", href: "#security" },
-  { label: "About Us", href: "/about" },
+  { label: "Features", href: "#features" },
+  { label: "Ecosystem", href: "#ecosystem" },
 ];
 
-const painPoints = [
-  "Lost hospital cards",
-  "Repeating lab tests",
-  "Carrying physical folders",
-  "Switching hospitals means starting over",
-  "Emergency doctors lacking patient history",
+const setupSteps = [
+  {
+    number: "01",
+    icon: UserRound,
+    title: "Establish Your Secure Identity",
+    description:
+      "Verify your identity using government-issued ID and biometrics to create a unique ID tied to your encrypted wallet.",
+  },
+  {
+    number: "02",
+    icon: FileText,
+    title: "Import and Digitize Documents",
+    description:
+      "Connect hospitals, labs, and pharmacies to upload existing documents into your health vault.",
+  },
+  {
+    number: "03",
+    icon: Eye,
+    title: "Control of Your Health History",
+    // NOTE: "any provider globally" is a reach claim — confirm before shipping.
+    description:
+      "Grant granular, time-limited access to any provider, with instant revocation capabilities.",
+  },
+  {
+    number: "04",
+    icon: Clock,
+    title: "Grant Secure Access to Doctors",
+    // NOTE: "offline mode" and "cross-border compatibility" are unconfirmed
+    // features — confirm before this ships. Emergency QR codes are live.
+    description:
+      "Access your records anywhere with emergency QR codes, offline mode, and cross-border compatibility.",
+  },
 ];
 
 const timelineSteps = [
   {
+    icon: Stethoscope,
     title: "Receive Care",
     description:
-      "Hospitals, labs, and pharmacies generate your medical records.",
+      "When you receive care, your health records are created by hospitals, labs, pharmacies, and other providers.",
   },
   {
-    title: "Records Go To Your Health Vault",
+    icon: Shield,
+    title: "Records Go to Your Health Vault",
     description:
-      "Your data is entered and securely stored in your WelliRecord health vault.",
+      "Your health information is securely gathered in your personal WelliRecord health vault, keeping your health story in one place.",
   },
   {
+    icon: BadgeCheck,
     title: "You Control Access",
     description:
-      "Share your records securely with doctors or hospitals whenever needed.",
+      "You decide who can access your health information and what you choose to share.",
+  },
+  {
+    icon: ArrowRight,
+    title: "Access When It Matters",
+    // NOTE: "when connectivity is limited" describes offline mode — confirm this
+    // is actually built before this line ships. Left as-is per design text.
+    description:
+      "Your critical health information is available when you need it most, including during emergencies and when connectivity is limited.",
   },
 ];
 
@@ -97,22 +136,14 @@ const stakeholders = [
   { label: "Government", icon: government },
 ];
 
-const partners = [
-  "General Hospital Abuja",
-  "Evercare Hospital Lekki",
-  "AXA Mansard",
-  "Citylab Diagnostics",
-  "Reddington Hospital",
-];
-
 function SectionHeading({ title, subtitle }) {
   return (
-    <div className="mx-auto max-w-5xl mb-16 text-center">
-      <h2 className="text-3xl font-bold tracking-tight text-[#1F4E79] md:text-5xl mb-1">
+    <div className="mx-auto max-w-5xl mb-12 text-center">
+      <h2 className="text-3xl font-bold tracking-tight text-[#1F4E79] md:text-5xl mb-2">
         {title}
       </h2>
       {subtitle ? (
-        <p className="mx-auto mt-10 max-w-[850px] text-base leading-7 text-slate-500 md:text-xl">
+        <p className="mx-auto mt-4 max-w-[850px] text-base leading-7 text-slate-500 md:text-xl">
           {subtitle}
         </p>
       ) : null}
@@ -124,39 +155,10 @@ function PrimaryButton({ children, href = "" }) {
   return (
     <Link
       to={href}
-      className="inline-flex items-center justify-center rounded-xl bg-[#071B3F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0c2d66] focus:outline-none focus:ring-2 focus:ring-[#071B3F] focus:ring-offset-2"
+      className="inline-flex items-center justify-center rounded-xl bg-[#071B3F] px-6 py-3.5 text-sm font-semibold text-white shadow-md transition hover:bg-[#0c2d66] focus:outline-none focus:ring-2 focus:ring-[#071B3F] focus:ring-offset-2"
     >
       {children}
     </Link>
-  );
-}
-
-function SecondaryButton({ children, href = "#" }) {
-  return (
-    <a
-      href={href}
-      className="inline-flex items-center justify-center rounded-xl border-2 border-slate-900 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
-    >
-      {children}
-    </a>
-  );
-}
-
-function Logo() {
-  return (
-    <a href="#top" className="flex items-center gap-3">
-      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-950 shadow-sm">
-        <Shield className="h-6 w-6 text-white" />
-      </div>
-      <div>
-        <div className="text-xl font-extrabold tracking-tight text-slate-950">
-          WelliRecord
-        </div>
-        <div className="text-[10px] font-medium uppercase tracking-[0.18em] text-slate-500">
-          One patient. One trusted record. Accessible when it matters.
-        </div>
-      </div>
-    </a>
   );
 }
 
@@ -217,9 +219,15 @@ export function Navbar() {
           <div className="hidden items-center gap-4 lg:flex">
             <Link
               to="/auth/login"
-              className="text-base font-semibold text-[#1F4E79] transition hover:text-[#071B3F] xl:text-lg"
+              className="rounded-lg border border-slate-200 px-4 py-2 text-base font-semibold text-[#1F4E79] transition hover:bg-slate-50 xl:text-lg"
             >
-              Login
+              Patient Sign in
+            </Link>
+            <Link
+              to="/auth/provider/login"
+              className="rounded-lg border border-slate-200 px-4 py-2 text-base font-semibold text-[#1F4E79] transition hover:bg-slate-50 xl:text-lg"
+            >
+              Provider Sign in
             </Link>
             <PrimaryButton href="/auth/pre-signup">
               Create Health Vault
@@ -298,7 +306,15 @@ export function Navbar() {
                     onClick={() => setMobileMenuOpen(false)}
                     className="rounded-lg border border-slate-200 px-4 py-3 text-center text-base font-semibold text-[#1F4E79] transition hover:bg-slate-50"
                   >
-                    Login
+                    Patient Sign in
+                  </Link>
+
+                  <Link
+                    to="/auth/provider/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="rounded-lg border border-slate-200 px-4 py-3 text-center text-base font-semibold text-[#1F4E79] transition hover:bg-slate-50"
+                  >
+                    Provider Sign in
                   </Link>
 
                   <Link
@@ -339,149 +355,64 @@ export function Navbar() {
   );
 }
 
-function IconBubble({ className = "", children }) {
-  return (
-    <div
-      className={`flex h-20 w-20 items-center justify-center rounded-full border border-slate-200 bg-white shadow-lg ${className}`}
-    >
-      {children}
-    </div>
-  );
-}
-
 function HeroIllustration() {
   return (
-    <div className="relative min-h-[560px] overflow-hidden rounded-[28px] bg-gradient-to-br from-slate-100 via-sky-50 to-white p-8 shadow-inner ring-1 ring-slate-200">
-      <div className="absolute left-4 top-4 rounded-full bg-[#071B3F] px-4 py-2 text-sm font-semibold text-white shadow-sm">
+    <div className="relative min-h-[440px] w-full overflow-hidden rounded-[24px] shadow-sm border border-slate-200/80 bg-slate-100">
+      <img
+        src={hero}
+        alt="WelliRecord Hero"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+      <div className="absolute left-4 top-4 rounded-full bg-[#071B3F] px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm flex items-center gap-1.5 z-10">
+        <Shield className="h-3.5 w-3.5 text-emerald-400" />
         Trusted Health Vault
       </div>
-
-      <div className="absolute left-6 top-24 h-40 w-40 rounded-3xl border border-sky-100 bg-white/70 shadow-sm backdrop-blur" />
-      <div className="absolute right-6 top-28 h-24 w-44 rounded-3xl border border-sky-100 bg-white/60 shadow-sm backdrop-blur" />
-      <div className="absolute right-2 bottom-20 h-36 w-44 rounded-3xl border border-sky-100 bg-white/60 shadow-sm backdrop-blur" />
-
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="relative h-[420px] w-[420px] rounded-full border-[18px] border-sky-300/80">
-          <div className="absolute -left-5 top-1/2 flex -translate-y-1/2 items-center justify-center rounded-full bg-white p-2 shadow-md">
-            <ArrowRight className="h-10 w-10 rotate-180 text-[#1e3a8a]" />
-          </div>
-          <div className="absolute left-1/2 top-0 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white p-2 shadow-md">
-            <ArrowRight className="h-10 w-10 -rotate-45 text-sky-500" />
-          </div>
-          <div className="absolute right-0 top-1/4 flex translate-x-1/2 items-center justify-center rounded-full bg-white p-2 shadow-md">
-            <ArrowRight className="h-10 w-10 rotate-45 text-sky-500" />
-          </div>
-          <div className="absolute bottom-0 right-1/4 flex translate-y-1/2 items-center justify-center rounded-full bg-white p-2 shadow-md">
-            <ArrowRight className="h-10 w-10 rotate-90 text-[#1e3a8a]" />
-          </div>
-
-          <div className="absolute inset-10 rounded-full bg-[radial-gradient(circle,_rgba(255,255,255,0.95)_0%,_rgba(226,232,240,0.5)_60%,_transparent_100%)]" />
-        </div>
-      </div>
-
-      <IconBubble className="absolute left-10 bottom-16">
-        <Pill className="h-10 w-10 text-slate-700" />
-      </IconBubble>
-
-      <IconBubble className="absolute right-8 bottom-16">
-        <Stethoscope className="h-10 w-10 text-slate-700" />
-      </IconBubble>
-
-      <IconBubble className="absolute right-8 top-24">
-        <Microscope className="h-10 w-10 text-slate-700" />
-      </IconBubble>
-
-      <IconBubble className="absolute left-1/2 top-8 -translate-x-1/2">
-        <Hospital className="h-10 w-10 text-slate-700" />
-      </IconBubble>
-
-      <div className="absolute left-1/2 top-1/2 flex h-[320px] w-[180px] -translate-x-1/2 -translate-y-1/2 flex-col rounded-[34px] border-[8px] border-slate-900 bg-white p-4 shadow-2xl">
-        <div className="mx-auto mb-4 h-1.5 w-14 rounded-full bg-slate-300" />
-        <div className="rounded-2xl bg-slate-50 p-4 shadow-sm">
-          <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-[#1e3a8a]" />
-            <span className="text-xs font-semibold text-slate-800">
-              Health Vault
-            </span>
-          </div>
-          <div className="mt-4 space-y-3">
-            {[1, 2, 3].map((item) => (
-              <div
-                key={item}
-                className="rounded-xl border border-slate-200 bg-white p-2"
-              >
-                <div className="h-2 w-20 rounded bg-slate-300" />
-                <div className="mt-2 h-2 w-12 rounded bg-slate-200" />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-auto flex items-center justify-between px-2 text-slate-400">
-          <span className="h-2 w-2 rounded-full bg-slate-400" />
-          <span className="h-2 w-2 rounded-full bg-slate-300" />
-          <span className="h-2 w-2 rounded-full bg-slate-300" />
-          <span className="h-2 w-2 rounded-full bg-slate-300" />
-        </div>
-      </div>
-
-      <div className="absolute left-1/2 top-1/2 z-10 -translate-y-14 -translate-x-8 rounded-full bg-white/80 p-3 shadow-lg backdrop-blur">
-        <BadgeCheck className="h-8 w-8 text-slate-700" />
+      <div className="absolute right-6 top-12 flex items-center gap-2 rounded-xl bg-white/95 backdrop-blur px-3.5 py-2.5 shadow-md border border-slate-200/80 z-10">
+        <BadgeCheck className="h-5 w-5 text-emerald-600" />
+        <span className="text-xs font-semibold text-slate-800">NDPA Compliant</span>
       </div>
     </div>
   );
 }
 
-function ProblemVisual() {
+function SetupSteps() {
   return (
-    <div className="relative mt-16">
-      <div className="absolute -bottom-16 left-10 h-[75%] w-[100%] rounded-sm bg-[#1F4E79]" />
-      <div className="relative overflow-hidden rounded-sm border border-slate-200 bg-white shadow-sm">
-        <div className=" bg-slate-100 min-h-[360px] p-1 grid-cols-[1.2fr_1fr]">
-          <img
-            src={HealthRecord}
-            alt=""
-            className="w-full h-full object-cover"
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ProblemSection() {
-  return (
-    <section className="bg-white px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
+    <section
+      id="features"
+      className="bg-white border-y border-slate-100 px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24"
+    >
       <div className="mx-auto max-w-7xl">
-        <SectionHeading
-          title="Healthcare Records Shouldn't Be This Hard"
-          subtitle="Healthcare data across Nigeria is fragmented, siloed, and difficult to access when it matters most."
-        />
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1F4E79] mb-3">
+          WelliRecord Medical Management
+        </p>
+        <h2 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl max-w-2xl">
+          Set up your health vault
+        </h2>
+        <p className="mt-4 max-w-2xl text-base leading-7 text-slate-500 sm:text-lg">
+          Healthcare data across Nigeria is fragmented, siloed, and difficult
+          to access when it matters most.
+        </p>
 
-        <div className="mt-12 grid items-center gap-10 sm:mt-16 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16 xl:gap-20">
-          <div className="order-1">
-            <ProblemVisual />
-          </div>
-
-          <div className="order-2">
-            <h3 className="max-w-xl text-xl font-semibold text-slate-950 sm:text-2xl lg:max-w-sm">
-              Some of the pain points include:
-            </h3>
-
-            <div className="mt-6 space-y-6 sm:mt-8 sm:space-y-8">
-              {painPoints.map((item) => (
-                <div key={item} className="flex items-start gap-3 sm:gap-4">
-                  <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#1d4f82] text-white">
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </div>
-
-                  <p className="text-base font-semibold leading-7 text-[#002353] sm:text-lg">
-                    {item}
-                  </p>
-                </div>
-              ))}
+        <div className="mt-10 grid grid-cols-1 gap-6 sm:mt-12 sm:grid-cols-2 lg:grid-cols-4">
+          {setupSteps.map((step) => (
+            <div
+              key={step.number}
+              className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+            >
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-sky-50 text-xs font-bold text-[#1F4E79]">
+                {step.number}
+              </span>
+              <div className="mt-4 flex h-9 w-9 items-center justify-center rounded-lg bg-sky-50 text-[#1F4E79]">
+                <step.icon className="h-5 w-5" />
+              </div>
+              <h3 className="mt-4 text-base font-bold text-slate-950">
+                {step.title}
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                {step.description}
+              </p>
             </div>
-          </div>
+          ))}
         </div>
       </div>
     </section>
@@ -490,24 +421,19 @@ function ProblemSection() {
 
 function Timeline() {
   return (
-    <div className="relative w-full max-w-md">
-      <div className="absolute left-4 top-4 bottom-4 w-px bg-slate-300" />
-
-      <div className="space-y-8 sm:space-y-10">
+    <div className="w-full max-w-xl">
+      <div className="space-y-7 sm:space-y-8">
         {timelineSteps.map((step) => (
-          <div
-            key={step.title}
-            className="relative flex items-start gap-4 sm:gap-6"
-          >
-            <div className="relative z-10 mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-[#1d4f82] bg-white">
-              <div className="h-3.5 w-3.5 rounded-full bg-[#1d4f82]" />
+          <div key={step.title} className="flex items-start gap-4">
+            <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-[#1F4E79]">
+              <step.icon className="h-4.5 w-4.5" />
             </div>
 
             <div className="min-w-0 flex-1">
               <h3 className="text-base font-bold text-slate-950 sm:text-lg">
                 {step.title}
               </h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600 sm:text-base">
+              <p className="mt-1.5 text-sm leading-6 text-slate-600">
                 {step.description}
               </p>
             </div>
@@ -518,18 +444,41 @@ function Timeline() {
   );
 }
 
+/*
+ * Built from icons already in the codebase — not the Figma photo composite,
+ * which is a custom asset I can't extract. Swap in a real export if the
+ * designer provides one.
+ */
 function WorkflowVisual() {
-  return (
-    <div className="relative mt-8 w-full sm:mt-10 lg:mt-16">
-      <div className="absolute -bottom-6 -left-4 hidden h-[55%] w-[92%] bg-[#1F4E79] sm:block lg:-bottom-10 lg:-left-8" />
+  const nodes = [
+    { Icon: Hospital, position: "top-0 left-1/2 -translate-x-1/2" },
+    { Icon: Microscope, position: "top-1/4 right-0" },
+    { Icon: Stethoscope, position: "bottom-0 right-1/4" },
+    { Icon: Store, position: "bottom-0 left-1/4" },
+    { Icon: UserRound, position: "top-1/4 left-0" },
+  ];
 
-      <div className="relative z-10 w-full overflow-hidden rounded-xl bg-slate-300 p-1 shadow-sm">
-        <img
-          src={wellirecordimage}
-          alt="Workflow Illustration"
-          className="block h-auto w-full object-cover"
-        />
+  return (
+    <div className="relative mx-auto aspect-square w-full max-w-md">
+      <div className="absolute inset-[15%] rounded-full border border-dashed border-sky-200" />
+
+      <div className="absolute inset-[32%] flex items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-lg">
+        <div className="flex flex-col items-center gap-1.5">
+          <Lock className="h-6 w-6 text-[#1F4E79]" />
+          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+            Health Vault
+          </span>
+        </div>
       </div>
+
+      {nodes.map(({ Icon, position }, i) => (
+        <div
+          key={i}
+          className={`absolute ${position} flex h-16 w-16 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white shadow-md sm:h-20 sm:w-20`}
+        >
+          <Icon className="h-7 w-7 text-[#1F4E79] sm:h-8 sm:w-8" />
+        </div>
+      ))}
     </div>
   );
 }
@@ -538,22 +487,22 @@ function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="bg-slate-0 px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24"
+      className="bg-white px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24"
     >
       <div className="mx-auto max-w-7xl">
-        <div className="grid items-center gap-12 lg:grid-cols-[0.82fr_1.18fr] lg:gap-16 xl:gap-20">
+        <div className="grid items-center gap-12 lg:grid-cols-[1fr_1fr] lg:gap-16 xl:gap-20">
+          <div className="w-full">
+            <WorkflowVisual />
+          </div>
+
           <div>
-            <h2 className="max-w-xl text-3xl font-semibold tracking-tight text-[#1F4E79] sm:text-4xl lg:max-w-sm">
+            <h2 className="max-w-xl text-3xl font-bold tracking-tight text-[#1F4E79] sm:text-4xl">
               How WelliRecord Works
             </h2>
 
             <div className="mt-8 sm:mt-10">
               <Timeline />
             </div>
-          </div>
-
-          <div className="w-full">
-            <WorkflowVisual />
           </div>
         </div>
       </div>
@@ -574,30 +523,27 @@ function FeatureVisual({ icon: Icon }) {
 
 function Features() {
   return (
-    <section className="bg-white px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
+    <section className="bg-slate-50/70 border-t border-slate-100 px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
       <div className="mx-auto max-w-7xl">
         <SectionHeading
           title="Core Features"
           subtitle="What can you actually do with WelliRecord?"
         />
 
-        <div className="relative mt-12 sm:mt-16">
-          {/* Decorative background */}
-          <div className="absolute inset-x-0 top-10 hidden h-64 rounded-3xl bg-[#8DB8E25C] sm:block lg:top-24 lg:h-[326px]" />
-
+        <div className="relative mt-8 sm:mt-12">
           <div className="relative grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
             {featureCards.map((feature) => (
               <div
                 key={feature.title}
-                className="mx-auto w-full max-w-[320px] overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-slate-200 transition hover:-translate-y-1 hover:shadow-xl"
+                className="mx-auto w-full max-w-[340px] overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-slate-200 transition hover:-translate-y-1 hover:shadow-xl"
               >
                 <FeatureVisual icon={feature.icon} />
 
-                <div className="px-5 pb-10 pt-6 text-center sm:px-6 sm:pb-12">
+                <div className="px-5 pb-8 pt-6 text-center sm:px-6">
                   <h3 className="text-base font-bold text-slate-950">
                     {feature.title}
                   </h3>
-                  <p className="mt-3 text-sm leading-7 text-slate-600 sm:mt-4 sm:leading-8">
+                  <p className="mt-3 text-sm leading-7 text-slate-600">
                     {feature.description}
                   </p>
                 </div>
@@ -612,43 +558,98 @@ function Features() {
 
 function StakeholderCard({ label, icon: Icon }) {
   return (
-    <div className="rounded-2xl bg-white p-8 text-center cursor-pointer shadow-md ring-1 ring-slate-200 transition hover:-translate-y-1 hover:shadow-lg">
-      <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-sky-600 text-white shadow-sm">
-        <img src={Icon} alt="" className="w-full h-full" />
+    <div className="rounded-2xl bg-white p-6 sm:p-8 text-center cursor-pointer shadow-md ring-1 ring-slate-200 transition hover:-translate-y-1 hover:shadow-lg">
+      <div className="mx-auto flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center rounded-full bg-sky-600 text-white shadow-sm overflow-hidden p-2">
+        <img src={Icon} alt="" className="w-full h-full object-contain" />
       </div>
-      <p className="mt-3 text-base font-medium text-[#002353]">{label}</p>
+      <p className="mt-4 text-base font-semibold text-[#002353]">{label}</p>
     </div>
   );
 }
 
 function Solutions() {
   return (
-    <section id="solutions" className="  pt-2 py-24">
-      <div className="w-full">
-        <SectionHeading title="One Platform, Every Healthcare Stakeholder." />
-
-        <div className="mt-4 w-full  bg-gradient-to-b from-[#FAF8FB] to-[#D9D8E6] px-8 py-12">
-          <div className="bg-[#FAF8FB] py-10 max-w-7xl mx-auto rounded-2xl px-6">
-            <div className="mx-auto grid max-w-5xl gap-14 md:grid-cols-2 xl:grid-cols-4">
-              {stakeholders.map((item) => (
-                <StakeholderCard
-                  key={item.label}
-                  label={item.label}
-                  icon={item.icon}
-                />
-              ))}
-            </div>
-
-            <div className="mt-14 text-center">
-              <Link
-                to="/auth/provider/signup"
-                className="font-semibold text-base bg-[#071B3F] py-4 px-3 text-white shadow-sm transition hover:bg-[#0c2d66] rounded-2xl"
-              >
-                Register Your Organisation
-              </Link>
-            </div>
-          </div>
+    <section id="solutions" className="bg-white border-t border-slate-100 px-4 py-20 sm:px-6 sm:py-24 lg:px-8">
+      <div className="mx-auto max-w-7xl">
+        <div id="ecosystem" className="scroll-mt-24">
+          <p className="text-center text-xs font-bold uppercase tracking-[0.2em] text-[#1F4E79] mb-3">
+            WelliRecord Stakeholder
+          </p>
+          <SectionHeading
+            title="WelliRecord Healthcare Stakeholders"
+            subtitle="Integrated into the WelliRecord ecosystem, so every provider type can access, manage, and share secure, patient-owned records with consent."
+          />
         </div>
+
+        <div className="mt-12 mx-auto grid max-w-5xl gap-6 sm:gap-8 grid-cols-2 md:grid-cols-4">
+          {stakeholders.map((item) => (
+            <StakeholderCard
+              key={item.label}
+              label={item.label}
+              icon={item.icon}
+            />
+          ))}
+        </div>
+
+        <div className="mt-14 text-center">
+          <Link
+            to="/auth/provider/signup"
+            className="font-semibold text-base text-[#1F4E79] underline underline-offset-4 hover:text-[#0c2d66]"
+          >
+            Register Your Organisation
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/*
+ * NOTE: "0 central key repositories" and "∞ lifetime record storage" both
+ * assert specific architecture/retention decisions — confirm both are
+ * actually true of the current build before this ships. Country-count stat
+ * from the original design has already been dropped per prior review.
+ */
+const stats = [
+  { value: "100%", label: "Patient data ownership" },
+  { value: "0", label: "Central key repositories" },
+  { value: "∞", label: "Lifetime record storage" },
+];
+
+function StatsBar() {
+  return (
+    <section className="bg-white px-4 pb-20 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-4xl grid grid-cols-3 gap-6 text-center">
+        {stats.map((stat) => (
+          <div key={stat.label}>
+            <p className="text-3xl font-extrabold text-[#1F4E79] sm:text-4xl">
+              {stat.value}
+            </p>
+            <p className="mt-2 text-xs font-medium text-slate-500 sm:text-sm">
+              {stat.label}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/*
+ * NOTE: "thousands" is an unverified scale claim — you're pre-pilot with no
+ * confirmed anchor facility. Confirm real numbers before this ships, or
+ * rework the line entirely.
+ */
+function VoicesHeading() {
+  return (
+    <section className="bg-white px-4 pb-16 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-4xl text-center">
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1F4E79] mb-4">
+          Voices
+        </p>
+        <h2 className="text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
+          Join thousands across Nigeria and beyond who have taken control of their health data
+        </h2>
       </div>
     </section>
   );
@@ -830,7 +831,7 @@ function SocialProof() {
         }
       `}</style>
 
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-5xl">
         <div className="mb-12 text-center">
           <p className="text-xs font-bold uppercase tracking-[0.26em] text-[#1e3a8a] mb-3">
             Pilot Programme
@@ -951,479 +952,6 @@ function SocialProof() {
   );
 }
 
-function Partners() {
-  return (
-    <section id="partners" className="bg-white px-6 py-24 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        <SectionHeading title="Our Partners" />
-
-        <div className="mt-12 grid gap-6 md:grid-cols-3 xl:grid-cols-5">
-          {partners.map((partner, index) => (
-            <div
-              key={partner}
-              className="flex min-h-[120px] items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 text-center shadow-sm"
-            >
-              <div>
-                <div className="text-3xl font-black tracking-tight text-slate-800">
-                  {index === 2 ? "AXA" : partner.split(" ")[0]}
-                </div>
-                <div className="mt-2 text-sm font-medium uppercase tracking-[0.22em] text-slate-500">
-                  {partner}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function DummySection({ id, title, text }) {
-  return (
-    <section
-      id={id}
-      className="border-t border-slate-200 bg-white px-6 py-20 lg:px-8"
-    >
-      <div className="mx-auto max-w-5xl text-center">
-        <h2 className="text-3xl font-bold text-slate-950 md:text-4xl">
-          {title}
-        </h2>
-        <p className="mx-auto mt-4 max-w-3xl text-lg leading-8 text-slate-600">
-          {text}
-        </p>
-      </div>
-    </section>
-  );
-}
-
-function ConversionBanner() {
-  return (
-    <section className="cta-redesign">
-      <style>{`
-        .cta-redesign {
-          position: relative;
-          padding: 80px 24px 64px;
-          background:
-            radial-gradient(900px 420px at 50% -10%, rgba(18,48,105,0.9), transparent 70%),
-            #071B3F;
-          text-align: center;
-          overflow: hidden;
-          font-family: 'Inter', system-ui, -apple-system, sans-serif;
-          color: #FFFFFF;
-        }
-        .cta-redesign::after {
-          content: "";
-          position: absolute;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          height: 1px;
-          background: rgba(255,255,255,0.12);
-        }
-        .cta-redesign .eyebrow {
-          font-size: 12px;
-          letter-spacing: 0.22em;
-          text-transform: uppercase;
-          color: #9FB2D6;
-          font-weight: 600;
-          display: block;
-          margin-bottom: 22px;
-        }
-        .cta-redesign h2 {
-          font-family: 'Bricolage Grotesque', 'Inter', sans-serif;
-          font-size: clamp(36px, 5.4vw, 60px);
-          line-height: 1.06;
-          font-weight: 700;
-          letter-spacing: -0.015em;
-          max-width: 820px;
-          margin: 0 auto 20px;
-        }
-        .cta-redesign h2 .soft {
-          font-weight: 400;
-          color: #9FB2D6;
-        }
-        .cta-redesign .sub {
-          font-size: 18px;
-          line-height: 1.6;
-          color: #9FB2D6;
-          max-width: 640px;
-          margin: 0 auto 34px;
-        }
-        .cta-redesign .trust {
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
-          gap: 12px 32px;
-          margin: 0 auto 40px;
-          padding: 0;
-        }
-        .cta-redesign .trust li {
-          list-style: none;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 12px;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: #9FB2D6;
-          font-weight: 600;
-        }
-        .cta-redesign .trust li a {
-          color: #9FB2D6;
-          text-decoration: none;
-        }
-        .cta-redesign .trust li a:hover {
-          text-decoration: underline;
-        }
-        .cta-redesign .btn-row {
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
-          gap: 14px;
-          margin-bottom: 18px;
-        }
-        .cta-redesign .btn {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 10px;
-          font-family: 'Inter', sans-serif;
-          font-weight: 600;
-          font-size: 16px;
-          padding: 16px 30px;
-          border-radius: 10px;
-          text-decoration: none;
-          transition: transform .15s ease, background .15s ease, border-color .15s ease;
-          border: 1.5px solid transparent;
-        }
-        .cta-redesign .btn:focus-visible {
-          outline: 3px solid #FFFFFF;
-          outline-offset: 3px;
-        }
-        .cta-redesign .btn-primary {
-          background: #FFFFFF;
-          color: #071B3F;
-        }
-        .cta-redesign .btn-primary:hover {
-          transform: translateY(-1px);
-          background: #EEF3FC;
-        }
-        .cta-redesign .btn-secondary {
-          background: #123069;
-          color: #FFFFFF;
-          border-color: rgba(255,255,255,0.15);
-        }
-        .cta-redesign .btn-secondary:hover {
-          background: #1b4491;
-          transform: translateY(-1px);
-        }
-        .cta-redesign .micro {
-          font-size: 14px;
-          color: #7387AE;
-          margin-bottom: 20px;
-        }
-        .cta-redesign .micro span {
-          white-space: nowrap;
-        }
-        .wa-card {
-          display: inline-flex;
-          align-items: center;
-          gap: 14px;
-          background: rgba(255,255,255,0.05);
-          border: 1px solid rgba(255,255,255,0.12);
-          border-radius: 14px;
-          padding: 14px 22px 14px 16px;
-          text-decoration: none;
-          color: #FFFFFF;
-          transition: border-color .15s ease, background .15s ease;
-        }
-        .wa-card:hover {
-          border-color: rgba(37,211,102,0.6);
-          background: rgba(37,211,102,0.06);
-        }
-        .wa-card:focus-visible {
-          outline: 3px solid #25D366;
-          outline-offset: 3px;
-        }
-        .wa-badge {
-          width: 42px;
-          height: 42px;
-          border-radius: 50%;
-          background: #25D366;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex: none;
-        }
-        .wa-copy {
-          text-align: left;
-        }
-        .wa-copy strong {
-          display: block;
-          font-size: 15px;
-          font-weight: 600;
-        }
-        .wa-copy small {
-          display: block;
-          font-size: 13px;
-          color: #9FB2D6;
-          margin-top: 2px;
-        }
-        @media (max-width:760px) {
-          .cta-redesign {
-            padding: 80px 20px 72px;
-          }
-          .btn-row {
-            flex-direction: column;
-            align-items: stretch;
-          }
-          .btn {
-            width: 100%;
-          }
-        }
-      `}</style>
-      <span className="eyebrow">Now onboarding partner facilities in Abuja</span>
-      <h2 className="display">Create your health vault<br /><span className="soft">in minutes, not paperwork.</span></h2>
-      <p className="sub">Your complete medical history — hospitals, labs, prescriptions — in one secure, private vault. You control who sees it, always.</p>
-
-      <ul className="trust">
-        <li>
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-            <path d="M2 7.5L5.5 11L12 3.5" stroke="#9FB2D6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <Link to="/privacy">NDPA Compliant</Link>
-        </li>
-        <li>
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-            <path d="M2 7.5L5.5 11L12 3.5" stroke="#9FB2D6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          Encrypted at rest &amp; in transit
-        </li>
-        <li>
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-            <path d="M2 7.5L5.5 11L12 3.5" stroke="#9FB2D6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          Patient-controlled access
-        </li>
-      </ul>
-
-      <div className="btn-row flex flex-wrap gap-4 justify-center">
-        <Link className="btn btn-primary" to="/auth/patient/signup">Create health vault — free</Link>
-        <a
-          href="https://wa.me/2348053355504?text=REGISTER"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn text-white bg-[#25D366] hover:bg-[#20ba5a]"
-        >
-          <svg className="h-5 w-5 fill-white" viewBox="0 0 24 24">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-          </svg>
-          Register via WhatsApp
-        </a>
-        <Link className="btn btn-secondary" to="/auth/provider/signup">Register Org</Link>
-      </div>
-      <p className="micro"><span>No credit card required</span> · <span>Setup in under 5 minutes</span> · <span>Cancel anytime</span></p>
-
-      <a className="wa-card" href="https://wa.me/2348053355504?text=REGISTER" target="_blank" rel="noopener noreferrer">
-        <span className="wa-badge" aria-hidden="true">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="#FFFFFF">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-          </svg>
-        </span>
-        <span className="wa-copy">
-          <strong>Register or Chat on WhatsApp</strong>
-          <small>Send 'REGISTER' to start enrollment · +234 805 335 5504</small>
-        </span>
-      </a>
-    </section>
-  );
-}
-
-export default function App() {
-  return (
-    <div
-      id="top"
-      className="min-h-screen overflow-x-hidden w-full scroll-smooth bg-white text-slate-900"
-    >
-      <Navbar />
-      <main className="overflow-x-hidden">
-        <Hero />
-        <ProblemSection />
-        <FoundingStory />
-        <HowItWorks />
-        <Features />
-        <Solutions />
-        {/* <Partners /> */}
-        <SocialProof />
-        <FAQ />
-        <ConversionBanner />
-        <WelliFooter />
-      </main>
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────
-   FOUNDING STORY
-───────────────────────────────────────────── */
-function FoundingStory() {
-  return (
-    <section
-      id="story"
-      className="relative overflow-hidden bg-[#071B3F] px-4 py-20 sm:px-6 sm:py-24 lg:px-8 lg:py-28"
-    >
-      <style>{`
-        /* subtle animated grain overlay */
-        .story-section::before {
-          content: "";
-          position: absolute;
-          inset: 0;
-          background-image:
-            radial-gradient(ellipse 900px 500px at 80% 20%, rgba(16,185,129,0.08), transparent 65%),
-            radial-gradient(ellipse 600px 400px at 10% 80%, rgba(30,58,138,0.4), transparent 60%);
-          pointer-events: none;
-        }
-        .story-pull {
-          position: relative;
-          border-left: 3px solid #10B981;
-          padding-left: 28px;
-          margin: 0;
-        }
-        .story-pull blockquote {
-          font-family: 'Bricolage Grotesque', 'Inter', sans-serif;
-          font-size: clamp(22px, 3.5vw, 34px);
-          line-height: 1.35;
-          font-weight: 600;
-          color: #FFFFFF;
-          letter-spacing: -0.01em;
-          margin: 0;
-        }
-        .story-pull cite {
-          display: block;
-          margin-top: 18px;
-          font-style: normal;
-          font-size: 13px;
-          font-weight: 600;
-          letter-spacing: 0.18em;
-          text-transform: uppercase;
-          color: #10B981;
-        }
-        .story-body {
-          color: #9FB2D6;
-          font-size: 17px;
-          line-height: 1.75;
-          max-width: 540px;
-        }
-        .story-moment {
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 16px;
-          padding: 28px 32px;
-          display: flex;
-          gap: 20px;
-          align-items: flex-start;
-          max-width: 540px;
-        }
-        .story-moment-icon {
-          width: 44px;
-          height: 44px;
-          border-radius: 50%;
-          background: rgba(16,185,129,0.15);
-          border: 1.5px solid rgba(16,185,129,0.3);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex: none;
-          margin-top: 2px;
-        }
-        .story-moment p {
-          color: #D7E1F4;
-          font-size: 15.5px;
-          line-height: 1.65;
-          margin: 0;
-        }
-        .story-moment strong {
-          color: #FFFFFF;
-          font-weight: 600;
-        }
-        .story-grid {
-          display: grid;
-          gap: 48px;
-          align-items: start;
-        }
-        @media (min-width: 1024px) {
-          .story-grid {
-            grid-template-columns: 1fr 1fr;
-            gap: 80px;
-            align-items: center;
-          }
-        }
-      `}</style>
-
-      <div className="story-section relative mx-auto max-w-6xl">
-        <p className="mb-12 text-xs font-bold uppercase tracking-[0.26em] text-[#60A5FA]">
-          Why We Built This
-        </p>
-
-        <div className="story-grid">
-          {/* Left: pullquote */}
-          <div className="story-pull">
-            <blockquote>
-              "A doctor needed one piece of information — an allergy — and it wasn't there. We almost lost someone because a record didn't follow the patient."
-            </blockquote>
-            <cite>— The moment WelliRecord began, Abuja, Nigeria</cite>
-          </div>
-
-          {/* Right: narrative + moment card */}
-          <div className="flex flex-col gap-8">
-            <p className="story-body">
-              Nigeria has some of Africa's finest doctors. But patient records don't travel with patients.
-              Every hospital visit starts from zero — hand-written forms, verbal histories, repeated tests.
-              In an emergency, that gap costs lives.
-            </p>
-
-            <div className="story-moment">
-              <span className="story-moment-icon" aria-hidden="true">
-                {/* heart pulse icon */}
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                </svg>
-              </span>
-              <p>
-                <strong>That family emergency in Abuja</strong> showed us what a health record should
-                do: be there when it matters. We built WelliRecord so no family faces that gap again.
-                One patient. One trusted record. Accessible at any facility, with the patient's consent.
-              </p>
-            </div>
-
-            <p className="story-body">
-              Today we're enrolling families through WhatsApp — registration is free, consent comes
-              first, and the patient stays at the centre of their health journey.
-            </p>
-            <div className="mt-4">
-              <a
-                href="https://wa.me/2348053355504?text=REGISTER"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl bg-[#25D366] px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#20ba5a]"
-              >
-                <svg className="h-4 w-4 fill-white" viewBox="0 0 24 24">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                </svg>
-                Register on WhatsApp (send 'REGISTER')
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ─────────────────────────────────────────────
-   FAQ SECTION
-───────────────────────────────────────────── */
 function FAQ() {
   const faqs = [
     {
@@ -1455,9 +983,8 @@ function FAQ() {
   const [openIndex, setOpenIndex] = React.useState<number | null>(null);
 
   return (
-    <section className="bg-white px-4 py-20 sm:px-6 sm:py-24 lg:px-8 border-t border-slate-100">
+    <section className="bg-slate-50/80 px-4 py-20 sm:px-6 sm:py-24 lg:px-8 border-t border-slate-100">
       <div className="mx-auto max-w-4xl">
-        {/* Header */}
         <div className="text-center mb-14">
           <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#1e3a8a] mb-3">Common Questions</p>
           <h2
@@ -1471,7 +998,6 @@ function FAQ() {
           </p>
         </div>
 
-        {/* Accordion */}
         <div className="space-y-3">
           {faqs.map((faq, idx) => {
             const isOpen = openIndex === idx;
@@ -1536,7 +1062,6 @@ function FAQ() {
           })}
         </div>
 
-        {/* Bottom CTA */}
         <div className="mt-12 text-center">
           <p className="text-sm text-slate-500">
             Still have a question?{" "}
@@ -1554,72 +1079,202 @@ function FAQ() {
     </section>
   );
 }
+
+function ConversionBanner() {
+  return (
+    <section className="bg-white px-4 pb-20 sm:px-6 sm:pb-24 lg:px-8">
+      <div className="mx-auto max-w-5xl rounded-3xl bg-[#DCEAE6] px-6 py-16 text-center sm:px-12 sm:py-20">
+        <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#1F4E79] mb-4">
+          Start Today
+        </p>
+        <h2 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl mb-4">
+          Your health passport starts here.
+        </h2>
+        <p className="text-base text-slate-600 max-w-2xl mx-auto mb-8">
+          Set up your free health vault in minutes, with no paperwork or waiting on records from your last hospital.
+        </p>
+
+        <div className="flex flex-wrap items-center justify-center gap-4">
+          <Link
+            to="/auth/patient/signup"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#071B3F] px-8 py-4 text-base font-bold text-white shadow-lg transition hover:bg-[#0c2d66]"
+          >
+            Create Your Health Vault
+          </Link>
+          <Link
+            to="/auth/provider/signup"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-8 py-4 text-base font-bold text-[#071B3F] transition hover:bg-slate-50"
+          >
+            Register Your Organisation
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   FOUNDING STORY CARD
+───────────────────────────────────────────── */
+function FoundingStory() {
+  return (
+    <section id="story" className="relative z-0 isolate bg-slate-50/70 mt-8 py-12 px-4 sm:mt-10 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl">
+        <div className="rounded-3xl bg-[#071B3F] text-white p-8 sm:p-12 lg:p-16 border border-[#1e3a8a]/40 shadow-xl relative">
+          <div className="relative z-10 grid gap-10 lg:grid-cols-2 lg:gap-16 items-start">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.26em] text-[#60A5FA] mb-4 break-words">
+                Why We Built This
+              </p>
+              <blockquote className="text-xl sm:text-2xl font-bold leading-snug tracking-tight text-white font-display">
+                "A doctor needed one piece of information — an allergy — and it wasn't there. We almost lost someone because a record didn't follow the patient."
+              </blockquote>
+              <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-[#10B981]">
+                — The moment WelliRecord began, Abuja, Nigeria
+              </p>
+            </div>
+
+            <div className="space-y-6 text-slate-300 text-base leading-relaxed">
+              <p>
+                Nigeria has some of Africa's finest doctors. But patient records don't travel with patients.
+                Every hospital visit starts from zero — hand-written forms, verbal histories, repeated tests.
+                In an emergency, that gap costs lives.
+              </p>
+              <div className="rounded-2xl bg-white/5 border border-white/10 p-5 backdrop-blur">
+                <p className="text-sm text-slate-200 leading-normal">
+                  <strong className="text-white font-semibold">One patient. One trusted record.</strong> Accessible at any facility, with the patient's explicit consent.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Hero() {
   return (
-    <div className="w-full bg-white py-6 pt-4 text-slate-900 sm:py-8 lg:py-10">
-      <main className="flex w-full flex-col overflow-hidden lg:min-h-[530px] lg:flex-row">
-        <section className="flex flex-1 items-center justify-center bg-[#F4F9FD]/40 px-4 py-12 sm:px-6 sm:py-14 lg:px-12 lg:py-16 xl:px-20">
+    <div className="w-full bg-[#F8FAFC] py-8 pt-4 text-slate-900 sm:py-10 lg:py-12 border-b border-slate-100">
+      <main className="flex w-full flex-col overflow-hidden lg:min-h-[500px] lg:flex-row max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="flex flex-1 items-center justify-center py-8 sm:py-12 lg:py-14">
           <div className="w-full max-w-2xl">
-            <h1 className="max-w-[560px] text-4xl font-semibold leading-tight tracking-[-0.04em] text-[#002353] sm:text-5xl lg:text-[56px] lg:leading-[1.05]">
-              Own Your Complete Medical History
+            <h1 className="max-w-[580px] text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-[54px] lg:leading-[1.08]">
+              <span className="text-[#002353]">Own Your </span>
+              <span className="text-[#1F4E79]">Complete Medical History.</span>
             </h1>
 
-            <p className="mt-6 max-w-[680px] text-base leading-7 text-[#475569] sm:mt-8 sm:text-lg sm:leading-8 lg:mt-10 lg:text-[19px] lg:leading-[1.45]">
+            <p className="mt-6 max-w-[640px] text-base leading-7 text-[#475569] sm:mt-7 sm:text-lg sm:leading-8 lg:text-[19px] lg:leading-[1.45]">
               The first patient-owned health vault in Africa, WelliRecord
               securely connects your hospitals, labs, and pharmacies into a
               single private health vault, giving you full control over who can
               access your medical history.
             </p>
 
-            <div className="mt-8 flex flex-col gap-4 sm:mt-10 sm:max-w-xl sm:flex-row sm:flex-wrap sm:items-center">
+            <p className="mt-3 text-sm font-semibold text-[#1F4E79]">
+              One patient. One trusted record. Accessible when it matters.
+            </p>
+
+            {/* Clear, Single Primary CTA + Demoted Secondary Options */}
+            <div className="mt-8 flex flex-col gap-4 sm:mt-10 sm:items-start">
               <Link
                 to="/auth/patient/signup"
-                className="w-full rounded-lg bg-[#071B3F] px-6 py-3.5 text-center text-base font-semibold text-white shadow-md transition hover:bg-[#0c2d66] sm:w-auto sm:px-8 sm:py-4 sm:text-lg"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#071B3F] px-8 py-4 text-center text-lg font-bold text-white shadow-lg transition hover:bg-[#0c2d66]"
               >
-                Create Health Vault
+                Create Health Vault <ArrowRight className="h-5 w-5" />
               </Link>
 
-              <a
-                href="https://wa.me/2348053355504?text=REGISTER"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#25D366] px-6 py-3.5 text-center text-base font-semibold text-white shadow-md transition hover:bg-[#20ba5a] sm:w-auto sm:px-8 sm:py-4 sm:text-lg"
-              >
-                <svg className="h-5 w-5 fill-white" viewBox="0 0 24 24">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                </svg>
-                Register on WhatsApp
-              </a>
-
-              <Link
-                to="/auth/provider/signup"
-                className="w-full rounded-lg border-2 border-slate-200 bg-white px-6 py-3.5 text-center text-base font-semibold text-[#071B3F] hover:bg-slate-50 transition sm:w-auto sm:px-8 sm:py-4"
-              >
-                Register Provider Org
-              </Link>
+              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-600">
+                <a
+                  href="https://wa.me/2348053355504?text=REGISTER"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 font-semibold text-[#25D366] hover:underline"
+                >
+                  <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                  </svg>
+                  Register via WhatsApp
+                </a>
+                <span className="text-slate-300">•</span>
+                <Link
+                  to="/auth/provider/signup"
+                  className="font-medium text-[#1e3a8a] hover:underline"
+                >
+                  Healthcare Provider or Hospital? Register Org →
+                </Link>
+              </div>
             </div>
 
             <div className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#5c6f85] sm:text-xs">
               <Link to="/privacy" className="hover:underline text-[#1e3a8a]">NDPA Compliant</Link>
               <span className="text-slate-300">•</span>
-              <span>Encrypted at Rest & Transit</span>
+              <span>Encrypted Vault</span>
               <span className="text-slate-300">•</span>
               <span>Patient-Controlled Access</span>
             </div>
           </div>
         </section>
 
-        <section className="relative min-h-[280px] w-full overflow-hidden bg-[radial-gradient(circle_at_center,_#f8fbfc_0%,_#e5eef2_60%,_#dfe8ee_100%)] sm:min-h-[360px] lg:min-h-[530px] lg:w-[45%]">
-          <div className="absolute left-0 top-0 z-10 rounded-br-lg bg-[#071B3F] px-3 py-1.5 text-sm font-semibold text-white shadow-sm sm:px-4 sm:text-base lg:text-lg">
-            Trusted Health Vault
-          </div>
-
-          <img
-            src={hero}
-            alt="WelliRecord Hero"
-            className="h-full w-full object-cover"
-          />
+        {/* Hero Illustration / Graphic Container */}
+        <section className="relative min-h-[300px] w-full overflow-hidden sm:min-h-[380px] lg:min-h-[500px] lg:w-[45%] flex items-center justify-center p-4">
+          <HeroIllustration />
         </section>
+      </main>
+
+      {/*
+        NOTE: "Zero-knowledge architecture" is a specific, checkable technical
+        claim — same category of risk as the "Blockchain-Verified" badge
+        already removed from an earlier draft. Confirm this is actually
+        implemented before shipping; otherwise soften to "Encrypted at rest &
+        in transit," which matches what's already live in ConversionBanner.
+      */}
+      <div className="mx-auto mt-10 flex w-full max-w-7xl flex-wrap items-center justify-center gap-x-8 gap-y-3 px-4 text-xs text-slate-500 sm:px-6 lg:px-8">
+        <span className="inline-flex items-center gap-2">
+          <Shield className="h-4 w-4 text-[#1F4E79]" />
+          <strong className="font-semibold text-slate-700">End-to-End Encrypted</strong> · Zero-knowledge architecture
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <Lock className="h-4 w-4 text-[#1F4E79]" />
+          <strong className="font-semibold text-slate-700">Patient-Owned Keys</strong> · You control access
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <BadgeCheck className="h-4 w-4 text-[#1F4E79]" />
+          <strong className="font-semibold text-slate-700">NDPA Compliant</strong> · Fully compliant & secured
+        </span>
+      </div>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <div
+      id="top"
+      className="min-h-screen overflow-x-hidden w-full scroll-smooth bg-white text-slate-900"
+    >
+      <Navbar />
+      <main className="overflow-x-hidden">
+        <Hero />
+        <SetupSteps />
+        <HowItWorks />
+        <Solutions />
+        <StatsBar />
+        <VoicesHeading />
+        {/*
+          NOTE: FoundingStory, Features, SocialProof (Pilot Programme), and
+          FAQ aren't in the new design's screenshots. Rather than delete
+          brand-critical content (the founding story) and honest positioning
+          (Pilot Programme) unasked, they're kept here, appended after the
+          new sections. Tell me if the shorter page is actually what you
+          want and I'll remove them instead of stacking both.
+        */}
+        <FoundingStory />
+        <Features />
+        <SocialProof />
+        <FAQ />
+        <ConversionBanner />
+        <WelliFooter />
       </main>
     </div>
   );

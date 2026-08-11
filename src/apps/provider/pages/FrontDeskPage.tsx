@@ -184,6 +184,7 @@ export function FrontDeskPage() {
               value={urgentCount}
               icon={<CircleAlert size={18} />}
               hint="Urgent or emergency priority"
+              variant="urgent"
             />
           </div>
         </div>
@@ -277,8 +278,8 @@ export function FrontDeskPage() {
                                   </button>
                                 </>
                               ) : (
-                                <span className="text-xs text-[#9FB3CF]">
-                                  No action available
+                                <span className="text-xs font-medium text-slate-500 px-2">
+                                  —
                                 </span>
                               )}
                             </div>
@@ -453,30 +454,74 @@ function SummaryCard({
   value,
   icon,
   hint,
+  variant = "default",
 }: {
   title: string;
   value: number;
   icon: React.ReactNode;
   hint: string;
+  variant?: "default" | "urgent";
 }) {
+  const isUrgentVariant = variant === "urgent";
+  const hasUrgentCount = isUrgentVariant && value > 0;
+
   return (
-    <div className="rounded-2xl border border-[#163761] bg-[#0b2447]/70 p-4">
+    <div
+      className={`rounded-2xl border p-4 transition-all ${
+        hasUrgentCount
+          ? "border-rose-500/60 bg-rose-950/30 shadow-[0_0_20px_rgba(244,63,94,0.15)]"
+          : isUrgentVariant
+          ? "border-rose-500/30 bg-rose-500/10"
+          : "border-[#163761] bg-[#0b2447]/70"
+      }`}
+    >
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-sm text-[#9FB3CF]">{title}</span>
-        <span className="rounded-lg bg-blue-500/10 p-2 text-blue-300">
+        <span
+          className={`text-sm ${
+            isUrgentVariant ? "font-semibold text-rose-300" : "text-[#9FB3CF]"
+          }`}
+        >
+          {title}
+        </span>
+        <span
+          className={`rounded-lg p-2 ${
+            isUrgentVariant
+              ? "bg-rose-500/20 text-rose-400"
+              : "bg-blue-500/10 text-blue-300"
+          }`}
+        >
           {icon}
         </span>
       </div>
-      <div className="text-3xl font-semibold text-white">{value}</div>
-      <p className="mt-2 text-xs text-[#9FB3CF]">{hint}</p>
+      <div
+        className={`text-3xl font-bold ${
+          hasUrgentCount
+            ? "text-rose-400 font-extrabold"
+            : isUrgentVariant
+            ? "text-rose-200"
+            : "text-white"
+        }`}
+      >
+        {value}
+      </div>
+      <p
+        className={`mt-2 text-xs ${
+          isUrgentVariant ? "text-rose-300/70" : "text-[#9FB3CF]"
+        }`}
+      >
+        {hint}
+      </p>
     </div>
   );
 }
 
 function EmptyState({ text }: { text: string }) {
   return (
-    <div className="rounded-2xl border border-dashed border-[#163761] px-6 py-12 text-center text-[#9FB3CF]">
-      {text}
+    <div className="rounded-2xl border border-dashed border-[#163761] px-5 py-6 text-left text-xs text-[#9FB3CF]">
+      <div className="flex items-center gap-2">
+        <span className="inline-block h-1.5 w-1.5 rounded-full bg-slate-600/50" />
+        {text}
+      </div>
     </div>
   );
 }

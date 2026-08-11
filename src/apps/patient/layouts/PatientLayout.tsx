@@ -1,4 +1,5 @@
 import { health_companion_image, logos, welliIcon } from "@/assets";
+import { NotificationBell } from "@/shared/ui/NotificationBell";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { useWelliMate } from "@/shared/context/WelliMateContext";
 import { useNetwork } from "@/shared/hooks/useNetwork";
@@ -8,7 +9,6 @@ import {
   Activity,
   ArrowBigDown,
   Baby,
-  Bell,
   Calendar,
   ChevronDown,
   ChevronRight,
@@ -438,10 +438,7 @@ export function PatientLayout() {
           {/* RIGHT: Actions */}
           <div className="flex items-center gap-3">
             {/* Notification */}
-            <button className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 relative">
-              <Bell size={18} className="text-gray-700" />
-              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500" />
-            </button>
+            <NotificationBell />
 
             {/* Profile */}
             <div className="relative" ref={menuRef}>

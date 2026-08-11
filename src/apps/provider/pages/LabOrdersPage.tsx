@@ -1,4 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { getAllLabOrders, createLabOrder, updateLabOrderStatus, enterLabOrderResult } from "@/shared/api/labOrdersApi";
+import { io, Socket } from "socket.io-client";
+import Cookies from "js-cookie";
+import { apiUrl } from "@/shared/api/authApi";
 import {
   FlaskConical,
   Plus,
@@ -62,6 +66,7 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { useAuth } from "@/shared/auth/AuthProvider";
+import { PatientSearchPicker } from "@/apps/components/shared/PatientSearchPicker";
 import { getAllPatientLabResults, LabResultItem } from "@/shared/utils/utilityFunction";
 import { createRecord } from "@/shared/api/clinicalApi";
 import { sendCriticalAlertSms } from "@/shared/api/notificationApi";
@@ -85,106 +90,6 @@ const T = {
 
 // ─── Initial Mock & Live Data Seeds ──────────────────────────────────────────
 
-const INITIAL_LAB_ORDERS = [
-  {
-    id: "LAB-2026-9901",
-    patientName: "Chibuike Okonkwo",
-    patientWrId: "WR-NGA-2026-8891",
-    phone: "+234 803 111 2233",
-    testName: "Full Blood Count (FBC) + ESR",
-    category: "Hematology",
-    source: "Lagos University Teaching Hospital",
-    sourceType: "Hospital",
-    doctor: "Dr. Olayinka Adeleke",
-    doctorPhone: "+234 803 111 2233",
-    date: "2026-08-04 09:15",
-    priority: "urgent",
-    status: "processing", // requested -> collected -> received -> processing -> quality-control -> verified -> released -> delivered
-    sampleType: "Blood (EDTA)",
-    barcode: "BC-8890123",
-    collector: "Nurse Blessing Nnamdi",
-    measuredValue: "WBC: 12.4 x10^9/L, Hb: 11.2 g/dL",
-    normalRange: "WBC: 4.0-10.0, Hb: 12.0-16.0",
-    interpretation: "Mild Leukocytosis & Low Hemoglobin",
-    isCritical: true,
-    price: 15500,
-    paymentStatus: "paid",
-    verifiedBy: "Dr. E. Mbakwe (Pathologist)",
-  },
-  {
-    id: "LAB-2026-9902",
-    patientName: "Amara Okafor",
-    patientWrId: "WR-NGA-2026-1102",
-    phone: "+234 802 444 5566",
-    testName: "Fastings Blood Glucose & HbA1c",
-    category: "Chemical Pathology",
-    source: "Telemedicine Consult Room #3",
-    sourceType: "Telemedicine",
-    doctor: "Dr. Fatima Aliyu",
-    date: "2026-08-04 10:30",
-    priority: "routine",
-    status: "verified",
-    sampleType: "Blood (Fluoride Oxalate)",
-    barcode: "BC-8890124",
-    collector: "Phleb. Tunde Bakare",
-    measuredValue: "FBG: 6.8 mmol/L, HbA1c: 7.2%",
-    normalRange: "FBG: 3.9-5.6 mmol/L, HbA1c: <5.7%",
-    interpretation: "Impaired Fasting Glucose / Suboptimal Diabetic Control",
-    isCritical: false,
-    price: 18000,
-    paymentStatus: "paid",
-    verifiedBy: "MLS K. Ogundipe (Senior Sci)",
-  },
-  {
-    id: "LAB-2026-9903",
-    patientName: "Ibrahim Musa",
-    patientWrId: "WR-NGA-2026-4481",
-    phone: "+234 805 777 9900",
-    testName: "Urinalysis Micro & Culture (M/C/S)",
-    category: "Microbiology",
-    source: "Silver Cross Medical Center",
-    sourceType: "Clinic",
-    doctor: "Dr. Emeka Nwosu",
-    date: "2026-08-04 11:00",
-    priority: "home-sample",
-    status: "collected",
-    sampleType: "Urine (Mid-stream)",
-    barcode: "BC-8890125",
-    collector: "Rider #4 (Home Sample Team)",
-    measuredValue: "Pus cells: 15-20/HPF, Nitrite: Positive",
-    normalRange: "Pus cells: 0-5/HPF, Nitrite: Negative",
-    interpretation: "Urinary Tract Infection suspected, culture pending",
-    isCritical: false,
-    price: 12000,
-    paymentStatus: "pending",
-    verifiedBy: "Pending",
-  },
-  {
-    id: "LAB-2026-9904",
-    patientName: "Ngozi Adewale",
-    patientWrId: "WR-NGA-2026-7734",
-    phone: "+234 803 888 1212",
-    testName: "Lipid Profile (TC, HDL, LDL, Triglycerides)",
-    category: "Chemical Pathology",
-    source: "Patient Self-Request",
-    sourceType: "Patient",
-    doctor: "Self / Wellness Program",
-    date: "2026-08-04 08:30",
-    priority: "routine",
-    status: "released",
-    sampleType: "Blood (Serum)",
-    barcode: "BC-8890126",
-    collector: "Phleb. Chidinma Eze",
-    measuredValue: "TC: 240 mg/dL, LDL: 160 mg/dL",
-    normalRange: "TC: <200 mg/dL, LDL: <100 mg/dL",
-    interpretation: "Hypercholesterolemia",
-    isCritical: false,
-    price: 14500,
-    paymentStatus: "paid",
-    verifiedBy: "Dr. E. Mbakwe (Pathologist)",
-  },
-];
-
 const WORKFLOW_STAGES = [
   { key: "requested", label: "Requested", icon: Clock, color: "#94a3b8" },
   { key: "collected", label: "Collected", icon: Syringe, color: "#38bdf8" },
@@ -196,24 +101,65 @@ const WORKFLOW_STAGES = [
   { key: "delivered", label: "Delivered", icon: CheckCircle2, color: "#22c55e" },
 ];
 
-const ANALYZERS = [
-  { name: "Mindray BS-240 Auto-Chemistry Analyzer", code: "CHEM-01", status: "Operational", calibDue: "2026-08-15", qcStatus: "Passed", throughput: "200 tests/hr" },
-  { name: "Sysmex XN-550 Automated Hematology", code: "HEM-02", status: "Operational", calibDue: "2026-08-20", qcStatus: "Passed", throughput: "60 samples/hr" },
-  { name: "Roche Cobas e411 Immunoassay System", code: "IMM-01", status: "Maintenance Due", calibDue: "2026-08-05", qcStatus: "Warning", throughput: "86 tests/hr" },
-  { name: "GeneXpert IV Polymerase Chain Reaction (PCR)", code: "MOL-01", status: "Operational", calibDue: "2026-09-01", qcStatus: "Passed", throughput: "4 cartridges/run" },
-];
+// Module-level socket singleton — lives outside the component so it
+// survives re-renders without reconnecting on every render cycle.
+// Auth note: the backend verifies the JWT signature and joins this socket
+// to its organization's room (shared/realtime/socket.js in wellirecord-backend),
+// so lab_order_change events are scoped to the connected org.
+let labOrdersSocket: Socket | null = null;
 
-const REAGENTS_INVENTORY = [
-  { name: "Glucose GOD-PAP Reagent Kit", cat: "Chemical Pathology", stock: 12, unit: "Kits", expiry: "2026-11-30", alert: false },
-  { name: "Sysmex Cellpack DCL Diluent 20L", cat: "Hematology", stock: 3, unit: "Containers", expiry: "2026-09-15", alert: true },
-  { name: "Gram Stain Reagent Set", cat: "Microbiology", stock: 8, unit: "Sets", expiry: "2027-02-10", alert: false },
-  { name: "EDTA Vacutainer Tubes (4mL)", cat: "Consumables", stock: 450, unit: "Pcs", expiry: "2027-05-01", alert: false },
-];
+function getLabOrdersSocket() {
+  if (!labOrdersSocket) {
+    const token = Cookies.get("accessToken");
+    labOrdersSocket = io(apiUrl, {
+      auth: { token },
+    });
+  }
+  return labOrdersSocket;
+}
 
 export function LabOrdersPage() {
-  const { user } = useAuth();
+  const { user, searchPatientRequest } = useAuth();
   const [activeTab, setActiveTab] = useState<"pipeline" | "entry" | "imaging" | "inventory" | "analytics">("pipeline");
   const [orders, setOrders] = useState<any[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+
+  useEffect(() => {
+    getAllLabOrders()
+      .then((res) => setOrders(res.items))
+      .catch((err) => console.error("Failed to load lab orders:", err))
+      .finally(() => setOrdersLoading(false));
+  }, []);
+
+  // Real-time sync: apply insert/update/delete changes pushed by the backend.
+  useEffect(() => {
+    const socket = getLabOrdersSocket();
+
+    const handleChange = (change: {
+      operationType: string;
+      documentId: string;
+      document: any | null;
+    }) => {
+      setOrders((prev) => {
+        if (change.operationType === "insert" && change.document) {
+          return [change.document, ...prev];
+        }
+        if (change.operationType === "update" && change.document) {
+          return prev.map((o) => (o.id === change.documentId ? change.document : o));
+        }
+        if (change.operationType === "delete") {
+          return prev.filter((o) => o.id !== change.documentId);
+        }
+        return prev;
+      });
+    };
+
+    socket.on("lab_order_change", handleChange);
+
+    return () => {
+      socket.off("lab_order_change", handleChange);
+    };
+  }, []);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchBy, setSearchBy] = useState<"all" | "wrid" | "name" | "phone" | "doctor">("all");
   const [sourceFilter, setSourceFilter] = useState<string>("all");
@@ -225,6 +171,12 @@ export function LabOrdersPage() {
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [selectedPatient, setSelectedPatient] = useState<{
+    id: string;
+    name: string;
+    avatar?: string;
+    raw: any;
+  } | null>(null);
 
   // Results Entry Form State
   const [resultForm, setResultForm] = useState({
@@ -372,38 +324,40 @@ export function LabOrdersPage() {
   };
 
   // Handle New Order Submission
-  const handleCreateNewOrder = (e: React.FormEvent) => {
-    e.preventDefault();
-    const created: any = {
-      id: `LAB-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-      patientName: newOrder.patientName || "Walk-in Patient",
-      patientWrId: newOrder.patientWrId || `WR-NGA-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-      phone: newOrder.phone || "+234 800 000 0000",
-      doctorPhone: newOrder.doctorPhone || "",
-      testName: newOrder.testName,
-      category: newOrder.category,
-      source: newOrder.source,
-      sourceType: "Clinic",
-      doctor: newOrder.doctor || "Dr. On-Duty",
-      date: new Date().toISOString().replace("T", " ").substring(0, 16),
-      priority: newOrder.priority,
-      status: "requested",
-      sampleType: newOrder.sampleType,
-      barcode: `BC-${Math.floor(1000000 + Math.random() * 9000000)}`,
-      collector: user?.name || "Lab Intake Desk",
-      measuredValue: "",
-      normalRange: "",
-      interpretation: "",
-      isCritical: false,
-      price: Number(newOrder.price),
-      paymentStatus: "paid",
-      verifiedBy: "Pending",
-    };
-
-    setOrders((prev) => [created, ...prev]);
-    showToast(`New Lab Request ${created.id} generated with Barcode ${created.barcode}!`);
-    setIsNewOrderModalOpen(false);
+  const CATEGORY_MAP: Record<string, string> = {
+    "Hematology": "hematology",
+    "Chemical Pathology": "chemistry",
+    "Microbiology": "microbiology",
+    "Histopathology": "pathology",
+    "Immunology": "serology",
   };
+
+  const handleCreateNewOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPatient?.id) {
+      showToast("Select a patient before creating the request.");
+      return;
+    }
+    try {
+      const created = await createLabOrder({
+        patientId: selectedPatient.id,
+        testName: newOrder.testName,
+        category: CATEGORY_MAP[newOrder.category] || "other",
+        priority: newOrder.priority,
+        sampleType: newOrder.sampleType,
+        doctorName: newOrder.doctor,
+        doctorPhone: newOrder.doctorPhone,
+        price: Number(newOrder.price),
+      });
+      showToast(`New Lab Request generated with Barcode ${created.barcode}!`);
+      setIsNewOrderModalOpen(false);
+      setSelectedPatient(null);
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to create lab order — check console for details.");
+    }
+  };
+
 
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-8 font-sans" style={{ background: T.bg, color: T.text }}>
@@ -975,59 +929,12 @@ export function LabOrdersPage() {
       {/* TAB 4: ANALYZERS & REAGENTS INVENTORY */}
       {activeTab === "inventory" && (
         <div className="space-y-6">
-          {/* Analyzers Table */}
           <div className="p-6 rounded-2xl border border-slate-800 bg-[#0c192b]">
             <h2 className="text-lg font-bold text-white mb-1">Analyzer & Equipment Monitor</h2>
-            <p className="text-xs text-slate-400 mb-4">Machine calibration status, QC passes, and maintenance logs</p>
-
-            <div className="grid md:grid-cols-2 gap-4">
-              {ANALYZERS.map((eq) => (
-                <div key={eq.code} className="p-4 rounded-xl border border-slate-800 bg-[#081220] space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-sky-400 font-mono">{eq.code}</span>
-                    <span
-                      className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold border ${
-                        eq.status === "Operational"
-                          ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/30"
-                          : "bg-amber-500/10 text-amber-300 border-amber-500/30"
-                      }`}
-                    >
-                      {eq.status}
-                    </span>
-                  </div>
-                  <div className="text-sm font-bold text-white">{eq.name}</div>
-                  <div className="text-xs text-slate-400 flex justify-between pt-2 border-t border-slate-800">
-                    <span>Calibration Due: {eq.calibDue}</span>
-                    <span>QC: {eq.qcStatus}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Reagents Inventory */}
-          <div className="p-6 rounded-2xl border border-slate-800 bg-[#0c192b]">
-            <h2 className="text-lg font-bold text-white mb-1">Reagents & Consumables Stock</h2>
-            <p className="text-xs text-slate-400 mb-4">Inventory levels and expiry tracking for laboratory reagents</p>
-
-            <div className="space-y-3">
-              {REAGENTS_INVENTORY.map((rg, idx) => (
-                <div key={idx} className="p-4 rounded-xl border border-slate-800 bg-[#081220] flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-bold text-white">{rg.name}</div>
-                    <div className="text-xs text-slate-400">{rg.cat} · Expiry: {rg.expiry}</div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-bold text-sky-300">{rg.stock} {rg.unit}</span>
-                    {rg.alert && (
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold">
-                        LOW STOCK
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <p className="text-xs text-slate-400">
+              Equipment calibration tracking and reagent inventory aren't available yet.
+              No machines or stock levels are being tracked, so nothing here would be real.
+            </p>
           </div>
         </div>
       )}
@@ -1159,30 +1066,19 @@ export function LabOrdersPage() {
             </div>
 
             <form onSubmit={handleCreateNewOrder} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Patient Name</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Olawale Johnson"
-                    value={newOrder.patientName}
-                    onChange={(e) => setNewOrder({ ...newOrder, patientName: e.target.value })}
-                    className="w-full bg-[#081220] border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"
-                    required
-                  />
-                </div>
+              <PatientSearchPicker
+                open={isNewOrderModalOpen}
+                enabled={true}
+                searchPatientRequest={searchPatientRequest}
+                onSelect={setSelectedPatient}
+              />
 
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">WelliRecord ID</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. WR-NGA-2026-5544"
-                    value={newOrder.patientWrId}
-                    onChange={(e) => setNewOrder({ ...newOrder, patientWrId: e.target.value })}
-                    className="w-full bg-[#081220] border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"
-                  />
+              {selectedPatient && (
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+                  <p className="text-sm font-medium text-emerald-200">Selected patient</p>
+                  <p className="mt-1 text-white">{selectedPatient.name}</p>
                 </div>
-              </div>
+              )}
 
               <div className="grid grid-cols-2 gap-3">
                 <div>

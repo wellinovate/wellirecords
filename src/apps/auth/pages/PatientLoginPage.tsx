@@ -177,6 +177,13 @@ export function PatientLoginPage() {
   const redirectAfterLogin = (accountType?: string) => {
     localStorage.setItem("activeProfileType", profileType);
 
+    const searchParams = new URLSearchParams(window.location.search);
+    const claimToken = searchParams.get("claimToken");
+    if (claimToken) {
+      navigate(`/join/${claimToken}`);
+      return;
+    }
+
     if (accountType === "user") {
       navigate("/patient/overview");
       return;
@@ -294,6 +301,16 @@ export function PatientLoginPage() {
             }
           })
         }).catch(err => console.error("Failed to send welcome-back email:", err));
+      }
+
+      if (account?.accountType !== "user") {
+        Cookies.remove("accessToken");
+        localStorage.removeItem("ui_user");
+        setUser?.(null);
+        setError("This login is for patient accounts. Please use the provider portal to sign in.");
+        toast.error("This login is for patient accounts.");
+        setStep("credentials");
+        return;
       }
 
       redirectAfterLogin(account?.accountType);

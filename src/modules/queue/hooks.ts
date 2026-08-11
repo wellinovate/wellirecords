@@ -23,17 +23,20 @@ export const useQueue = (params?: Record<string, any>) => {
     setLoading(true);
     try {
       const res = await getQueueApi(params);
-      setItems(res.items || []);
+      setItems(res?.items || []);
       setMeta({
-        total: res.total || 0,
-        page: res.page || 1,
-        limit: res.limit || 20,
-        totalPages: res.totalPages || 1,
+        total: res?.total || 0,
+        page: res?.page || 1,
+        limit: res?.limit || 20,
+        totalPages: res?.totalPages || 1,
       });
+    } catch (err) {
+      console.error("[useQueue] fetch error:", err);
+      setItems([]);
     } finally {
       setLoading(false);
     }
-  }, [params]);
+  }, [JSON.stringify(params)]);
 
   useEffect(() => {
     fetchQueue();

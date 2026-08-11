@@ -33,6 +33,8 @@ const ProviderSignupPage = lazy(() => import("@/apps/auth/pages/ProviderSignupPa
 const OrgVerificationPage = lazy(() => import("@/apps/auth/pages/OrgVerificationPage").then(m => ({ default: m.OrgVerificationPage })));
 const VerifyEmailPage = lazy(() => import("@/apps/auth/pages/VerifyEmailPage").then(m => ({ default: m.VerifyEmailPage })));
 const BridgeSharePage = lazy(() => import("@/apps/public/pages/BridgeSharePage"));
+const ClaimRecordPage = lazy(() => import("@/apps/public/pages/ClaimRecordPage"));
+const AcceptInvitePage = lazy(() => import("@/apps/public/pages/AcceptInvitePage").then(m => ({ default: m.AcceptInvitePage })));
 const SuperAdminLoginPage = lazy(() => import("@/apps/auth/pages/SuperAdminLoginPage").then(m => ({ default: m.SuperAdminLoginPage })));
 const UserTypeSelection = lazy(() => import("./apps/auth/pages/UserTypeSelection"));
 const PatientSignupPage = lazy(() => import("./apps/auth/pages/PatientSignupPage"));
@@ -89,6 +91,7 @@ const AppointmentQueuePage = lazy(() => import("@/apps/provider/pages/Appointmen
 const ProviderSupportPage = lazy(() => import("@/apps/provider/pages/ProviderSupportPage").then(m => ({ default: m.ProviderSupportPage })));
 const BestDoctorsPage = lazy(() => import("./apps/provider/pages/BestDoctorsPage"));
 const ProviderAppointmentsPage = lazy(() => import("./apps/provider/pages/ProviderAppointmentsPage"));
+const PatientImportPage = lazy(() => import("@/apps/provider/pages/PatientImportPage").then(m => ({ default: m.PatientImportPage })));
 const QueuePage = lazy(() => import("./modules/queue/pages/QueuePage"));
 
 // ─── Admin Portal (lazy) ──────────────────────────────────────────────────────
@@ -216,6 +219,8 @@ export function AppRoutes() {
         />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/bridge/:token" element={<BridgeSharePage />} />
+        <Route path="/join/:token" element={<ClaimRecordPage />} />
+        <Route path="/accept-invite" element={<AcceptInvitePage />} />
         <Route path="/auth/super-admin/login" element={<SuperAdminLoginPage />} />
         <Route path="/super-admin/login" element={<Navigate to="/auth/super-admin/login" replace />} />
 
@@ -271,6 +276,7 @@ export function AppRoutes() {
           <Route path="orders/labs" element={<LabOrdersPage />} />
           <Route path="pharmacy" element={<PharmacyDashboard />} />
           <Route path="prescriptions" element={<PharmacyDashboard />} />
+          <Route path="patients/import" element={<PatientImportPage />} />
           <Route path="referrals" element={<ReferralsPage />} />
           <Route path="team" element={<TeamManagementPage />} />
           <Route path="audit-logs" element={<AuditLogsPage />} />

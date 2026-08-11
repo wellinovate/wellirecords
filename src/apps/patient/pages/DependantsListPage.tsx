@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/shared/auth/AuthProvider';
+import { dependantApi } from '@/shared/api/dependantApi';
 import {
   Baby, Plus, ShieldCheck, Activity, AlertCircle, ChevronRight,
   Syringe, Droplets, Dna, CalendarClock, Ruler, Weight,
@@ -180,11 +181,51 @@ const MOCK_ECOSYSTEM = [
 export function FamilyManagementPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  // const children = dependantApi.getChildrenByParent(user?.userId ?? 'pat_1');
-  const children = [];
+  const [children, setChildren] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bookingChild, setBookingChild] = useState<string | null>(null);
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
+
+  const fetchDependants = async () => {
+    setLoading(true);
+    try {
+      const liveDependants = await dependantApi.listDependants();
+      const mapped = (liveDependants || []).map((dep) => ({
+        id: dep.dependantId,
+        profile: {
+          id: dep.dependantId,
+          patientId: dep.patientId,
+          fullName: dep.fullName,
+          dateOfBirth: dep.dateOfBirth,
+          gender: dep.gender || null,
+          bloodGroup: dep.bloodGroup || null,
+          genotype: dep.genotype || null,
+          avatar: dep.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(dep.fullName)}&backgroundColor=b6e3f4&radius=12`,
+        },
+        vaccinations: [],
+        growth: [],
+        medicalHistory: { allergies: [], chronicConditions: [] },
+      }));
+      setChildren(mapped);
+    } catch (err) {
+      // No mock fallback here on purpose — an empty or failed fetch
+      // means the honest empty state below, not fabricated children.
+      console.warn("Could not load dependants:", err);
+      setChildren([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDependants();
+  }, [user]);
+
+  const totalVaccinationsDue = children.reduce(
+    (acc, child) => acc + (child.vaccinations?.filter((v: any) => v.status === "Pending")?.length || 0),
+    0,
+  );
 
   return (
     <div className="animate-fade-in space-y-8">
@@ -355,7 +396,7 @@ export function FamilyManagementPage() {
                 </div>
                 <TrendingUp size={16} style={{ color: '#10b981' }} />
               </div>
-              <div className="text-3xl font-bold mb-1" style={{ color: 'var(--pat-text)' }}>{MOCK_HEALTH_METRICS.vaccinationsDue}</div>
+              <div className="text-3xl font-bold mb-1" style={{ color: 'var(--pat-text)' }}>{totalVaccinationsDue}</div>
               <div className="text-xs font-medium" style={{ color: 'var(--pat-muted)' }}>Vaccinations Due</div>
             </div>
 
@@ -941,6 +982,7 @@ export function FamilyManagementPage() {
       <AddChildProfileModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onSuccess={fetchDependants}
       />
 
       {/* Book Appointment Modal (for child quick-book) */}

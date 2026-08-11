@@ -51,6 +51,16 @@ import {
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { getAllPatientMedications, MedicationItem } from "@/shared/utils/utilityFunction";
 import { createRecord } from "@/shared/api/clinicalApi";
+import { PatientSearchPicker } from "@/apps/components/shared/PatientSearchPicker";
+import { io, Socket } from "socket.io-client";
+import Cookies from "js-cookie";
+import { apiUrl } from "@/shared/api/authApi";
+import {
+  getAllPharmacyOrders,
+  createPharmacyOrder,
+  dispensePharmacyOrder,
+  mapPharmacyOrderToRxShape,
+} from "@/shared/api/pharmacyOrdersApi";
 
 // ─── Color Palette & Styling Tokens ─────────────────────────────────────────
 
@@ -72,37 +82,11 @@ const T = {
 
 // ─── Initial Mock Data & Catalogs ───────────────────────────────────────────
 
-const INITIAL_INVENTORY = [
-  { id: "INV-001", name: "Amoxicillin / Clavulanic Acid", generic: "Augmentin", brand: "GSK", category: "Antibiotic", manufacturer: "GlaxoSmithKline", supplier: "MedPlus NG", batchNo: "AUG-2026-901", expiryDate: "2027-04-15", stock: 140, reorderLevel: 30, price: 8500, cost: 6200, status: "in-stock" },
-  { id: "INV-002", name: "Metformin Hydrochloride 500mg", generic: "Glucophage", brand: "Merck", category: "Antidiabetic", manufacturer: "Merck KGaA", supplier: "HealthPlus Ltd", batchNo: "MET-2025-412", expiryDate: "2026-09-30", stock: 18, reorderLevel: 25, price: 3200, cost: 2100, status: "low-stock" },
-  { id: "INV-003", name: "Lisinopril 10mg", generic: "Zestril", brand: "AstraZeneca", category: "Antihypertensive", manufacturer: "AstraZeneca", supplier: "PharmaServ", batchNo: "LIS-2026-118", expiryDate: "2026-11-20", stock: 85, reorderLevel: 20, price: 4500, cost: 3000, status: "in-stock" },
-  { id: "INV-004", name: "Artemether + Lumefantrine 80/480mg", generic: "Coartem", brand: "Novartis", category: "Antimalarial", manufacturer: "Novartis", supplier: "MedPlus NG", batchNo: "AL-2026-004", expiryDate: "2026-08-10", stock: 8, reorderLevel: 20, price: 2800, cost: 1800, status: "low-stock" },
-  { id: "INV-005", name: "Paracetamol 500mg (Emzor)", generic: "Acetaminophen", brand: "Emzor", category: "Analgesic", manufacturer: "Emzor Pharma", supplier: "Emzor Direct", batchNo: "PCM-2025-099", expiryDate: "2025-12-01", stock: 0, reorderLevel: 50, price: 500, cost: 300, status: "expired" },
-  { id: "INV-006", name: "Atorvastatin 20mg", generic: "Lipitor", brand: "Pfizer", category: "Cardiovascular", manufacturer: "Pfizer Inc", supplier: "PharmaServ", batchNo: "ATO-2027-302", expiryDate: "2027-08-18", stock: 220, reorderLevel: 40, price: 9500, cost: 7000, status: "overstocked" },
-];
-
+// ─── Reference shape for the "New Prescription" modal's selectedRx type ────
+// (INBOUND_PRESCRIPTIONS itself was mock data and has been removed — this
+// is kept only so `typeof INBOUND_PRESCRIPTIONS[0]` below still resolves.)
 const INBOUND_PRESCRIPTIONS = [
-  { id: "RX-9012", source: "Lagos University Teaching Hospital", sourceType: "Hospital", doctor: "Dr. Olayinka Adeleke", date: "2026-08-04", drug: "Augmentin 625mg", strength: "625mg", qty: 14, freq: "Twice daily", duration: "7 days", diagnosis: "Acute Bacterial Sinusitis", patientName: "Chibuike Okonkwo", patientWrId: "WR-NGA-2026-8891", status: "pending", priority: "urgent" },
-  { id: "RX-9013", source: "Telemed Consult Room #4", sourceType: "Telemedicine", doctor: "Dr. Fatima Aliyu", date: "2026-08-04", drug: "Coartem 80/480mg", strength: "80/480mg", qty: 6, freq: "As directed", duration: "3 days", diagnosis: "Uncomplicated Malaria", patientName: "Amara Okafor", patientWrId: "WR-NGA-2026-1102", status: "pending", priority: "routine" },
-  { id: "RX-9014", source: "Silver Cross Dental Clinic", sourceType: "Dentist", doctor: "Dr. Emeka Nwosu", date: "2026-08-03", drug: "Ibuprofen 400mg", strength: "400mg", qty: 20, freq: "Every 8 hours", duration: "5 days", diagnosis: "Post-Extraction Inflammation", patientName: "Ibrahim Musa", patientWrId: "WR-NGA-2026-4481", status: "dispensed", priority: "routine" },
-  { id: "RX-9015", source: "Vision Plus Eye Center", sourceType: "Eye Clinic", doctor: "Dr. Grace Oseji", date: "2026-08-03", drug: "Timolol Maleate 0.5% Drops", strength: "0.5%", qty: 1, freq: "1 drop OD", duration: "30 days", diagnosis: "Primary Open-Angle Glaucoma", patientName: "Ngozi Adewale", patientWrId: "WR-NGA-2026-7734", status: "pending", priority: "routine" },
-];
-
-const REFILL_REQUESTS = [
-  { id: "REF-101", patientName: "Chibuike Okonkwo", patientWrId: "WR-NGA-2026-8891", medication: "Glucophage 500mg", type: "Monthly Refill", requestedDate: "2026-08-04", deliveryPreference: "Home Delivery", status: "pending" },
-  { id: "REF-102", patientName: "Ibrahim Musa", patientWrId: "WR-NGA-2026-4481", medication: "Lisinopril 10mg", type: "Chronic Renewal", requestedDate: "2026-08-03", deliveryPreference: "Pharmacy Pickup", status: "approved" },
-];
-
-const HOME_DELIVERIES = [
-  { id: "DEL-8801", patientName: "Chibuike Okonkwo", address: "14 Admiralty Way, Lekki Phase 1, Lagos", phone: "+234 803 111 2233", driver: "Segun Balogun (Rider #4)", status: "In Transit", otpRequired: "4892", items: "Augmentin 625mg x 1 pack" },
-  { id: "DEL-8802", patientName: "Ngozi Adewale", address: "8 Ikeja GRA, Lagos", phone: "+234 802 444 5566", driver: "Tunde Bakare (Rider #2)", status: "Out for Delivery", otpRequired: "1903", items: "Timolol 0.5% Eye Drops x 1 bottle" },
-];
-
-const STAFF_MEMBERS = [
-  { id: "STF-01", name: "Pharm. Olumide Johnson", role: "Pharmacy Manager / Owner", license: "PCN/2018/48912", status: "Active", permissions: ["Full Control", "NAFDAC Approval", "Dispense"] },
-  { id: "STF-02", name: "Pharm. Amina Bello", role: "Senior Pharmacist", license: "PCN/2021/55102", status: "Active", permissions: ["Dispense", "AI Check", "Clinical Notes"] },
-  { id: "STF-03", name: "Emeka Chidi", role: "Pharmacy Technician", license: "PT-NGA-1029", status: "Active", permissions: ["Stock Entry", "Refill Processing"] },
-  { id: "STF-04", name: "Funke Adebayo", role: "Storekeeper & Cashier", license: "N/A", status: "Active", permissions: ["POS Billing", "Inventory View"] },
+  { id: "", source: "", sourceType: "", doctor: "", date: "", drug: "", strength: "", qty: 0, freq: "", duration: "", diagnosis: "", patientName: "", patientWrId: "", status: "", priority: "" },
 ];
 
 // ─── Helper Functions ────────────────────────────────────────────────────────
@@ -113,8 +97,19 @@ function formatCurrency(val: number) {
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 
+// Module-level socket singleton — persists across re-renders without reconnecting.
+let pharmacyOrdersSocket: Socket | null = null;
+
+function getPharmacyOrdersSocket() {
+  if (!pharmacyOrdersSocket) {
+    const token = Cookies.get("accessToken");
+    pharmacyOrdersSocket = io(apiUrl, { auth: { token } });
+  }
+  return pharmacyOrdersSocket;
+}
+
 export function PharmacyDashboard() {
-  const { user } = useAuth();
+  const { user, searchPatientRequest } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
 
   // State: Medications & Inventory
@@ -131,6 +126,23 @@ export function PharmacyDashboard() {
   const [selectedRx, setSelectedRx] = useState<typeof INBOUND_PRESCRIPTIONS[0] | null>(null);
   const [showDispenseModal, setShowDispenseModal] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [showNewRxModal, setShowNewRxModal] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState<{
+    id: string;
+    name: string;
+    avatar?: string;
+    raw: any;
+  } | null>(null);
+  const [newRx, setNewRx] = useState({
+    medicationName: "",
+    dosage: "",
+    quantity: 1,
+    instructions: "",
+    priority: "routine",
+    prescribedByName: "",
+    prescribedByPhone: "",
+    price: 5000,
+  });
 
   // Dispense Form state
   const [dispenseBatch, setDispenseBatch] = useState("AUG-2026-901");
@@ -169,6 +181,45 @@ export function PharmacyDashboard() {
     loadMedications();
   }, []);
 
+  // Load real pharmacy orders from the backend on mount.
+  useEffect(() => {
+    getAllPharmacyOrders()
+      .then((res) => setInboundRx(res.items.map(mapPharmacyOrderToRxShape)))
+      .catch((err) => console.error("Failed to load pharmacy orders:", err));
+  }, []);
+
+  // Real-time sync via Socket.IO — applies insert/update/delete diffs.
+  useEffect(() => {
+    const socket = getPharmacyOrdersSocket();
+
+    const handleChange = (change: {
+      operationType: string;
+      documentId: string;
+      document: any | null;
+    }) => {
+      setInboundRx((prev) => {
+        if (change.operationType === "insert" && change.document) {
+          return [mapPharmacyOrderToRxShape(change.document), ...prev];
+        }
+        if (change.operationType === "update" && change.document) {
+          return prev.map((r) =>
+            r.id === change.documentId ? mapPharmacyOrderToRxShape(change.document) : r
+          );
+        }
+        if (change.operationType === "delete") {
+          return prev.filter((r) => r.id !== change.documentId);
+        }
+        return prev;
+      });
+    };
+
+    socket.on("pharmacy_order_change", handleChange);
+
+    return () => {
+      socket.off("pharmacy_order_change", handleChange);
+    };
+  }, []);
+
   // Calculate Metrics
   const metrics = useMemo(() => {
     const totalRx = inboundRx.length + medications.length;
@@ -186,25 +237,59 @@ export function PharmacyDashboard() {
     if (!selectedRx) return;
     setDispensingInProgress(true);
     try {
-      // Sync to real clinical records API
-      await createRecord("medications", selectedRx.patientWrId || "pat_001", {
-        medicationName: selectedRx.drug,
-        dosage: { value: selectedRx.strength, unit: "" },
-        frequency: selectedRx.freq,
-        duration: selectedRx.duration,
-        prescribedByFullName: selectedRx.doctor,
-        notes: `Dispensed at Pharmacy: Batch ${dispenseBatch}, Exp: ${dispenseExpiry}. ${dispenseNotes}`,
-        medicationStatus: "active",
-      }).catch(() => null);
+      await dispensePharmacyOrder(selectedRx.id, {
+        dispensedBy: user?.fullName || "Pharmacist",
+      });
 
-      // Update local state
+      // Local state update is a fallback for immediate feedback; the socket
+      // subscription will also apply the same change when the server
+      // broadcasts it, so this may briefly double-apply — harmless since
+      // both write the same status.
       setInboundRx((prev) => prev.map((r) => (r.id === selectedRx.id ? { ...r, status: "dispensed" } : r)));
       setShowDispenseModal(false);
       triggerToast(`Successfully dispensed ${selectedRx.drug}! Patient medication record updated in WelliRecord.`);
-    } catch (err: any) {
-      triggerToast("Dispensation logged locally.");
+    } catch (err) {
+      console.error(err);
+      triggerToast("Failed to dispense — check console for details.");
     } finally {
       setDispensingInProgress(false);
+    }
+  };
+
+  const handleCreatePrescription = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPatient?.id) {
+      triggerToast("Select a patient before creating the prescription.");
+      return;
+    }
+    try {
+      const created = await createPharmacyOrder({
+        patientId: selectedPatient.id,
+        medicationName: newRx.medicationName,
+        dosage: newRx.dosage,
+        quantity: Number(newRx.quantity),
+        instructions: newRx.instructions,
+        priority: newRx.priority,
+        prescribedByName: newRx.prescribedByName,
+        prescribedByPhone: newRx.prescribedByPhone,
+        price: Number(newRx.price),
+      });
+      triggerToast(`New prescription created for ${selectedPatient.name}!`);
+      setShowNewRxModal(false);
+      setSelectedPatient(null);
+      setNewRx({
+        medicationName: "",
+        dosage: "",
+        quantity: 1,
+        instructions: "",
+        priority: "routine",
+        prescribedByName: "",
+        prescribedByPhone: "",
+        price: 5000,
+      });
+    } catch (err) {
+      console.error(err);
+      triggerToast("Failed to create prescription — check console for details.");
     }
   };
 
@@ -271,6 +356,12 @@ export function PharmacyDashboard() {
             className="px-4 py-2.5 rounded-2xl font-bold text-xs text-purple-300 bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/20 transition-all flex items-center gap-1.5"
           >
             <Sparkles size={16} className="text-purple-400" /> AI Safety Checker
+          </button>
+          <button
+            onClick={() => setShowNewRxModal(true)}
+            className="px-4 py-2.5 rounded-2xl font-bold text-xs text-white bg-emerald-600 hover:bg-emerald-500 transition-all flex items-center gap-1.5 shadow-lg shadow-emerald-600/20"
+          >
+            <Plus size={16} /> New Prescription
           </button>
           <button
             onClick={() => triggerToast("Generating Pharmacy Compliance Report (PDF)...")}
@@ -914,24 +1005,10 @@ export function PharmacyDashboard() {
             <h3 className="font-bold text-lg text-white flex items-center gap-2">
               <ShieldCheck size={20} className="text-emerald-400" /> NAFDAC & PCN Compliance Register
             </h3>
-            <p className="text-xs text-slate-400">Immutable records for controlled substances, cold-chain temperature logs, and regulatory inspections.</p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-                <div className="flex items-center justify-between font-bold text-white">
-                  <span>Cold-Chain Fridge Monitor</span>
-                  <span className="text-emerald-400 font-mono">4.2°C (Optimal)</span>
-                </div>
-                <p className="text-slate-400">Automatic temperature log every 15 minutes. NAFDAC compliance range: 2.0°C to 8.0°C.</p>
-              </div>
-              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-                <div className="flex items-center justify-between font-bold text-white">
-                  <span>Controlled Substance Register</span>
-                  <span className="text-sky-400 font-mono">100% Audited</span>
-                </div>
-                <p className="text-slate-400">Morphine, Codeine, and Diazepam transactions locked with pharmacist digital signatures.</p>
-              </div>
-            </div>
+            <p className="text-xs text-slate-400">
+              Cold-chain temperature logging and a controlled-substance register aren't available yet.
+              No sensor or transaction data is being tracked, so nothing here would be real.
+            </p>
           </div>
         </div>
       )}
@@ -943,38 +1020,10 @@ export function PharmacyDashboard() {
             <h3 className="font-bold text-lg text-white flex items-center gap-2">
               <Users size={20} className="text-sky-400" /> Staff Management & System Integrations
             </h3>
-
-            {/* Staff list */}
-            <div className="space-y-2">
-              <h4 className="font-bold text-xs text-slate-400 uppercase">Pharmacy Personnel & Roles</h4>
-              {STAFF_MEMBERS.map((stf) => (
-                <div key={stf.id} className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex justify-between items-center text-xs">
-                  <div>
-                    <span className="font-bold text-white">{stf.name}</span>
-                    <span className="text-slate-400 ml-2">({stf.role})</span>
-                    <div className="text-[10px] text-slate-500">License: {stf.license}</div>
-                  </div>
-                  <div className="flex gap-1">
-                    {stf.permissions.map((p) => (
-                      <span key={p} className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300">{p}</span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Integration status */}
-            <div className="pt-4 border-t border-slate-800">
-              <h4 className="font-bold text-xs text-slate-400 uppercase mb-3">System Hardware & API Integrations</h4>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                {["FHIR R4 API", "Barcode Scanner", "Receipt Printer", "WhatsApp Gateway", "HMO Clearinghouse", "POS Terminal", "SMS Gateway", "Payment Gateway"].map((sys) => (
-                  <div key={sys} className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
-                    <span className="font-semibold text-slate-200">{sys}</span>
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" title="Connected" />
-                  </div>
-                ))}
-              </div>
-            </div>
+            <p className="text-xs text-slate-400">
+              Staff role management and hardware/API integration status aren't available yet.
+              No staff records or integration connections are being tracked, so nothing here would be real.
+            </p>
           </div>
         </div>
       )}
@@ -1028,6 +1077,154 @@ export function PharmacyDashboard() {
                 <CheckCircle size={14} /> {dispensingInProgress ? "Syncing to WelliRecord..." : "Confirm Dispense & Sync"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showNewRxModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-2xl p-6 bg-slate-900 border border-emerald-500/30 space-y-4 animate-fade-in-up">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <h3 className="font-bold text-base text-white flex items-center gap-2">
+                <Pill size={18} className="text-emerald-400" /> New Digital Prescription
+              </h3>
+              <button
+                onClick={() => {
+                  setShowNewRxModal(false);
+                  setSelectedPatient(null);
+                }}
+                className="text-slate-400 hover:text-white"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreatePrescription} className="space-y-4">
+              <PatientSearchPicker
+                open={showNewRxModal}
+                enabled={true}
+                searchPatientRequest={searchPatientRequest}
+                onSelect={setSelectedPatient}
+              />
+
+              {selectedPatient && (
+                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                  <p className="text-xs font-bold text-emerald-300">Selected patient</p>
+                  <p className="text-sm text-white mt-1">{selectedPatient.name}</p>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Medication Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Augmentin 625mg"
+                  value={newRx.medicationName}
+                  onChange={(e) => setNewRx({ ...newRx, medicationName: e.target.value })}
+                  className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Dosage / Strength</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 625mg"
+                    value={newRx.dosage}
+                    onChange={(e) => setNewRx({ ...newRx, dosage: e.target.value })}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Quantity</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={newRx.quantity}
+                    onChange={(e) => setNewRx({ ...newRx, quantity: Number(e.target.value) })}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Instructions</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Twice daily for 7 days"
+                  value={newRx.instructions}
+                  onChange={(e) => setNewRx({ ...newRx, instructions: e.target.value })}
+                  className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Prescribing Doctor</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Dr. Chudi"
+                    value={newRx.prescribedByName}
+                    onChange={(e) => setNewRx({ ...newRx, prescribedByName: e.target.value })}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Doctor's Phone</label>
+                  <input
+                    type="tel"
+                    placeholder="+234 800 000 0000"
+                    value={newRx.prescribedByPhone}
+                    onChange={(e) => setNewRx({ ...newRx, prescribedByPhone: e.target.value })}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Priority</label>
+                  <select
+                    value={newRx.priority}
+                    onChange={(e) => setNewRx({ ...newRx, priority: e.target.value })}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white"
+                  >
+                    <option value="routine">Routine</option>
+                    <option value="urgent">Urgent</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Price (₦)</label>
+                  <input
+                    type="number"
+                    value={newRx.price}
+                    onChange={(e) => setNewRx({ ...newRx, price: Number(e.target.value) })}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowNewRxModal(false);
+                    setSelectedPatient(null);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5"
+                >
+                  <Plus size={14} /> Issue Prescription
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
