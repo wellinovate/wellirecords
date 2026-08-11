@@ -1,0 +1,31 @@
+diff --git a/index.css b/index.css
+index 4ebd514..579fc2d 100644
+--- a/index.css
++++ b/index.css
+@@ -691,6 +691,13 @@ body {
+   background: var(--prov-surface);
+ }
+ 
++/* ─── ID card gradient (plain linear-gradient, no oklab interpolation —
++   Tailwind's bg-gradient-to-br utility fails silently on older Safari /
++   Android WebView / in-app browsers, leaving the background transparent) ── */
++.grad-id-card {
++  background: linear-gradient(135deg, #020617 0%, #1e3a8a 100%);
++}
++
+ /* ─── QR card ───────────────────────────────────────────────────────────────── */
+ .qr-wrapper {
+   background: #fff;
+diff --git a/src/apps/patient/pages/DataSovereigntyCenterPage.tsx b/src/apps/patient/pages/DataSovereigntyCenterPage.tsx
+index c520790..584574d 100644
+--- a/src/apps/patient/pages/DataSovereigntyCenterPage.tsx
++++ b/src/apps/patient/pages/DataSovereigntyCenterPage.tsx
+@@ -622,7 +622,7 @@ export function DataSovereigntyCenterPage() {
+           </div>
+         </div>
+ 
+-        <div className="flex w-full shrink-0 items-start gap-4 rounded-2xl bg-gradient-to-br from-slate-950 to-blue-900 p-5 shadow-sm lg:w-80">
++        <div className="grad-id-card flex w-full shrink-0 items-start gap-4 rounded-2xl p-5 shadow-sm lg:w-80">
+           <div className="rounded-xl bg-white p-2 shadow-inner">
+             <QrCode className="h-14 w-14 text-slate-950" />
+           </div>
