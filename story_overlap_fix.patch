@@ -1,0 +1,29 @@
+diff --git a/src/apps/public/pages/LandingPages.tsx b/src/apps/public/pages/LandingPages.tsx
+index da8e802..20dc66e 100644
+--- a/src/apps/public/pages/LandingPages.tsx
++++ b/src/apps/public/pages/LandingPages.tsx
+@@ -335,7 +335,7 @@ function HeroIllustration() {
+ 
+ function ProblemVisual() {
+   return (
+-    <div className="relative mt-6 sm:mt-8">
++    <div className="relative mb-2 mt-6 sm:mt-8">
+       <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg">
+         <img
+           src={HealthRecord}
+@@ -1009,12 +1009,12 @@ function ConversionBanner() {
+ ───────────────────────────────────────────── */
+ function FoundingStory() {
+   return (
+-    <section id="story" className="bg-slate-50/70 py-12 px-4 sm:px-6 lg:px-8">
++    <section id="story" className="relative z-0 isolate bg-slate-50/70 mt-8 py-12 px-4 sm:mt-10 sm:px-6 lg:px-8">
+       <div className="mx-auto max-w-6xl">
+-        <div className="rounded-3xl bg-[#071B3F] text-white p-8 sm:p-12 lg:p-16 border border-[#1e3a8a]/40 shadow-xl relative overflow-hidden">
++        <div className="rounded-3xl bg-[#071B3F] text-white p-8 sm:p-12 lg:p-16 border border-[#1e3a8a]/40 shadow-xl relative">
+           <div className="relative z-10 grid gap-10 lg:grid-cols-2 lg:gap-16 items-start">
+             <div>
+-              <p className="text-xs font-bold uppercase tracking-[0.26em] text-[#60A5FA] mb-4">
++              <p className="text-xs font-bold uppercase tracking-[0.26em] text-[#60A5FA] mb-4 break-words">
+                 Why We Built This
+               </p>
+               <blockquote className="text-xl sm:text-2xl font-bold leading-snug tracking-tight text-white font-display">
