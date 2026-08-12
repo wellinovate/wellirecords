@@ -59,6 +59,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
 
   // 2. Upload & Metadata State
   const [files, setFiles] = useState<File[]>([]);
+  const [metadataError, setMetadataError] = useState<string | null>(null);
   const [metadata, setMetadata] = useState({
     testName: "",
     orderRef: "",
@@ -174,12 +175,21 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
   };
 
   const handleStartExtraction = async () => {
+    if (!files.length) {
+      setMetadataError("Attach at least one report file before continuing.");
+      return;
+    }
+    if (!metadata.testName.trim() || !metadata.specimenType.trim() || !metadata.referringDoctor.trim()) {
+      setMetadataError("Test/Panel Name, Specimen Type, and Referring Doctor are required.");
+      return;
+    }
+    setMetadataError(null);
     setExtracting(true);
     setStep("extract");
     try {
       const res = await extractReportDataApi({
-        fileName: files[0]?.name || "laboratory_report.pdf",
-        mimeType: files[0]?.type || "application/pdf",
+        fileName: files[0].name,
+        mimeType: files[0].type || "application/pdf",
       });
       setExtractedData(res.extractedObservations || []);
       setExtractionNotice(res.message || null);
@@ -557,7 +567,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
               <div className="border-2 border-dashed border-sky-400/30 hover:border-sky-400 rounded-2xl p-6 bg-[#040e1c] text-center transition-colors">
                 <UploadCloud className="w-10 h-10 text-sky-400 mx-auto mb-2" />
                 <div className="text-sm font-bold text-white mb-1">
-                  Upload Laboratory Report Files (PDF, JPG, PNG)
+                  Upload Laboratory Report Files (PDF, JPG, PNG) <span className="text-sky-400">*</span>
                 </div>
                 <p className="text-xs text-slate-400 mb-3">
                   Multi-file upload supported for multi-page scans or external lab report attachments
@@ -590,7 +600,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 <div>
                   <label className="block text-slate-300 font-semibold mb-1">
-                    Test / Panel Name
+                    Test / Panel Name <span className="text-sky-400">*</span>
                   </label>
                   <input
                     type="text"
@@ -620,7 +630,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
 
                 <div>
                   <label className="block text-slate-300 font-semibold mb-1">
-                    Specimen Type
+                    Specimen Type <span className="text-sky-400">*</span>
                   </label>
                   <input
                     type="text"
@@ -635,7 +645,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
 
                 <div>
                   <label className="block text-slate-300 font-semibold mb-1">
-                    Referring Doctor / Clinic
+                    Referring Doctor / Clinic <span className="text-sky-400">*</span>
                   </label>
                   <input
                     type="text"
@@ -698,6 +708,13 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
                   <Sparkles size={14} /> Continue to Observation Entry
                 </button>
               </div>
+
+              {metadataError && (
+                <div className="p-3.5 rounded-xl border border-red-500/30 bg-red-500/10 text-xs text-red-300 flex items-center gap-2">
+                  <AlertTriangle size={16} className="text-red-400 shrink-0" />
+                  <span>{metadataError}</span>
+                </div>
+              )}
             </div>
           )}
 
