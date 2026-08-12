@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { getAllLabOrders, createLabOrder, updateLabOrderStatus, enterLabOrderResult } from "@/shared/api/labOrdersApi";
+import { getLabTestCatalog, LabTestCatalogGroup } from "@/shared/api/labTestCatalogApi";
 import { io, Socket } from "socket.io-client";
 import Cookies from "js-cookie";
 import { apiUrl } from "@/shared/api/authApi";
@@ -202,6 +203,26 @@ export function LabOrdersPage() {
     sampleType: "Blood (EDTA)",
     price: 10000,
   });
+
+  // Lab test catalog — populates the panel/test cascading selects below.
+  // Falls back to manual free-text entry if the catalog fails to load
+  // or a needed test genuinely isn't in it yet.
+  const [testCatalog, setTestCatalog] = useState<LabTestCatalogGroup[]>([]);
+  const [catalogLoading, setCatalogLoading] = useState(true);
+  const [selectedPanel, setSelectedPanel] = useState<string>("");
+  const [useManualTestEntry, setUseManualTestEntry] = useState(false);
+
+  useEffect(() => {
+    getLabTestCatalog()
+      .then(setTestCatalog)
+      .catch((err) => console.error("Failed to load lab test catalog:", err))
+      .finally(() => setCatalogLoading(false));
+  }, []);
+
+  const testsInSelectedPanel = useMemo(
+    () => testCatalog.find((g) => g.category === selectedPanel)?.tests ?? [],
+    [testCatalog, selectedPanel],
+  );
 
   // Imaging upload state
   const [imagingForm, setImagingForm] = useState({
@@ -1104,9 +1125,23 @@ export function LabOrdersPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Test Name</label>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-medium text-slate-300">Test</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUseManualTestEntry((prev) => !prev);
+                      setSelectedPanel("");
+                      setNewOrder((prev) => ({ ...prev, testName: "" }));
+                    }}
+                    className="text-[11px] font-semibold text-sky-400 hover:text-sky-300"
+                  >
+                    {useManualTestEntry ? "Choose from catalog instead" : "Test not listed? Enter manually"}
+                  </button>
+                </div>
+
+                {useManualTestEntry ? (
                   <input
                     type="text"
                     placeholder="e.g. Full Blood Count"
@@ -1115,22 +1150,73 @@ export function LabOrdersPage() {
                     className="w-full bg-[#081220] border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"
                     required
                   />
-                </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] text-slate-400 mb-1">Panel</label>
+                      <select
+                        value={selectedPanel}
+                        disabled={catalogLoading}
+                        onChange={(e) => {
+                          setSelectedPanel(e.target.value);
+                          setNewOrder((prev) => ({ ...prev, testName: "" }));
+                        }}
+                        className="w-full bg-[#081220] border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none disabled:opacity-50"
+                      >
+                        <option value="">{catalogLoading ? "Loading..." : "Select panel"}</option>
+                        {testCatalog.map((group) => (
+                          <option key={group.category} value={group.category}>
+                            {group.category}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Category</label>
-                  <select
-                    value={newOrder.category}
-                    onChange={(e) => setNewOrder({ ...newOrder, category: e.target.value })}
-                    className="w-full bg-[#081220] border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"
-                  >
-                    <option>Hematology</option>
-                    <option>Chemical Pathology</option>
-                    <option>Microbiology</option>
-                    <option>Histopathology</option>
-                    <option>Immunology</option>
-                  </select>
-                </div>
+                    <div>
+                      <label className="block text-[11px] text-slate-400 mb-1">Test name</label>
+                      <select
+                        value={newOrder.testName}
+                        disabled={!selectedPanel}
+                        onChange={(e) => {
+                          const test = testsInSelectedPanel.find((t) => t.name === e.target.value);
+                          setNewOrder((prev) => ({
+                            ...prev,
+                            testName: e.target.value,
+                            category: test?.labDepartment ?? prev.category,
+                          }));
+                        }}
+                        className="w-full bg-[#081220] border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none disabled:opacity-50"
+                        required
+                      >
+                        <option value="">{selectedPanel ? "Select test" : "Select a panel first"}</option>
+                        {testsInSelectedPanel.map((t) => (
+                          <option key={t.id} value={t.name}>
+                            {t.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1">Lab department</label>
+                <select
+                  value={newOrder.category}
+                  onChange={(e) => setNewOrder({ ...newOrder, category: e.target.value })}
+                  className="w-full bg-[#081220] border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"
+                >
+                  <option>Hematology</option>
+                  <option>Chemical Pathology</option>
+                  <option>Microbiology</option>
+                  <option>Histopathology</option>
+                  <option>Immunology</option>
+                  <option>General/Panel</option>
+                </select>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Pre-filled from the selected test — adjust if this order should route to a different department.
+                </p>
               </div>
 
               <div className="grid grid-cols-3 gap-3">

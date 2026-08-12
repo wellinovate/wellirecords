@@ -5,9 +5,16 @@ import cors from 'cors';
 import { Server } from 'socket.io';
 import { MongoClient, ObjectId } from 'mongodb';
 
+import mongoose from 'mongoose';
+import chargeRoutes from './routes/charge.routes.js';
+import labTestCatalogRoutes from './routes/lab_test_catalog_routes.js';
+import { seedDefaultLabTestCatalog } from './services/lab_test_catalog_service.js';
+
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use('/api', chargeRoutes);
+app.use('/api/lab-tests-catalog', labTestCatalogRoutes);
 
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
@@ -22,6 +29,12 @@ async function start() {
     console.error('Error: MONGO_URI environment variable is not defined.');
     process.exit(1);
   }
+
+  await mongoose.connect(MONGO_URI, { dbName: DB_NAME });
+  console.log('Connected Mongoose to MongoDB');
+
+  await seedDefaultLabTestCatalog();
+  console.log('Lab test catalog seeded/checked');
 
   const client = new MongoClient(MONGO_URI);
   await client.connect();

@@ -1,6 +1,7 @@
 import { prelogin } from "@/assets";
 import React from "react";
 import { Link } from "react-router-dom";
+import { PreLoginHeader } from "@/components/layout/PreLoginHeader";
 
 function PatientIcon() {
   return (
@@ -165,6 +166,7 @@ export default function UserTypeSelectionLogin() {
   return (
     <div className="min-h-screen w-full bg-[#ECEFF2]">
       <div className="relative mx-auto h-screen min-h-[760px] max-w-[1476px] overflow-hidden bg-[#EEF1F4]">
+        <PreLoginHeader />
         {/* Background split */}
         <div className="absolute inset-0 grid grid-cols-[53%_47%]">
           <div className="bg-[#ECEEF1]" />

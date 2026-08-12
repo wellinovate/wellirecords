@@ -10,6 +10,7 @@ import { UserRole } from '@/shared/types/types';
 import { ROLE_METADATA } from '@/shared/rbac/permissions';
 import OTPForm from '@/apps/patient/components/OTPInput';
 import Cookies from 'js-cookie';
+import { PreLoginHeader } from '@/components/layout/PreLoginHeader';
 
 const BRAND_FEATURES = [
     {
@@ -216,9 +217,10 @@ export function ProviderLoginPage() {
 
     return (
         <div
-            className="min-h-screen flex"
+            className="min-h-screen flex relative"
             style={{ fontFamily: '"Inter", system-ui, sans-serif', background: '#fcfcfc' }}
         >
+            <PreLoginHeader />
             {/* ── Left brand panel ── */}
             <div
                 className="hidden lg:flex flex-col justify-between w-5/12 px-12 py-10 relative overflow-hidden flex-shrink-0"

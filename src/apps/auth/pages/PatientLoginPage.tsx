@@ -8,6 +8,7 @@ import axios from "axios";
 import { apiUrl } from "@/shared/api/authApi";
 import Cookies from "js-cookie";
 import OTPForm from "@/apps/patient/components/OTPInput";
+import { PreLoginHeader } from "@/components/layout/PreLoginHeader";
 
 type LoginStep = "credentials" | "otp";
 
@@ -479,6 +480,7 @@ export function PatientLoginPage() {
   return (
     <div className="min-h-screen bg-white pb-8">
       <div className="relative h-screen w-full max-w-full border border-gray-200">
+        <PreLoginHeader />
         <div className="absolute left-1 top-4 z-50 mb-4 rounded-lg bg-gray-100 px-5 md:left-20 md:top-10">
           <button
             onClick={() => {

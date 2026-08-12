@@ -2,6 +2,7 @@ import { prelogin } from "@/assets";
 import { ArrowLeft } from "lucide-react";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { PreLoginHeader } from "@/components/layout/PreLoginHeader";
 
 function PatientIcon() {
   return (
@@ -172,6 +173,7 @@ export default function UserTypeSelection() {
   return (
     <div className="min-h-screen overflow-y-auto w-full bg-[#ECEFF2] px-3">
       <div className="relative mx-auto h-screen min-h-[760px] max-w-[1476px] overflow-hidden bg-[#EEF1F4]">
+        <PreLoginHeader />
         <div className="mb-4 absolute top-4 md:top-10 md:left-20 z-50 bg-gray-100 px-5 rounded-lg">
           <button
             onClick={() => navigate(-1)}
