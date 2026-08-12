@@ -1,43 +1,36 @@
-import { health_companion_image, logos, welliIcon } from "@/assets";
-import { NotificationBell } from "@/shared/ui/NotificationBell";
+import { MedicalProfileWizard } from "@/apps/patient/components/MedicalProfileWizard";
+import { health_companion_image, welliIcon } from "@/assets";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { useWelliMate } from "@/shared/context/WelliMateContext";
 import { useNetwork } from "@/shared/hooks/useNetwork";
+import { NotificationBell } from "@/shared/ui/NotificationBell";
 import { WelliMateWidget } from "@/shared/ui/WelliMateWidget";
-import { WelliRecordLogo } from "@/shared/ui/WelliRecordLogo";
 import {
   Activity,
-  ArrowBigDown,
   Baby,
   Calendar,
   ChevronDown,
   ChevronRight,
   CreditCard,
   Crown,
-  ExternalLink,
   Eye,
   FolderHeart,
-  HeartPulse,
   LayoutDashboard,
   LifeBuoy,
   Lock,
   LogOut,
   MapPin,
   Menu,
-  MessageSquare,
   MoreHorizontal,
   Pill,
-  QrCode,
   Search,
   Settings,
   Shield,
-  Video,
   WifiOff,
   X,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { MedicalProfileWizard } from "@/apps/patient/components/MedicalProfileWizard";
 
 const patientNav = [
   {
@@ -91,7 +84,6 @@ const patientNav = [
     icon: Calendar,
     premium: true,
   },
-  
 
   {
     to: "/patient/find-care",
@@ -129,12 +121,19 @@ const patientNav = [
 
 // Bottom nav — 4 primary tabs + "more" button
 const BOTTOM_NAV = [
-  { to: "/patient/overview",      label: "Home",       icon: LayoutDashboard },
-  { to: "/patient/appointments",  label: "Appts",      icon: Calendar },
-  { to: "/patient/vision",        label: "Vision",     icon: Eye },
-  { to: "/patient/find-care",     label: "Find Care",  icon: MapPin },
+  { to: "/patient/overview", label: "Home", icon: LayoutDashboard },
+  { to: "/patient/appointments", label: "Appts", icon: Calendar },
+  { to: "/patient/vision", label: "Vision", icon: Eye },
+  { to: "/patient/find-care", label: "Find Care", icon: MapPin },
 ];
 
+function PatientPageLoader() {
+  return (
+    <div className="flex min-h-[50vh] items-center justify-center">
+      <div className="h-7 w-7 animate-spin rounded-full border-4 border-[#071B3F] border-t-transparent" />
+    </div>
+  );
+}
 
 export function PatientLayout() {
   const { user, signOut } = useAuth();
@@ -154,7 +153,7 @@ export function PatientLayout() {
     signOut();
     navigate("/auth/pre-login");
   };
-  
+
   const navTo = (path: string) => {
     navigate(path);
     setDrawerOpen(false);
@@ -195,16 +194,26 @@ export function PatientLayout() {
             style={{ background: "#DAE5F7", borderRight: "1px solid #e2e8f0" }}
           >
             <div className="p-4 border-b border-slate-200 flex items-center justify-between">
-              <Link
-                to="/"
-                className="flex items-center gap-2.5 cursor-pointer"
-              >
-                <img src={welliIcon} alt="WelliRecord" className="h-9 w-9 object-contain flex-shrink-0" />
+              <Link to="/" className="flex items-center gap-2.5 cursor-pointer">
+                <img
+                  src={welliIcon}
+                  alt="WelliRecord"
+                  className="h-9 w-9 object-contain flex-shrink-0"
+                />
                 <div className="flex flex-col leading-tight">
-                  <span className="text-[#1e3a8a] font-black text-lg tracking-tight" style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '-0.02em' }}>
-                    Welli<span className="font-normal">Record</span><sup className="text-xs font-normal align-super">™</sup>
+                  <span
+                    className="text-[#1e3a8a] font-black text-lg tracking-tight"
+                    style={{
+                      fontFamily: "Inter, system-ui, sans-serif",
+                      letterSpacing: "-0.02em",
+                    }}
+                  >
+                    Welli<span className="font-normal">Record</span>
+                    <sup className="text-xs font-normal align-super">™</sup>
                   </span>
-                  <span className="text-[#1e3a8a] text-[8px] font-bold tracking-[0.12em] uppercase opacity-60">One patient. One trusted record. Accessible when it matters.</span>
+                  <span className="text-[#1e3a8a] text-[8px] font-bold tracking-[0.12em] uppercase opacity-60">
+                    One patient. One trusted record. Accessible when it matters.
+                  </span>
                 </div>
               </Link>
               <button
@@ -296,13 +305,26 @@ export function PatientLayout() {
         <div className="px-3 py-4 border-b border-slate-200 flex items-center justify-center lg:justify-start">
           <Link to="/" className="flex items-center gap-2.5 cursor-pointer">
             {/* Shield icon — always visible */}
-            <img src={welliIcon} alt="WelliRecord" className="h-9 w-9 object-contain flex-shrink-0" />
+            <img
+              src={welliIcon}
+              alt="WelliRecord"
+              className="h-9 w-9 object-contain flex-shrink-0"
+            />
             {/* Wordmark — only on lg+ sidebar */}
             <div className="hidden lg:flex flex-col leading-tight">
-              <span className="text-[#1e3a8a] font-black text-lg tracking-tight" style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '-0.02em' }}>
-                Welli<span className="font-normal">Record</span><sup className="text-xs font-normal align-super">™</sup>
+              <span
+                className="text-[#1e3a8a] font-black text-lg tracking-tight"
+                style={{
+                  fontFamily: "Inter, system-ui, sans-serif",
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                Welli<span className="font-normal">Record</span>
+                <sup className="text-xs font-normal align-super">™</sup>
               </span>
-              <span className="text-[#1e3a8a] text-[8px] font-bold tracking-[0.12em] uppercase opacity-60">One patient. One trusted record. Accessible when it matters.</span>
+              <span className="text-[#1e3a8a] text-[8px] font-bold tracking-[0.12em] uppercase opacity-60">
+                One patient. One trusted record. Accessible when it matters.
+              </span>
             </div>
           </Link>
         </div>
@@ -317,7 +339,6 @@ export function PatientLayout() {
               Patient Portal
             </div>
           </div>
-          
         </div>
 
         {/* Nav */}
@@ -512,7 +533,9 @@ export function PatientLayout() {
         {/* Page content — pb accounts for mobile bottom nav */}
         <main className="flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-6 pb-20 md:pb-6">
           <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-            <Outlet />
+            <Suspense fallback={<PatientPageLoader />}>
+              <Outlet />
+            </Suspense>
           </div>
         </main>
       </div>
