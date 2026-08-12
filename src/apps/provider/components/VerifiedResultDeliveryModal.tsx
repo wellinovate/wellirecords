@@ -894,10 +894,10 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
                   <div className="p-3.5 rounded-xl border border-red-500/40 bg-red-500/10 text-xs text-red-200 flex items-start gap-3">
                     <AlertTriangle size={18} className="text-red-400 shrink-0 mt-0.5" />
                     <div>
-                      <strong className="text-red-300 font-bold block">
-                        Critical Panic Escalation Triggered
-                      </strong>
-                      This result will generate a high-priority panic alert to the referring physician ({metadata.referringDoctor || "Attending Doctor"}). Patient notification follows approved clinical release protocol.
+                      Marking this Critical sends an urgent notification to the patient and flags the
+                      result in their record. It does <strong>not</strong> notify the referring doctor —
+                      there's no automated alert path to an external physician yet. Contact{" "}
+                      {metadata.referringDoctor || "the referring doctor"} directly for critical results.
                     </div>
                   </div>
                 )}
