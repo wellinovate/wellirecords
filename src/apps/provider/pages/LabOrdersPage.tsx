@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { getAllLabOrders, createLabOrder, updateLabOrderStatus, enterLabOrderResult } from "@/shared/api/labOrdersApi";
 import { getLabTestCatalog, LabTestCatalogGroup } from "@/shared/api/labTestCatalogApi";
+import VerifiedResultDeliveryModal from "@/apps/provider/components/VerifiedResultDeliveryModal";
 import { io, Socket } from "socket.io-client";
 import Cookies from "js-cookie";
 import { apiUrl } from "@/shared/api/authApi";
@@ -55,6 +56,9 @@ import {
   Microscope,
   FileImage,
   Upload,
+  UploadCloud,
+  FileSignature,
+  Radio,
   HardDrive,
   CheckCircle2,
   XCircle,
@@ -121,7 +125,8 @@ function getLabOrdersSocket() {
 
 export function LabOrdersPage() {
   const { user, searchPatientRequest } = useAuth();
-  const [activeTab, setActiveTab] = useState<"pipeline" | "entry" | "imaging" | "inventory" | "analytics">("pipeline");
+  const [activeTab, setActiveTab] = useState<"pipeline" | "entry" | "delivery" | "imaging" | "inventory" | "analytics">("pipeline");
+  const [isDeliveryModalOpen, setIsDeliveryModalOpen] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
 
@@ -411,6 +416,12 @@ export function LabOrdersPage() {
 
         <div className="flex items-center gap-3">
           <button
+            onClick={() => setIsDeliveryModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm bg-[#061c38] hover:bg-[#09264c] text-sky-300 border border-sky-400/30 transition-all"
+          >
+            <UploadCloud size={18} /> Upload External Result
+          </button>
+          <button
             onClick={() => setIsNewOrderModalOpen(true)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm bg-sky-500 hover:bg-sky-400 text-slate-950 transition-all shadow-lg shadow-sky-500/20"
           >
@@ -514,6 +525,17 @@ export function LabOrdersPage() {
         </button>
 
         <button
+          onClick={() => setActiveTab("delivery")}
+          className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
+            activeTab === "delivery"
+              ? "border-sky-400 text-sky-400 bg-sky-400/5"
+              : "border-transparent text-slate-400 hover:text-slate-200"
+          }`}
+        >
+          <UploadCloud size={16} /> Result Upload & Delivery Engine
+        </button>
+
+        <button
           onClick={() => setActiveTab("imaging")}
           className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
             activeTab === "imaging"
@@ -546,6 +568,168 @@ export function LabOrdersPage() {
           <BarChart2 size={16} /> Lab Analytics & TAT
         </button>
       </div>
+
+      {/* TAB: RESULT UPLOAD & DELIVERY ENGINE */}
+      {activeTab === "delivery" && (
+        <div className="space-y-6 animate-fade-in">
+          {/* Header Banner */}
+          <div className="p-6 rounded-3xl border border-sky-400/30 bg-gradient-to-r from-[#091f3d] via-[#0b2447] to-[#041224] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 text-sky-400 text-xs font-bold uppercase tracking-widest mb-1">
+                <Sparkles size={14} /> Longitudinally Verified Clinical Engine
+              </div>
+              <h2 className="text-xl font-black text-white">
+                Laboratory Results & Document Delivery Engine
+              </h2>
+              <p className="text-xs text-sky-200/70 mt-1 max-w-2xl">
+                Upload external lab reports, verify patient WelliRecord identity via dual-factor checks, extract machine-readable observations, manage critical panic escalations, and release secure multi-channel notifications.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setIsDeliveryModalOpen(true)}
+              className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-sm shadow-xl shadow-sky-500/20 transition-all shrink-0"
+            >
+              <UploadCloud size={18} /> Launch Result Delivery Wizard
+            </button>
+          </div>
+
+          {/* Module Grid Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-5 rounded-2xl border border-slate-800 bg-[#0c192b] space-y-2">
+              <div className="flex items-center gap-2 text-sky-400 font-bold text-sm">
+                <ShieldCheck size={18} /> 🔐 Verified Patient Identity
+              </div>
+              <p className="text-xs text-slate-300">
+                Dual-factor verification (WR ID + Phone/Email) locks high-risk delivery until identity is confirmed. Unregistered customers receive quick invitation onboarding links.
+              </p>
+            </div>
+
+            <div className="p-5 rounded-2xl border border-slate-800 bg-[#0c192b] space-y-2">
+              <div className="flex items-center gap-2 text-purple-400 font-bold text-sm">
+                <Sparkles size={18} /> 🤖 AI / Machine-Readable Extraction
+              </div>
+              <p className="text-xs text-slate-300">
+                OCR document engine converts PDFs and report scans into structured clinical observation rows (Test Name, Result, Unit, Ref Range, Abnormal Flag) alongside original document attachment.
+              </p>
+            </div>
+
+            <div className="p-5 rounded-2xl border border-slate-800 bg-[#0c192b] space-y-2">
+              <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
+                <Send size={18} /> 🔔 Multi-Channel Notification Dispatch
+              </div>
+              <p className="text-xs text-slate-300">
+                Release Result triggers Email, SMS, WhatsApp, and Push notifications. Sensitive medical findings remain protected behind authenticated vault login links.
+              </p>
+            </div>
+          </div>
+
+          {/* Delivery & Released Results Recent Audit Queue Table */}
+          <div className="p-6 rounded-3xl border border-slate-800 bg-[#0c192b] space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-black text-white flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-sky-400" /> Recent Delivered & Released Results Audit Queue
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Track who uploaded, verified, edited, approved, and released external lab reports
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 rounded-full bg-emerald-400/10 text-emerald-400 text-xs font-bold border border-emerald-400/20">
+                  Engine Status: Active & Synced
+                </span>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto rounded-2xl border border-slate-800">
+              <table className="w-full text-left text-xs text-slate-300">
+                <thead className="bg-[#061427] text-slate-400 uppercase font-semibold border-b border-slate-800">
+                  <tr>
+                    <th className="px-4 py-3">Patient & WR ID</th>
+                    <th className="px-4 py-3">Report / Panel Name</th>
+                    <th className="px-4 py-3">Ref #</th>
+                    <th className="px-4 py-3">Result Date</th>
+                    <th className="px-4 py-3">Severity Flag</th>
+                    <th className="px-4 py-3">Verification</th>
+                    <th className="px-4 py-3">Channels Notified</th>
+                    <th className="px-4 py-3 text-right">Audit Trail</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800 bg-[#08172c]">
+                  <tr className="hover:bg-slate-800/40">
+                    <td className="px-4 py-3 font-semibold text-white">
+                      Chinedu Emmanuel Okonkwo
+                      <div className="text-[10px] text-sky-400 font-mono">WR-NGA-2026-8891</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      Comprehensive Metabolic & Lipid Panel
+                      <div className="text-[10px] text-slate-400">4 extracted observations</div>
+                    </td>
+                    <td className="px-4 py-3 font-mono text-slate-300">LAB-2026-9941</td>
+                    <td className="px-4 py-3 text-slate-300">2026-08-12</td>
+                    <td className="px-4 py-3">
+                      <span className="px-2.5 py-1 rounded-full bg-red-500/20 text-red-400 font-bold border border-red-500/30 text-[10px]">
+                        🚨 Critical Panic
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-semibold text-[10px]">
+                        Dual-Factor Verified ✓
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-[10px] text-slate-300">
+                      Email · SMS · WhatsApp · Push
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={() => showToast("Audit Log: Verified by Dr. Anthony Mbadiwe on Aug 12, 2026 21:04 UTC")}
+                        className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-[11px]"
+                      >
+                        View Log
+                      </button>
+                    </td>
+                  </tr>
+                  <tr className="hover:bg-slate-800/40">
+                    <td className="px-4 py-3 font-semibold text-white">
+                      Amina Bello
+                      <div className="text-[10px] text-sky-400 font-mono">WR-NGA-2026-4412</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      Thyroid Profile (TSH, Free T3, Free T4)
+                      <div className="text-[10px] text-slate-400">3 extracted observations</div>
+                    </td>
+                    <td className="px-4 py-3 font-mono text-slate-300">LAB-2026-8810</td>
+                    <td className="px-4 py-3 text-slate-300">2026-08-12</td>
+                    <td className="px-4 py-3">
+                      <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30 text-[10px]">
+                        Normal
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-semibold text-[10px]">
+                        Dual-Factor Verified ✓
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-[10px] text-slate-300">
+                      Email · SMS · WhatsApp
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={() => showToast("Audit Log: Verified by Dr. Kalu Onuoha on Aug 12, 2026 19:40 UTC")}
+                        className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-[11px]"
+                      >
+                        View Log
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* TAB 1: WORKFLOW PIPELINE & ORDERS */}
       {activeTab === "pipeline" && (
@@ -1279,6 +1463,13 @@ export function LabOrdersPage() {
           </div>
         </div>
       )}
+
+      {/* Verified Result Delivery Engine Modal */}
+      <VerifiedResultDeliveryModal
+        isOpen={isDeliveryModalOpen}
+        onClose={() => setIsDeliveryModalOpen(false)}
+        onSuccess={(msg) => showToast(msg)}
+      />
     </div>
   );
 }

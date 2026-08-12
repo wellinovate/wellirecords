@@ -86,3 +86,40 @@ export async function enterLabOrderResult(
   });
   return data.data;
 }
+
+export async function verifyPatientIdentityApi(payload: {
+  wrId: string;
+  phone?: string;
+  email?: string;
+}) {
+  const { data } = await api.post(`${apiUrl}/api/v1/lab-delivery/verify-patient`, payload, {
+    headers: authHeaders(),
+  });
+  return data.data;
+}
+
+export async function extractReportDataApi(payload: {
+  fileName: string;
+  mimeType: string;
+}) {
+  const { data } = await api.post(`${apiUrl}/api/v1/lab-delivery/extract-report`, payload, {
+    headers: authHeaders(),
+  });
+  return data.data;
+}
+
+export async function releaseLabDeliveryApi(payload: {
+  patientId: string;
+  patientWrId: string;
+  patientName: string;
+  reportMetadata: any;
+  extractedObservations: any[];
+  notificationChannels: { email: boolean; sms: boolean; whatsapp: boolean; push: boolean };
+  isCritical: boolean;
+  recordedBy?: string;
+}) {
+  const { data } = await api.post(`${apiUrl}/api/v1/lab-delivery/release`, payload, {
+    headers: authHeaders(),
+  });
+  return data;
+}
