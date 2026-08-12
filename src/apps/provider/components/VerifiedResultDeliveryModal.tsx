@@ -21,8 +21,8 @@ import {
   verifyPatientIdentityApi,
   extractReportDataApi,
   releaseLabDeliveryApi,
+  inviteUnregisteredPatientApi,
 } from "@/shared/api/labOrdersApi";
-import { sendInvitation } from "@/shared/api/localCustomersApi";
 
 type Props = {
   isOpen: boolean;
@@ -41,8 +41,8 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
 
   // 1. Patient Verification State
   const [verifyForm, setVerifyForm] = useState({
-    wrId: "WR-NGA-2026-8891",
-    secondFactor: "08034567890",
+    wrId: "",
+    secondFactor: "",
     secondFactorType: "phone" as "phone" | "email",
   });
   const [verifying, setVerifying] = useState(false);
@@ -51,22 +51,25 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
 
   // Unregistered Patient Invite State
   const [isUnregistered, setIsUnregistered] = useState(false);
+  const [inviteForm, setInviteForm] = useState({ fullName: "", phone: "", email: "" });
+  const [inviteSending, setInviteSending] = useState(false);
   const [inviteSent, setInviteSent] = useState(false);
   const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const [inviteError, setInviteError] = useState<string | null>(null);
 
   // 2. Upload & Metadata State
   const [files, setFiles] = useState<File[]>([]);
   const [metadata, setMetadata] = useState({
-    testName: "Comprehensive Metabolic & Lipid Panel",
-    orderRef: "LAB-2026-9941",
-    specimenType: "Venous Blood / EDTA",
+    testName: "",
+    orderRef: "",
+    specimenType: "",
     collectionDate: new Date().toISOString().split("T")[0],
     resultDate: new Date().toISOString().split("T")[0],
-    referringDoctor: "Dr. Kalu Onuoha (Consultant Physician)",
-    pathologist: "Dr. Anthony Mbadiwe (FMCPath)",
+    referringDoctor: "",
+    pathologist: "",
     status: "Final",
     confidentiality: "Normal",
-    notes: "Fasting lipid and glucose levels reviewed. Abnormal findings flagged for follow-up.",
+    notes: "",
   });
 
   // 3. AI Extraction State
@@ -80,7 +83,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
   const [notificationChannels, setNotificationChannels] = useState({
     email: true,
     sms: true,
-    whatsapp: true,
+    whatsapp: false, // no WhatsApp delivery integration yet — kept off by default
     push: true,
   });
 
@@ -127,18 +130,36 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
 
   // Unregistered Invite Trigger
   const handleSendInvite = async () => {
+    setInviteError(null);
+    if (!inviteForm.fullName.trim()) {
+      setInviteError("Patient name is required to send an invitation.");
+      return;
+    }
+    if (!inviteForm.phone.trim() && !inviteForm.email.trim()) {
+      setInviteError("A phone number or email is required to send an invitation.");
+      return;
+    }
+    setInviteSending(true);
     try {
-      const mockInviteToken = `INV-WR-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
-      const fullUrl = `${window.location.origin}/join/${mockInviteToken}`;
+      const res = await inviteUnregisteredPatientApi({
+        fullName: inviteForm.fullName.trim(),
+        phone: inviteForm.phone.trim() || undefined,
+        email: inviteForm.email.trim() || undefined,
+      });
+      const fullUrl = `${window.location.origin}${res.inviteUrl}`;
       setInviteLink(fullUrl);
       setInviteSent(true);
       navigator.clipboard.writeText(fullUrl);
       setAuditLog((prev) => [
         ...prev,
-        `[${new Date().toLocaleTimeString()}] Generated & copied invitation onboarding token for unregistered customer`,
+        `[${new Date().toLocaleTimeString()}] Generated invitation for ${inviteForm.fullName.trim()}${
+          res.smsDispatched ? " (SMS sent)" : " (link copied — SMS not sent)"
+        }`,
       ]);
-    } catch (e) {
-      console.error(e);
+    } catch (err: any) {
+      setInviteError(err?.message || "Failed to send invitation.");
+    } finally {
+      setInviteSending(false);
     }
   };
 
@@ -150,6 +171,8 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
     }
   };
 
+  const [extractionNotice, setExtractionNotice] = useState<string | null>(null);
+
   const handleStartExtraction = async () => {
     setExtracting(true);
     setStep("extract");
@@ -159,17 +182,14 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
         mimeType: files[0]?.type || "application/pdf",
       });
       setExtractedData(res.extractedObservations || []);
-      // Auto-set critical flag if any observation is critical
-      if (res.extractedObservations?.some((o: any) => o.flag === "critical")) {
-        setResultFlag("Critical");
-      }
+      setExtractionNotice(res.message || null);
       setAuditLog((prev) => [
         ...prev,
-        `[${new Date().toLocaleTimeString()}] AI/OCR Document Engine extracted ${
-          res.extractedObservations.length
-        } structured observation rows with ${Math.round(
-          res.confidenceScore * 100
-        )}% confidence`,
+        `[${new Date().toLocaleTimeString()}] ${
+          res.supported
+            ? `Extracted ${res.extractedObservations.length} observation row(s) from uploaded file`
+            : "Automatic extraction unavailable — observation rows entered manually"
+        }`,
       ]);
     } catch (e) {
       console.error(e);
@@ -178,17 +198,16 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
     }
   };
 
-  // Row Management in Extraction Table
+  // Row Management in Extraction Table — blank row, no fabricated sample data
   const handleAddObservation = () => {
     setExtractedData((prev) => [
       ...prev,
       {
-        testName: "Serum Calcium",
-        resultValue: "9.2",
-        unit: "mg/dL",
-        referenceRange: "8.5 - 10.2",
+        testName: "",
+        resultValue: "",
+        unit: "",
+        referenceRange: "",
         flag: "normal",
-        labDepartment: "Chemical Pathology",
       },
     ]);
   };
@@ -198,28 +217,59 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
   };
 
   // Step 4: Final Release & Notification Execution
+  const [releaseError, setReleaseError] = useState<string | null>(null);
+
   const handleReleaseResult = async () => {
+    setReleaseError(null);
+
+    // Results can only be released against a verified, registered patient.
+    // There is no escrow/auto-activation path for unregistered patients yet —
+    // sending an invite does not create anywhere for a result to land until
+    // the patient actually claims the account and gets a real record.
+    if (!verifiedPatient?.id) {
+      setReleaseError(
+        "This result can't be released yet. The patient must complete WelliRecord registration and be identity-verified first — sending an invitation does not attach results automatically."
+      );
+      return;
+    }
+    if (!extractedData.length || extractedData.some((o) => !o.testName?.trim())) {
+      setReleaseError("Every observation row needs a test name before releasing.");
+      return;
+    }
+
     setReleasing(true);
     try {
       const res = await releaseLabDeliveryApi({
-        patientId: verifiedPatient?.id || "PAT-2026-8891",
-        patientWrId: verifiedPatient?.wrId || verifyForm.wrId,
-        patientName: verifiedPatient?.name || "Unregistered Patient",
+        patientId: verifiedPatient.id,
+        patientWrId: verifiedPatient.wrId,
+        patientName: verifiedPatient.name,
         reportMetadata: {
           ...metadata,
-          filesCount: files.length || 1,
-          labName: "WelliRecord Certified Diagnostic Hub",
+          filesCount: files.length,
         },
         extractedObservations: extractedData,
         notificationChannels,
         isCritical: resultFlag === "Critical",
-        recordedBy: metadata.pathologist,
+        recordedBy: metadata.pathologist || undefined,
       });
+
+      const dispatchSummary = res.dispatch
+        ? Object.entries(res.dispatch)
+            .filter(([, status]) => status !== "skipped")
+            .map(([channel, status]) => `${channel}: ${status}`)
+            .join(", ")
+        : "";
+      setAuditLog((prev) => [
+        ...prev,
+        `[${new Date().toLocaleTimeString()}] ${res.message}${
+          dispatchSummary ? ` — ${dispatchSummary}` : ""
+        }`,
+      ]);
 
       onSuccess?.(res.message);
       onClose();
     } catch (err: any) {
-      console.error(err);
+      setReleaseError(err?.message || "Failed to release result.");
     } finally {
       setReleasing(false);
     }
@@ -239,7 +289,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
                 Verified Result Upload & Multi-Channel Delivery
               </h2>
               <p className="text-xs text-sky-300/70">
-                Identity Verification · Document Upload · AI Extraction · Panic Escalation · Patient Release
+                Identity Verification · Document Upload · Observation Entry · Panic Escalation · Patient Release
               </p>
             </div>
           </div>
@@ -278,7 +328,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
                 : "text-slate-500"
             }`}
           >
-            <Sparkles size={14} /> 3. AI Extraction
+            <Sparkles size={14} /> 3. Observations
           </div>
           <div
             className={`flex items-center justify-center gap-2 py-3 ${
@@ -392,24 +442,63 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
                 <div className="p-4 rounded-2xl border border-amber-500/30 bg-amber-500/5 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
-                      <Sparkles size={14} /> Unregistered Patient Result Escrow & Invitation
+                      <Sparkles size={14} /> Invite an Unregistered Patient
                     </span>
                     {inviteSent && (
                       <span className="text-[11px] font-bold text-emerald-400 flex items-center gap-1">
-                        <CheckCircle2 size={12} /> Invite Link Copied
+                        <CheckCircle2 size={12} /> Invite Sent
                       </span>
                     )}
                   </div>
                   <p className="text-xs text-amber-200/80">
-                    The report will be securely associated with your verified provider customer record. Access activates automatically when the patient completes account creation.
+                    This sends the patient a link to create a WelliRecord account. Results can only be
+                    uploaded once they've registered and you've verified their identity above — there's
+                    no automatic attach-on-signup yet.
                   </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <input
+                      type="text"
+                      value={inviteForm.fullName}
+                      onChange={(e) =>
+                        setInviteForm({ ...inviteForm, fullName: e.target.value })
+                      }
+                      placeholder="Patient full name"
+                      className="rounded-xl border border-slate-700 bg-[#051122] px-3 py-2 text-xs text-white focus:border-amber-400 outline-none"
+                    />
+                    <input
+                      type="text"
+                      value={inviteForm.phone}
+                      onChange={(e) =>
+                        setInviteForm({ ...inviteForm, phone: e.target.value })
+                      }
+                      placeholder="Phone (optional)"
+                      className="rounded-xl border border-slate-700 bg-[#051122] px-3 py-2 text-xs text-white focus:border-amber-400 outline-none"
+                    />
+                    <input
+                      type="text"
+                      value={inviteForm.email}
+                      onChange={(e) =>
+                        setInviteForm({ ...inviteForm, email: e.target.value })
+                      }
+                      placeholder="Email (optional)"
+                      className="rounded-xl border border-slate-700 bg-[#051122] px-3 py-2 text-xs text-white focus:border-amber-400 outline-none"
+                    />
+                  </div>
+
+                  {inviteError && (
+                    <div className="text-[11px] text-red-300 flex items-center gap-1.5">
+                      <AlertTriangle size={12} /> {inviteError}
+                    </div>
+                  )}
+
                   <div className="flex items-center gap-2 pt-1">
                     <button
                       type="button"
                       onClick={handleSendInvite}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition-colors"
+                      disabled={inviteSending}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition-colors disabled:opacity-50"
                     >
-                      <Copy size={14} /> Send WelliRecord Invitation Link (SMS/WhatsApp)
+                      <Copy size={14} /> {inviteSending ? "Sending..." : "Send Invitation Link"}
                     </button>
                     {inviteLink && (
                       <span className="text-[11px] text-slate-400 truncate max-w-xs font-mono bg-[#030a14] px-2.5 py-1.5 rounded-lg border border-slate-800">
@@ -429,11 +518,17 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
               {verifiedPatient && (
                 <div className="p-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <img
-                      src={verifiedPatient.avatarUrl}
-                      alt={verifiedPatient.name}
-                      className="w-10 h-10 rounded-full object-cover border border-emerald-400/40"
-                    />
+                    {verifiedPatient.avatarUrl ? (
+                      <img
+                        src={verifiedPatient.avatarUrl}
+                        alt={verifiedPatient.name}
+                        className="w-10 h-10 rounded-full object-cover border border-emerald-400/40"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-300 text-sm font-bold">
+                        {verifiedPatient.name?.charAt(0) || "?"}
+                      </div>
+                    )}
                     <div>
                       <div className="text-sm font-bold text-white flex items-center gap-2">
                         <span>{verifiedPatient.name}</span>
@@ -442,7 +537,12 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
                         </span>
                       </div>
                       <div className="text-xs text-slate-400">
-                        ID: {verifiedPatient.wrId} · {verifiedPatient.gender}, DOB: {verifiedPatient.dob} · {verifiedPatient.phone}
+                        ID: {verifiedPatient.wrId}
+                        {verifiedPatient.gender ? ` · ${verifiedPatient.gender}` : ""}
+                        {verifiedPatient.dob
+                          ? `, DOB: ${new Date(verifiedPatient.dob).toLocaleDateString()}`
+                          : ""}
+                        {verifiedPatient.phone ? ` · ${verifiedPatient.phone}` : ""}
                       </div>
                     </div>
                   </div>
@@ -500,6 +600,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
                     onChange={(e) =>
                       setMetadata({ ...metadata, testName: e.target.value })
                     }
+                    placeholder="e.g. Lipid Profile"
                     className="w-full rounded-xl border border-slate-800 bg-[#051122] px-3.5 py-2 text-white outline-none focus:border-sky-400"
                   />
                 </div>
@@ -514,6 +615,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
                     onChange={(e) =>
                       setMetadata({ ...metadata, orderRef: e.target.value })
                     }
+                    placeholder="e.g. LAB-2026-9941"
                     className="w-full rounded-xl border border-slate-800 bg-[#051122] px-3.5 py-2 text-white outline-none focus:border-sky-400"
                   />
                 </div>
@@ -528,6 +630,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
                     onChange={(e) =>
                       setMetadata({ ...metadata, specimenType: e.target.value })
                     }
+                    placeholder="e.g. Venous Blood"
                     className="w-full rounded-xl border border-slate-800 bg-[#051122] px-3.5 py-2 text-white outline-none focus:border-sky-400"
                   />
                 </div>
@@ -542,6 +645,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
                     onChange={(e) =>
                       setMetadata({ ...metadata, referringDoctor: e.target.value })
                     }
+                    placeholder="e.g. Dr. Kalu Onuoha"
                     className="w-full rounded-xl border border-slate-800 bg-[#051122] px-3.5 py-2 text-white outline-none focus:border-sky-400"
                   />
                 </div>
@@ -556,6 +660,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
                     onChange={(e) =>
                       setMetadata({ ...metadata, pathologist: e.target.value })
                     }
+                    placeholder="e.g. Dr. Anthony Mbadiwe"
                     className="w-full rounded-xl border border-slate-800 bg-[#051122] px-3.5 py-2 text-white outline-none focus:border-sky-400"
                   />
                 </div>
@@ -592,22 +697,23 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
                   onClick={handleStartExtraction}
                   className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs shadow-lg shadow-sky-500/20 transition-all"
                 >
-                  <Sparkles size={14} /> Run AI Extraction & Review Data
+                  <Sparkles size={14} /> Continue to Observation Entry
                 </button>
               </div>
             </div>
           )}
 
-          {/* STEP 3: AI MACHINE-READABLE EXTRACTION REVIEW */}
+          {/* STEP 3: OBSERVATION ROW ENTRY */}
           {step === "extract" && (
             <div className="space-y-5">
               <div className="p-4 rounded-2xl border border-sky-400/30 bg-[#061833] flex items-center justify-between">
                 <div>
                   <div className="text-xs font-bold text-sky-300 flex items-center gap-1.5 mb-0.5">
-                    <Sparkles size={14} /> AI Document Extraction Engine Active
+                    <Info size={14} />
+                    {extractionNotice || "Enter observation rows manually"}
                   </div>
                   <div className="text-xs text-slate-300">
-                    Extracted machine-readable observation rows from report file. Pathologist can edit or add custom rows.
+                    Add each test result as a row below. Automatic extraction from the uploaded file isn't available yet.
                   </div>
                 </div>
                 <button
@@ -644,6 +750,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
                               updated[idx].testName = e.target.value;
                               setExtractedData(updated);
                             }}
+                            placeholder="e.g. Hemoglobin"
                             className="bg-transparent border-b border-slate-700 font-semibold text-white outline-none w-full"
                           />
                         </td>
@@ -656,6 +763,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
                               updated[idx].resultValue = e.target.value;
                               setExtractedData(updated);
                             }}
+                            placeholder="13.5"
                             className="bg-transparent border-b border-slate-700 font-bold text-white outline-none w-20"
                           />
                         </td>
@@ -668,6 +776,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
                               updated[idx].unit = e.target.value;
                               setExtractedData(updated);
                             }}
+                            placeholder="g/dL"
                             className="bg-transparent border-b border-slate-700 text-slate-300 outline-none w-16"
                           />
                         </td>
@@ -680,6 +789,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
                               updated[idx].referenceRange = e.target.value;
                               setExtractedData(updated);
                             }}
+                            placeholder="12.0 - 16.0"
                             className="bg-transparent border-b border-slate-700 text-slate-400 outline-none w-28"
                           />
                         </td>
@@ -787,7 +897,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
                       <strong className="text-red-300 font-bold block">
                         Critical Panic Escalation Triggered
                       </strong>
-                      This result will generate a high-priority panic alert to the referring physician ({metadata.referringDoctor}). Patient notification follows approved clinical release protocol.
+                      This result will generate a high-priority panic alert to the referring physician ({metadata.referringDoctor || "Attending Doctor"}). Patient notification follows approved clinical release protocol.
                     </div>
                   </div>
                 )}
@@ -829,19 +939,14 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
                     <Phone size={14} className="text-sky-400" /> SMS ✓
                   </label>
 
-                  <label className="flex items-center gap-2 p-3 rounded-xl border border-slate-800 bg-[#081830] cursor-pointer">
+                  <label className="flex items-center gap-2 p-3 rounded-xl border border-slate-800 bg-[#081830] opacity-50 cursor-not-allowed">
                     <input
                       type="checkbox"
-                      checked={notificationChannels.whatsapp}
-                      onChange={(e) =>
-                        setNotificationChannels({
-                          ...notificationChannels,
-                          whatsapp: e.target.checked,
-                        })
-                      }
+                      checked={false}
+                      disabled
                       className="rounded text-sky-500 focus:ring-0"
                     />
-                    <Send size={14} className="text-emerald-400" /> WhatsApp ✓
+                    <Send size={14} className="text-slate-500" /> WhatsApp (not yet available)
                   </label>
 
                   <label className="flex items-center gap-2 p-3 rounded-xl border border-slate-800 bg-[#081830] cursor-pointer">
@@ -862,11 +967,18 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
 
                 <div className="p-3 rounded-xl bg-[#030b17] border border-slate-800 text-[11px] text-slate-400 font-mono">
                   <div className="text-slate-300 font-bold mb-1">
-                    Notification Template Preview:
+                    Notification message:
                   </div>
-                  "New Laboratory Result Available: A laboratory result from WelliRecord Diagnostic Center has been added to your record. Log in to https://wellirecord.com/vault to view securely."
+                  "New Laboratory Result Available: A laboratory result has been added to your WelliRecord. Log in to https://wellirecord.com/vault to view securely."
                 </div>
               </div>
+
+              {releaseError && (
+                <div className="p-3.5 rounded-xl border border-red-500/30 bg-red-500/10 text-xs text-red-300 flex items-center gap-2">
+                  <AlertTriangle size={16} className="text-red-400 shrink-0" />
+                  <span>{releaseError}</span>
+                </div>
+              )}
 
               {/* Audit Log Box */}
               {auditLog.length > 0 && (

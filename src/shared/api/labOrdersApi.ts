@@ -121,5 +121,18 @@ export async function releaseLabDeliveryApi(payload: {
   const { data } = await api.post(`${apiUrl}/api/v1/lab-delivery/release`, payload, {
     headers: authHeaders(),
   });
-  return data;
+  return data.data;
+}
+
+export async function inviteUnregisteredPatientApi(payload: {
+  fullName: string;
+  phone?: string;
+  email?: string;
+}) {
+  const { data } = await api.post(
+    `${apiUrl}/api/v1/lab-delivery/invite-unregistered`,
+    payload,
+    { headers: authHeaders() },
+  );
+  return data.data;
 }
