@@ -26,6 +26,8 @@ import {
   wearable,
 } from "../../../assets";
 import { hero, welliIcon } from "@/assets";
+import { FaInstagram, FaLinkedin, FaTiktok, FaYoutube } from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
 
 /* ─────────────────────────────────────────────
    NAV DATA
@@ -357,7 +359,7 @@ function HeroIllustration() {
 ───────────────────────────────────────────── */
 function Hero() {
   return (
-    <div className="w-full bg-[#F8FAFC] pt-10 pb-16 sm:pt-14 sm:pb-20 border-b border-slate-200/80">
+    <div className="w-full bg-[#F8FAFC] pt-16 pb-16 sm:pt-14 sm:pb-20 border-b border-slate-200/80">
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-14 xl:gap-16">
           {/* Left Hero Text */}
@@ -691,10 +693,77 @@ function ConversionBanner() {
    LANDING FOOTER
 ───────────────────────────────────────────── */
 function LandingFooter() {
+
+  const socialLinks = [
+    {
+      name: "Instagram",
+      handleName: "careIdhq",
+      href: "https://www.instagram.com/careidhq?utm_source=qr&igsh=MXVpczV0b2NhM3F5cA==",
+      icon: FaInstagram,
+      className: "text-pink-500",
+    },
+    {
+      name: "TikTok",
+      handleName: "wellirecord",
+      href: "https://www.tiktok.com/@wellirecord?_r=1&_t=ZS-98nHpNNlmWm",
+      icon: FaTiktok,
+      className: "text-black",
+    },
+    {
+      name: "LinkedIn",
+      handleName: "wellirecord",
+      href: "https://www.linkedin.com/company/wellirecord/",
+      icon: FaLinkedin,
+      className: "text-[#0A66C2]",
+    },
+    {
+      name: "X",
+      handleName: "wellirecord",
+      href: "https://x.com/wellinovate?s=11",
+      icon: FaXTwitter,
+      className: "text-black",
+    },
+    {
+      name: "YouTube",
+      handleName: "wellirecord",
+      href: "https://youtube.com/@wellirecord?si=Lvag_nw0sep4jBvi",
+      icon: FaYoutube,
+      className: "text-red-600",
+    },
+  ];
   return (
-    <footer className="bg-white py-16 sm:py-20 px-4 sm:px-6 lg:px-8 border-t border-slate-100">
-      <div className="mx-auto max-w-7xl">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+    <footer className="relative overflow-hidden bg-[#f9fbfd] text-slate-700">
+
+      {/* Background pattern */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-70"
+        style={{
+          backgroundImage: `
+            linear-gradient(
+              80deg,
+              transparent 0%,
+              rgba(31, 78, 121, 0.025) 45%,
+              transparent 70%
+            ),
+            linear-gradient(
+              100deg,
+              transparent 20%,
+              rgba(31, 78, 121, 0.025) 50%,
+              transparent 80%
+            )
+          `,
+          backgroundSize: "120px 100%, 180px 100%",
+        }}
+      />
+
+      
+
+      <div className="relative mx-auto max-w-7xl px-6 pb-10 pt-16 sm:px-8 lg:px-12">
+
+        {/* Main footer columns */}
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4 lg:gap-16">
+
+          {/* Brand */}
           <div>
             <div className="flex items-center gap-2.5">
               <img src={welliIcon} alt="WelliRecord" className="h-8 w-8 object-contain" />
@@ -702,61 +771,200 @@ function LandingFooter() {
                 Welli<span className="font-normal">Record</span><sup className="text-[10px] font-normal">™</sup>
               </span>
             </div>
-            <p className="mt-4 text-sm leading-6 text-slate-500 max-w-[240px]">
+
+            <p className="mt-4 max-w-xs text-sm leading-6 text-slate-500">
               The first patient-owned health vault platform.
             </p>
-            <p className="mt-2 text-xs font-bold text-[#1F4E79]">
-              One patient. One trusted record. Accessible when it matters.
+
+            <p className="mt-2 max-w-sm text-xs font-medium leading-5 text-[#1478d4]">
+              One patient, One trusted record, Accessible when it matters.
             </p>
 
+            {/* Contact */}
             <div className="mt-6">
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                Contact us
+              <p className="mb-1.5 text-xs font-bold uppercase tracking-wider text-slate-800">
+                Contact us:
               </p>
-              <p className="text-sm font-semibold text-slate-700">inquiry@wellirecord.com</p>
-              <p className="text-sm font-semibold text-slate-700">+234 805 335 5504</p>
+
+              <a
+                href="mailto:inquiry@wellirecord.com"
+                className="block text-sm font-medium text-slate-500 transition-colors hover:text-[#1F4E79]"
+              >
+                inquiry@wellirecord.com
+              </a>
+
+              <a
+                href="tel:+2348053355504"
+                className="mt-1 block text-sm font-medium text-slate-500 transition-colors hover:text-[#1F4E79]"
+              >
+                +234 805 335 5504
+              </a>
             </div>
           </div>
 
+          {/* Product */}
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
+            <p className="mb-5 text-sm font-bold text-slate-700">
               Product
             </p>
-            <ul className="space-y-3 text-sm font-medium text-slate-600">
-              <li className="hover:text-[#1F4E79] cursor-pointer">Patient App</li>
-              <li className="hover:text-[#1F4E79] cursor-pointer">Clinician Dashboard</li>
-              <li className="hover:text-[#1F4E79] cursor-pointer">API &amp; Integrations</li>
-              <li><Link to="/security" className="hover:text-[#1F4E79]">Security</Link></li>
+
+            <ul className="space-y-3 text-sm font-medium text-slate-500">
+              <li>
+                <Link
+                  to="/patient"
+                  className="transition-colors hover:text-[#1F4E79]"
+                >
+                  Patient App
+                </Link>
+              </li>
+
+              <li>
+                <Link
+                  to="/clinician"
+                  className="transition-colors hover:text-[#1F4E79]"
+                >
+                  Clinician Dashboard
+                </Link>
+              </li>
+
+              <li>
+                <Link
+                  to="/api"
+                  className="transition-colors hover:text-[#1F4E79]"
+                >
+                  API &amp; Integrations
+                </Link>
+              </li>
+
+              <li>
+                <Link
+                  to="/security"
+                  className="transition-colors hover:text-[#1F4E79]"
+                >
+                  Security
+                </Link>
+              </li>
             </ul>
           </div>
 
+          {/* Ecosystem */}
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
+            <p className="mb-5 text-sm font-bold text-slate-700">
               Ecosystem
             </p>
-            <ul className="space-y-3 text-sm font-medium text-slate-600">
-              <li className="hover:text-[#1F4E79] cursor-pointer">WelliBridge</li>
-              <li>WelliVerify <span className="text-xs font-normal text-slate-400">(coming soon)</span></li>
+
+            <ul className="space-y-3 text-sm font-medium text-slate-500">
+              <li>
+                <Link
+                  to="/wellibridge"
+                  className="transition-colors hover:text-[#1F4E79]"
+                >
+                  WelliBridge
+                </Link>
+              </li>
+
+              <li>
+                <span>
+                  WelliVerify{" "}
+                  <span className="text-xs font-normal text-slate-300">
+                    (coming soon)
+                  </span>
+                </span>
+              </li>
             </ul>
           </div>
 
+          {/* Company */}
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
+            <p className="mb-5 text-sm font-bold text-slate-700">
               Company
             </p>
-            <ul className="space-y-3 text-sm font-medium text-slate-600">
-              <li><Link to="/about" className="hover:text-[#1F4E79]">About</Link></li>
-              <li><Link to="/blog" className="hover:text-[#1F4E79]">Blog</Link></li>
-              <li><Link to="/partners" className="hover:text-[#1F4E79]">Partners</Link></li>
-              <li><Link to="/privacy" className="hover:text-[#1F4E79]">Privacy Policy</Link></li>
-              <li><Link to="/terms" className="hover:text-[#1F4E79]">Terms of Service</Link></li>
+
+            <ul className="space-y-3 text-sm font-medium text-slate-500">
+              <li>
+                <Link
+                  to="/about"
+                  className="transition-colors hover:text-[#1F4E79]"
+                >
+                  About
+                </Link>
+              </li>
+
+              <li>
+                <Link
+                  to="/blog"
+                  className="transition-colors hover:text-[#1F4E79]"
+                >
+                  Blog
+                </Link>
+              </li>
+
+              <li>
+                <Link
+                  to="/partners"
+                  className="transition-colors hover:text-[#1F4E79]"
+                >
+                  Partners
+                </Link>
+              </li>
+
+              <li>
+                <Link
+                  to="/privacy"
+                  className="transition-colors hover:text-[#1F4E79]"
+                >
+                  Privacy Policy
+                </Link>
+              </li>
+
+              <li>
+                <Link
+                  to="/terms"
+                  className="transition-colors hover:text-[#1F4E79]"
+                >
+                  Terms of Service
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col gap-3 border-t border-slate-100 pt-6 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} WelliRecord™ — WelliNovate Limited. All rights reserved.</p>
-          <p className="font-semibold text-slate-500">Built for Africa. Designed for the world.</p>
+        {/* Social links */}
+        <div className="mt-14 flex justify-center">
+          <div className="flex items-center gap-10 lg:gap-10">
+            {socialLinks.map((social) => {
+              const Icon = social.icon;
+
+              return (
+                <div key={social.name} className="flex flex-col items-center gap-1">
+                <a
+                  key={social.name}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Visit WelliRecord on ${social.name}`}
+                  className={`transition-all duration-200 hover:-translate-y-0.5 hover:opacity-70  ${social.className}`}
+                >
+                  <Icon size={15} />
+                </a>
+                <p className="text-xs">{social.handleName}</p>
+                </div>
+
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Copyright */}
+        <div className="mt-8 border-t border-slate-200/70 pt-6 text-center">
+          <p className="text-xs text-slate-400">
+            © {new Date().getFullYear()} WelliRecord™ — WelliNovate Limited.
+            All rights reserved.
+          </p>
+
+          <p className="mt-8 text-xs font-medium text-slate-400">
+            Built for Africa. Designed for the world.
+          </p>
         </div>
       </div>
     </footer>
