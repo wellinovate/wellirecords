@@ -364,7 +364,7 @@ function Hero() {
           <div className="flex-1 max-w-2xl">
             <h1 className="text-4xl font-black leading-[1.12] tracking-tight text-[#002353] sm:text-5xl lg:text-[50px]">
               Own Your{" "}
-              <span className="text-[#1F4E79] underline decoration-sky-300 decoration-wavy decoration-2">
+              <span className="text-[#1F4E79] decoration-sky-300 decoration-wavy decoration-2">
                 Complete Medical History.
               </span>
             </h1>
