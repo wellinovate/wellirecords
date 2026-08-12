@@ -75,6 +75,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
   // 3. AI Extraction State
   const [extracting, setExtracting] = useState(false);
   const [extractedData, setExtractedData] = useState<any[]>([]);
+  const [extractionNotice, setExtractionNotice] = useState<string | null>(null);
 
   // 4. Critical Flag & Multi-Channel Notification State
   const [resultFlag, setResultFlag] = useState<
@@ -88,6 +89,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
   });
 
   const [releasing, setReleasing] = useState(false);
+  const [releaseError, setReleaseError] = useState<string | null>(null);
   const [auditLog, setAuditLog] = useState<string[]>([]);
 
   if (!isOpen) return null;
@@ -171,8 +173,6 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
     }
   };
 
-  const [extractionNotice, setExtractionNotice] = useState<string | null>(null);
-
   const handleStartExtraction = async () => {
     setExtracting(true);
     setStep("extract");
@@ -217,8 +217,6 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
   };
 
   // Step 4: Final Release & Notification Execution
-  const [releaseError, setReleaseError] = useState<string | null>(null);
-
   const handleReleaseResult = async () => {
     setReleaseError(null);
 
