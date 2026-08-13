@@ -31,6 +31,14 @@ type CurrentUser = {
   roles?: UserRole[];
 };
 
+// Roles that belong on the patient side even though the account itself
+// carries accountType "user" (same as every provider staff account —
+// invited doctors, nurses, etc. are never given accountType
+// "organization"; only the account that owns the organization is).
+// Anything not in this set and not the org owner is staff, and needs
+// to reach /provider.
+const PATIENT_SIDE_ROLES: UserRole[] = ["patient", "caregiver", "family_member"];
+
 export function RequireRole({ children, allow }: RequireRoleProps) {
   const { user, isLoading } = useAuth();
   const location = useLocation();
@@ -67,7 +75,14 @@ export function RequireRole({ children, allow }: RequireRoleProps) {
     }
 
     if (allow === "organization") {
-      return user.accountType === "organization";
+      // Org owner accounts are accountType "organization" outright.
+      // Invited staff (doctor, nurse, lab tech, ...) keep accountType
+      // "user" — identical to a patient account — and are told apart
+      // only by role. Without this check, every invited team member
+      // gets redirected to /patient/overview and can never reach
+      // /provider at all, regardless of which page they're after.
+      if (user.accountType === "organization") return true;
+      return !!role && !PATIENT_SIDE_ROLES.includes(role);
     }
 
     if (allow === "super_admin") {
