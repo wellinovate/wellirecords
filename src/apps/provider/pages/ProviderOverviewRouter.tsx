@@ -6,9 +6,15 @@ import { ClinicianDashboardPage } from './ClinicianDashboardPage';
 import { Loader2 } from 'lucide-react';
 
 // Dynamically renders ClinicianDashboardPage when the logged-in
-// user's active membership role is "doctor", or ProviderDashboard
-// (the org-wide overview) for organization owner accounts,
-// provider_admin, and non-doctor staff.
+// user's active membership role is "doctor" or "clinician", or
+// ProviderDashboard (the org-wide overview) for organization owner
+// accounts, provider_admin, and non-clinical staff.
+//
+// Uses getMyMembership (scoped to the caller) rather than
+// listMembers (admin-only — it queries organizationId = the caller's
+// own account id, which only resolves to anything when the caller
+// owns the organization; a doctor calling it just gets an empty
+// list and would always render the wrong dashboard).
 export function ProviderOverviewRouter() {
     const { user } = useAuth();
     const [isDoctor, setIsDoctor] = useState<boolean | null>(null);
@@ -28,12 +34,9 @@ export function ProviderOverviewRouter() {
             return;
         }
 
-        teamApi.listMembers()
-            .then(members => {
-                const self = members.find(
-                    m => m.userId === (user as any).sub || (m.email && m.email === user.email),
-                );
-                setIsDoctor(self?.role === 'doctor');
+        teamApi.getMyMembership()
+            .then(membership => {
+                setIsDoctor(membership?.role === 'doctor' || membership?.role === 'clinician');
             })
             .catch(() => setIsDoctor(false));
     }, [user]);

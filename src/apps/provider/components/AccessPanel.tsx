@@ -1,6 +1,17 @@
 import React, { useState } from 'react';
 import { Loader2, CheckCircle } from 'lucide-react';
-import { teamApi, TeamMember, PermissionRegistry } from '@/shared/api/teamApi';
+import { teamApi, MembershipRole, PermissionRegistry } from '@/shared/api/teamApi';
+
+// Only needs the access-relevant fields — deliberately not TeamMember
+// itself, so this also accepts MyMembership (used by
+// ClinicianDashboardPage, which never has a TeamMember to hand it —
+// see teamApi.getMyMembership for why).
+export type AccessSubject = {
+    role: MembershipRole;
+    membershipId: string | null;
+    permissions: string[];
+    permissionOverrides?: { granted: string[]; revoked: string[] };
+};
 
 // Per-member permission overrides on top of the role default. Checkbox
 // state reflects the member's current effective permissions; toggling
@@ -10,7 +21,7 @@ import { teamApi, TeamMember, PermissionRegistry } from '@/shared/api/teamApi';
 export function AccessPanel({
     member, registry, onSaved, readOnly = false,
 }: {
-    member: TeamMember; registry: PermissionRegistry;
+    member: AccessSubject; registry: PermissionRegistry;
     onSaved: (permissions: string[], overrides: { granted: string[]; revoked: string[] }) => void;
     readOnly?: boolean;
 }) {

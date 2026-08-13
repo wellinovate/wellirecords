@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/shared/auth/AuthProvider';
-import { teamApi, TeamMember, PermissionRegistry } from '@/shared/api/teamApi';
+import { teamApi, MyMembership, PermissionRegistry } from '@/shared/api/teamApi';
 import { getMyOrganization, MyOrganization } from '@/shared/api/organizationApi';
 import { AccessPanel } from '@/apps/provider/components/AccessPanel';
 import { WorkloadPlaceholder } from '@/shared/components/WorkloadPlaceholder';
@@ -16,7 +16,7 @@ import { Stethoscope, Loader2, Key, ChevronDown, ChevronUp } from 'lucide-react'
 
 export function ClinicianDashboardPage() {
     const { user } = useAuth();
-    const [member, setMember] = useState<TeamMember | null>(null);
+    const [membership, setMembership] = useState<MyMembership | null>(null);
     const [org, setOrg] = useState<MyOrganization | null>(null);
     const [registry, setRegistry] = useState<PermissionRegistry | null>(null);
     const [loading, setLoading] = useState(true);
@@ -28,15 +28,17 @@ export function ClinicianDashboardPage() {
             setLoading(true);
             setError(null);
             try {
-                const [members, orgData, registryData] = await Promise.all([
-                    teamApi.listMembers(),
+                const [membershipData, orgData, registryData] = await Promise.all([
+                    // getMyMembership, not listMembers — listMembers is
+                    // admin-only (scopes to organizationId = the caller's
+                    // own account id, which only means anything for an
+                    // org owner). See ProviderOverviewRouter for the same
+                    // fix and the fuller explanation.
+                    teamApi.getMyMembership().catch(() => null),
                     getMyOrganization().catch(() => null),
                     teamApi.getPermissionRegistry().catch(() => null),
                 ]);
-                const self = members.find(
-                    m => m.userId === (user as any)?.sub || (m.email && m.email === user?.email),
-                );
-                setMember(self ?? null);
+                setMembership(membershipData);
                 setOrg(orgData);
                 setRegistry(registryData);
             } catch (err: any) {
@@ -60,10 +62,11 @@ export function ClinicianDashboardPage() {
         <div className="min-h-screen p-4 md:p-8 space-y-6 text-slate-100 font-sans" style={{ background: '#050d1a' }}>
             <div>
                 <h1 className="text-2xl font-black tracking-tight flex items-center gap-2" style={{ color: '#e2eaf4' }}>
-                    <Stethoscope size={22} className="text-sky-400" /> Welcome, {member?.name ?? user?.name ?? 'Doctor'}
+                    <Stethoscope size={22} className="text-sky-400" /> Welcome, {user?.name ?? 'Doctor'}
                 </h1>
                 <p className="text-xs mt-1" style={{ color: '#7ba3c8' }}>
-                    {org?.organizationName ? `${org.organizationName} · ` : ''}Doctor
+                    {org?.organizationName ? `${org.organizationName} · ` : ''}
+                    {membership?.role === 'clinician' ? 'Clinician' : 'Doctor'}
                 </p>
             </div>
 
@@ -84,14 +87,14 @@ export function ClinicianDashboardPage() {
                 detail="Showing which patients you're actually treating (not every patient in the organization) needs the access-context model — current encounter, assignment, referral, or consent — which hasn't been built yet."
             />
 
-            {member && registry && (
+            {membership && registry && (
                 <div className="rounded-2xl border p-4 space-y-3" style={{ background: '#0a192f', borderColor: 'rgba(56,189,248,.12)' }}>
                     <button onClick={() => setAccessOpen(o => !o)}
                         className="flex items-center gap-1.5 text-xs font-bold" style={{ color: '#7ba3c8' }}>
                         <Key size={13} /> Your access {accessOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
                     </button>
                     {accessOpen && (
-                        <AccessPanel member={member} registry={registry} onSaved={() => {}} readOnly />
+                        <AccessPanel member={membership} registry={registry} onSaved={() => {}} readOnly />
                     )}
                 </div>
             )}

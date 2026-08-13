@@ -24,6 +24,14 @@ export interface TeamMember {
   lastActive: string | null;
 }
 
+export interface MyMembership {
+  membershipId: string;
+  organizationId: string;
+  role: MembershipRole;
+  permissions: string[];
+  permissionOverrides: { granted: string[]; revoked: string[] };
+}
+
 export interface InviteMemberPayload {
   email: string;
   fullName: string;
@@ -88,6 +96,15 @@ export const teamApi = {
   listMembers: async (): Promise<TeamMember[]> => {
     const res: any = await apiClient.get('/team/members');
     return res?.data || [];
+  },
+
+  // For a staff member checking their own role/permissions — not
+  // admin-only like listMembers, which only returns useful data when
+  // the caller owns the organization. Returns null if the caller has
+  // no active membership (e.g. they're the org owner, not staff).
+  getMyMembership: async (): Promise<MyMembership | null> => {
+    const res: any = await apiClient.get('/team/my-membership');
+    return res?.data ?? null;
   },
 
   invite: async (payload: InviteMemberPayload) => {
