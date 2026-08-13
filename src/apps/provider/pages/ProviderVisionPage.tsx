@@ -62,6 +62,7 @@ import {
   type VisionVisitListItem,
 } from "@/shared/api/visionRecordApi";
 import { VisionRecordForm } from "@/apps/provider/components/VisionRecordForm";
+import { PatientSearchPicker } from "@/apps/components/shared/PatientSearchPicker";
 
 // ─── Design Tokens (Provider Dark Theme) ─────────────────────────────────────
 
@@ -197,7 +198,7 @@ function ProvCard({
 
 export function ProviderVisionPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, searchPatientRequest } = useAuth();
 
   // Active Workspace Tab
   const [activeTab, setActiveTab] = useState("overview");
@@ -216,6 +217,24 @@ export function ProviderVisionPage() {
   const [addRecordPatientId, setAddRecordPatientId] = useState<string | null>(
     null,
   );
+
+  // Add Vision Record has no way to source a patientId until a visit
+  // already exists (the "Add Vision Record" entry points all read
+  // visits[0].patientId). With zero visits on file — as in a fresh
+  // pilot environment — that's a dead end, and the previous fallback
+  // ("pat_001") wasn't a real patient, so submitting failed server-side.
+  // This opens the same real patient lookup Pharmacy/Lab already use
+  // instead, so a record can be started for any registered patient.
+  const [showPatientPicker, setShowPatientPicker] = useState(false);
+
+  const openAddRecord = () => {
+    const pid = visits[0]?.patientId;
+    if (pid) {
+      setAddRecordPatientId(pid);
+    } else {
+      setShowPatientPicker(true);
+    }
+  };
 
   // Patient Profile & Consent State
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
@@ -354,13 +373,7 @@ export function ProviderVisionPage() {
         {/* Quick Action Button Group */}
         <div className="flex items-center gap-2 flex-wrap">
           <button
-            onClick={() => {
-              if (visits.length > 0) {
-                setAddRecordPatientId(visits[0].patientId || "pat_001");
-              } else {
-                setAddRecordPatientId("pat_001");
-              }
-            }}
+            onClick={openAddRecord}
             className="px-4 py-2.5 rounded-2xl font-bold text-xs text-white bg-sky-600 hover:bg-sky-500 transition-all flex items-center gap-1.5 shadow-lg shadow-sky-600/20"
           >
             <Plus size={16} /> Add Vision Record
@@ -439,9 +452,7 @@ export function ProviderVisionPage() {
               key={label}
               onClick={() => {
                 if (action === "add-record" || action === "upload") {
-                  const pid = visits[0]?.patientId;
-                  if (pid) setAddRecordPatientId(pid);
-                  else showToast("No patients on file yet — record a visit from a patient's row first.");
+                  openAddRecord();
                 } else if (route) {
                   navigate(route);
                 }
@@ -627,10 +638,7 @@ export function ProviderVisionPage() {
               Enter comprehensive Visual Acuity, Refraction (SPH/CYL/AXIS/ADD), Slit Lamp, Fundus, OCT, Cataract & Glaucoma findings.
             </p>
             <button
-              onClick={() => {
-                const pid = visits[0]?.patientId || "pat_001";
-                setAddRecordPatientId(pid);
-              }}
+              onClick={openAddRecord}
               className="px-5 py-3 rounded-2xl font-bold text-xs text-white bg-sky-600 hover:bg-sky-500 transition-all flex items-center gap-2 shadow-lg"
             >
               <Plus size={16} /> Open Complete Vision Record Form
@@ -817,6 +825,37 @@ export function ProviderVisionPage() {
             Not available yet — there's no patient messaging backend.
           </p>
         </ProvCard>
+      )}
+
+      {/* ── SELECT PATIENT FOR NEW VISION RECORD ────────────────────────────── */}
+      {showPatientPicker && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-2xl p-6 bg-slate-900 border border-sky-500/30 space-y-4 animate-fade-in-up">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <h3 className="font-bold text-base text-white flex items-center gap-2">
+                <Eye size={18} className="text-sky-400" /> Find Patient
+              </h3>
+              <button
+                onClick={() => setShowPatientPicker(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <p className="text-xs text-slate-400">
+              Look up a registered patient by WelliRecord ID, email, or phone to start their vision record.
+            </p>
+            <PatientSearchPicker
+              open={showPatientPicker}
+              enabled={true}
+              searchPatientRequest={searchPatientRequest}
+              onSelect={(patient) => {
+                setAddRecordPatientId(patient.id);
+                setShowPatientPicker(false);
+              }}
+            />
+          </div>
+        </div>
       )}
 
       {/* ── ADD/EDIT VISION RECORD MODAL FORM ─────────────────────────────── */}
