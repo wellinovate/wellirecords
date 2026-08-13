@@ -16,7 +16,7 @@ export function ProviderOverviewRouter() {
     useEffect(() => {
         // Patients shouldn't land on provider routes at all (guarded by
         // RequireRole in AppRoutes.tsx), but if they do, render default.
-        if (!user || user.role === 'patient') {
+        if (!user || user.roles?.includes('patient')) {
             setIsDoctor(false);
             return;
         }
