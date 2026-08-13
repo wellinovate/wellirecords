@@ -221,6 +221,12 @@ const ProviderDashboard = lazy(() =>
     default: m.ProviderDashboard,
   })),
 );
+const ProviderOverviewRouter = lazy(
+  () => import("@/apps/provider/pages/ProviderOverviewRouter"),
+);
+const DoctorProfilePage = lazy(
+  () => import("./apps/provider/pages/DoctorProfilePage"),
+);
 const PatientListPage = lazy(() =>
   import("@/apps/provider/pages/PatientListPage").then((m) => ({
     default: m.PatientListPage,
@@ -646,9 +652,10 @@ export function AppRoutes() {
           }
         >
           <Route index element={<Navigate to="overview" replace />} />
-          <Route path="overview" element={<ProviderDashboard />} />
+          <Route path="overview" element={<ProviderOverviewRouter />} />
           <Route path="patients" element={<PatientListPage />} />
           <Route path="doctors" element={<DoctorsPage />} />
+          <Route path="doctors/:membershipId" element={<DoctorProfilePage />} />
           <Route path="vision" element={<ProviderVisionPage />} />
           <Route path="patients/:id" element={<EHRViewerPage />} />
           <Route path="appointments" element={<ProviderAppointmentsPage />} />
