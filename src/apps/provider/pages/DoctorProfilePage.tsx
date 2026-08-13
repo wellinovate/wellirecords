@@ -96,7 +96,7 @@ export function DoctorProfilePage() {
                     <h1 className="text-xl font-black" style={{ color: '#e2eaf4' }}>{member.name}</h1>
                     <div className="flex items-center gap-2 mt-1">
                         <span className="text-xs flex items-center gap-1" style={{ color: '#7ba3c8' }}>
-                            <Stethoscope size={12} /> Doctor
+                            <Stethoscope size={12} /> {member.role === 'clinician' ? 'Clinician' : 'Doctor'}
                         </span>
                         <span style={{ color: '#3e5a78' }}>·</span>
                         <StatusDot status={member.status} />
@@ -166,7 +166,7 @@ export function DoctorProfilePage() {
                         <div className="rounded-2xl border p-4 space-y-2 text-xs"
                             style={{ background: '#0a192f', borderColor: 'rgba(56,189,248,.12)' }}>
                             <div><span style={{ color: '#7ba3c8' }}>Organization: </span><span style={{ color: '#e2eaf4' }}>{org?.organizationName ?? 'Unknown'}</span></div>
-                            <div><span style={{ color: '#7ba3c8' }}>Role: </span><span style={{ color: '#e2eaf4' }}>Doctor</span></div>
+                            <div><span style={{ color: '#7ba3c8' }}>Role: </span><span style={{ color: '#e2eaf4' }}>{member.role === 'clinician' ? 'Clinician' : 'Doctor'}</span></div>
                         </div>
                         {registry ? (
                             <AccessPanel member={member} registry={registry} onSaved={handlePermissionsSaved} />

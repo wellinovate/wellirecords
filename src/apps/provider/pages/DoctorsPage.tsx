@@ -300,7 +300,13 @@ export function DoctorsPage() {
         setError(null);
         try {
             const all = await teamApi.listMembers();
-            setMembers(all.filter(m => m.role === 'doctor'));
+            // "Clinician" is the Team Management invite dialog's default
+            // role, and the hospital role catalog treats it as a
+            // distinct sibling of "doctor" — not a subset. Someone
+            // invited without touching that dropdown lands here as a
+            // clinician, and belongs on this page just as much as
+            // anyone invited specifically as "doctor".
+            setMembers(all.filter(m => m.role === 'doctor' || m.role === 'clinician'));
         } catch (err: any) {
             setError(err.message || 'Failed to load doctors');
         } finally {
