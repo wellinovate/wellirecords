@@ -266,6 +266,11 @@ const TeamManagementPage = lazy(() =>
     default: m.TeamManagementPage,
   })),
 );
+const ProviderSettingsPage = lazy(() =>
+  import("@/apps/provider/pages/ProviderSettingsPage").then((m) => ({
+    default: m.ProviderSettingsPage,
+  })),
+);
 const AuditLogsPage = lazy(() =>
   import("@/apps/provider/pages/AuditLogsPage").then((m) => ({
     default: m.AuditLogsPage,
@@ -655,6 +660,7 @@ export function AppRoutes() {
           <Route path="patients/import" element={<PatientImportPage />} />
           <Route path="referrals" element={<ReferralsPage />} />
           <Route path="team" element={<TeamManagementPage />} />
+          <Route path="settings" element={<ProviderSettingsPage />} />
           <Route path="audit-logs" element={<AuditLogsPage />} />
           <Route path="integrations/api-keys" element={<IntegrationsPage />} />
           <Route path="public-health" element={<PublicHealthDashboard />} />

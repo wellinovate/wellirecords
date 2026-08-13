@@ -26,6 +26,7 @@ import {
   MessageSquare,
   MoreHorizontal,
   Pill,
+  Settings2,
   Stethoscope,
   UserCog,
   Users,
@@ -128,6 +129,12 @@ const ALL_NAV = [
     to: "/provider/team",
     label: "Team",
     icon: UserCog,
+    roles: ["provider_admin"],
+  },
+  {
+    to: "/provider/settings",
+    label: "Settings",
+    icon: Settings2,
     roles: ["provider_admin"],
   },
   // {
@@ -267,13 +274,17 @@ export function ProviderLayout() {
             }}
           >
             <div
-              className="w-7 h-7 lg:w-8 lg:h-8 rounded-lg flex items-center justify-center text-sm flex-shrink-0"
+              className="w-7 h-7 lg:w-8 lg:h-8 rounded-lg flex items-center justify-center text-sm flex-shrink-0 overflow-hidden"
               style={{
                 background: "linear-gradient(180deg, #1B2A55 0%, #162347 100%)",
                 border: "1px solid rgba(126, 159, 255, 0.12)",
               }}
             >
-              {orgApi.getOrgTypeIcon(org?.organizationType ?? "hospital")}
+              {org?.logo ? (
+                <img src={org.logo} alt={org.organizationName} className="w-full h-full object-cover" />
+              ) : (
+                orgApi.getOrgTypeIcon(org?.organizationType ?? "hospital")
+              )}
             </div>
             <div className="flex-1 min-w-0 hidden lg:block">
               <div
