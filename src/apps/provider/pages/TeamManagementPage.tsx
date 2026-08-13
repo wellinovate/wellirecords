@@ -1,32 +1,50 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/shared/auth/AuthProvider';
-import { teamApi, TeamMember, MembershipRole } from '@/shared/api/teamApi';
+import { teamApi, TeamMember, MembershipRole, RoleCatalog } from '@/shared/api/teamApi';
 import {
     Plus, Mail, X, CheckCircle, Shield, Clock, Activity,
     MoreVertical, UserCheck, UserX, Key, Search,
-    Users, AlertCircle, Loader2,
+    Users, FlaskConical, Stethoscope, AlertTriangle, Pill, UserCog, UserCheck as UserIcon,
 } from 'lucide-react';
 
 /* ─── Role config ────────────────────────────────────────────────────── */
+// Base labels/colors for every role that exists anywhere in the system.
+// Which of these a given facility can actually invite is filtered at
+// render time by roleCatalog (fetched per-org from the backend) — a
+// diagnostic lab never sees "Nurse", an eye-care hospital sees
+// "Optician / Ophthalmologist" instead of a plain "Doctor" label.
 const ROLE_META: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
     provider_admin: { label: 'Admin', color: '#f59e0b', bg: '#fef3c7', icon: <Shield size={11} /> },
     clinician: { label: 'Clinician', color: '#38bdf8', bg: '#e0f2fe', icon: <UserCheck size={11} /> },
-    doctor: { label: 'Doctor', color: '#38bdf8', bg: '#e0f2fe', icon: <UserCheck size={11} /> },
-    lab_tech: { label: 'Lab Tech', color: '#10b981', bg: '#d1fae5', icon: <Activity size={11} /> },
-    pharmacist: { label: 'Pharmacist', color: '#a855f7', bg: '#f3e8ff', icon: <Key size={11} /> },
-    nurse: { label: 'Nurse', color: '#0ea5e9', bg: '#e0f7fa', icon: <UserCheck size={11} /> },
-    frontdesk: { label: 'Front Desk', color: '#6b7280', bg: '#f3f4f6', icon: <Users size={11} /> },
-    insurer_agent: { label: 'Insurer Agent', color: '#6b7280', bg: '#f3f4f6', icon: <Shield size={11} /> },
+    doctor: { label: 'Doctor', color: '#38bdf8', bg: '#e0f2fe', icon: <Stethoscope size={11} /> },
+    nurse: { label: 'Nurse', color: '#10b981', bg: '#d1fae5', icon: <UserCheck size={11} /> },
+    lab_tech: { label: 'Lab Tech', color: '#a855f7', bg: '#f3e8ff', icon: <FlaskConical size={11} /> },
+    pharmacist: { label: 'Pharmacist', color: '#ec4899', bg: '#fce7f3', icon: <Pill size={11} /> },
+    frontdesk: { label: 'Front Desk', color: '#6366f1', bg: '#e0e7ff', icon: <UserCog size={11} /> },
+    insurer_agent: { label: 'Insurer Agent', color: '#f97316', bg: '#ffedd5', icon: <UserIcon size={11} /> },
     support_staff: { label: 'Support Staff', color: '#6b7280', bg: '#f3f4f6', icon: <Users size={11} /> },
 };
 
-const INVITE_ROLES: { value: MembershipRole; label: string }[] = [
-    { value: 'clinician', label: 'Doctor / Clinician' },
-    { value: 'lab_tech', label: 'Lab Technician' },
-    { value: 'pharmacist', label: 'Pharmacist' },
-    { value: 'nurse', label: 'Nurse' },
-    { value: 'provider_admin', label: 'Org Administrator' },
-];
+// Full label set the invite modal can offer, keyed by role. The
+// dropdown only shows the subset present in roleCatalog.roles, in
+// that order, with roleCatalog.labelOverrides applied on top.
+const INVITE_ROLE_LABELS: Record<MembershipRole, string> = {
+    provider_admin: 'Org Administrator',
+    doctor: 'Doctor',
+    clinician: 'Doctor / Clinician',
+    nurse: 'Nurse',
+    lab_tech: 'Lab Technician',
+    pharmacist: 'Pharmacist',
+    frontdesk: 'Front Desk',
+    insurer_agent: 'Insurer Agent',
+    support_staff: 'Support Staff',
+};
+
+function labelForRole(role: string, catalog: RoleCatalog | null): string {
+    const override = catalog?.labelOverrides?.[role as MembershipRole];
+    if (override) return override;
+    return INVITE_ROLE_LABELS[role as MembershipRole] ?? ROLE_META[role]?.label ?? role;
+}
 
 function timeAgo(iso?: string | null) {
     if (!iso) return 'Never';
@@ -37,88 +55,83 @@ function timeAgo(iso?: string | null) {
     return `${Math.floor(secs / 86400)}d ago`;
 }
 
-function RoleBadge({ role }: { role: string }) {
+function RoleBadge({ role, catalog }: { role: string; catalog: RoleCatalog | null }) {
     const m = ROLE_META[role] ?? { label: role, color: '#6b7280', bg: '#f3f4f6', icon: null };
+    const label = labelForRole(role, catalog);
     return (
         <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
             style={{ background: m.bg + '40', color: m.color, border: `1px solid ${m.color}30` }}>
-            {m.icon} {m.label}
+            {m.icon} {label}
         </span>
     );
 }
 
 /* ─── Member card ────────────────────────────────────────────────────── */
 function MemberCard({
-    member, isAdmin, onSuspend, onReactivate, actionPending,
+    member, isAdmin, onSuspend, onReactivate, actionPending, catalog,
 }: {
     member: TeamMember; isAdmin: boolean;
     onSuspend: () => void; onReactivate: () => void;
-    actionPending: boolean;
+    actionPending: boolean; catalog: RoleCatalog | null;
 }) {
     const [menuOpen, setMenuOpen] = useState(false);
     const active = member.status === 'active';
     const pending = member.status === 'invited';
 
-    const initials = member.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
-    const meta = ROLE_META[member.role] ?? { color: '#6b7280', bg: '#f3f4f6' };
-
     return (
-        <div className="relative flex items-center gap-4 px-5 py-4 border-b transition-colors hover:bg-white/[0.03]"
-            style={{ borderColor: 'var(--prov-border)' }}>
-
-            <div className="relative flex-shrink-0">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm"
-                    style={{ background: `${meta.color}18`, color: meta.color }}>
-                    {initials}
+        <div className="rounded-2xl border p-4 flex items-center justify-between gap-3 transition-all relative hover:border-sky-500/30"
+            style={{ background: '#0a192f', borderColor: active ? 'rgba(56,189,248,.12)' : 'rgba(239,68,68,.2)' }}>
+            <div className="relative">
+                <div className="w-10 h-10 rounded-xl font-extrabold text-sm flex items-center justify-center border shrink-0"
+                    style={{
+                        background: active ? 'linear-[#0c2444]' : '#1a0d1a',
+                        color: active ? '#38bdf8' : '#ef4444',
+                        borderColor: active ? 'rgba(56,189,248,.25)' : 'rgba(239,68,68,.3)',
+                    }}>
+                    {member.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                 </div>
-                {!pending && (
-                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2"
-                        style={{ background: active ? '#22c55e' : '#9ca3af', borderColor: 'var(--prov-surface)' }} />
-                )}
+                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0a192f]"
+                    style={{ background: active ? '#10b981' : pending ? '#f59e0b' : '#ef4444' }} />
             </div>
 
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-bold text-sm" style={{ color: '#e2eaf4' }}>{member.name}</span>
-                    <RoleBadge role={member.role} />
+                    <RoleBadge role={member.role} catalog={catalog} />
                     {pending && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400">Invite Pending</span>}
                 </div>
                 <div className="text-xs mt-0.5" style={{ color: '#7ba3c8' }}>{member.email}</div>
+                <div className="text-[10px] mt-1 flex items-center gap-1" style={{ color: '#4a6f96' }}>
+                    <Clock size={9} /> Last active: {timeAgo(member.lastActive)}
+                </div>
             </div>
 
-            <div className="hidden lg:flex items-center gap-1.5 text-xs flex-shrink-0" style={{ color: '#3e5a78' }}>
-                <Clock size={11} />
-                {pending ? 'Awaiting response' : timeAgo(member.lastActive)}
-            </div>
-
-            <div className="hidden sm:block text-[10px] font-bold w-20 text-center flex-shrink-0"
-                style={{ color: active ? '#22c55e' : pending ? '#f59e0b' : '#9ca3af' }}>
-                {active ? '● Active' : pending ? '◌ Invited' : '○ Suspended'}
-            </div>
-
-            {isAdmin && !pending && (
-                <div className="relative flex-shrink-0">
-                    <button onClick={() => setMenuOpen(m => !m)} disabled={actionPending}
-                        className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-white/10 disabled:opacity-40">
-                        {actionPending ? <Loader2 size={14} className="animate-spin" style={{ color: '#7ba3c8' }} /> : <MoreVertical size={14} style={{ color: '#7ba3c8' }} />}
+            {isAdmin && member.role !== 'provider_admin' && (
+                <div className="relative">
+                    <button onClick={() => setMenuOpen(!menuOpen)} disabled={actionPending}
+                        className="p-2 rounded-xl transition-all border text-slate-400 hover:text-white"
+                        style={{ background: 'rgba(255,255,255,.04)', borderColor: 'rgba(255,255,255,.08)' }}>
+                        <MoreVertical size={15} />
                     </button>
+
                     {menuOpen && (
-                        <div className="absolute right-0 top-8 z-20 w-44 rounded-xl overflow-hidden shadow-2xl"
-                            style={{ background: '#0d2137', border: '1px solid rgba(56,189,248,.15)' }}>
-                            {active ? (
-                                <button onClick={() => { onSuspend(); setMenuOpen(false); }}
-                                    className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-semibold hover:bg-red-500/10 text-left"
-                                    style={{ color: '#f87171' }}>
-                                    <UserX size={12} /> Suspend Access
-                                </button>
-                            ) : (
-                                <button onClick={() => { onReactivate(); setMenuOpen(false); }}
-                                    className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-semibold hover:bg-emerald-500/10 text-left"
-                                    style={{ color: '#34d399' }}>
-                                    <UserCheck size={12} /> Reactivate
-                                </button>
-                            )}
-                        </div>
+                        <>
+                            <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
+                            <div className="absolute right-0 top-full mt-1 w-44 rounded-xl border p-1 z-20 shadow-2xl space-y-0.5"
+                                style={{ background: '#0c203b', borderColor: 'rgba(56,189,248,.2)' }}>
+                                {active ? (
+                                    <button onClick={() => { setMenuOpen(false); onSuspend(); }}
+                                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg text-rose-400 hover:bg-rose-500/10">
+                                        <UserX size={13} /> Suspend Member
+                                    </button>
+                                ) : (
+                                    <button onClick={() => { setMenuOpen(false); onReactivate(); }}
+                                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg text-emerald-400 hover:bg-emerald-500/10">
+                                        <UserCheck size={13} /> Reactivate Member
+                                    </button>
+                                )}
+                            </div>
+                        </>
                     )}
                 </div>
             )}
@@ -131,28 +144,62 @@ export function TeamManagementPage() {
     const { user } = useAuth();
     const [members, setMembers] = useState<TeamMember[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [search, setSearch] = useState('');
-    const [roleFilter, setRoleFilter] = useState('all');
-    const [showInvite, setShowInvite] = useState(false);
+    const [roleFilter, setRoleFilter] = useState<string>('all');
+    const [modalOpen, setModalOpen] = useState(false);
+
+    // Invite form
+    const [inviteName, setInviteName] = useState('');
     const [inviteEmail, setInviteEmail] = useState('');
     const [inviteRole, setInviteRole] = useState<MembershipRole>('clinician');
-    const [inviteName, setInviteName] = useState('');
     const [sending, setSending] = useState(false);
     const [sendError, setSendError] = useState<string | null>(null);
     const [sent, setSent] = useState(false);
     const [pendingAction, setPendingAction] = useState<string | null>(null);
+    // Which roles this facility's invite dropdown offers — fetched once
+    // per session. Null while loading; the invite button stays enabled
+    // but falls back to the full role list rather than blocking on it.
+    const [roleCatalog, setRoleCatalog] = useState<RoleCatalog | null>(null);
 
     const isAdmin = user?.roles?.includes('provider_admin') ?? true;
 
-    const fetchMembers = () => {
+    const fetchMembers = async () => {
         setLoading(true);
-        teamApi.listMembers()
-            .then(setMembers)
-            .catch((err) => console.warn('Could not load team members:', err))
-            .finally(() => setLoading(false));
+        setError(null);
+        try {
+            const data = await teamApi.listMembers();
+            setMembers(data);
+        } catch (err: any) {
+            setError(err.message || 'Failed to load team members');
+        } finally { setLoading(false); }
     };
 
     useEffect(() => { fetchMembers(); }, []);
+
+    useEffect(() => {
+        teamApi.getRoleCatalog()
+            .then((catalog) => {
+                setRoleCatalog(catalog);
+                if (catalog.roles.length && !catalog.roles.includes(inviteRole)) {
+                    setInviteRole(catalog.roles[0]);
+                }
+            })
+            .catch((err) => console.warn('Could not load role catalog:', err));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // The roles a new invite can be sent as — from the catalog once
+    // loaded, falling back to every non-admin invite role so the modal
+    // is never empty during the brief window before the catalog loads.
+    const inviteRoles: MembershipRole[] = roleCatalog?.roles
+        ?? (Object.keys(INVITE_ROLE_LABELS) as MembershipRole[]).filter(r => r !== 'doctor');
+
+    // Role filter chips: the current catalog, plus any role that
+    // already exists among fetched members (covers legacy members
+    // whose role predates a facility-type change, or fell outside the
+    // catalog for any other reason) — never hide someone's real role.
+    const filterRoles = Array.from(new Set([...inviteRoles, ...members.map(m => m.role)]));
 
     const filtered = members.filter(m => {
         const matchSearch = m.name.toLowerCase().includes(search.toLowerCase()) || m.email.toLowerCase().includes(search.toLowerCase());
@@ -160,204 +207,207 @@ export function TeamManagementPage() {
         return matchSearch && matchRole;
     });
 
-    const stats = {
-        total: members.length,
-        active: members.filter(m => m.status === 'active').length,
-        pending: members.filter(m => m.status === 'invited').length,
-        suspended: members.filter(m => m.status === 'suspended').length,
-    };
+    const activeCount = members.filter(m => m.status === 'active').length;
+    const pendingCount = members.filter(m => m.status === 'invited').length;
 
-    const suspend = async (membershipId: string) => {
-        setPendingAction(membershipId);
-        try {
-            await teamApi.suspend(membershipId);
-            fetchMembers();
-        } catch (err) {
-            console.warn('Could not suspend member:', err);
-        } finally {
-            setPendingAction(null);
-        }
-    };
-
-    const reactivate = async (membershipId: string) => {
-        setPendingAction(membershipId);
-        try {
-            await teamApi.reactivate(membershipId);
-            fetchMembers();
-        } catch (err) {
-            console.warn('Could not reactivate member:', err);
-        } finally {
-            setPendingAction(null);
-        }
-    };
-
-    const sendInvite = async () => {
-        setSending(true);
+    const handleSendInvite = async (e: React.FormEvent) => {
+        e.preventDefault();
         setSendError(null);
+        setSending(true);
         try {
-            await teamApi.invite({ email: inviteEmail, fullName: inviteName, membershipRole: inviteRole });
+            await teamApi.invite({ fullName: inviteName, email: inviteEmail, membershipRole: inviteRole });
             setSent(true);
-            fetchMembers();
+            setTimeout(() => {
+                setModalOpen(false);
+                setSent(false);
+                setInviteName('');
+                setInviteEmail('');
+                fetchMembers();
+            }, 1200);
         } catch (err: any) {
-            setSendError(err?.response?.data?.message || "Couldn't send the invite — try again.");
-        } finally {
-            setSending(false);
-        }
+            setSendError(err.message || 'Failed to send invite');
+        } finally { setSending(false); }
+    };
+
+    const suspend = async (id: string) => {
+        setPendingAction(id);
+        try {
+            await teamApi.suspend(id);
+            fetchMembers();
+        } catch (err: any) { setError(err.message); }
+        finally { setPendingAction(null); }
+    };
+
+    const reactivate = async (id: string) => {
+        setPendingAction(id);
+        try {
+            await teamApi.reactivate(id);
+            fetchMembers();
+        } catch (err: any) { setError(err.message); }
+        finally { setPendingAction(null); }
     };
 
     return (
-        <div className="animate-fade-in">
-            <div className="flex items-start justify-between mb-6">
+        <div className="min-h-screen p-4 md:p-8 space-y-6 text-slate-100 font-sans" style={{ background: '#050d1a' }}>
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="section-header font-display" style={{ color: '#e2eaf4' }}>Team Management</h1>
-                    <p className="text-sm" style={{ color: '#7ba3c8' }}>Access control & member roles</p>
+                    <h1 className="text-2xl font-black tracking-tight" style={{ color: '#e2eaf4' }}>
+                        Team & Personnel Management
+                    </h1>
+                    <p className="text-xs mt-1" style={{ color: '#7ba3c8' }}>
+                        Manage clinical staff, role-based access controls, and organization invitations.
+                    </p>
                 </div>
                 {isAdmin && (
-                    <button onClick={() => setShowInvite(true)} className="btn btn-provider gap-2">
-                        <Plus size={16} /> Invite Member
+                    <button onClick={() => setModalOpen(true)}
+                        className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs shadow-lg transition-all text-slate-950 bg-sky-400 hover:bg-sky-300">
+                        <Plus size={16} /> Invite Team Member
                     </button>
                 )}
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-                {[
-                    { label: 'Total Members', value: stats.total, icon: Users, color: '#38bdf8' },
-                    { label: 'Active', value: stats.active, icon: CheckCircle, color: '#22c55e' },
-                    { label: 'Invite Pending', value: stats.pending, icon: Clock, color: '#f59e0b' },
-                    { label: 'Suspended', value: stats.suspended, icon: AlertCircle, color: '#ef4444' },
-                ].map(s => (
-                    <div key={s.label} className="rounded-2xl border p-4 flex items-center gap-3"
-                        style={{ background: 'var(--prov-surface)', borderColor: 'var(--prov-border)' }}>
-                        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${s.color}18` }}>
-                            <s.icon size={18} style={{ color: s.color }} />
-                        </div>
-                        <div>
-                            <div className="text-2xl font-black" style={{ color: s.color }}>{s.value}</div>
-                            <div className="text-[10px] uppercase tracking-wider font-bold" style={{ color: '#3e5a78' }}>{s.label}</div>
-                        </div>
-                    </div>
-                ))}
+            {/* KPI Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="rounded-2xl border p-4" style={{ background: '#0a192f', borderColor: 'rgba(56,189,248,.12)' }}>
+                    <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: '#7ba3c8' }}>Total Staff</div>
+                    <div className="text-2xl font-black mt-1" style={{ color: '#38bdf8' }}>{members.length}</div>
+                </div>
+                <div className="rounded-2xl border p-4" style={{ background: '#0a192f', borderColor: 'rgba(16,185,129,.15)' }}>
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Active Members</div>
+                    <div className="text-2xl font-black mt-1 text-emerald-400">{activeCount}</div>
+                </div>
+                <div className="rounded-2xl border p-4" style={{ background: '#0a192f', borderColor: 'rgba(245,158,11,.15)' }}>
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-amber-400">Pending Invites</div>
+                    <div className="text-2xl font-black mt-1 text-amber-400">{pendingCount}</div>
+                </div>
+                <div className="rounded-2xl border p-4" style={{ background: '#0a192f', borderColor: 'rgba(168,85,247,.15)' }}>
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-purple-400">Your Role</div>
+                    <div className="text-sm font-black mt-2 text-purple-300 capitalize">{user?.roles?.[0]?.replace('_', ' ') ?? 'Admin'}</div>
+                </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 mb-4">
-                <div className="relative flex-1 min-w-40">
-                    <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#3e5a78' }} />
-                    <input value={search} onChange={e => setSearch(e.target.value)}
-                        placeholder="Search by name or email…"
+            {/* Filters & Search */}
+            <div className="rounded-2xl border p-4 space-y-3" style={{ background: '#0a192f', borderColor: 'rgba(56,189,248,.12)' }}>
+                <div className="relative">
+                    <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#4a6f96' }} />
+                    <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+                        placeholder="Search by name or email..."
                         className="input input-dark w-full text-xs" style={{ paddingLeft: '2rem' }} />
                 </div>
                 <div className="flex gap-1 flex-wrap">
-                    {['all', ...Object.keys(ROLE_META)].map(r => (
+                    {['all', ...filterRoles].map(r => (
                         <button key={r} onClick={() => setRoleFilter(r)}
                             className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
                             style={{
                                 background: roleFilter === r ? '#38bdf8' : 'rgba(56,189,248,.06)',
                                 color: roleFilter === r ? '#050d1a' : '#7ba3c8',
                             }}>
-                            {r === 'all' ? 'All Roles' : ROLE_META[r]?.label}
+                            {r === 'all' ? 'All Roles' : labelForRole(r, roleCatalog)}
                         </button>
                     ))}
                 </div>
             </div>
 
-            <div className="rounded-2xl overflow-hidden border" style={{ borderColor: 'var(--prov-border)' }}>
-                <div className="grid px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest"
-                    style={{ background: 'rgba(255,255,255,.02)', color: '#3e5a78', borderBottom: '1px solid var(--prov-border)', gridTemplateColumns: '1fr auto auto auto' }}>
-                    <div>Member</div>
-                    <div className="hidden lg:block w-24">Last Active</div>
-                    <div className="hidden sm:block w-20 text-center">Status</div>
-                    <div />
+            {/* Error state */}
+            {error && (
+                <div className="p-4 rounded-xl border flex items-center justify-between text-xs text-rose-400"
+                    style={{ background: 'rgba(239,68,68,.1)', borderColor: 'rgba(239,68,68,.2)' }}>
+                    <span>{error}</span>
+                    <button onClick={fetchMembers} className="font-bold underline">Retry</button>
                 </div>
+            )}
 
+            {/* Member List */}
+            <div className="space-y-2">
                 {loading ? (
-                    <div className="py-16 text-center" style={{ color: '#3e5a78' }}>
-                        <Loader2 size={24} className="mx-auto mb-3 animate-spin" />
+                    <div className="p-12 text-center text-xs animate-pulse" style={{ color: '#7ba3c8' }}>
+                        Loading team directory...
                     </div>
                 ) : filtered.length === 0 ? (
-                    <div className="py-16 text-center" style={{ color: '#3e5a78' }}>
-                        <Users size={32} className="mx-auto mb-3 opacity-30" />
-                        <p className="text-sm">{members.length === 0 ? 'No team members yet.' : 'No members match your filter.'}</p>
+                    <div className="p-12 text-center text-xs rounded-2xl border" style={{ background: '#0a192f', borderColor: 'rgba(56,189,248,.08)', color: '#4a6f96' }}>
+                        No members match your filter criteria.
                     </div>
                 ) : filtered.map(m => (
-                    <MemberCard
-                        key={m.userId}
-                        member={m}
-                        isAdmin={isAdmin}
+                    <MemberCard key={m.membershipId ?? m.inviteId ?? m.userId} member={m} isAdmin={isAdmin}
                         actionPending={pendingAction === m.membershipId}
                         onSuspend={() => m.membershipId && suspend(m.membershipId)}
                         onReactivate={() => m.membershipId && reactivate(m.membershipId)}
+                        catalog={roleCatalog}
                     />
                 ))}
             </div>
 
-            {showInvite && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-                    style={{ background: 'rgba(0,0,0,.65)', backdropFilter: 'blur(6px)' }}>
-                    <div className="w-full max-w-sm rounded-2xl animate-fade-in-up overflow-hidden"
-                        style={{ background: 'var(--prov-surface)', border: '1px solid rgba(56,189,248,.2)' }}>
-                        <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg,#38bdf8,#a855f7)' }} />
-                        <div className="p-6">
-                            <div className="flex items-center justify-between mb-5">
-                                <h3 className="font-bold text-base" style={{ color: '#e2eaf4' }}>Invite Team Member</h3>
-                                <button onClick={() => { setShowInvite(false); setSent(false); setSendError(null); }}
-                                    className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-white/10">
-                                    <X size={14} style={{ color: '#7ba3c8' }} />
-                                </button>
-                            </div>
+            {/* Invite Modal */}
+            {modalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(5,13,26,.8)', backdropFilter: 'blur(4px)' }}>
+                    <div className="w-full max-w-md rounded-3xl border p-6 space-y-4 shadow-2xl relative"
+                        style={{ background: '#0c203b', borderColor: 'rgba(56,189,248,.2)' }}>
+                        <div className="flex items-center justify-between">
+                            <h3 className="font-black text-lg" style={{ color: '#e2eaf4' }}>Invite Team Member</h3>
+                            <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-white"><X size={18} /></button>
+                        </div>
 
-                            <div className="space-y-4">
+                        {sent ? (
+                            <div className="p-8 text-center space-y-2">
+                                <CheckCircle size={40} className="mx-auto text-emerald-400 animate-bounce" />
+                                <div className="font-bold text-sm text-emerald-400">Invitation Sent!</div>
+                                <p className="text-xs" style={{ color: '#7ba3c8' }}>An email invitation link has been dispatched to {inviteEmail}.</p>
+                            </div>
+                        ) : (
+                            <form onSubmit={handleSendInvite} className="space-y-4">
                                 <div>
                                     <label className="block text-xs font-semibold mb-1.5" style={{ color: '#7ba3c8' }}>Full Name</label>
-                                    <input value={inviteName} onChange={e => setInviteName(e.target.value)}
-                                        className="input input-dark w-full" placeholder="Dr. Jane Oseji" />
+                                    <input type="text" required value={inviteName} onChange={e => setInviteName(e.target.value)}
+                                        placeholder="Dr. Jane Doe" className="input input-dark w-full text-xs" />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold mb-1.5" style={{ color: '#7ba3c8' }}>Work Email</label>
-                                    <div className="relative">
-                                        <Mail size={13} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#3e5a78' }} />
-                                        <input type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}
-                                            className="input input-dark w-full" style={{ paddingLeft: '2.1rem' }}
-                                            placeholder="doctor@hospital.ng" />
-                                    </div>
+                                    <label className="block text-xs font-semibold mb-1.5" style={{ color: '#7ba3c8' }}>Email Address</label>
+                                    <input type="email" required value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}
+                                        placeholder="jane.doe@hospital.com" className="input input-dark w-full text-xs" />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-semibold mb-1.5" style={{ color: '#7ba3c8' }}>Role</label>
                                     <div className="grid grid-cols-2 gap-2">
-                                        {INVITE_ROLES.map(r => {
-                                            const m = ROLE_META[r.value];
+                                        {inviteRoles.map(role => {
+                                            const m = ROLE_META[role];
+                                            const label = labelForRole(role, roleCatalog);
                                             return (
-                                                <button key={r.value} onClick={() => setInviteRole(r.value)}
+                                                <button key={role} type="button" onClick={() => setInviteRole(role)}
                                                     className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-left border transition-all"
                                                     style={{
-                                                        borderColor: inviteRole === r.value ? (m?.color ?? '#38bdf8') : 'rgba(56,189,248,.12)',
-                                                        background: inviteRole === r.value ? `${m?.color ?? '#38bdf8'}18` : 'transparent',
-                                                        color: inviteRole === r.value ? (m?.color ?? '#38bdf8') : '#7ba3c8',
+                                                        borderColor: inviteRole === role ? (m?.color ?? '#38bdf8') : 'rgba(56,189,248,.12)',
+                                                        background: inviteRole === role ? `${m?.color ?? '#38bdf8'}18` : 'transparent',
+                                                        color: inviteRole === role ? (m?.color ?? '#38bdf8') : '#7ba3c8',
                                                     }}>
                                                     {m?.icon}
-                                                    {r.label}
+                                                    {label}
                                                 </button>
                                             );
                                         })}
                                     </div>
                                 </div>
 
-                                {sent ? (
-                                    <div className="rounded-xl p-3 text-sm text-center" style={{ background: 'rgba(52,211,153,0.1)', color: '#34d399', border: '1px solid rgba(52,211,153,0.2)' }}>
-                                        Invite sent to {inviteEmail}.
+                                {sendError && (
+                                    <div className="p-3 rounded-xl border text-xs text-rose-400 flex items-center gap-2"
+                                        style={{ background: 'rgba(239,68,68,.1)', borderColor: 'rgba(239,68,68,.2)' }}>
+                                        <AlertTriangle size={14} /> {sendError}
                                     </div>
-                                ) : (
-                                    <>
-                                        <button onClick={sendInvite}
-                                            disabled={!inviteEmail.includes('@') || !inviteName || sending}
-                                            className="btn btn-provider w-full justify-center gap-2 disabled:opacity-40">
-                                            {sending ? <Loader2 size={15} className="animate-spin" /> : <Mail size={15} />}
-                                            {sending ? 'Sending…' : 'Send Secure Invite'}
-                                        </button>
-                                        {sendError && <p className="text-xs text-center" style={{ color: '#f87171' }}>{sendError}</p>}
-                                    </>
                                 )}
-                            </div>
-                        </div>
+
+                                <div className="flex gap-2 pt-2">
+                                    <button type="button" onClick={() => setModalOpen(false)}
+                                        className="flex-1 py-2.5 rounded-xl font-bold text-xs border text-slate-300 hover:text-white"
+                                        style={{ borderColor: 'rgba(255,255,255,.1)' }}>
+                                        Cancel
+                                    </button>
+                                    <button type="submit" disabled={sending}
+                                        className="flex-1 py-2.5 rounded-xl font-bold text-xs text-slate-950 bg-sky-400 hover:bg-sky-300 disabled:opacity-50">
+                                        {sending ? 'Sending Invite...' : 'Send Invitation'}
+                                    </button>
+                                </div>
+                            </form>
+                        )}
                     </div>
                 </div>
             )}

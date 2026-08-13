@@ -35,7 +35,23 @@ export interface InviteInfo {
   membershipRole: MembershipRole;
 }
 
+export interface RoleCatalog {
+  organizationType: string | null;
+  clinicalScope: string;
+  roles: MembershipRole[];
+  labelOverrides: Partial<Record<MembershipRole, string>>;
+}
+
 export const teamApi = {
+  // Which roles this facility can invite, based on its organization
+  // type (and clinical scope, for eye-care-only facilities). Drives
+  // the role picker in the invite modal and the role filter chips —
+  // a diagnostic lab shouldn't see "Nurse" as an option.
+  getRoleCatalog: async (): Promise<RoleCatalog> => {
+    const res: any = await apiClient.get('/team/role-catalog');
+    return res?.data;
+  },
+
   listMembers: async (): Promise<TeamMember[]> => {
     const res: any = await apiClient.get('/team/members');
     return res?.data || [];
