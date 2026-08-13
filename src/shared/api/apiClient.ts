@@ -1,5 +1,6 @@
 import axios from "axios";
 import Cookies from "js-cookie";
+import { handleSessionExpired } from "@/shared/utils/sessionExpired";
 
 // Deliberately appends /api/v1 here rather than relying on
 // VITE_API_BASE_URL to already include it. The env var is the bare
@@ -39,6 +40,10 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response.data,
   (error) => {
+    if (error?.response?.status === 401) {
+      handleSessionExpired();
+    }
+
     const message =
       error?.response?.data?.message ||
       error.message ||
