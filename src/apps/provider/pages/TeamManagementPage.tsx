@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/shared/auth/AuthProvider';
-import { teamApi, TeamMember, MembershipRole, RoleCatalog } from '@/shared/api/teamApi';
+import { teamApi, TeamMember, MembershipRole, RoleCatalog, PermissionRegistry } from '@/shared/api/teamApi';
 import {
     Plus, Mail, X, CheckCircle, Shield, Clock, Activity,
     MoreVertical, UserCheck, UserX, Key, Search,
     Users, FlaskConical, Stethoscope, AlertTriangle, Pill, UserCog, UserCheck as UserIcon,
+    Loader2, ChevronDown, ChevronUp,
 } from 'lucide-react';
 
 /* ─── Role config ────────────────────────────────────────────────────── */
@@ -66,19 +67,115 @@ function RoleBadge({ role, catalog }: { role: string; catalog: RoleCatalog | nul
     );
 }
 
+/* ─── Access panel ───────────────────────────────────────────────────── */
+// Per-member permission overrides on top of the role default. Checkbox
+// state reflects the member's current effective permissions; toggling
+// one off a role default records it as revoked, toggling one on that
+// isn't in the default records it as granted. Saved as the full
+// granted/revoked arrays each time — see teamApi.updateMemberPermissions.
+function AccessPanel({
+    member, registry, onSaved,
+}: {
+    member: TeamMember; registry: PermissionRegistry; onSaved: (permissions: string[], overrides: { granted: string[]; revoked: string[] }) => void;
+}) {
+    const roleDefaults = registry.roleDefaults[member.role] ?? [];
+    const [checked, setChecked] = useState<Set<string>>(new Set(member.permissions));
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [saved, setSaved] = useState(false);
+
+    const toggle = (key: string) => {
+        setSaved(false);
+        setChecked(prev => {
+            const next = new Set(prev);
+            if (next.has(key)) next.delete(key); else next.add(key);
+            return next;
+        });
+    };
+
+    const save = async () => {
+        setSaving(true);
+        setError(null);
+        const granted = [...checked].filter(k => !roleDefaults.includes(k));
+        const revoked = roleDefaults.filter(k => !checked.has(k));
+        try {
+            const result = await teamApi.updateMemberPermissions(member.membershipId!, granted, revoked);
+            onSaved(result.permissions, result.permissionOverrides);
+            setSaved(true);
+            setTimeout(() => setSaved(false), 2500);
+        } catch (err: any) {
+            setError(err?.response?.data?.message || "Couldn't save access — try again.");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const dirty = (() => {
+        const granted = [...checked].filter(k => !roleDefaults.includes(k)).sort();
+        const revoked = roleDefaults.filter(k => !checked.has(k)).sort();
+        const currentGranted = [...(member.permissionOverrides?.granted ?? [])].sort();
+        const currentRevoked = [...(member.permissionOverrides?.revoked ?? [])].sort();
+        return JSON.stringify(granted) !== JSON.stringify(currentGranted) || JSON.stringify(revoked) !== JSON.stringify(currentRevoked);
+    })();
+
+    return (
+        <div className="mt-2 rounded-2xl border p-4 space-y-4" style={{ background: '#081426', borderColor: 'rgba(56,189,248,.12)' }}>
+            {registry.categories.map(cat => {
+                const keysInCategory = Object.entries(registry.permissions).filter(([, v]) => v.category === cat.key);
+                if (!keysInCategory.length) return null;
+                return (
+                    <div key={cat.key}>
+                        <div className="text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color: '#4a6f96' }}>{cat.label}</div>
+                        <div className="grid sm:grid-cols-2 gap-1.5">
+                            {keysInCategory.map(([key, info]) => (
+                                <label key={key} className="flex items-start gap-2 text-xs cursor-pointer select-none"
+                                    style={{ color: checked.has(key) ? '#e2eaf4' : '#4a6f96' }}>
+                                    <input type="checkbox" checked={checked.has(key)} onChange={() => toggle(key)}
+                                        className="mt-0.5 accent-sky-400" />
+                                    <span>
+                                        {info.label}
+                                        {roleDefaults.includes(key) && (
+                                            <span className="ml-1.5 text-[9px] font-semibold" style={{ color: '#3e5a78' }}>(default)</span>
+                                        )}
+                                    </span>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+                );
+            })}
+
+            <div className="flex items-center gap-3 pt-1">
+                <button onClick={save} disabled={!dirty || saving}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-950 bg-sky-400 hover:bg-sky-300 disabled:opacity-40">
+                    {saving ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle size={13} />}
+                    {saving ? 'Saving…' : 'Save access'}
+                </button>
+                {saved && <span className="text-xs" style={{ color: '#34d399' }}>Saved.</span>}
+                {error && <span className="text-xs" style={{ color: '#f87171' }}>{error}</span>}
+            </div>
+        </div>
+    );
+}
+
 /* ─── Member card ────────────────────────────────────────────────────── */
 function MemberCard({
-    member, isAdmin, onSuspend, onReactivate, actionPending, catalog,
+    member, isAdmin, onSuspend, onReactivate, actionPending, catalog, registry, onPermissionsSaved,
 }: {
     member: TeamMember; isAdmin: boolean;
     onSuspend: () => void; onReactivate: () => void;
     actionPending: boolean; catalog: RoleCatalog | null;
+    registry: PermissionRegistry | null;
+    onPermissionsSaved: (membershipId: string, permissions: string[], overrides: { granted: string[]; revoked: string[] }) => void;
 }) {
     const [menuOpen, setMenuOpen] = useState(false);
+    const [accessOpen, setAccessOpen] = useState(false);
     const active = member.status === 'active';
     const pending = member.status === 'invited';
+    const canManageAccess = isAdmin && !pending && member.role !== 'provider_admin' && member.membershipId && registry;
 
     return (
+        <div>
         <div className="rounded-2xl border p-4 flex items-center justify-between gap-3 transition-all relative hover:border-sky-500/30"
             style={{ background: '#0a192f', borderColor: active ? 'rgba(56,189,248,.12)' : 'rgba(239,68,68,.2)' }}>
             <div className="relative">
@@ -106,6 +203,15 @@ function MemberCard({
                 </div>
             </div>
 
+            {canManageAccess && (
+                <button onClick={() => setAccessOpen(o => !o)}
+                    className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border transition-all text-slate-400 hover:text-white"
+                    style={{ background: 'rgba(255,255,255,.04)', borderColor: 'rgba(255,255,255,.08)' }}>
+                    <Key size={12} /> Access
+                    {accessOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                </button>
+            )}
+
             {isAdmin && member.role !== 'provider_admin' && (
                 <div className="relative">
                     <button onClick={() => setMenuOpen(!menuOpen)} disabled={actionPending}
@@ -119,6 +225,12 @@ function MemberCard({
                             <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
                             <div className="absolute right-0 top-full mt-1 w-44 rounded-xl border p-1 z-20 shadow-2xl space-y-0.5"
                                 style={{ background: '#0c203b', borderColor: 'rgba(56,189,248,.2)' }}>
+                                {canManageAccess && (
+                                    <button onClick={() => { setMenuOpen(false); setAccessOpen(true); }}
+                                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg text-sky-400 hover:bg-sky-500/10 sm:hidden">
+                                        <Key size={13} /> Manage Access
+                                    </button>
+                                )}
                                 {active ? (
                                     <button onClick={() => { setMenuOpen(false); onSuspend(); }}
                                         className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg text-rose-400 hover:bg-rose-500/10">
@@ -135,6 +247,14 @@ function MemberCard({
                     )}
                 </div>
             )}
+        </div>
+        {accessOpen && canManageAccess && registry && (
+            <AccessPanel
+                member={member}
+                registry={registry}
+                onSaved={(permissions, overrides) => onPermissionsSaved(member.membershipId!, permissions, overrides)}
+            />
+        )}
         </div>
     );
 }
@@ -161,6 +281,9 @@ export function TeamManagementPage() {
     // per session. Null while loading; the invite button stays enabled
     // but falls back to the full role list rather than blocking on it.
     const [roleCatalog, setRoleCatalog] = useState<RoleCatalog | null>(null);
+    // The permission key catalog + role defaults, fetched once — feeds
+    // the "Access" panel on every member row.
+    const [permissionRegistry, setPermissionRegistry] = useState<PermissionRegistry | null>(null);
 
     const isAdmin = user?.roles?.includes('provider_admin') ?? true;
 
@@ -188,6 +311,20 @@ export function TeamManagementPage() {
             .catch((err) => console.warn('Could not load role catalog:', err));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        teamApi.getPermissionRegistry()
+            .then(setPermissionRegistry)
+            .catch((err) => console.warn('Could not load permission registry:', err));
+    }, []);
+
+    // Updates the one member's permissions in place after a save, so
+    // the row reflects the new state without a full refetch.
+    const handlePermissionsSaved = (membershipId: string, permissions: string[], overrides: { granted: string[]; revoked: string[] }) => {
+        setMembers(prev => prev.map(m => m.membershipId === membershipId
+            ? { ...m, permissions, permissionOverrides: overrides }
+            : m));
+    };
 
     // The roles a new invite can be sent as — from the catalog once
     // loaded, falling back to every non-admin invite role so the modal
@@ -334,6 +471,8 @@ export function TeamManagementPage() {
                         onSuspend={() => m.membershipId && suspend(m.membershipId)}
                         onReactivate={() => m.membershipId && reactivate(m.membershipId)}
                         catalog={roleCatalog}
+                        registry={permissionRegistry}
+                        onPermissionsSaved={handlePermissionsSaved}
                     />
                 ))}
             </div>

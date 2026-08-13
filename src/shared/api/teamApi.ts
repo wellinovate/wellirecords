@@ -19,6 +19,7 @@ export interface TeamMember {
   email: string;
   role: MembershipRole;
   permissions: string[];
+  permissionOverrides?: { granted: string[]; revoked: string[] };
   status: 'active' | 'suspended' | 'invited';
   lastActive: string | null;
 }
@@ -42,6 +43,22 @@ export interface RoleCatalog {
   labelOverrides: Partial<Record<MembershipRole, string>>;
 }
 
+export interface PermissionInfo {
+  label: string;
+  category: string;
+}
+
+export interface PermissionCategory {
+  key: string;
+  label: string;
+}
+
+export interface PermissionRegistry {
+  categories: PermissionCategory[];
+  permissions: Record<string, PermissionInfo>;
+  roleDefaults: Record<string, string[]>;
+}
+
 export const teamApi = {
   // Which roles this facility can invite, based on its organization
   // type (and clinical scope, for eye-care-only facilities). Drives
@@ -49,6 +66,22 @@ export const teamApi = {
   // a diagnostic lab shouldn't see "Nurse" as an option.
   getRoleCatalog: async (): Promise<RoleCatalog> => {
     const res: any = await apiClient.get('/team/role-catalog');
+    return res?.data;
+  },
+
+  // The full permission key catalog, grouped by category, with
+  // labels — used to render the "Access" panel on each member row.
+  getPermissionRegistry: async (): Promise<PermissionRegistry> => {
+    const res: any = await apiClient.get('/team/permissions');
+    return res?.data;
+  },
+
+  // Grant or revoke individual permissions for one member, on top of
+  // their role's default set. Sending the full desired granted/revoked
+  // arrays each time (not a single toggle) keeps the client and server
+  // in sync without needing a diff.
+  updateMemberPermissions: async (membershipId: string, granted: string[], revoked: string[]) => {
+    const res: any = await apiClient.patch(`/team/members/${membershipId}/permissions`, { granted, revoked });
     return res?.data;
   },
 
