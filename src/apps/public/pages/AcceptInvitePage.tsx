@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { teamApi, InviteInfo } from "@/shared/api/teamApi";
 import { WelliRecordLogo } from "@/shared/ui/WelliRecordLogo";
 import {
-  CheckCircle2, AlertCircle, RefreshCw, Lock, Sparkles,
+  CheckCircle2, AlertCircle, RefreshCw, Lock, Sparkles, Phone,
 } from "lucide-react";
 
 export function AcceptInvitePage() {
@@ -16,6 +16,7 @@ export function AcceptInvitePage() {
   const [error, setError] = useState<string | null>(null);
   const [invite, setInvite] = useState<InviteInfo | null>(null);
   const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
@@ -30,11 +31,11 @@ export function AcceptInvitePage() {
   }, [token]);
 
   const handleAccept = async () => {
-    if (!token || password.length < 8) return;
+    if (!token || password.length < 8 || phone.trim().length < 10) return;
     setAccepting(true);
     setError(null);
     try {
-      await teamApi.acceptInvite(token, password);
+      await teamApi.acceptInvite(token, password, phone.trim());
       setSuccess(true);
       setTimeout(() => navigate("/auth/login"), 2000);
     } catch (err: any) {
@@ -113,11 +114,26 @@ export function AcceptInvitePage() {
               </div>
             </div>
 
+            <div>
+              <label className="block text-xs font-semibold mb-1.5 text-slate-400">Phone number</label>
+              <div className="relative">
+                <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="08012345678"
+                  className="w-full rounded-xl bg-slate-800 border border-slate-700 pl-9 pr-3 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none focus:border-sky-500"
+                />
+              </div>
+              <p className="text-xs text-slate-500 mt-1.5">Logging in sends a code to this number to verify it's you.</p>
+            </div>
+
             {error && <p className="text-xs text-rose-400">{error}</p>}
 
             <button
               onClick={handleAccept}
-              disabled={password.length < 8 || accepting}
+              disabled={password.length < 8 || phone.trim().length < 10 || accepting}
               className="w-full py-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-sm transition disabled:opacity-40"
             >
               {accepting ? "Accepting…" : "Accept Invitation"}

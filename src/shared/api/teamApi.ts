@@ -127,8 +127,8 @@ export const teamApi = {
     return res?.data;
   },
 
-  acceptInvite: async (token: string, password: string) => {
-    const res: any = await apiClient.post(`/team/invite/${token}/accept`, { password });
+  acceptInvite: async (token: string, password: string, phone: string) => {
+    const res: any = await apiClient.post(`/team/invite/${token}/accept`, { password, phone });
     return res?.data;
   },
 };
