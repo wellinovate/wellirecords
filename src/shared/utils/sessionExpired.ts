@@ -28,7 +28,10 @@ let handling = false;
  */
 export function handleSessionExpired() {
   if (handling) return;
-  if (window.location.pathname.startsWith(LOGIN_ROUTE)) return;
+  if (typeof window === "undefined") return;
+
+  const onAuthPage = window.location.pathname.startsWith("/auth/");
+  if (onAuthPage) return;
 
   handling = true;
 
@@ -38,5 +41,9 @@ export function handleSessionExpired() {
   localStorage.removeItem("welli_onboarded");
   localStorage.removeItem("wallet_onboarded");
 
-  window.location.href = LOGIN_ROUTE;
+  const loginPath = window.location.pathname.startsWith("/provider")
+    ? "/auth/provider/login"
+    : "/auth/login";
+
+  window.location.href = `${loginPath}?sessionExpired=1`;
 }

@@ -40,7 +40,9 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    if (error?.response?.status === 401) {
+    const status = error?.response?.status;
+
+    if (status === 401) {
       handleSessionExpired();
     }
 
@@ -51,7 +53,7 @@ apiClient.interceptors.response.use(
 
     return Promise.reject({
       message,
-      status: error?.response?.status,
+      status,
       errors: error?.response?.data?.errors,
     });
   },
