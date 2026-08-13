@@ -331,8 +331,8 @@ const ProviderSupportPage = lazy(() =>
     default: m.ProviderSupportPage,
   })),
 );
-const BestDoctorsPage = lazy(
-  () => import("./apps/provider/pages/BestDoctorsPage"),
+const DoctorsPage = lazy(
+  () => import("./apps/provider/pages/DoctorsPage"),
 );
 const ProviderAppointmentsPage = lazy(
   () => import("./apps/provider/pages/ProviderAppointmentsPage"),
@@ -648,7 +648,7 @@ export function AppRoutes() {
           <Route index element={<Navigate to="overview" replace />} />
           <Route path="overview" element={<ProviderDashboard />} />
           <Route path="patients" element={<PatientListPage />} />
-          <Route path="doctors" element={<BestDoctorsPage />} />
+          <Route path="doctors" element={<DoctorsPage />} />
           <Route path="vision" element={<ProviderVisionPage />} />
           <Route path="patients/:id" element={<EHRViewerPage />} />
           <Route path="appointments" element={<ProviderAppointmentsPage />} />
