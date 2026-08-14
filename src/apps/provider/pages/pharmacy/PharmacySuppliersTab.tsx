@@ -199,14 +199,35 @@ export function PharmacySuppliersTab({ triggerToast }: { triggerToast: (msg: str
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">Payment Terms</label>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Address</label>
                 <input
                   type="text"
-                  placeholder="e.g. Net 30"
-                  value={form.paymentTerms}
-                  onChange={(e) => setForm({ ...form, paymentTerms: e.target.value })}
+                  value={form.address}
+                  onChange={(e) => setForm({ ...form, address: e.target.value })}
                   className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white"
                 />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Payment Terms</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Net 30"
+                    value={form.paymentTerms}
+                    onChange={(e) => setForm({ ...form, paymentTerms: e.target.value })}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Credit Limit (₦)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={form.creditLimit}
+                    onChange={(e) => setForm({ ...form, creditLimit: Number(e.target.value) })}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white"
+                  />
+                </div>
               </div>
               <div className="flex justify-end gap-2 pt-2">
                 <button

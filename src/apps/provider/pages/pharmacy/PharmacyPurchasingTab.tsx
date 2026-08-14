@@ -441,7 +441,7 @@ export function PharmacyPurchasingTab({ triggerToast }: { triggerToast: (msg: st
                 {receiptLines.map((rl, i) => (
                   <div key={i} className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
                     <div className="font-bold text-xs text-white">{rl.productName}</div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
                       <div>
                         <label className="block text-[10px] font-bold text-slate-400 mb-1">Batch Number</label>
                         <input
@@ -471,6 +471,16 @@ export function PharmacyPurchasingTab({ triggerToast }: { triggerToast: (msg: st
                           required
                           value={rl.expiryDate}
                           onChange={(e) => updateReceiptLine(i, { expiryDate: e.target.value })}
+                          className="w-full p-2 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-400 mb-1">Cost Price (₦)</label>
+                        <input
+                          type="number"
+                          min={0}
+                          value={rl.costPrice}
+                          onChange={(e) => updateReceiptLine(i, { costPrice: Number(e.target.value) })}
                           className="w-full p-2 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white"
                         />
                       </div>
