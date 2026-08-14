@@ -365,6 +365,7 @@ export function PatientOverview() {
   const [activeRecordType, setActiveRecordType] = useState<string | null>(null);
   const [bloodGroup, setBloodGroup] = useState<string | null>(null);
   const [genotype, setGenotype] = useState<string | null>(null);
+  const [wrId, setWrId] = useState<string | null>(null);
   const [confirmedNone, setConfirmedNone] = useState<{
     allergies?: boolean;
     medications?: boolean;
@@ -379,6 +380,19 @@ export function PatientOverview() {
   const handleToggleVisionDashboard = (enabled: boolean) => {
     setShowVisionOnDashboard(enabled);
     localStorage.setItem("wr_show_vision_on_dashboard", enabled ? "1" : "0");
+  };
+
+  const [showWrId, setShowWrId] = useState<boolean>(() => {
+    const saved = localStorage.getItem("wr_show_wr_id_on_dashboard");
+    return saved !== "0"; // default to shown
+  });
+
+  const handleToggleWrId = () => {
+    setShowWrId((prev) => {
+      const next = !prev;
+      localStorage.setItem("wr_show_wr_id_on_dashboard", next ? "1" : "0");
+      return next;
+    });
   };
 
   const patientId = user?.sub;
@@ -417,6 +431,7 @@ export function PatientOverview() {
           setEmergencyContacts(Array.isArray(profile?.emergencyContacts) ? profile.emergencyContacts : []);
           setBloodGroup(profile?.bloodGroup ?? null);
           setGenotype(profile?.genotype ?? null);
+          setWrId(profile?.wrId ?? null);
           setConfirmedNone(profile?.confirmedNone ?? null);
         })
         .catch(() => setEmergencyContacts([]));
@@ -495,6 +510,23 @@ export function PatientOverview() {
           <h1 className="text-2xl font-bold text-white tracking-tight">
             Hello, {firstName}
           </h1>
+          {wrId && (
+            <div className="flex items-center gap-1.5 mt-1">
+              <span className="text-xs font-mono tracking-wide" style={{ color: "#7ba3c8" }}>
+                {showWrId ? wrId : "WR-••••-••••"}
+              </span>
+              <button
+                type="button"
+                onClick={handleToggleWrId}
+                className="p-0.5 rounded transition-colors hover:bg-white/10"
+                style={{ color: "#7ba3c8" }}
+                aria-label={showWrId ? "Hide WelliRecord ID" : "Show WelliRecord ID"}
+                title={showWrId ? "Hide WelliRecord ID" : "Show WelliRecord ID"}
+              >
+                {showWrId ? <EyeOff size={12} /> : <Eye size={12} />}
+              </button>
+            </div>
+          )}
           <p className="text-sm mt-1 flex items-center gap-1.5" style={{ color: "#7ba3c8" }}>
             <Shield size={13} style={{ color: "#38bdf8" }} />
             Your records are private and securely stored.
