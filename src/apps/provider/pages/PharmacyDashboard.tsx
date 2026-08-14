@@ -239,10 +239,8 @@ export function PharmacyDashboard() {
     const pendingCount = inboundRx.filter((r) => r.status === "pending").length;
     const lowStockCount = inventorySummary?.lowStock ?? 0;
     const expiredCount = inventorySummary?.expired ?? 0;
-    const revenueToday = 345000;
-    const outstanding = 48500;
-    return { totalRx, dispensedCount, pendingCount, lowStockCount, expiredCount, revenueToday, outstanding };
-  }, [inboundRx, medications, inventory]);
+    return { totalRx, dispensedCount, pendingCount, lowStockCount, expiredCount };
+  }, [inboundRx, medications, inventorySummary]);
 
   // Handle Dispense Submission
   const handleConfirmDispense = async () => {
