@@ -293,7 +293,15 @@ export function DoctorsPage() {
     const [pendingAction, setPendingAction] = useState<string | null>(null);
     const [permissionRegistry, setPermissionRegistry] = useState<PermissionRegistry | null>(null);
 
-    const isAdmin = user?.roles?.includes('provider_admin') ?? true;
+    // user.roles (plural array) is never populated by the login flow —
+    // ProviderLoginPage only ever sets user.role (singular), which the
+    // backend always fills correctly for provider accounts ("provider_admin"
+    // for the org owner, the staff role otherwise — see
+    // registerOrganizationAccount / acceptInviteService). The previous
+    // check here fell back to `?? true` whenever `.roles` was undefined,
+    // which was every login, meaning every doctor saw full admin controls
+    // (Invite Doctor, suspend, manage access) regardless of role.
+    const isAdmin = (user as any)?.role === 'provider_admin';
 
     const fetchDoctors = async () => {
         setLoading(true);

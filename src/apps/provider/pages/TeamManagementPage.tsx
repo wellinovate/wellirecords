@@ -285,7 +285,10 @@ export function TeamManagementPage() {
     // the "Access" panel on every member row.
     const [permissionRegistry, setPermissionRegistry] = useState<PermissionRegistry | null>(null);
 
-    const isAdmin = user?.roles?.includes('provider_admin') ?? true;
+    // See DoctorsPage.tsx for why this checks user.role (singular) and
+    // not user.roles — the plural field is never populated by the login
+    // flow, so `?? true` here was making every non-admin an admin.
+    const isAdmin = (user as any)?.role === 'provider_admin';
 
     const fetchMembers = async () => {
         setLoading(true);

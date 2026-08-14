@@ -115,7 +115,10 @@ export function ProviderSettingsPage() {
     const [org, setOrg] = useState<MyOrganization | null>(null);
     const [loading, setLoading] = useState(true);
 
-    const isAdmin = user?.roles?.includes('provider_admin') ?? true;
+    // See DoctorsPage.tsx for why this checks user.role (singular) and
+    // not user.roles — the plural field is never populated by the login
+    // flow, so `?? true` here was making every non-admin an admin.
+    const isAdmin = (user as any)?.role === 'provider_admin';
 
     useEffect(() => {
         getMyOrganization()

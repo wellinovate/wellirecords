@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useAuth } from '@/shared/auth/AuthProvider';
 import { teamApi, TeamMember, PermissionRegistry } from '@/shared/api/teamApi';
 import { getMyOrganization, MyOrganization } from '@/shared/api/organizationApi';
 import { AccessPanel } from '@/apps/provider/components/AccessPanel';
@@ -21,6 +22,12 @@ function StatusDot({ status }: { status: TeamMember['status'] }) {
 
 export function DoctorProfilePage() {
     const { membershipId } = useParams<{ membershipId: string }>();
+    const { user } = useAuth();
+    // See DoctorsPage.tsx for why this checks user.role (singular) and
+    // not user.roles. This page never had an admin gate at all — every
+    // doctor who opened a colleague's profile got the fully editable
+    // Access panel, not just a read-only view.
+    const isAdmin = (user as any)?.role === 'provider_admin';
     const [member, setMember] = useState<TeamMember | null>(null);
     const [org, setOrg] = useState<MyOrganization | null>(null);
     const [registry, setRegistry] = useState<PermissionRegistry | null>(null);
@@ -169,7 +176,7 @@ export function DoctorProfilePage() {
                             <div><span style={{ color: '#7ba3c8' }}>Role: </span><span style={{ color: '#e2eaf4' }}>{member.role === 'clinician' ? 'Clinician' : 'Doctor'}</span></div>
                         </div>
                         {registry ? (
-                            <AccessPanel member={member} registry={registry} onSaved={handlePermissionsSaved} />
+                            <AccessPanel member={member} registry={registry} onSaved={handlePermissionsSaved} readOnly={!isAdmin} />
                         ) : (
                             <div className="text-xs" style={{ color: '#4a6f96' }}>Loading permissions…</div>
                         )}
