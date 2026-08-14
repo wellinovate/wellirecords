@@ -45,6 +45,7 @@ type ProfileFormState = {
   dateOfBirth: string;
   phone: string;
   gender: GenderOption;
+  homeAddress: string;
   bloodGroup: string;
   genotype: string;
   emergencyContacts: EmergencyContact[];
@@ -382,6 +383,7 @@ export function PatientSettingsPage() {
     dateOfBirth: "",
     phone: "",
     gender: "",
+    homeAddress: "",
     bloodGroup: "",
     genotype: "",
     emergencyContacts: [],
@@ -429,6 +431,7 @@ export function PatientSettingsPage() {
           : "",
         phone: data?.phone || incomingPhone || "",
         gender: data?.gender || "",
+        homeAddress: data?.homeAddress || "",
         bloodGroup: data?.bloodGroup || "",
         genotype: data?.genotype || "",
         emergencyContacts: Array.isArray(data?.emergencyContacts)
@@ -470,6 +473,7 @@ export function PatientSettingsPage() {
         : "",
       phone: profile?.phone || "",
       gender: profile?.gender || "",
+      homeAddress: profile?.homeAddress || "",
       bloodGroup: profile?.bloodGroup || "",
       genotype: profile?.genotype || "",
       emergencyContacts: Array.isArray(profile?.emergencyContacts)
@@ -529,6 +533,7 @@ export function PatientSettingsPage() {
         lastName: form.lastName.trim(),
         fullName: form.fullName.trim(),
         dateOfBirth: form.dateOfBirth || null,
+        homeAddress: form.homeAddress.trim() || null,
         emergencyContacts: form.emergencyContacts.map((c) => ({
           name: c.name.trim(),
           relationship: c.relationship.trim(),
@@ -927,6 +932,18 @@ export function PatientSettingsPage() {
             </p>
           </>
         )}
+      </div>
+
+      <div className="md:col-span-2">
+        <label className="mb-1 block text-sm font-semibold text-gray-700">
+          Home Address
+        </label>
+        <input
+          value={form.homeAddress}
+          onChange={updateField("homeAddress")}
+          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          placeholder="Enter home address"
+        />
       </div>
 
       {/* ── Blood Information ── */}
