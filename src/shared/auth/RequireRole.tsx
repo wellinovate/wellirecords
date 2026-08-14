@@ -35,9 +35,14 @@ type CurrentUser = {
 // carries accountType "user" (same as every provider staff account —
 // invited doctors, nurses, etc. are never given accountType
 // "organization"; only the account that owns the organization is).
-// Anything not in this set and not the org owner is staff, and needs
-// to reach /provider.
-const PATIENT_SIDE_ROLES: UserRole[] = ["patient", "caregiver", "family_member"];
+// Anything not in this set and not the org owner is staff.
+//
+// Exported so ProviderLoginPage can apply the identical rule at login
+// time — this used to live only here, checked after route access was
+// already granted, which meant a staff member could clear the OTP
+// step and still get bounced by a second, separately-drifted copy of
+// this same "must be accountType organization" assumption.
+export const PATIENT_SIDE_ROLES: UserRole[] = ["patient", "caregiver", "family_member"];
 
 export function RequireRole({ children, allow }: RequireRoleProps) {
   const { user, isLoading } = useAuth();

@@ -11,6 +11,7 @@ import { ROLE_METADATA } from '@/shared/rbac/permissions';
 import OTPForm from '@/apps/patient/components/OTPInput';
 import Cookies from 'js-cookie';
 import { PreLoginHeader } from '@/components/layout/PreLoginHeader';
+import { PATIENT_SIDE_ROLES } from '@/shared/auth/RequireRole';
 
 const BRAND_FEATURES = [
     {
@@ -142,7 +143,17 @@ export function ProviderLoginPage() {
                 profile,
             };
 
-            if (account?.accountType !== "organization") {
+            // Org owner accounts are accountType "organization" outright.
+            // Invited staff (doctor, nurse, lab tech, ...) keep accountType
+            // "user" — identical to a patient account — and are told apart
+            // only by role. Same rule as RequireRole's "organization" gate;
+            // see PATIENT_SIDE_ROLES there for why it's shared rather than
+            // redefined here.
+            const isProviderAccount =
+                account?.accountType === "organization" ||
+                (!!account?.role && !PATIENT_SIDE_ROLES.includes(account.role as any));
+
+            if (!isProviderAccount) {
                 Cookies.remove('accessToken');
                 localStorage.removeItem('ui_user');
                 setUser?.(null);
