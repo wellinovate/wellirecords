@@ -61,6 +61,10 @@ import {
   dispensePharmacyOrder,
   mapPharmacyOrderToRxShape,
 } from "@/shared/api/pharmacyOrdersApi";
+import { pharmacyInventoryApi, PharmacyInventorySummary } from "@/shared/api/pharmacyInventoryApi";
+import { PharmacyInventoryTab } from "./pharmacy/PharmacyInventoryTab";
+import { PharmacySuppliersTab } from "./pharmacy/PharmacySuppliersTab";
+import { PharmacyPurchasingTab } from "./pharmacy/PharmacyPurchasingTab";
 
 // ─── Color Palette & Styling Tokens ─────────────────────────────────────────
 
@@ -114,7 +118,7 @@ export function PharmacyDashboard() {
 
   // State: Medications & Inventory
   const [medications, setMedications] = useState<MedicationItem[]>([]);
-  const [inventory, setInventory] = useState<any[]>([]);
+  const [inventorySummary, setInventorySummary] = useState<PharmacyInventorySummary | null>(null);
   const [inboundRx, setInboundRx] = useState<any[]>([]);
   const [refills, setRefills] = useState<any[]>([]);
   const [deliveries, setDeliveries] = useState<any[]>([]);
@@ -181,6 +185,14 @@ export function PharmacyDashboard() {
     loadMedications();
   }, []);
 
+  // Real inventory snapshot for the top metrics bar
+  useEffect(() => {
+    pharmacyInventoryApi
+      .getSummary()
+      .then(setInventorySummary)
+      .catch((err) => console.error("Failed to load inventory summary:", err));
+  }, []);
+
   // Load real pharmacy orders from the backend on mount.
   useEffect(() => {
     getAllPharmacyOrders()
@@ -225,8 +237,8 @@ export function PharmacyDashboard() {
     const totalRx = inboundRx.length + medications.length;
     const dispensedCount = inboundRx.filter((r) => r.status === "dispensed").length;
     const pendingCount = inboundRx.filter((r) => r.status === "pending").length;
-    const lowStockCount = inventory.filter((i) => i.status === "low-stock" || i.stock <= i.reorderLevel).length;
-    const expiredCount = inventory.filter((i) => i.status === "expired").length;
+    const lowStockCount = inventorySummary?.lowStock ?? 0;
+    const expiredCount = inventorySummary?.expired ?? 0;
     const revenueToday = 345000;
     const outstanding = 48500;
     return { totalRx, dispensedCount, pendingCount, lowStockCount, expiredCount, revenueToday, outstanding };
@@ -423,10 +435,10 @@ export function PharmacyDashboard() {
         <div className="rounded-2xl p-3.5 bg-slate-900/80 border border-slate-800">
           <div className="flex items-center justify-between text-slate-400 text-[10px] font-bold uppercase">
             <span>Revenue Today</span>
-            <DollarSign size={14} className="text-emerald-400" />
+            <DollarSign size={14} className="text-slate-500" />
           </div>
-          <div className="text-lg font-black text-white mt-1">{formatCurrency(metrics.revenueToday)}</div>
-          <span className="text-[10px] text-slate-400 font-semibold">POS & Insurance</span>
+          <div className="text-lg font-black text-slate-500 mt-1">—</div>
+          <span className="text-[10px] text-slate-500 font-semibold">Sales tracking not built yet</span>
         </div>
 
         <div className="rounded-2xl p-3.5 bg-slate-900/80 border border-slate-800">
@@ -434,8 +446,8 @@ export function PharmacyDashboard() {
             <span>Outstanding</span>
             <CreditCardIcon />
           </div>
-          <div className="text-lg font-black text-amber-400 mt-1">{formatCurrency(metrics.outstanding)}</div>
-          <span className="text-[10px] text-slate-400 font-semibold">HMO Claims</span>
+          <div className="text-lg font-black text-slate-500 mt-1">—</div>
+          <span className="text-[10px] text-slate-500 font-semibold">HMO claims tracking not built yet</span>
         </div>
       </div>
 
@@ -447,6 +459,8 @@ export function PharmacyDashboard() {
           { id: "patients", label: "Patient Management & Profile", icon: UserCheck },
           { id: "refills", label: "Refill Center", icon: RefreshCw },
           { id: "inventory", label: "Medicine Inventory", icon: Box },
+          { id: "suppliers", label: "Suppliers", icon: Truck },
+          { id: "purchasing", label: "Purchase Orders", icon: FileSpreadsheet },
           { id: "ai-checker", label: "AI Safety Checker", icon: Sparkles },
           { id: "delivery", label: "Home Delivery", icon: Truck },
           { id: "vaccinations", label: "Vaccination Services", icon: Syringe },
@@ -781,66 +795,13 @@ export function PharmacyDashboard() {
       )}
 
       {/* ── TAB 5: MEDICINE INVENTORY ─────────────────────────────────────── */}
-      {activeTab === "inventory" && (
-        <div className="space-y-6">
-          <div className="rounded-2xl p-6 bg-slate-900 border border-slate-800 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h3 className="font-bold text-lg text-white flex items-center gap-2">
-                  <Box size={20} className="text-sky-400" /> Medicine Inventory & Reorder Management
-                </h3>
-                <p className="text-xs text-slate-400">Track stock levels, batch expiry dates, selling prices, and automatic reorder thresholds.</p>
-              </div>
-              <button onClick={() => triggerToast("Add Drug Modal opening...")} className="px-4 py-2 rounded-xl bg-sky-600 text-white text-xs font-bold flex items-center gap-1.5">
-                <Plus size={15} /> Add New Medicine
-              </button>
-            </div>
+      {activeTab === "inventory" && <PharmacyInventoryTab triggerToast={triggerToast} />}
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-300">
-                <thead className="bg-slate-950 text-slate-400 font-bold uppercase text-[10px]">
-                  <tr>
-                    <th className="p-3">Medicine & Brand</th>
-                    <th className="p-3">Category & Supplier</th>
-                    <th className="p-3">Batch & Expiry</th>
-                    <th className="p-3">Stock Level</th>
-                    <th className="p-3">Unit Price (₦)</th>
-                    <th className="p-3">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800">
-                  {inventory.map((item) => (
-                    <tr key={item.id} className="hover:bg-slate-800/40 transition-colors">
-                      <td className="p-3">
-                        <div className="font-bold text-white">{item.name}</div>
-                        <div className="text-[10px] text-slate-400">{item.generic} ({item.brand})</div>
-                      </td>
-                      <td className="p-3">
-                        <div>{item.category}</div>
-                        <div className="text-[10px] text-slate-500">{item.supplier}</div>
-                      </td>
-                      <td className="p-3 font-mono text-[11px]">
-                        <div>{item.batchNo}</div>
-                        <div className="text-[10px] text-slate-400">Exp: {item.expiryDate}</div>
-                      </td>
-                      <td className="p-3">
-                        <div className="font-bold">{item.stock} units</div>
-                        <div className="text-[10px] text-slate-500">Reorder at: {item.reorderLevel}</div>
-                      </td>
-                      <td className="p-3 font-bold text-emerald-400">{formatCurrency(item.price)}</td>
-                      <td className="p-3">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${item.status === "in-stock" ? "bg-emerald-500/20 text-emerald-400" : item.status === "low-stock" ? "bg-amber-500/20 text-amber-400" : "bg-rose-500/20 text-rose-400"}`}>
-                          {item.status.toUpperCase()}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ── TAB: SUPPLIERS ───────────────────────────────────────────────── */}
+      {activeTab === "suppliers" && <PharmacySuppliersTab triggerToast={triggerToast} />}
+
+      {/* ── TAB: PURCHASE ORDERS ─────────────────────────────────────────── */}
+      {activeTab === "purchasing" && <PharmacyPurchasingTab triggerToast={triggerToast} />}
 
       {/* ── TAB 6: AI DRUG INTERACTION CHECKER ────────────────────────────── */}
       {activeTab === "ai-checker" && (
