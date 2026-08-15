@@ -165,17 +165,40 @@ const BOTTOM_NAV = [
   { to: "/provider/messages", label: "Messages", icon: MessageSquare },
 ];
 
+// Copy for the verification lock modal, keyed by OrganizationProfile.verificationStatus.
+const VERIFICATION_LOCK_COPY: Record<string, { title: string; desc: string }> = {
+  not_submitted: {
+    title: "Verification Required",
+    desc: "Upload your CAC certificate or operating licence to start review and unlock full access.",
+  },
+  pending: {
+    title: "Verification In Progress",
+    desc: "Your documents are with our compliance team. This usually takes 24-48 hours.",
+  },
+  more_info_requested: {
+    title: "More Information Needed",
+    desc: "The reviewer requested additional documentation before your organisation can be approved.",
+  },
+  rejected: {
+    title: "Verification Rejected",
+    desc: "Your last submission was rejected. Review the note and re-upload a corrected document.",
+  },
+};
+
 export function ProviderLayout() {
   const { user, signOut } = useAuth();
   // console.log("🚀 ~ ProviderLayout ~ user:", user);
   const navigate = useNavigate();
   const location = useLocation();
   const [org, setOrg] = useState<MyOrganization | null>(null);
+  const [orgLoading, setOrgLoading] = useState(true);
 
   useEffect(() => {
+    setOrgLoading(true);
     getMyOrganization()
       .then(setOrg)
-      .catch(() => setOrg(null));
+      .catch(() => setOrg(null))
+      .finally(() => setOrgLoading(false));
   }, []);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { isOnline } = useNetwork();
@@ -188,8 +211,18 @@ export function ProviderLayout() {
     }
     return fromUrl || localStorage.getItem("dev_bypass") === "true";
   });
+  // Dev bypass is a debugging aid only — it must never be reachable in a
+  // production build. import.meta.env.DEV is false in any deployed
+  // (Vercel) build, so the button below simply doesn't render there.
+  const isDev = import.meta.env.DEV;
 
-  const isVerified = Boolean(user?.isVerified) || devBypass;
+  // Org identity/licence verification — gates on the organisation's
+  // review status (org.verificationStatus), not the account's own email
+  // verification (user.isVerified is a separate, already-enforced check
+  // at login). While org is still loading, treat access as unlocked
+  // rather than flashing the lock modal for every provider on load.
+  const verificationStatus = org?.verificationStatus ?? "not_submitted";
+  const isVerified = orgLoading || verificationStatus === "approved" || (isDev && devBypass);
   const isLocked = !isVerified;
 
   const [syncTime, setSyncTime] = useState(() => new Date());
@@ -542,12 +575,13 @@ export function ProviderLayout() {
                 <Lock size={32} className="mx-auto mb-3 text-red-500" />
 
                 <h2 className="text-lg font-bold mb-2 text-white">
-                  Verification Required
+                  {VERIFICATION_LOCK_COPY[verificationStatus]?.title ??
+                    "Verification Required"}
                 </h2>
 
                 <p className="text-sm text-gray-300 mb-4">
-                  Your provider account is not verified yet. Complete
-                  verification to unlock full access.
+                  {VERIFICATION_LOCK_COPY[verificationStatus]?.desc ??
+                    "Your organisation's identity and licence verification is not complete yet. Finish verification to unlock full access."}
                 </p>
 
                 <div className="space-y-2">
@@ -555,18 +589,22 @@ export function ProviderLayout() {
                     onClick={() => navigate("/auth/provider/verify-org")}
                     className="w-full bg-[#2F915C] hover:bg-[#25794c] text-white py-2 rounded-md font-semibold transition-colors"
                   >
-                    Verification in Progress
+                    {verificationStatus === "pending"
+                      ? "Check Verification Status"
+                      : "Complete Verification"}
                   </button>
 
-                  <button
-                    onClick={() => {
-                      localStorage.setItem("dev_bypass", "true");
-                      setDevBypass(true);
-                    }}
-                    className="w-full bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 py-2 rounded-md font-semibold text-xs border border-sky-500/30 transition-colors flex items-center justify-center gap-1.5"
-                  >
-                    ⚡ Enable Developer Bypass
-                  </button>
+                  {isDev && (
+                    <button
+                      onClick={() => {
+                        localStorage.setItem("dev_bypass", "true");
+                        setDevBypass(true);
+                      }}
+                      className="w-full bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 py-2 rounded-md font-semibold text-xs border border-sky-500/30 transition-colors flex items-center justify-center gap-1.5"
+                    >
+                      ⚡ Enable Developer Bypass
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

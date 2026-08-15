@@ -51,3 +51,43 @@ export async function removeOrganizationLogo(): Promise<void> {
     },
   });
 }
+
+// Org identity/licence verification — CAC certificate or operating
+// license, reviewed by an admin via the /admin/verifications queue.
+export interface VerificationStatusResponse {
+  verificationStatus: string;
+  verificationDocumentName?: string | null;
+  verificationDocumentUploadedAt?: string | null;
+  verificationDecisionNote?: string | null;
+  isLicensed?: boolean;
+}
+
+export async function getOrgVerificationStatus(): Promise<VerificationStatusResponse> {
+  const token = Cookies.get("accessToken");
+  const { data } = await api.get(`${apiUrl}/api/v1/organization/verify-org/status`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return data.data;
+}
+
+export async function uploadOrgVerificationDocument(
+  file: File,
+): Promise<VerificationStatusResponse> {
+  const token = Cookies.get("accessToken");
+  const form = new FormData();
+  form.append("document", file);
+  const { data } = await api.post(
+    `${apiUrl}/api/v1/organization/verify-org/document`,
+    form,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  );
+  return data.data;
+}
+
