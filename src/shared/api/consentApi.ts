@@ -121,17 +121,14 @@ export type CreateGrantPayload = {
   granteeOrganizationId?: string;
   accessScope: "single-record" | "category" | "encounter" | "full-record" | "custom";
   category?: string | null;
-  // category?: 
-  //   | "vitals"
-  //   | "medications"
-  //   | "allergies"
-  //   | "diagnoses"
-  //   | "lab-results"
-  //   | "procedures"
-  //   | "immunizations"
-  //   | null;
   durationDays: number;
   purpose?: string | null;
+  permissions?: {
+    view?: boolean;
+    download?: boolean;
+    reshare?: boolean;
+    write?: boolean;
+  };
 };
 
 export type CreateShareLinkPayload = {

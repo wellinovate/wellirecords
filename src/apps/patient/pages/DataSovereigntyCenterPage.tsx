@@ -219,6 +219,10 @@ export function DataSovereigntyCenterPage() {
   );
   const [granteeId, setGranteeId] = useState("");
   const [purpose, setPurpose] = useState("");
+  // Off by default — matches the backend default (grantPatientAccess:
+  // write: permissions.write ?? false). A patient has to deliberately
+  // opt a grantee into write access; view-only stays the safe default.
+  const [allowWrite, setAllowWrite] = useState(false);
 
   // WelliBridge share link — separate from Grant New Access above. A
   // share link has no known grantee (that's the point — any doctor with
@@ -413,6 +417,7 @@ export function DataSovereigntyCenterPage() {
         category: newScope === "category" ? newCategory : null,
         durationDays: Number(newDuration),
         purpose: purpose.trim() || null,
+        permissions: { write: allowWrite },
         ...(granteeType === "provider"
           ? { granteeUserId: granteeId.trim() }
           : { granteeOrganizationId: granteeId.trim() }),
@@ -429,6 +434,7 @@ export function DataSovereigntyCenterPage() {
         setNewScope("category");
         setNewCategory("lab-results");
         setNewDuration(1);
+        setAllowWrite(false);
          
       }
 
@@ -1443,6 +1449,25 @@ export function DataSovereigntyCenterPage() {
                   })}
                 </div>
               </div>
+
+              <label className="flex items-start gap-3 rounded-xl border border-slate-200 p-3 text-sm">
+                <input
+                  type="checkbox"
+                  checked={allowWrite}
+                  onChange={(event) => setAllowWrite(event.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-slate-300"
+                />
+                <span>
+                  <span className="block font-semibold text-slate-800">
+                    Allow write access
+                  </span>
+                  <span className="block text-xs text-slate-500">
+                    This provider can add new records (e.g. lab orders,
+                    prescriptions) for you, not just view existing ones.
+                    Off by default.
+                  </span>
+                </span>
+              </label>
 
               <div>
                 <label className="mb-2 block text-sm font-semibold text-slate-800">
