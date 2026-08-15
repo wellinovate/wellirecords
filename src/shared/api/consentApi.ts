@@ -235,6 +235,17 @@ let mockGrants = [...MOCK_ACCESS_GRANTS];
 let mockRequests = [...MOCK_ACCESS_REQUESTS];
 let mockAudit = [...MOCK_ACCESS_AUDIT];
 
+export type ProviderGrant = {
+  _id: string;
+  patientId: { _id: string; fullName?: string; wrId?: string } | string;
+  accessScope: AccessScope;
+  category?: string | null;
+  permissions: { view: boolean; download: boolean; reshare: boolean; write?: boolean };
+  startsAt: string;
+  expiresAt?: string | null;
+  status: AccessGrantStatus;
+};
+
 export const consentApi = {
   async getMyGrants(patientId: string) {
     try {
@@ -257,6 +268,23 @@ export const consentApi = {
     // never rendered either, since Promise.all rejects as a whole the
     // moment any one promise in it rejects.
     return [];
+  },
+
+  // Grants where the current provider (or their organization) is the
+  // grantee, i.e. "who has consented to let me/us write to their
+  // record" — the inverse of getMyGrants, which is patient-side
+  // ("who did I grant access to"). Backend now enforces write
+  // permission on lab orders / prescriptions server-side regardless
+  // of what this returns; this is for showing that status in the UI
+  // before the provider hits the 403, not the security boundary.
+  async getMyGrantsAsProvider(): Promise<ProviderGrant[]> {
+    try {
+      const res = await apiClient.get(`/access-grants/organization/me`);
+      return (res as any)?.data ?? [];
+    } catch (error) {
+      console.error("Failed to fetch provider grants:", error);
+      return [];
+    }
   },
 
   async createGrant(
