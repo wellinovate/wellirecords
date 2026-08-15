@@ -72,6 +72,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { PatientSearchPicker } from "@/apps/components/shared/PatientSearchPicker";
+import { consentApi, ProviderGrant } from "@/shared/api/consentApi";
 import { getAllPatientLabResults, LabResultItem } from "@/shared/utils/utilityFunction";
 import { createRecord } from "@/shared/api/clinicalApi";
 import { sendCriticalAlertSms } from "@/shared/api/notificationApi";
@@ -216,6 +217,38 @@ export function LabOrdersPage() {
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [selectedPanel, setSelectedPanel] = useState<string>("");
   const [useManualTestEntry, setUseManualTestEntry] = useState(false);
+
+  // Grants where this provider (or their org) is the grantee — used
+  // only to show write-consent status in the new-order form before
+  // submitting. The backend enforces this independently
+  // (requireWriteConsent middleware); this is UX, not the boundary —
+  // a stale or incomplete list here can never grant access it
+  // wouldn't otherwise have, only mislabel the status shown.
+  const [providerGrants, setProviderGrants] = useState<ProviderGrant[]>([]);
+
+  useEffect(() => {
+    consentApi.getMyGrantsAsProvider().then(setProviderGrants);
+  }, []);
+
+  const hasWriteConsent = (
+    patientId: string | undefined | null,
+    category: string,
+  ): boolean | null => {
+    if (!patientId) return null;
+    const now = new Date();
+    return providerGrants.some((g) => {
+      const grantPatientId =
+        typeof g.patientId === "string" ? g.patientId : g.patientId?._id;
+      if (grantPatientId !== patientId) return false;
+      if (g.status !== "active") return false;
+      if (!g.permissions?.write) return false;
+      if (g.expiresAt && new Date(g.expiresAt) <= now) return false;
+      return (
+        g.accessScope === "full-record" ||
+        (g.accessScope === "category" && g.category === category)
+      );
+    });
+  };
 
   useEffect(() => {
     getLabTestCatalog()
@@ -378,9 +411,16 @@ export function LabOrdersPage() {
       showToast(`New Lab Request generated with Barcode ${created.barcode}!`);
       setIsNewOrderModalOpen(false);
       setSelectedPatient(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      showToast("Failed to create lab order — check console for details.");
+      // This instance (shared/lib/api.ts) doesn't normalize errors the
+      // way apiClient.ts does — the backend's actual message lives at
+      // err.response.data.message, not err.message (which is just
+      // axios's generic "Request failed with status code 403").
+      showToast(
+        err?.response?.data?.message ||
+          "Failed to create lab order — check console for details.",
+      );
     }
   };
 
@@ -1282,6 +1322,17 @@ export function LabOrdersPage() {
                 <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
                   <p className="text-sm font-medium text-emerald-200">Selected patient</p>
                   <p className="mt-1 text-white">{selectedPatient.name}</p>
+                </div>
+              )}
+
+              {selectedPatient && hasWriteConsent(selectedPatient.id, "lab-results") === false && (
+                <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3">
+                  <p className="text-sm font-semibold text-amber-200">No write consent on file</p>
+                  <p className="mt-1 text-xs text-amber-200/80">
+                    This patient hasn't granted you write access to lab records.
+                    Submitting will be rejected until they do — ask them to enable
+                    "Allow write access" when granting you access in their app.
+                  </p>
                 </div>
               )}
 

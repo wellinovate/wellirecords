@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
 import { Pill, Plus, X, ShieldCheck } from 'lucide-react';
 import { getAllPatientMedications, getPatients, MedicationItem } from '@/shared/utils/utilityFunction';
 import { createRecord } from '@/shared/api/clinicalApi';
+import { consentApi, ProviderGrant } from '@/shared/api/consentApi';
 
 const STATUS_BADGE: Record<string, string> = {
     active: 'badge-active', completed: 'badge-verified', stopped: 'badge-revoked', 'on-hold': 'badge-expired',
@@ -125,6 +125,37 @@ function NewPrescriptionModal({ onClose, onCreated }: { onClose: () => void; onC
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // Grants where this provider (or their org) is the grantee — shown
+    // as a status hint only. The backend's requireWriteConsent
+    // middleware is the actual boundary; this can only under- or
+    // over-report status in the UI, never grant access it wouldn't
+    // otherwise have.
+    const [providerGrants, setProviderGrants] = useState<ProviderGrant[]>([]);
+
+    useEffect(() => {
+        consentApi.getMyGrantsAsProvider().then(setProviderGrants);
+    }, []);
+
+    const hasWriteConsent = (
+        forPatientId: string | undefined | null,
+        category: string,
+    ): boolean | null => {
+        if (!forPatientId) return null;
+        const now = new Date();
+        return providerGrants.some((g) => {
+            const grantPatientId =
+                typeof g.patientId === 'string' ? g.patientId : g.patientId?._id;
+            if (grantPatientId !== forPatientId) return false;
+            if (g.status !== 'active') return false;
+            if (!g.permissions?.write) return false;
+            if (g.expiresAt && new Date(g.expiresAt) <= now) return false;
+            return (
+                g.accessScope === 'full-record' ||
+                (g.accessScope === 'category' && g.category === category)
+            );
+        });
+    };
+
     useEffect(() => {
         getPatients({ page: 1, limit: 50 })
             .then((res) => {
@@ -178,6 +209,17 @@ function NewPrescriptionModal({ onClose, onCreated }: { onClose: () => void; onC
                             </select>
                         )}
                     </div>
+
+                    {patientId && hasWriteConsent(patientId, 'medications') === false && (
+                        <div className="rounded-xl p-3" style={{ background: 'rgba(251,191,36,.1)', border: '1px solid rgba(251,191,36,.25)' }}>
+                            <p className="text-sm font-semibold" style={{ color: '#fbbf24' }}>No write consent on file</p>
+                            <p className="mt-1 text-xs" style={{ color: 'rgba(251,191,36,.8)' }}>
+                                This patient hasn't granted you write access to medication records.
+                                Submitting will be rejected until they do — ask them to enable
+                                "Allow write access" when granting you access in their app.
+                            </p>
+                        </div>
+                    )}
                     <div className="grid grid-cols-2 gap-3">
                         <div><label className="block text-sm font-medium mb-1" style={{ color: '#e2eaf4' }}>Drug Name</label><input className="input input-dark" placeholder="e.g. Metformin" value={medicationName} onChange={e => setMedicationName(e.target.value)} /></div>
                         <div>
