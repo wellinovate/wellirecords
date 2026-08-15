@@ -819,7 +819,6 @@ return data.data;
 signOut(): void {
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem("welli_onboarded");
-  localStorage.removeItem("wallet_onboarded");
 },
 
   getCurrentUser(): AuthUser | null {

@@ -4,7 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/shared/auth/AuthProvider';
 import {
     Building2, Mail, Lock, ArrowLeft, ArrowRight,
-    Shield, CheckCircle, Activity, Users, Wallet, ChevronDown, Check
+    Shield, CheckCircle, Activity, Users, ChevronDown, Check
 } from 'lucide-react';
 import { UserRole } from '@/shared/types/types';
 import { ROLE_METADATA } from '@/shared/rbac/permissions';
@@ -50,8 +50,6 @@ export function ProviderLoginPage() {
     const [loading, setLoading] = useState(false);
     const [verifying, setVerifying] = useState(false);
     const [resending, setResending] = useState(false);
-    const [showWeb3, setShowWeb3] = useState(false);
-    const [web3Loading, setWeb3Loading] = useState(false);
     const [showRoleDrop, setShowRoleDrop] = useState(false);
     const [selectedRole, setSelectedRole] = useState<UserRole>('clinician');
     const roleDropRef = useRef<HTMLDivElement>(null);
@@ -218,13 +216,6 @@ export function ProviderLoginPage() {
         setError('');
     };
 
-    const handleWeb3 = () => {
-        setWeb3Loading(true);
-        setTimeout(() => {
-            signInAsRole('clinician');
-            navigate('/provider/overview');
-        }, 1400);
-    };
 
     return (
         <div
@@ -400,32 +391,6 @@ export function ProviderLoginPage() {
 
                     {step === 'credentials' && (
                         <>
-                            {/* Web3 — demoted to subtle secondary option */}
-                            <div className="mt-5 text-center">
-                                {!showWeb3 ? (
-                                    <button
-                                        onClick={() => setShowWeb3(true)}
-                                        className="text-xs hover:underline transition-opacity hover:opacity-80"
-                                        style={{ color: '#64748b' }}
-                                    >
-                                        Sign in with Web3 wallet instead
-                                    </button>
-                                ) : (
-                                    <button
-                                        onClick={handleWeb3}
-                                        disabled={web3Loading}
-                                        className="w-full py-3 rounded-xl font-bold text-sm flex flex-row items-center justify-center gap-2 transition-all hover:bg-slate-50"
-                                        style={{
-                                            color: '#1e3a8a',
-                                            border: '1.5px solid #cbd5e1',
-                                            opacity: web3Loading ? 0.7 : 1,
-                                        }}
-                                    >
-                                        <Wallet size={14} /> {web3Loading ? 'Connecting…' : 'Connect Org Wallet (Web3)'}
-                                    </button>
-                                )}
-                            </div>
-
                             <p className="mt-6 text-center text-sm" style={{ color: '#64748b' }}>
                                 New organisation?{' '}
                                 <Link to="/auth/provider/signup" className="font-bold hover:underline" style={{ color: '#1e3a8a' }}>
