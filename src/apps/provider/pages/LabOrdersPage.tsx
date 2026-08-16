@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { getAllLabOrders, createLabOrder, updateLabOrderStatus, enterLabOrderResult } from "@/shared/api/labOrdersApi";
 import { getLabTestCatalog, LabTestCatalogGroup } from "@/shared/api/labTestCatalogApi";
 import VerifiedResultDeliveryModal from "@/apps/provider/components/VerifiedResultDeliveryModal";
+import JsBarcode from "jsbarcode";
 import { io, Socket } from "socket.io-client";
 import Cookies from "js-cookie";
 import { apiUrl } from "@/shared/api/authApi";
@@ -65,8 +66,6 @@ import {
   Cpu,
   Bell,
   Mail,
-  Radio,
-  FileSignature,
   FileCode,
   ArrowUpRight,
 } from "lucide-react";
@@ -314,6 +313,97 @@ export function LabOrdersPage() {
     return { total, pendingSamples, inProcessing, resultsReady, criticalCount, totalRevenue, outstanding };
   }, [orders]);
 
+  // ─── Print Barcode Labels ──────────────────────────────────────────────
+  // Prints real, scannable Code128 labels — not a placeholder. Scoped to
+  // orders still in the pre-analytical stages (requested/collected),
+  // since that's when a physical specimen label actually matters; a
+  // sample already received/processing/verified/etc. has already been
+  // through collection and labeling.
+  const escapeHtml = (value: string) =>
+    String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+
+  const handlePrintBarcodeLabels = () => {
+    const ordersNeedingLabels = filteredOrders.filter(
+      (o) => o.status === "requested" || o.status === "collected",
+    );
+
+    if (ordersNeedingLabels.length === 0) {
+      showToast("No orders in the current view need a specimen label right now.");
+      return;
+    }
+
+    const labelsHtml = ordersNeedingLabels
+      .map((ord) => {
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        JsBarcode(svg, ord.barcode || ord.id, {
+          format: "CODE128",
+          width: 2,
+          height: 45,
+          displayValue: true,
+          fontSize: 12,
+          margin: 6,
+        });
+
+        return `
+          <div class="label">
+            <div class="label-header">
+              <span class="label-name">${escapeHtml(ord.patientName)}</span>
+              <span class="label-wrid">${escapeHtml(ord.patientWrId)}</span>
+            </div>
+            <div class="label-test">${escapeHtml(ord.testName)} &middot; ${escapeHtml(ord.sampleType)}</div>
+            <div class="label-barcode">${svg.outerHTML}</div>
+          </div>
+        `;
+      })
+      .join("");
+
+    const printWindow = window.open("", "_blank", "width=850,height=650");
+    if (!printWindow) {
+      showToast("Couldn't open the print window — check your browser's popup blocker.");
+      return;
+    }
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Specimen Labels</title>
+          <style>
+            * { box-sizing: border-box; }
+            body { font-family: -apple-system, Arial, sans-serif; margin: 0; padding: 8mm; }
+            .sheet { display: flex; flex-wrap: wrap; gap: 4mm; }
+            .label {
+              width: 62mm; height: 29mm;
+              border: 1px solid #333; border-radius: 2mm;
+              padding: 2mm 3mm; overflow: hidden;
+              page-break-inside: avoid;
+            }
+            .label-header { display: flex; justify-content: space-between; align-items: baseline; }
+            .label-name { font-weight: 700; font-size: 11px; }
+            .label-wrid { font-size: 9px; font-family: monospace; color: #333; }
+            .label-test { font-size: 9px; color: #444; margin-top: 1mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .label-barcode { margin-top: 1mm; text-align: center; }
+            .label-barcode svg { max-width: 100%; height: 14mm; }
+            @media print {
+              @page { size: auto; margin: 5mm; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="sheet">${labelsHtml}</div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+  };
+
   // Advance Order Workflow Stage
   const handleAdvanceStage = (orderId: string, currentStatus: string) => {
     const stages = WORKFLOW_STAGES.map((s) => s.key);
@@ -468,7 +558,7 @@ export function LabOrdersPage() {
             <Plus size={18} /> New Test Request
           </button>
           <button
-            onClick={() => showToast("Barcode Label Printer connected via WebUSB / LIS Bridge")}
+            onClick={handlePrintBarcodeLabels}
             className="p-2.5 rounded-xl border border-slate-700 bg-slate-800/60 text-slate-300 hover:text-white hover:border-slate-600 transition-colors"
             title="Print Barcode Labels"
           >
