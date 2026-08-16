@@ -228,13 +228,13 @@ function ImportResultCard({ result, onDone }: { result: ImportResult; onDone: ()
         </div>
         <div>
           <p className="font-bold" style={{ color: T.text }}>Import Complete</p>
-          <p className="text-sm" style={{ color: T.muted }}>{result.processed.toLocaleString()} of {result.total.toLocaleString()} rows processed</p>
+          <p className="text-sm" style={{ color: T.muted }}>{(result.processed ?? 0).toLocaleString()} of {(result.total ?? 0).toLocaleString()} rows processed</p>
         </div>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {items.map((item) => (
           <div key={item.label} className="rounded-xl p-3" style={{ background: T.surface }}>
-            <p className="text-2xl font-bold tabular-nums" style={{ color: item.color }}>{item.value.toLocaleString()}</p>
+            <p className="text-2xl font-bold tabular-nums" style={{ color: item.color }}>{(item.value ?? 0).toLocaleString()}</p>
             <p className="text-xs mt-1" style={{ color: T.muted }}>{item.label}</p>
           </div>
         ))}
@@ -296,8 +296,8 @@ export function PatientImportPage() {
         invitationStatus: inviteFilter || undefined,
       });
       setPatients(res.items);
-      setTotalCount(res.total);
-      setTotalPages(res.pages);
+      setTotalCount(res.pagination.total);
+      setTotalPages(res.pagination.totalPages);
     } catch {
       // silently handle
     } finally {
@@ -364,7 +364,9 @@ export function PatientImportPage() {
     try {
       const res = await sendInvitation(patient._id);
       setPatients((prev) => prev.map((c) => (c._id === patient._id ? res.customer : c)));
-      const fullUrl = `${window.location.origin}${res.inviteLink}`;
+      const fullUrl = res.inviteUrl
+        ? `${window.location.origin}${res.inviteUrl}`
+        : `${window.location.origin}/claim`;
       setInviteModal({ patient: res.customer, link: fullUrl });
     } catch {}
   };
@@ -374,7 +376,7 @@ export function PatientImportPage() {
     setBulkInviting(true);
     try {
       const res = await bulkSendInvitations();
-      showNotification(`Generated invitations for ${res.processed} uninvited patients!`);
+      showNotification(`Generated invitations for ${res.totalInvited ?? 0} uninvited patients!`);
       loadPatients();
     } catch {
       showNotification("Failed to complete bulk invitation.");
@@ -790,7 +792,7 @@ export function PatientImportPage() {
                       <div key={item.label} className="space-y-1">
                         <div className="flex justify-between text-xs" style={{ color: T.muted }}>
                           <span>{item.label}</span>
-                          <span style={{ color: T.text }}>{item.value.toLocaleString()}</span>
+                          <span style={{ color: T.text }}>{(item.value ?? 0).toLocaleString()}</span>
                         </div>
                         <div className="h-1.5 rounded-full" style={{ background: T.border }}>
                           <div
@@ -812,7 +814,7 @@ export function PatientImportPage() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold" style={{ color: T.text }}>
-                      {stats.registeredThisMonth.toLocaleString()}
+                      {(stats.registeredThisMonth ?? 0).toLocaleString()}
                     </p>
                     <p className="text-sm" style={{ color: T.muted }}>patients registered this month</p>
                   </div>
@@ -832,7 +834,7 @@ export function PatientImportPage() {
                   <p className="text-sm mt-1" style={{ color: T.muted }}>
                     {stats.new > 0 ? (
                       <>
-                        <strong style={{ color: T.text }}>{stats.new.toLocaleString()}</strong> imported patients are not yet registered. Prioritize invitations for those who visited recently — they're most likely to register for digital lab results and prescriptions.
+                        <strong style={{ color: T.text }}>{(stats.new ?? 0).toLocaleString()}</strong> imported patients are not yet registered. Prioritize invitations for those who visited recently — they're most likely to register for digital lab results and prescriptions.
                       </>
                     ) : (
                       "All imported patients have been matched or linked. Import more records to continue growing your facility's digital patient base."
