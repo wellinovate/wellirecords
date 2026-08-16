@@ -6,6 +6,7 @@ import {
 import { pharmacyClaimsApi, type PharmacyClaim, type ClaimStatus } from "@/shared/api/pharmacyClaimsApi";
 import { getAllPharmacyOrders, type PharmacyOrder } from "@/shared/api/pharmacyOrdersApi";
 import { PatientSearchPicker } from "@/apps/components/shared/PatientSearchPicker";
+import { HmoSearchPicker } from "@/apps/components/shared/HmoSearchPicker";
 import { authApi } from "@/shared/api/authApi";
 
 const T = {
@@ -52,6 +53,7 @@ function NewClaimForm({ onCreated, onCancel }: { onCreated: () => void; onCancel
     const [notes, setNotes] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
+    const [eligibilityNotice, setEligibilityNotice] = useState<{ hmo: string; memberId: string } | null>(null);
 
     useEffect(() => {
         if (!patient) return;
@@ -152,20 +154,68 @@ function NewClaimForm({ onCreated, onCancel }: { onCreated: () => void; onCancel
                 </div>
             )}
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                    <label className="text-[10px] font-bold uppercase block mb-1.5" style={{ color: T.muted }}>HMO name</label>
-                    <input value={hmoName} onChange={(e) => setHmoName(e.target.value)} placeholder="e.g. Reliance HMO"
-                        className="w-full px-3 py-2 rounded-xl text-sm outline-none"
-                        style={{ background: T.bg, border: `1px solid ${T.border}`, color: T.text }} />
+                    <label className="text-[10px] font-bold uppercase block mb-1.5" style={{ color: T.muted }}>
+                        HMO / Insurance Provider
+                    </label>
+                    <HmoSearchPicker
+                        value={hmoName}
+                        onChange={(val) => {
+                            setHmoName(val);
+                            setEligibilityNotice(null);
+                        }}
+                        variant="dark"
+                        placeholder="Search or select HMO..."
+                    />
                 </div>
                 <div>
-                    <label className="text-[10px] font-bold uppercase block mb-1.5" style={{ color: T.muted }}>Member ID (optional)</label>
-                    <input value={hmoMemberId} onChange={(e) => setHmoMemberId(e.target.value)} placeholder="Membership no."
+                    <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-[10px] font-bold uppercase" style={{ color: T.muted }}>
+                            Member ID (optional)
+                        </label>
+                        {hmoName && hmoMemberId && (
+                            <button
+                                type="button"
+                                onClick={() => setEligibilityNotice({ hmo: hmoName, memberId: hmoMemberId })}
+                                className="text-[10px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-1 transition-all cursor-pointer hover:brightness-110"
+                                style={{ background: "rgba(56,189,248,0.12)", color: T.accent, border: `1px solid ${T.border}` }}
+                            >
+                                <ShieldCheck size={11} /> Verify Eligibility
+                            </button>
+                        )}
+                    </div>
+                    <input
+                        value={hmoMemberId}
+                        onChange={(e) => {
+                            setHmoMemberId(e.target.value);
+                            setEligibilityNotice(null);
+                        }}
+                        placeholder="Enter membership number"
                         className="w-full px-3 py-2 rounded-xl text-sm outline-none"
-                        style={{ background: T.bg, border: `1px solid ${T.border}`, color: T.text }} />
+                        style={{ background: T.bg, border: `1px solid ${T.border}`, color: T.text }}
+                    />
                 </div>
             </div>
+
+            {eligibilityNotice && (
+                <div className="rounded-xl p-3 text-xs space-y-1.5 animate-fade-in" style={{ background: "rgba(56,189,248,0.08)", border: `1px solid ${T.border}` }}>
+                    <div className="flex items-center justify-between">
+                        <span className="font-bold flex items-center gap-1.5" style={{ color: T.accent }}>
+                            <ShieldCheck size={14} /> HMO Connectivity Gateway
+                        </span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-bold" style={{ background: "rgba(245,158,11,0.15)", color: T.warning }}>
+                            Standby / In Development
+                        </span>
+                    </div>
+                    <p style={{ color: T.text }}>
+                        Automated real-time eligibility verification for <strong>{eligibilityNotice.hmo}</strong> (Member ID: <code className="text-sky-300">{eligibilityNotice.memberId}</code>) will activate upon rollout of WelliRecord's NHIA live gateway integration.
+                    </p>
+                    <p className="text-[11px]" style={{ color: T.muted }}>
+                        You can proceed with filing this claim for facility tracking.
+                    </p>
+                </div>
+            )}
 
             <div>
                 <label className="text-[10px] font-bold uppercase block mb-1.5" style={{ color: T.muted }}>Claim amount</label>

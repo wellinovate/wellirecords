@@ -5,6 +5,7 @@ import {
 import { fetchProfile } from '@/shared/utils/utilityFunction';
 import { authApi } from '@/shared/api/authApi';
 import { pharmacyClaimsApi, type PharmacyClaim, type ClaimStatus } from '@/shared/api/pharmacyClaimsApi';
+import { HmoSearchPicker } from '@/apps/components/shared/HmoSearchPicker';
 
 interface Dependent {
     name: string;
@@ -38,6 +39,7 @@ export function PatientInsurancePage() {
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState('');
     const [saved, setSaved] = useState(false);
+    const [eligibilityNotice, setEligibilityNotice] = useState<{ hmo: string; memberId: string } | null>(null);
 
     const [claims, setClaims] = useState<PharmacyClaim[]>([]);
     const [loadingClaims, setLoadingClaims] = useState(false);
@@ -131,27 +133,76 @@ export function PatientInsurancePage() {
                     ) : (
                         <div className="space-y-4 rounded-2xl p-6 border" style={{ background: '#fff', borderColor: '#e2e8f0' }}>
                             <div>
-                                <label className="text-xs font-bold block mb-1.5" style={{ color: '#475569' }}>HMO name</label>
-                                <input value={insurance.hmoName || ''} onChange={(e) => setInsurance((p) => ({ ...p, hmoName: e.target.value }))}
-                                    placeholder="e.g. Reliance HMO"
-                                    className="w-full px-3 py-2.5 rounded-xl text-sm border"
-                                    style={{ background: '#f8fafc', borderColor: '#e2e8f0', color: '#1e293b' }} />
+                                <label className="text-xs font-bold block mb-1.5" style={{ color: '#475569' }}>
+                                    HMO / Insurance Provider
+                                </label>
+                                <HmoSearchPicker
+                                    value={insurance.hmoName || ''}
+                                    onChange={(val) => {
+                                        setInsurance((p) => ({ ...p, hmoName: val }));
+                                        setEligibilityNotice(null);
+                                    }}
+                                    variant="light"
+                                    placeholder="Search or select HMO..."
+                                />
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div>
-                                    <label className="text-xs font-bold block mb-1.5" style={{ color: '#475569' }}>Membership ID</label>
-                                    <input value={insurance.membershipId || ''} onChange={(e) => setInsurance((p) => ({ ...p, membershipId: e.target.value }))}
+                                    <div className="flex items-center justify-between mb-1.5">
+                                        <label className="text-xs font-bold" style={{ color: '#475569' }}>Membership ID</label>
+                                        {insurance.hmoName && insurance.membershipId && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setEligibilityNotice({ hmo: insurance.hmoName!, memberId: insurance.membershipId! })}
+                                                className="text-[10px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-1 transition-all cursor-pointer hover:brightness-105"
+                                                style={{ background: '#f0fdfa', color: '#0d9488', border: '1px solid rgba(13,148,136,0.2)' }}
+                                            >
+                                                <ShieldCheck size={11} /> Verify Eligibility
+                                            </button>
+                                        )}
+                                    </div>
+                                    <input
+                                        value={insurance.membershipId || ''}
+                                        onChange={(e) => {
+                                            setInsurance((p) => ({ ...p, membershipId: e.target.value }));
+                                            setEligibilityNotice(null);
+                                        }}
+                                        placeholder="Enter membership number"
                                         className="w-full px-3 py-2.5 rounded-xl text-sm border"
-                                        style={{ background: '#f8fafc', borderColor: '#e2e8f0', color: '#1e293b' }} />
+                                        style={{ background: '#f8fafc', borderColor: '#e2e8f0', color: '#1e293b' }}
+                                    />
                                 </div>
                                 <div>
                                     <label className="text-xs font-bold block mb-1.5" style={{ color: '#475569' }}>Plan</label>
-                                    <input value={insurance.planName || ''} onChange={(e) => setInsurance((p) => ({ ...p, planName: e.target.value }))}
+                                    <input
+                                        value={insurance.planName || ''}
+                                        onChange={(e) => setInsurance((p) => ({ ...p, planName: e.target.value }))}
                                         placeholder="e.g. Tier 1"
                                         className="w-full px-3 py-2.5 rounded-xl text-sm border"
-                                        style={{ background: '#f8fafc', borderColor: '#e2e8f0', color: '#1e293b' }} />
+                                        style={{ background: '#f8fafc', borderColor: '#e2e8f0', color: '#1e293b' }}
+                                    />
                                 </div>
                             </div>
+
+                            {eligibilityNotice && (
+                                <div className="rounded-xl p-3.5 text-xs space-y-1.5 animate-fade-in" style={{ background: '#f0fdfa', border: '1px solid rgba(13,148,136,0.2)' }}>
+                                    <div className="flex items-center justify-between">
+                                        <span className="font-bold flex items-center gap-1.5" style={{ color: '#0f766e' }}>
+                                            <ShieldCheck size={14} /> NHIA Verification Gateway
+                                        </span>
+                                        <span className="text-[10px] px-2 py-0.5 rounded-full font-bold" style={{ background: 'rgba(245,158,11,0.15)', color: '#d97706' }}>
+                                            Standby / In Rollout
+                                        </span>
+                                    </div>
+                                    <p style={{ color: '#334155' }}>
+                                        Real-time automated eligibility checks for <strong>{eligibilityNotice.hmo}</strong> (Member ID: <code className="text-teal-700 font-semibold">{eligibilityNotice.memberId}</code>) will activate upon rollout of WelliRecord's direct NHIA gateway.
+                                    </p>
+                                    <p className="text-[11px]" style={{ color: '#64748b' }}>
+                                        Providers can currently reference your self-reported HMO details when recording visit claims.
+                                    </p>
+                                </div>
+                            )}
 
                             <div>
                                 <div className="flex items-center justify-between mb-2">
