@@ -5,19 +5,17 @@ import {
     Plus, Mail, X, CheckCircle, Shield, Clock, Activity,
     MoreVertical, UserCheck, UserX, Key, Search,
     Users, FlaskConical, Stethoscope, AlertTriangle, Pill, UserCog, UserCheck as UserIcon,
-    Loader2, ChevronDown, ChevronUp,
+    Loader2, ChevronDown, ChevronUp, UserPlus, FileText, Check, Sparkles,
 } from 'lucide-react';
 
 /* ─── Role config ────────────────────────────────────────────────────── */
 // Base labels/colors for every role that exists anywhere in the system.
 // Which of these a given facility can actually invite is filtered at
-// render time by roleCatalog (fetched per-org from the backend) — a
-// diagnostic lab never sees "Nurse", an eye-care hospital sees
-// "Optician / Ophthalmologist" instead of a plain "Doctor" label.
+// render time by roleCatalog (fetched per-org from the backend).
 const ROLE_META: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
     provider_admin: { label: 'Admin', color: '#f59e0b', bg: '#fef3c7', icon: <Shield size={11} /> },
-    clinician: { label: 'Clinician', color: '#38bdf8', bg: '#e0f2fe', icon: <UserCheck size={11} /> },
     doctor: { label: 'Doctor', color: '#38bdf8', bg: '#e0f2fe', icon: <Stethoscope size={11} /> },
+    clinician: { label: 'Doctor', color: '#38bdf8', bg: '#e0f2fe', icon: <Stethoscope size={11} /> },
     nurse: { label: 'Nurse', color: '#10b981', bg: '#d1fae5', icon: <UserCheck size={11} /> },
     lab_tech: { label: 'Lab Tech', color: '#a855f7', bg: '#f3e8ff', icon: <FlaskConical size={11} /> },
     pharmacist: { label: 'Pharmacist', color: '#ec4899', bg: '#fce7f3', icon: <Pill size={11} /> },
@@ -26,13 +24,11 @@ const ROLE_META: Record<string, { label: string; color: string; bg: string; icon
     support_staff: { label: 'Support Staff', color: '#6b7280', bg: '#f3f4f6', icon: <Users size={11} /> },
 };
 
-// Full label set the invite modal can offer, keyed by role. The
-// dropdown only shows the subset present in roleCatalog.roles, in
-// that order, with roleCatalog.labelOverrides applied on top.
+// Full label set the invite modal can offer, keyed by role.
 const INVITE_ROLE_LABELS: Record<MembershipRole, string> = {
     provider_admin: 'Org Administrator',
     doctor: 'Doctor',
-    clinician: 'Doctor / Clinician',
+    clinician: 'Doctor',
     nurse: 'Nurse',
     lab_tech: 'Lab Technician',
     pharmacist: 'Pharmacist',
@@ -68,11 +64,6 @@ function RoleBadge({ role, catalog }: { role: string; catalog: RoleCatalog | nul
 }
 
 /* ─── Access panel ───────────────────────────────────────────────────── */
-// Per-member permission overrides on top of the role default. Checkbox
-// state reflects the member's current effective permissions; toggling
-// one off a role default records it as revoked, toggling one on that
-// isn't in the default records it as granted. Saved as the full
-// granted/revoked arrays each time — see teamApi.updateMemberPermissions.
 function AccessPanel({
     member, registry, onSaved,
 }: {
@@ -99,196 +90,231 @@ function AccessPanel({
         const granted = [...checked].filter(k => !roleDefaults.includes(k));
         const revoked = roleDefaults.filter(k => !checked.has(k));
         try {
-            const result = await teamApi.updateMemberPermissions(member.membershipId!, granted, revoked);
-            onSaved(result.permissions, result.permissionOverrides);
+            if (!member.membershipId) throw new Error('No membership ID');
+            const res = await teamApi.updateMemberPermissions(member.membershipId, { granted, revoked });
+            onSaved(res.permissions, res.permissionOverrides);
             setSaved(true);
-            setTimeout(() => setSaved(false), 2500);
+            setTimeout(() => setSaved(false), 2000);
         } catch (err: any) {
-            setError(err?.response?.data?.message || "Couldn't save access — try again.");
+            setError(err.message || 'Failed to save permissions');
         } finally {
             setSaving(false);
         }
     };
 
-    const dirty = (() => {
-        const granted = [...checked].filter(k => !roleDefaults.includes(k)).sort();
-        const revoked = roleDefaults.filter(k => !checked.has(k)).sort();
-        const currentGranted = [...(member.permissionOverrides?.granted ?? [])].sort();
-        const currentRevoked = [...(member.permissionOverrides?.revoked ?? [])].sort();
-        return JSON.stringify(granted) !== JSON.stringify(currentGranted) || JSON.stringify(revoked) !== JSON.stringify(currentRevoked);
-    })();
+    return (
+        <div className="p-4 rounded-xl border mt-3 space-y-4" style={{ background: '#0a192f', borderColor: 'rgba(56,189,248,.15)' }}>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h4 className="text-xs font-bold text-slate-200">Custom Permission Overrides</h4>
+                    <p className="text-[11px]" style={{ color: '#7ba3c8' }}>
+                        Modify specific capabilities for this user beyond their default role permissions.
+                    </p>
+                </div>
+                <button onClick={save} disabled={saving}
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-950 bg-sky-400 hover:bg-sky-300 disabled:opacity-50 transition-all flex items-center gap-1.5">
+                    {saving && <Loader2 size={12} className="animate-spin" />}
+                    {saved ? <Check size={12} /> : null}
+                    {saved ? 'Saved' : 'Save Changes'}
+                </button>
+            </div>
+
+            {error && <div className="text-xs text-rose-400">{error}</div>}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {registry.categories.map(cat => {
+                    const perms = Object.entries(registry.permissions).filter(([_, info]) => info.category === cat.key);
+                    if (!perms.length) return null;
+                    return (
+                        <div key={cat.key} className="space-y-1.5">
+                            <div className="text-[11px] font-bold text-sky-400 uppercase tracking-wider">{cat.label}</div>
+                            <div className="space-y-1">
+                                {perms.map(([k, info]) => {
+                                    const isDefault = roleDefaults.includes(k);
+                                    const isChecked = checked.has(k);
+                                    const isOverridden = isChecked !== isDefault;
+                                    return (
+                                        <label key={k} className="flex items-center gap-2 text-xs cursor-pointer select-none p-1 rounded hover:bg-slate-800/50">
+                                            <input type="checkbox" checked={isChecked} onChange={() => toggle(k)}
+                                                className="rounded border-slate-700 bg-slate-900 text-sky-400 h-3.5 w-3.5" />
+                                            <span style={{ color: isChecked ? '#e2eaf4' : '#64748b' }}>{info.label}</span>
+                                            {isOverridden && (
+                                                <span className="text-[9px] px-1 py-0.2 rounded font-mono font-bold"
+                                                    style={{ background: isChecked ? 'rgba(16,185,129,.15)' : 'rgba(239,68,68,.15)', color: isChecked ? '#10b981' : '#f87171' }}>
+                                                    {isChecked ? '+grant' : '-revoked'}
+                                                </span>
+                                            )}
+                                        </label>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+/* ─── Member card row ────────────────────────────────────────────────── */
+function MemberCard({
+    member, isAdmin, actionPending, onSuspend, onReactivate, catalog, registry, onPermissionsSaved,
+}: {
+    member: TeamMember; isAdmin: boolean; actionPending: boolean;
+    onSuspend: () => void; onReactivate: () => void;
+    catalog: RoleCatalog | null; registry: PermissionRegistry | null;
+    onPermissionsSaved: (permissions: string[], overrides: { granted: string[]; revoked: string[] }) => void;
+}) {
+    const [showAccess, setShowAccess] = useState(false);
+    const isOwner = member.role === 'provider_admin';
+    const isInvited = member.status === 'invited';
+    const isSuspended = member.status === 'suspended';
 
     return (
-        <div className="mt-2 rounded-2xl border p-4 space-y-4" style={{ background: '#081426', borderColor: 'rgba(56,189,248,.12)' }}>
-            {registry.categories.map(cat => {
-                const keysInCategory = Object.entries(registry.permissions).filter(([, v]) => v.category === cat.key);
-                if (!keysInCategory.length) return null;
-                return (
-                    <div key={cat.key}>
-                        <div className="text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color: '#4a6f96' }}>{cat.label}</div>
-                        <div className="grid sm:grid-cols-2 gap-1.5">
-                            {keysInCategory.map(([key, info]) => (
-                                <label key={key} className="flex items-start gap-2 text-xs cursor-pointer select-none"
-                                    style={{ color: checked.has(key) ? '#e2eaf4' : '#4a6f96' }}>
-                                    <input type="checkbox" checked={checked.has(key)} onChange={() => toggle(key)}
-                                        className="mt-0.5 accent-sky-400" />
-                                    <span>
-                                        {info.label}
-                                        {roleDefaults.includes(key) && (
-                                            <span className="ml-1.5 text-[9px] font-semibold" style={{ color: '#3e5a78' }}>(default)</span>
-                                        )}
-                                    </span>
-                                </label>
-                            ))}
+        <div className="rounded-2xl border p-4 transition-all" style={{ background: '#0a192f', borderColor: 'rgba(56,189,248,.12)' }}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm"
+                        style={{ background: isInvited ? 'rgba(245,158,11,.15)' : isSuspended ? 'rgba(239,68,68,.15)' : 'rgba(56,189,248,.15)', color: isInvited ? '#f59e0b' : isSuspended ? '#ef4444' : '#38bdf8' }}>
+                        {member.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-sm" style={{ color: '#e2eaf4' }}>{member.name}</span>
+                            <RoleBadge role={member.role} catalog={catalog} />
+                            {isInvited && (
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                    Invited
+                                </span>
+                            )}
+                            {isSuspended && (
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                                    Suspended
+                                </span>
+                            )}
+                        </div>
+                        <div className="text-xs mt-0.5" style={{ color: '#7ba3c8' }}>
+                            {member.email} · Last active: {timeAgo(member.lastActive)}
                         </div>
                     </div>
-                );
-            })}
-
-            <div className="flex items-center gap-3 pt-1">
-                <button onClick={save} disabled={!dirty || saving}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-950 bg-sky-400 hover:bg-sky-300 disabled:opacity-40">
-                    {saving ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle size={13} />}
-                    {saving ? 'Saving…' : 'Save access'}
-                </button>
-                {saved && <span className="text-xs" style={{ color: '#34d399' }}>Saved.</span>}
-                {error && <span className="text-xs" style={{ color: '#f87171' }}>{error}</span>}
-            </div>
-        </div>
-    );
-}
-
-/* ─── Member card ────────────────────────────────────────────────────── */
-function MemberCard({
-    member, isAdmin, onSuspend, onReactivate, actionPending, catalog, registry, onPermissionsSaved,
-}: {
-    member: TeamMember; isAdmin: boolean;
-    onSuspend: () => void; onReactivate: () => void;
-    actionPending: boolean; catalog: RoleCatalog | null;
-    registry: PermissionRegistry | null;
-    onPermissionsSaved: (membershipId: string, permissions: string[], overrides: { granted: string[]; revoked: string[] }) => void;
-}) {
-    const [menuOpen, setMenuOpen] = useState(false);
-    const [accessOpen, setAccessOpen] = useState(false);
-    const active = member.status === 'active';
-    const pending = member.status === 'invited';
-    const canManageAccess = isAdmin && !pending && member.role !== 'provider_admin' && member.membershipId && registry;
-
-    return (
-        <div>
-        <div className="rounded-2xl border p-4 flex items-center justify-between gap-3 transition-all relative hover:border-sky-500/30"
-            style={{ background: '#0a192f', borderColor: active ? 'rgba(56,189,248,.12)' : 'rgba(239,68,68,.2)' }}>
-            <div className="relative">
-                <div className="w-10 h-10 rounded-xl font-extrabold text-sm flex items-center justify-center border shrink-0"
-                    style={{
-                        background: active ? 'linear-[#0c2444]' : '#1a0d1a',
-                        color: active ? '#38bdf8' : '#ef4444',
-                        borderColor: active ? 'rgba(56,189,248,.25)' : 'rgba(239,68,68,.3)',
-                    }}>
-                    {member.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                 </div>
-                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0a192f]"
-                    style={{ background: active ? '#10b981' : pending ? '#f59e0b' : '#ef4444' }} />
-            </div>
 
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-bold text-sm" style={{ color: '#e2eaf4' }}>{member.name}</span>
-                    <RoleBadge role={member.role} catalog={catalog} />
-                    {pending && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400">Invite Pending</span>}
-                </div>
-                <div className="text-xs mt-0.5" style={{ color: '#7ba3c8' }}>{member.email}</div>
-                <div className="text-[10px] mt-1 flex items-center gap-1" style={{ color: '#4a6f96' }}>
-                    <Clock size={9} /> Last active: {timeAgo(member.lastActive)}
-                </div>
-            </div>
+                <div className="flex items-center gap-2 self-end sm:self-center">
+                    {isAdmin && !isOwner && !isInvited && registry && (
+                        <button onClick={() => setShowAccess(!showAccess)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all"
+                            style={{ borderColor: showAccess ? '#38bdf8' : 'rgba(56,189,248,.2)', color: showAccess ? '#38bdf8' : '#7ba3c8', background: showAccess ? 'rgba(56,189,248,.1)' : 'transparent' }}>
+                            <Key size={12} />
+                            <span>Permissions</span>
+                            {showAccess ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                        </button>
+                    )}
 
-            {canManageAccess && (
-                <button onClick={() => setAccessOpen(o => !o)}
-                    className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border transition-all text-slate-400 hover:text-white"
-                    style={{ background: 'rgba(255,255,255,.04)', borderColor: 'rgba(255,255,255,.08)' }}>
-                    <Key size={12} /> Access
-                    {accessOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                </button>
-            )}
-
-            {isAdmin && member.role !== 'provider_admin' && (
-                <div className="relative">
-                    <button onClick={() => setMenuOpen(!menuOpen)} disabled={actionPending}
-                        className="p-2 rounded-xl transition-all border text-slate-400 hover:text-white"
-                        style={{ background: 'rgba(255,255,255,.04)', borderColor: 'rgba(255,255,255,.08)' }}>
-                        <MoreVertical size={15} />
-                    </button>
-
-                    {menuOpen && (
-                        <>
-                            <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-                            <div className="absolute right-0 top-full mt-1 w-44 rounded-xl border p-1 z-20 shadow-2xl space-y-0.5"
-                                style={{ background: '#0c203b', borderColor: 'rgba(56,189,248,.2)' }}>
-                                {canManageAccess && (
-                                    <button onClick={() => { setMenuOpen(false); setAccessOpen(true); }}
-                                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg text-sky-400 hover:bg-sky-500/10 sm:hidden">
-                                        <Key size={13} /> Manage Access
-                                    </button>
-                                )}
-                                {active ? (
-                                    <button onClick={() => { setMenuOpen(false); onSuspend(); }}
-                                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg text-rose-400 hover:bg-rose-500/10">
-                                        <UserX size={13} /> Suspend Member
-                                    </button>
-                                ) : (
-                                    <button onClick={() => { setMenuOpen(false); onReactivate(); }}
-                                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg text-emerald-400 hover:bg-emerald-500/10">
-                                        <UserCheck size={13} /> Reactivate Member
-                                    </button>
-                                )}
-                            </div>
-                        </>
+                    {isAdmin && !isOwner && !isInvited && (
+                        isSuspended ? (
+                            <button onClick={onReactivate} disabled={actionPending}
+                                className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 transition-all disabled:opacity-40">
+                                Reactivate
+                            </button>
+                        ) : (
+                            <button onClick={onSuspend} disabled={actionPending}
+                                className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-rose-500/30 text-rose-400 hover:bg-rose-500/10 transition-all disabled:opacity-40">
+                                Suspend
+                            </button>
+                        )
                     )}
                 </div>
+            </div>
+
+            {showAccess && registry && member.membershipId && (
+                <AccessPanel member={member} registry={registry}
+                    onSaved={(perms, overrides) => onPermissionsSaved(member.membershipId!, perms, overrides)} />
             )}
-        </div>
-        {accessOpen && canManageAccess && registry && (
-            <AccessPanel
-                member={member}
-                registry={registry}
-                onSaved={(permissions, overrides) => onPermissionsSaved(member.membershipId!, permissions, overrides)}
-            />
-        )}
         </div>
     );
 }
 
-/* ─── Main Page ──────────────────────────────────────────────────────── */
+/* ─── Role Capabilities Reference Grid ───────────────────────────────── */
+function RolesOverviewGrid() {
+    const roles = [
+        {
+            title: 'Doctors & Clinicians',
+            icon: Stethoscope,
+            color: '#38bdf8',
+            desc: 'Primary clinical care, diagnosis entry, consultations, prescriptions & lab orders',
+        },
+        {
+            title: 'Nurses & Care Staff',
+            icon: UserCheck,
+            color: '#10b981',
+            desc: 'Vitals recording, patient queue triage, triage encounters & care notes',
+        },
+        {
+            title: 'Laboratory Scientists',
+            icon: FlaskConical,
+            color: '#a855f7',
+            desc: 'Specimen intake, barcode labeling, test execution & diagnostic result releases',
+        },
+        {
+            title: 'Pharmacy & Front Desk',
+            icon: Pill,
+            color: '#ec4899',
+            desc: 'Medication dispensing, prescription fulfillment, appointment check-ins & patient search',
+        },
+    ];
+
+    return (
+        <div className="rounded-2xl border p-5 space-y-4" style={{ background: '#0a192f', borderColor: 'rgba(56,189,248,.1)' }}>
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-200">
+                <Shield size={15} className="text-sky-400" />
+                <span>Facility Role Scopes & Access Boundaries</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {roles.map((r, i) => {
+                    const Icon = r.icon;
+                    return (
+                        <div key={i} className="p-3.5 rounded-xl border space-y-1.5" style={{ background: 'rgba(7,24,48,0.5)', borderColor: '#163761' }}>
+                            <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-md flex items-center justify-center" style={{ background: `${r.color}15`, color: r.color }}>
+                                    <Icon size={13} />
+                                </div>
+                                <div className="text-xs font-bold text-slate-200">{r.title}</div>
+                            </div>
+                            <p className="text-[11px] leading-relaxed" style={{ color: '#7ba3c8' }}>
+                                {r.desc}
+                            </p>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+/* ─── Main Team Management Page ──────────────────────────────────────── */
 export function TeamManagementPage() {
     const { user } = useAuth();
+    const isAdmin = (user as any)?.role === 'provider_admin';
+
     const [members, setMembers] = useState<TeamMember[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [search, setSearch] = useState('');
-    const [roleFilter, setRoleFilter] = useState<string>('all');
-    const [modalOpen, setModalOpen] = useState(false);
 
-    // Invite form
+    const [roleCatalog, setRoleCatalog] = useState<RoleCatalog | null>(null);
+    const [permissionRegistry, setPermissionRegistry] = useState<PermissionRegistry | null>(null);
+
+    const [search, setSearch] = useState('');
+    const [roleFilter, setRoleFilter] = useState('all');
+
+    const [modalOpen, setModalOpen] = useState(false);
     const [inviteName, setInviteName] = useState('');
     const [inviteEmail, setInviteEmail] = useState('');
-    const [inviteRole, setInviteRole] = useState<MembershipRole>('clinician');
+    const [inviteRole, setInviteRole] = useState<MembershipRole>('doctor');
     const [sending, setSending] = useState(false);
     const [sendError, setSendError] = useState<string | null>(null);
     const [sent, setSent] = useState(false);
-    const [pendingAction, setPendingAction] = useState<string | null>(null);
-    // Which roles this facility's invite dropdown offers — fetched once
-    // per session. Null while loading; the invite button stays enabled
-    // but falls back to the full role list rather than blocking on it.
-    const [roleCatalog, setRoleCatalog] = useState<RoleCatalog | null>(null);
-    // The permission key catalog + role defaults, fetched once — feeds
-    // the "Access" panel on every member row.
-    const [permissionRegistry, setPermissionRegistry] = useState<PermissionRegistry | null>(null);
 
-    // See DoctorsPage.tsx for why this checks user.role (singular) and
-    // not user.roles — the plural field is never populated by the login
-    // flow, so `?? true` here was making every non-admin an admin.
-    const isAdmin = (user as any)?.role === 'provider_admin';
+    const [pendingAction, setPendingAction] = useState<string | null>(null);
 
     const fetchMembers = async () => {
         setLoading(true);
@@ -321,29 +347,25 @@ export function TeamManagementPage() {
             .catch((err) => console.warn('Could not load permission registry:', err));
     }, []);
 
-    // Updates the one member's permissions in place after a save, so
-    // the row reflects the new state without a full refetch.
     const handlePermissionsSaved = (membershipId: string, permissions: string[], overrides: { granted: string[]; revoked: string[] }) => {
         setMembers(prev => prev.map(m => m.membershipId === membershipId
             ? { ...m, permissions, permissionOverrides: overrides }
             : m));
     };
 
-    // The roles a new invite can be sent as — from the catalog once
-    // loaded, falling back to every non-admin invite role so the modal
-    // is never empty during the brief window before the catalog loads.
-    const inviteRoles: MembershipRole[] = roleCatalog?.roles
-        ?? (Object.keys(INVITE_ROLE_LABELS) as MembershipRole[]).filter(r => r !== 'doctor');
+    // Filter out clinician duplicate so only doctor is presented in invite dropdown
+    const inviteRoles: MembershipRole[] = (
+        roleCatalog?.roles ?? (Object.keys(INVITE_ROLE_LABELS) as MembershipRole[])
+    ).filter((r, idx, arr) => r !== 'clinician' && arr.indexOf(r) === idx);
 
-    // Role filter chips: the current catalog, plus any role that
-    // already exists among fetched members (covers legacy members
-    // whose role predates a facility-type change, or fell outside the
-    // catalog for any other reason) — never hide someone's real role.
-    const filterRoles = Array.from(new Set([...inviteRoles, ...members.map(m => m.role)]));
+    // De-duplicate roles in filter bar: merge 'clinician' into 'doctor'
+    const rawFilterRoles = Array.from(new Set([...inviteRoles, ...members.map(m => (m.role === 'clinician' ? 'doctor' : m.role))]));
+    const filterRoles = rawFilterRoles.filter(r => r !== 'clinician');
 
     const filtered = members.filter(m => {
         const matchSearch = m.name.toLowerCase().includes(search.toLowerCase()) || m.email.toLowerCase().includes(search.toLowerCase());
-        const matchRole = roleFilter === 'all' || m.role === roleFilter;
+        const effectiveMemberRole = m.role === 'clinician' ? 'doctor' : m.role;
+        const matchRole = roleFilter === 'all' || effectiveMemberRole === roleFilter;
         return matchSearch && matchRole;
     });
 
@@ -407,23 +429,35 @@ export function TeamManagementPage() {
                 )}
             </div>
 
-            {/* KPI Cards */}
+            {/* KPI Cards — Color Mapped to Meaning */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div className="rounded-2xl border p-4" style={{ background: '#0a192f', borderColor: 'rgba(56,189,248,.12)' }}>
+                {/* Total Staff (Neutral Slate/Navy) */}
+                <div className="rounded-2xl border p-4" style={{ background: '#0a192f', borderColor: '#163761' }}>
                     <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: '#7ba3c8' }}>Total Staff</div>
-                    <div className="text-2xl font-black mt-1" style={{ color: '#38bdf8' }}>{members.length}</div>
+                    <div className="text-2xl font-black mt-1" style={{ color: '#e2eaf4' }}>{members.length}</div>
                 </div>
-                <div className="rounded-2xl border p-4" style={{ background: '#0a192f', borderColor: 'rgba(16,185,129,.15)' }}>
+
+                {/* Active Members (Positive Emerald) */}
+                <div className="rounded-2xl border p-4" style={{ background: 'rgba(16,185,129,0.05)', borderColor: 'rgba(16,185,129,0.2)' }}>
                     <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Active Members</div>
                     <div className="text-2xl font-black mt-1 text-emerald-400">{activeCount}</div>
                 </div>
-                <div className="rounded-2xl border p-4" style={{ background: '#0a192f', borderColor: 'rgba(245,158,11,.15)' }}>
+
+                {/* Pending Invites (Action Attention Amber) */}
+                <div className="rounded-2xl border p-4" style={{ background: 'rgba(245,158,11,0.05)', borderColor: 'rgba(245,158,11,0.2)' }}>
                     <div className="text-[11px] font-bold uppercase tracking-wider text-amber-400">Pending Invites</div>
                     <div className="text-2xl font-black mt-1 text-amber-400">{pendingCount}</div>
                 </div>
-                <div className="rounded-2xl border p-4" style={{ background: '#0a192f', borderColor: 'rgba(168,85,247,.15)' }}>
-                    <div className="text-[11px] font-bold uppercase tracking-wider text-purple-400">Your Role</div>
-                    <div className="text-sm font-black mt-2 text-purple-300 capitalize">{user?.roles?.[0]?.replace('_', ' ') ?? 'Admin'}</div>
+
+                {/* Your Role (Neutral Profile Badge) */}
+                <div className="rounded-2xl border p-4 flex flex-col justify-between" style={{ background: '#0a192f', borderColor: '#163761' }}>
+                    <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: '#7ba3c8' }}>Your Role</div>
+                    <div className="mt-1">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-500/10 text-sky-300 border border-sky-500/20 capitalize">
+                            <Shield size={12} className="text-sky-400" />
+                            {user?.roles?.[0]?.replace('_', ' ') ?? 'Admin'}
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -468,17 +502,46 @@ export function TeamManagementPage() {
                     <div className="p-12 text-center text-xs rounded-2xl border" style={{ background: '#0a192f', borderColor: 'rgba(56,189,248,.08)', color: '#4a6f96' }}>
                         No members match your filter criteria.
                     </div>
-                ) : filtered.map(m => (
-                    <MemberCard key={m.membershipId ?? m.inviteId ?? m.userId} member={m} isAdmin={isAdmin}
-                        actionPending={pendingAction === m.membershipId}
-                        onSuspend={() => m.membershipId && suspend(m.membershipId)}
-                        onReactivate={() => m.membershipId && reactivate(m.membershipId)}
-                        catalog={roleCatalog}
-                        registry={permissionRegistry}
-                        onPermissionsSaved={handlePermissionsSaved}
-                    />
-                ))}
+                ) : (
+                    filtered.map(m => (
+                        <MemberCard key={m.membershipId ?? m.inviteId ?? m.userId} member={m} isAdmin={isAdmin}
+                            actionPending={pendingAction === m.membershipId}
+                            onSuspend={() => m.membershipId && suspend(m.membershipId)}
+                            onReactivate={() => m.membershipId && reactivate(m.membershipId)}
+                            catalog={roleCatalog}
+                            registry={permissionRegistry}
+                            onPermissionsSaved={handlePermissionsSaved}
+                        />
+                    ))
+                )}
             </div>
+
+            {/* Getting-Started & Team Expansion Prompt (Reclaims empty space) */}
+            {isAdmin && (
+                <div className="rounded-2xl border p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+                    style={{ background: 'rgba(56,189,248,0.03)', borderColor: 'rgba(56,189,248,0.18)' }}>
+                    <div className="flex items-start gap-4">
+                        <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 bg-sky-500/10 text-sky-400">
+                            <UserPlus size={20} />
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-bold text-slate-100">Expand Your Facility's Care Team</h3>
+                            <p className="text-xs mt-0.5 max-w-xl leading-relaxed" style={{ color: '#7ba3c8' }}>
+                                Invite medical doctors, nurses, pharmacists, and lab scientists to streamline consultations and order fulfillment. Each role comes preconfigured with appropriate clinical access boundaries.
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => setModalOpen(true)}
+                        className="px-4 py-2 rounded-xl text-xs font-bold text-slate-950 bg-sky-400 hover:bg-sky-300 transition-all flex items-center gap-1.5 flex-shrink-0"
+                    >
+                        <Plus size={14} /> Invite New Staff
+                    </button>
+                </div>
+            )}
+
+            {/* Role Capabilities Reference Grid */}
+            <RolesOverviewGrid />
 
             {/* Invite Modal */}
             {modalOpen && (

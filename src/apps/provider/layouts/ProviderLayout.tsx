@@ -366,7 +366,6 @@ export function ProviderLayout() {
                   if (isLocked) return;
                   if (!locked) navigate(item.to);
                 }}
-                title={item.label}
                 className={`sidebar-item sidebar-item-provider text-white w-full ${active && !locked ? "active" : ""} justify-center lg:justify-start`}
                 // style={locked ? { opacity: 0.38, cursor: "not-allowed" } : {}}
                 style={{
@@ -449,7 +448,6 @@ export function ProviderLayout() {
           </div>
           <button
             onClick={handleSignOut}
-            title="Sign Out"
             className="sidebar-item w-full justify-center lg:justify-start"
             style={{ color: "#f87171" }}
           >
