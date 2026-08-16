@@ -13,6 +13,8 @@ import {
   Search,
   QrCode,
   UserPlus,
+  Users,
+  Stethoscope,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -671,37 +673,32 @@ export function PatientListPage() {
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    // className="inline-flex h-10 items-center gap-2 rounded-md border border-[#2e6da5] bg-transparent px-4 text-sm font-medium text-[#7fd0ff] hover:bg-[#0d2d52]"
-                    className="inline-flex h-10 items-center gap-2 rounded-md px-4 text-sm font-medium"
-style={{
-  border: "1px solid rgba(77, 130, 196, 0.45)",
-  background: "rgba(10, 27, 53, 0.28)",
-  color: "#7FD0FF",
-  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)",
-}}
-                    type="button"
-                  >
-                    <UserPlus size={16} />
-                    <span> Request Access (QR or Code)</span>
-                    <QrCode size={16} />
-                  </button>
-
+                <div className="flex flex-wrap items-center gap-2.5">
                   <button
                     onClick={() => setIsRegisterModalOpen(true)}
-                    // className="inline-flex h-10 items-center gap-2 rounded-md border border-[#365f8f] bg-[#17365d] px-4 text-sm font-medium text-[#dcecff] hover:bg-[#1a416f]"
-                    className="inline-flex h-10 items-center gap-2 rounded-md px-4 text-sm font-medium"
-style={{
-  border: "1px solid rgba(92, 140, 210, 0.35)",
-  background: "linear-gradient(180deg, #1A416F 0%, #17365D 100%)",
-  color: "#DCECFF",
-  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)",
-}}
+                    className="inline-flex h-10 items-center gap-2 rounded-xl px-5 text-xs font-bold text-slate-950 bg-sky-400 hover:bg-sky-300 shadow-lg transition-all"
                     type="button"
                   >
                     <UserPlus size={16} />
                     <span>Add Patient</span>
+                  </button>
+
+                  <Link
+                    to="/provider/encounters/new"
+                    className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-700/80 bg-[#0f2445] px-4 text-xs font-semibold text-[#dcecff] hover:bg-[#15345f] transition-all"
+                  >
+                    <Stethoscope size={15} className="text-sky-400" />
+                    <span>New Encounter</span>
+                  </Link>
+
+                  <button
+                    onClick={() => setIsRegisterModalOpen(true)}
+                    className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-700/80 bg-[#0f2445] px-3.5 text-xs font-semibold text-[#8fb0d5] hover:text-[#dcecff] hover:bg-[#15345f] transition-all"
+                    type="button"
+                    title="Request record access by WelliBridge QR or transfer code"
+                  >
+                    <QrCode size={15} />
+                    <span className="hidden sm:inline">Request Access</span>
                   </button>
                 </div>
               </div>
@@ -715,7 +712,7 @@ style={{
                   <input
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search by name, id or patient..."
+                    placeholder="Search by name, patient ID, phone, or email..."
                     className="h-11 w-full rounded-md border border-[#1f4470] bg-[#102849] pl-11 pr-4 text-sm text-[#dcecff] focus:border-[#3793e0] focus:outline-none"
                   />
                 </div>
@@ -734,15 +731,6 @@ style={{
                     <SlidersHorizontal size={13} />
                   </button>
                 </div>
-                <Link
-                  to="/provider/encounters/new"
-                  className="inline-flex h-10 items-center gap-2 rounded-md border border-[#365f8f] bg-[#17365d] px-4 text-sm font-medium text-[#dcecff] hover:bg-[#1a416f]"
-                >
-                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-white/20">
-                    +
-                  </span>
-                  <span>New Encounter</span>
-                </Link>
               </div>
             </div>
             {loading ? (
@@ -774,7 +762,7 @@ style={{
                             Patient Name
                           </th>
                           <th className="border-b border-[#173a63] px-4 py-3 text-[14px]  text-[#90adcf]">
-                            Patiet ID
+                            Patient ID
                           </th>
                           <th className="border-b border-[#173a63] px-4 py-3 text-[14px]  text-[#90adcf]">
                             Gender
@@ -804,7 +792,49 @@ style={{
                       </thead>
 
                       <tbody className="divide-y divide-gray-100 text-center">
-                        {patients?.map((patient, index) => (
+                        {(!patients || patients.length === 0) ? (
+                          <tr>
+                            <td colSpan={9} className="py-14 px-4 text-center">
+                              <div className="flex flex-col items-center justify-center gap-2.5 max-w-md mx-auto">
+                                <div
+                                  className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                                  style={{
+                                    background: "rgba(56, 189, 248, 0.08)",
+                                    border: "1px solid rgba(56, 189, 248, 0.2)",
+                                  }}
+                                >
+                                  <Users size={22} className="text-sky-400" />
+                                </div>
+                                <p className="text-sm font-bold text-[#e2eaf4]">
+                                  No patients found
+                                </p>
+                                <p className="text-xs leading-relaxed" style={{ color: "#7ba3c8" }}>
+                                  {search
+                                    ? `No registered patients match "${search}". Try searching by a different name, email, or WelliRecord ID.`
+                                    : "No patients have been registered in this facility yet. Click 'Add Patient' above to register a new arrival or search by WelliRecord ID."}
+                                </p>
+                                {search ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => setSearch("")}
+                                    className="mt-1 text-xs font-semibold text-sky-400 hover:underline"
+                                  >
+                                    Clear search query
+                                  </button>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => setIsRegisterModalOpen(true)}
+                                    className="mt-1 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-950 bg-sky-400 hover:bg-sky-300 transition-all"
+                                  >
+                                    <UserPlus size={14} /> Add First Patient
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ) : (
+                          patients.map((patient, index) => (
                           <tr
                             key={patient.id}
                             onClick={() =>
@@ -910,8 +940,8 @@ style={{
                                 Open
                               </button> */}
                             </td>
-                          </tr>
-                        ))}
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>
