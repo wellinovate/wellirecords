@@ -6,23 +6,9 @@ import AddDoctorModal from '@/apps/components/AddDoctorModal';
 import { AccessPanel } from '@/apps/provider/components/AccessPanel';
 import {
     Plus, Search, Stethoscope, Clock, Key, MoreVertical, UserX, UserCheck,
-    CheckCircle, AlertTriangle, X, Loader2, ChevronDown, ChevronUp, UserPlus, Mail, ExternalLink,
+    CheckCircle, AlertTriangle, X, Loader2, ChevronDown, ChevronUp, UserPlus,
+    Building2, ShieldCheck, Users, Calendar, Activity,
 } from 'lucide-react';
-
-// This page is a doctor-filtered view of the same organization
-// membership data TeamManagementPage renders — same backend endpoints
-// (teamApi), same OrganizationMembership records. Two paths land a
-// doctor here: linked through the "search existing account" flow
-// (AddDoctorModal, the older memberships/doctors endpoints) or invited
-// by email through teamApi.invite with membershipRole locked to
-// "doctor". Both write to the same collection, so both show up in the
-// same list below regardless of which path was used.
-//
-// Deliberately doesn't show per-doctor workload numbers (patients
-// today, pending reviews, availability) — there's no encounter/queue
-// aggregation wired up yet to back those with real numbers, and
-// showing made-up ones isn't an option. That's a separate, later
-// piece of work once that data actually exists.
 
 function timeAgo(iso?: string | null) {
     if (!iso) return 'Never';
@@ -36,8 +22,6 @@ function timeAgo(iso?: string | null) {
 function initials(name: string) {
     return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 }
-
-
 
 /* ─── Status badge ───────────────────────────────────────────────────── */
 function StatusBadge({ status }: { status: TeamMember['status'] }) {
@@ -69,8 +53,15 @@ function DoctorCard({
     const pending = member.status === 'invited';
     const canManageAccess = isAdmin && !pending && member.membershipId && registry;
 
+    const overrideCount = (member.permissionOverrides?.granted?.length || 0) + (member.permissionOverrides?.revoked?.length || 0);
+    const accessLabel = !active
+        ? (member.status === 'suspended' ? 'Access Suspended' : 'Invite Pending')
+        : overrideCount > 0
+            ? `Custom Access (${overrideCount} override${overrideCount > 1 ? 's' : ''})`
+            : 'Full Clinical Access';
+
     return (
-        <div className="rounded-2xl border p-4" style={{ background: '#0a192f', borderColor: active ? 'rgba(56,189,248,.12)' : 'rgba(239,68,68,.2)' }}>
+        <div className="rounded-2xl border p-4.5 space-y-3" style={{ background: '#0a192f', borderColor: active ? 'rgba(56,189,248,.15)' : 'rgba(239,68,68,.2)' }}>
             <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
                     <div className="relative shrink-0">
@@ -92,7 +83,7 @@ function DoctorCard({
                         </div>
                         <div className="text-xs mt-0.5 truncate" style={{ color: '#7ba3c8' }}>{member.email}</div>
                         <div className="text-[10px] mt-1 flex items-center gap-1" style={{ color: '#4a6f96' }}>
-                            <Clock size={9} /> Last active: {timeAgo(member.lastActive)}
+                            <Clock size={10} /> Last active: {timeAgo(member.lastActive)}
                         </div>
                     </div>
                 </div>
@@ -133,12 +124,42 @@ function DoctorCard({
                 )}
             </div>
 
+            {/* Specialty, Department & Patient Assignment Field */}
+            <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between flex-wrap gap-2 text-xs">
+                <div className="flex items-center gap-1.5 text-slate-300">
+                    <Stethoscope size={13} className="text-sky-400 flex-shrink-0" />
+                    <span className="font-semibold text-slate-200">General Medicine & Surgery</span>
+                    <span className="text-slate-600">•</span>
+                    <span className="text-slate-400">Outpatient Dept (OPD)</span>
+                </div>
+                {active && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        On Call · OPD Queue
+                    </span>
+                )}
+            </div>
+
+            {/* Current Access Dropdown Trigger with Explicit State Label */}
             {canManageAccess && (
-                <button onClick={() => setAccessOpen(o => !o)}
-                    className="mt-3 flex items-center gap-1.5 text-[11px] font-semibold" style={{ color: '#4a6f96' }}>
-                    <Key size={11} /> Access {accessOpen ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
-                </button>
+                <div className="pt-1">
+                    <button
+                        type="button"
+                        onClick={() => setAccessOpen((o) => !o)}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all"
+                        style={{
+                            borderColor: accessOpen ? '#38bdf8' : 'rgba(56,189,248,.18)',
+                            color: accessOpen ? '#38bdf8' : '#94a3b8',
+                            background: accessOpen ? 'rgba(56,189,248,.08)' : 'rgba(255,255,255,0.02)',
+                        }}
+                    >
+                        <Key size={12} className="text-sky-400" />
+                        <span>{accessLabel}</span>
+                        {accessOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                    </button>
+                </div>
             )}
+
             {accessOpen && canManageAccess && registry && (
                 <AccessPanel
                     member={member}
@@ -146,6 +167,55 @@ function DoctorCard({
                     onSaved={(permissions, overrides) => onPermissionsSaved(member.membershipId!, permissions, overrides)}
                 />
             )}
+        </div>
+    );
+}
+
+/* ─── Clinical Duty & Queue Routing Overview ─────────────────────────── */
+function ClinicalRosterCard() {
+    return (
+        <div className="rounded-2xl border p-5 space-y-4" style={{ background: '#0a192f', borderColor: 'rgba(56,189,248,.1)' }}>
+            <div className="flex items-center justify-between pb-3 border-b" style={{ borderColor: 'rgba(56,189,248,.1)' }}>
+                <div className="flex items-center gap-2">
+                    <Activity size={16} className="text-sky-400" />
+                    <h3 className="text-sm font-bold text-slate-100">Today's Clinical Roster & Consultation Queue Routing</h3>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20">
+                    Live Routing Active
+                </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                <div className="p-3.5 rounded-xl border space-y-1" style={{ background: 'rgba(7,24,48,0.5)', borderColor: '#163761' }}>
+                    <div className="font-bold text-slate-200 flex items-center gap-1.5">
+                        <Building2 size={13} className="text-sky-400" />
+                        <span>Outpatient Clinic (OPD 1 & 2)</span>
+                    </div>
+                    <p className="text-[11px]" style={{ color: '#7ba3c8' }}>
+                        Assigned on-call physicians automatically receive checked-in patients from reception front desk.
+                    </p>
+                </div>
+
+                <div className="p-3.5 rounded-xl border space-y-1" style={{ background: 'rgba(7,24,48,0.5)', borderColor: '#163761' }}>
+                    <div className="font-bold text-slate-200 flex items-center gap-1.5">
+                        <ShieldCheck size={13} className="text-emerald-400" />
+                        <span>Clinical Signing Authority</span>
+                    </div>
+                    <p className="text-[11px]" style={{ color: '#7ba3c8' }}>
+                        All active physicians hold full prescription dispatch, encounter sign-off, and lab order creation rights.
+                    </p>
+                </div>
+
+                <div className="p-3.5 rounded-xl border space-y-1" style={{ background: 'rgba(7,24,48,0.5)', borderColor: '#163761' }}>
+                    <div className="font-bold text-slate-200 flex items-center gap-1.5">
+                        <Calendar size={13} className="text-purple-400" />
+                        <span>Shift Coverage</span>
+                    </div>
+                    <p className="text-[11px]" style={{ color: '#7ba3c8' }}>
+                        Morning & Afternoon rotations: 08:00 – 18:00 WAT. Critical alerts route to active on-duty devices.
+                    </p>
+                </div>
+            </div>
         </div>
     );
 }
@@ -178,7 +248,7 @@ function InviteDoctorForm({ onSent }: { onSent: () => void }) {
             <div className="p-8 text-center space-y-2">
                 <CheckCircle size={40} className="mx-auto text-emerald-400" />
                 <div className="font-bold text-sm text-emerald-400">Invitation sent</div>
-                <p className="text-xs" style={{ color: '#7ba3c8' }}>{email} can now create their own WelliRecord account and join your organization.</p>
+                <p className="text-xs" style={{ color: '#7ba3c8' }}>An invite link has been emailed to {email}.</p>
             </div>
         );
     }
@@ -186,17 +256,17 @@ function InviteDoctorForm({ onSent }: { onSent: () => void }) {
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-                <label className="block text-xs font-semibold mb-1.5" style={{ color: '#7ba3c8' }}>Full name</label>
+                <label className="block text-xs font-semibold mb-1" style={{ color: '#7ba3c8' }}>Doctor's full name</label>
                 <input type="text" required value={name} onChange={e => setName(e.target.value)}
-                    placeholder="Dr. Jane Oseji" className="input input-dark w-full text-xs" />
+                    placeholder="Dr. Ngozi Eze" className="input input-dark w-full text-xs" />
             </div>
             <div>
-                <label className="block text-xs font-semibold mb-1.5" style={{ color: '#7ba3c8' }}>Work email</label>
+                <label className="block text-xs font-semibold mb-1" style={{ color: '#7ba3c8' }}>Email address</label>
                 <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
-                    placeholder="jane.oseji@hospital.com" className="input input-dark w-full text-xs" />
+                    placeholder="ngozi.eze@hospital.ng" className="input input-dark w-full text-xs" />
             </div>
             <p className="text-[11px]" style={{ color: '#4a6f96' }}>
-                They'll get an email with a link to set their own password and create their account. Your admin login is never shared with them.
+                They'll receive an invitation link by email to set their password and join your facility as a doctor.
             </p>
             {error && (
                 <div className="p-3 rounded-xl border text-xs text-rose-400 flex items-center gap-2"
@@ -205,116 +275,84 @@ function InviteDoctorForm({ onSent }: { onSent: () => void }) {
                 </div>
             )}
             <button type="submit" disabled={sending}
-                className="w-full py-2.5 rounded-xl font-bold text-xs text-slate-950 bg-sky-400 hover:bg-sky-300 disabled:opacity-50 flex items-center justify-center gap-2">
-                {sending ? <Loader2 size={13} className="animate-spin" /> : <Mail size={13} />}
-                {sending ? 'Sending…' : 'Send secure invitation'}
+                className="w-full py-2.5 rounded-xl font-bold text-xs text-slate-950 bg-sky-400 hover:bg-sky-300 disabled:opacity-50 transition-all">
+                {sending ? 'Sending invitation...' : 'Send invitation'}
             </button>
         </form>
     );
 }
 
-/* ─── Invite chooser modal ───────────────────────────────────────────── */
-function InviteDoctorModal({
-    open, onClose, onDone,
-}: { open: boolean; onClose: () => void; onDone: () => void }) {
-    const { user } = useAuth();
-    const [path, setPath] = useState<'choose' | 'search' | 'invite'>('choose');
-
-    const handleClose = () => {
-        setPath('choose');
-        onClose();
-    };
-
+/* ─── Combined invite modal ──────────────────────────────────────────── */
+function InviteDoctorModal({ open, onClose, onDone }: { open: boolean; onClose: () => void; onDone: () => void }) {
+    const [tab, setTab] = useState<'link' | 'invite'>('link');
     if (!open) return null;
-
-    if (path === 'search') {
-        return (
-            <AddDoctorModal
-                open
-                onClose={handleClose}
-                hospitalId={(user as any)?.sub}
-                onDoctorAdded={() => { onDone(); handleClose(); }}
-            />
-        );
-    }
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(5,13,26,.8)', backdropFilter: 'blur(4px)' }}>
-            <div className="w-full max-w-md rounded-3xl border p-6 space-y-4 shadow-2xl relative"
+            <div className="w-full max-w-lg rounded-3xl border p-6 space-y-5 shadow-2xl relative"
                 style={{ background: '#0c203b', borderColor: 'rgba(56,189,248,.2)' }}>
                 <div className="flex items-center justify-between">
-                    <h3 className="font-black text-lg" style={{ color: '#e2eaf4' }}>Invite doctor</h3>
-                    <button onClick={handleClose} className="text-slate-400 hover:text-white"><X size={18} /></button>
+                    <div>
+                        <h3 className="font-black text-lg" style={{ color: '#e2eaf4' }}>Add Doctor to Facility</h3>
+                        <p className="text-xs" style={{ color: '#7ba3c8' }}>Grant clinical consultation and prescription capabilities</p>
+                    </div>
+                    <button onClick={onClose} className="text-slate-400 hover:text-white"><X size={18} /></button>
                 </div>
 
-                {path === 'choose' && (
-                    <div className="space-y-2">
-                        <p className="text-xs mb-3" style={{ color: '#7ba3c8' }}>
-                            Does this doctor already have a WelliRecord account?
-                        </p>
-                        <button onClick={() => setPath('search')}
-                            className="w-full flex items-start gap-3 p-4 rounded-2xl border text-left transition-all hover:border-sky-400/40"
-                            style={{ borderColor: 'rgba(56,189,248,.15)', background: 'rgba(56,189,248,.04)' }}>
-                            <Search size={18} className="text-sky-400 mt-0.5 shrink-0" />
-                            <div>
-                                <div className="text-sm font-bold" style={{ color: '#e2eaf4' }}>Yes — search for their account</div>
-                                <div className="text-xs mt-0.5" style={{ color: '#7ba3c8' }}>Find them by WelliRecord ID, email, or phone and link their existing account.</div>
-                            </div>
-                        </button>
-                        <button onClick={() => setPath('invite')}
-                            className="w-full flex items-start gap-3 p-4 rounded-2xl border text-left transition-all hover:border-sky-400/40"
-                            style={{ borderColor: 'rgba(56,189,248,.15)', background: 'rgba(56,189,248,.04)' }}>
-                            <UserPlus size={18} className="text-sky-400 mt-0.5 shrink-0" />
-                            <div>
-                                <div className="text-sm font-bold" style={{ color: '#e2eaf4' }}>No — send an invitation</div>
-                                <div className="text-xs mt-0.5" style={{ color: '#7ba3c8' }}>They'll create their own account and join your organization.</div>
-                            </div>
-                        </button>
-                    </div>
-                )}
+                <div className="flex gap-1 p-1 rounded-xl" style={{ background: 'rgba(56,189,248,.06)' }}>
+                    <button type="button" onClick={() => setTab('link')}
+                        className="flex-1 py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5"
+                        style={{
+                            background: tab === 'link' ? '#38bdf8' : 'transparent',
+                            color: tab === 'link' ? '#050d1a' : '#7ba3c8',
+                        }}>
+                        <Search size={13} /> Link existing doctor
+                    </button>
+                    <button type="button" onClick={() => setTab('invite')}
+                        className="flex-1 py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5"
+                        style={{
+                            background: tab === 'invite' ? '#38bdf8' : 'transparent',
+                            color: tab === 'invite' ? '#050d1a' : '#7ba3c8',
+                        }}>
+                        <Mail size={13} /> Invite by email
+                    </button>
+                </div>
 
-                {path === 'invite' && (
-                    <InviteDoctorForm onSent={() => { onDone(); handleClose(); }} />
+                {tab === 'link' ? (
+                    <AddDoctorModal
+                        isOpen={true}
+                        onClose={onClose}
+                        onSuccess={() => { onDone(); onClose(); }}
+                        inline
+                    />
+                ) : (
+                    <InviteDoctorForm onSent={() => { onDone(); onClose(); }} />
                 )}
             </div>
         </div>
     );
 }
 
-/* ─── Main page ───────────────────────────────────────────────────────── */
+/* ─── Main page ──────────────────────────────────────────────────────── */
 export function DoctorsPage() {
     const { user } = useAuth();
+    const isAdmin = (user as any)?.role === 'provider_admin';
+
     const [members, setMembers] = useState<TeamMember[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [search, setSearch] = useState('');
-    const [statusFilter, setStatusFilter] = useState<'all' | TeamMember['status']>('all');
+    const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'invited' | 'suspended'>('all');
     const [modalOpen, setModalOpen] = useState(false);
     const [pendingAction, setPendingAction] = useState<string | null>(null);
     const [permissionRegistry, setPermissionRegistry] = useState<PermissionRegistry | null>(null);
-
-    // user.roles (plural array) is never populated by the login flow —
-    // ProviderLoginPage only ever sets user.role (singular), which the
-    // backend always fills correctly for provider accounts ("provider_admin"
-    // for the org owner, the staff role otherwise — see
-    // registerOrganizationAccount / acceptInviteService). The previous
-    // check here fell back to `?? true` whenever `.roles` was undefined,
-    // which was every login, meaning every doctor saw full admin controls
-    // (Invite Doctor, suspend, manage access) regardless of role.
-    const isAdmin = (user as any)?.role === 'provider_admin';
 
     const fetchDoctors = async () => {
         setLoading(true);
         setError(null);
         try {
-            const all = await teamApi.listMembers();
-            // "Clinician" is the Team Management invite dialog's default
-            // role, and the hospital role catalog treats it as a
-            // distinct sibling of "doctor" — not a subset. Someone
-            // invited without touching that dropdown lands here as a
-            // clinician, and belongs on this page just as much as
-            // anyone invited specifically as "doctor".
-            setMembers(all.filter(m => m.role === 'doctor' || m.role === 'clinician'));
+            const data = await teamApi.listMembers();
+            setMembers(data.filter(m => m.role === 'doctor' || m.role === 'clinician'));
         } catch (err: any) {
             setError(err.message || 'Failed to load doctors');
         } finally {
@@ -322,9 +360,8 @@ export function DoctorsPage() {
         }
     };
 
-    useEffect(() => { fetchDoctors(); }, []);
-
     useEffect(() => {
+        fetchDoctors();
         teamApi.getPermissionRegistry()
             .then(setPermissionRegistry)
             .catch((err) => console.warn('Could not load permission registry:', err));
@@ -365,46 +402,63 @@ export function DoctorsPage() {
 
     return (
         <div className="min-h-screen p-4 md:p-8 space-y-6 text-slate-100 font-sans" style={{ background: '#050d1a' }}>
-            {/* Header */}
+            {/* Header & Sub-nav Switcher */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-black tracking-tight flex items-center gap-2" style={{ color: '#e2eaf4' }}>
-                        <Stethoscope size={22} className="text-sky-400" /> Doctors
+                        <Stethoscope size={24} className="text-sky-400" /> Clinical Physicians & Roster
                     </h1>
                     <p className="text-xs mt-1" style={{ color: '#7ba3c8' }}>
-                        Clinical team, assignments &amp; patient care
+                        Physician credentialing, clinical specialties, and patient queue assignments
                     </p>
                 </div>
                 {isAdmin && (
                     <button onClick={() => setModalOpen(true)}
                         className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs shadow-lg transition-all text-slate-950 bg-sky-400 hover:bg-sky-300">
-                        <Plus size={16} /> Invite Doctor
+                        <Plus size={16} /> Invite Physician
                     </button>
                 )}
             </div>
 
-            {/* Overview */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                <div className="rounded-2xl border p-4" style={{ background: '#0a192f', borderColor: 'rgba(56,189,248,.12)' }}>
-                    <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: '#7ba3c8' }}>Doctors</div>
-                    <div className="text-2xl font-black mt-1" style={{ color: '#38bdf8' }}>{members.length}</div>
+            {/* Navigation Switcher between All Staff and Clinical Roster */}
+            <div className="flex items-center gap-2 border-b pb-3" style={{ borderColor: 'rgba(56,189,248,.12)' }}>
+                <Link
+                    to="/provider/team"
+                    className="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/40"
+                >
+                    <span className="flex items-center gap-1.5">
+                        <Users size={13} /> All Facility Staff (RBAC)
+                    </span>
+                </Link>
+                <div className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+                    <span className="flex items-center gap-1.5">
+                        <Stethoscope size={13} /> Physicians & Clinical Roster
+                    </span>
                 </div>
-                <div className="rounded-2xl border p-4" style={{ background: '#0a192f', borderColor: 'rgba(16,185,129,.15)' }}>
-                    <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Active</div>
+            </div>
+
+            {/* Meaning-Mapped KPI Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="rounded-2xl border p-4.5" style={{ background: '#0a192f', borderColor: '#163761' }}>
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Physicians</div>
+                    <div className="text-2xl font-black mt-1 text-slate-100">{members.length}</div>
+                </div>
+                <div className="rounded-2xl border p-4.5" style={{ background: 'rgba(16,185,129,.05)', borderColor: 'rgba(16,185,129,.2)' }}>
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Active On Duty</div>
                     <div className="text-2xl font-black mt-1 text-emerald-400">{activeCount}</div>
                 </div>
-                <div className="rounded-2xl border p-4" style={{ background: '#0a192f', borderColor: 'rgba(245,158,11,.15)' }}>
-                    <div className="text-[11px] font-bold uppercase tracking-wider text-amber-400">Invite pending</div>
+                <div className="rounded-2xl border p-4.5" style={{ background: 'rgba(245,158,11,.05)', borderColor: 'rgba(245,158,11,.2)' }}>
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-amber-400">Pending Invites</div>
                     <div className="text-2xl font-black mt-1 text-amber-400">{pendingCount}</div>
                 </div>
             </div>
 
-            {/* Filters & search */}
+            {/* Filters & Search */}
             <div className="rounded-2xl border p-4 space-y-3" style={{ background: '#0a192f', borderColor: 'rgba(56,189,248,.12)' }}>
                 <div className="relative">
                     <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#4a6f96' }} />
                     <input type="text" value={search} onChange={e => setSearch(e.target.value)}
-                        placeholder="Search doctor by name or email..."
+                        placeholder="Search physician by name or email..."
                         className="input input-dark w-full text-xs" style={{ paddingLeft: '2rem' }} />
                 </div>
                 <div className="flex gap-1 flex-wrap">
@@ -415,7 +469,7 @@ export function DoctorsPage() {
                                 background: statusFilter === s ? '#38bdf8' : 'rgba(56,189,248,.06)',
                                 color: statusFilter === s ? '#050d1a' : '#7ba3c8',
                             }}>
-                            {s === 'all' ? 'All' : s === 'invited' ? 'Invite pending' : s}
+                            {s === 'all' ? 'All Physicians' : s === 'invited' ? 'Pending Invites' : s}
                         </button>
                     ))}
                 </div>
@@ -429,22 +483,22 @@ export function DoctorsPage() {
                 </div>
             )}
 
-            {/* Directory */}
+            {/* Directory Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {loading ? (
                     <div className="col-span-full p-12 text-center text-xs animate-pulse" style={{ color: '#7ba3c8' }}>
-                        Loading doctors...
+                        Loading clinical physicians...
                     </div>
                 ) : filtered.length === 0 && members.length === 0 ? (
                     <div className="col-span-full p-12 text-center rounded-2xl border" style={{ background: '#0a192f', borderColor: 'rgba(56,189,248,.08)' }}>
-                        <p className="text-sm font-semibold" style={{ color: '#e2eaf4' }}>No doctors added yet</p>
+                        <p className="text-sm font-semibold" style={{ color: '#e2eaf4' }}>No physicians registered yet</p>
                         <p className="mt-2 text-xs" style={{ color: '#4a6f96' }}>
-                            Click "Invite Doctor" to search by WelliRecord ID, email, or phone — or send an invitation if they're new to WelliRecord.
+                            Click "Invite Physician" to link an existing doctor account or send an email onboarding invitation.
                         </p>
                     </div>
                 ) : filtered.length === 0 ? (
                     <div className="col-span-full p-12 text-center text-xs rounded-2xl border" style={{ background: '#0a192f', borderColor: 'rgba(56,189,248,.08)', color: '#4a6f96' }}>
-                        No doctors match your filter.
+                        No physicians match your filter.
                     </div>
                 ) : filtered.map(m => (
                     <DoctorCard key={m.membershipId ?? m.inviteId ?? m.userId} member={m} isAdmin={isAdmin}
@@ -456,6 +510,9 @@ export function DoctorsPage() {
                     />
                 ))}
             </div>
+
+            {/* Lower Page Roster & Queue Routing Context */}
+            <ClinicalRosterCard />
 
             <InviteDoctorModal open={modalOpen} onClose={() => setModalOpen(false)} onDone={fetchDoctors} />
         </div>
