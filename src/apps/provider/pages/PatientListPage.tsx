@@ -940,6 +940,7 @@ style={{
                                 Open
                               </button> */}
                             </td>
+                          </tr>
                           ))
                         )}
                       </tbody>
