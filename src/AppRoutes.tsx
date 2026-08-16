@@ -159,6 +159,11 @@ const FindCarePage = lazy(() =>
     default: m.FindCarePage,
   })),
 );
+const PatientInsurancePage = lazy(() =>
+  import("@/apps/patient/pages/PatientInsurancePage").then((m) => ({
+    default: m.PatientInsurancePage,
+  })),
+);
 const FamilyManagementPage = lazy(() =>
   import("@/apps/patient/pages/DependantsListPage").then((m) => ({
     default: m.FamilyManagementPage,
@@ -626,6 +631,7 @@ export function AppRoutes() {
           <Route path="appointments" element={<AppointmentsPage />} />
           <Route path="messages" element={<MessagesPage />} />
           <Route path="find-care" element={<FindCarePage />} />
+          <Route path="insurance" element={<PatientInsurancePage />} />
           <Route path="family" element={<FamilyManagementPage />} />
           <Route path="dependants/:id" element={<ChildProfilePage />} />
           <Route path="telemedicine" element={<TelemedicineHubPage />} />

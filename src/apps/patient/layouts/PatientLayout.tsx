@@ -26,6 +26,7 @@ import {
   Search,
   Settings,
   Shield,
+  ShieldCheck,
   WifiOff,
   X,
 } from "lucide-react";
@@ -89,6 +90,13 @@ const patientNav = [
     to: "/patient/find-care",
     label: "Find Care",
     icon: MapPin,
+    premium: true,
+  },
+
+  {
+    to: "/patient/insurance",
+    label: "Insurance",
+    icon: ShieldCheck,
     premium: true,
   },
 

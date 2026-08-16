@@ -63,6 +63,13 @@ export const pharmacyClaimsApi = {
         return data.data;
     },
 
+    // Patient-facing — the patient's own claims across every pharmacy
+    // that's filed one on their behalf.
+    mine: async (): Promise<PharmacyClaim[]> => {
+        const { data } = await api.get(`${apiUrl}/api/v1/pharmacy-claims/mine`, { headers: authHeaders() });
+        return data.data;
+    },
+
     updateStatus: async (
         id: string,
         payload: { status: ClaimStatus; claimReference?: string; rejectionReason?: string; notes?: string },
