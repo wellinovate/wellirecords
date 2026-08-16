@@ -91,3 +91,31 @@ export async function uploadOrgVerificationDocument(
   return data.data;
 }
 
+// Directory of licensed, verified organizations a provider can refer
+// a patient to. Typed against what GET /organization/search actually
+// returns (organizations_services.js searchProvidersService) — flat
+// fields (organizationName, officeAddress), not the nested
+// `organization: { name, address }` shape used by the unrelated
+// modules/providers/types.ts, which doesn't match this endpoint.
+export interface OrganizationDirectoryItem {
+  _id: string;
+  organizationName: string;
+  organizationType: string;
+  email?: string;
+  phone?: string;
+  officeAddress?: string;
+  contactPersonName?: string;
+  contactPersonRole?: string;
+  wrOrgId?: string;
+}
+
+export async function searchOrganizationDirectory(search: string): Promise<OrganizationDirectoryItem[]> {
+  const token = Cookies.get("accessToken");
+  const { data } = await api.get(`${apiUrl}/api/v1/organization/search`, {
+    params: { search, limit: 20 },
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return data.items || [];
+}
+
+

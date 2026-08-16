@@ -112,13 +112,12 @@ const ALL_NAV = [
     roles: ["clinician", "provider_admin", "telehealth_provider"],
     badge: "Soon",
   },
-  // {
-  //   to: "/provider/referrals",
-  //   label: "Referrals",
-  //   icon: GitBranch,
-  //   roles: ["clinician", "provider_admin"],
-  //   // roles: ["*"]
-  // },
+  {
+    to: "/provider/referrals",
+    label: "Referrals",
+    icon: GitBranch,
+    roles: ["clinician", "provider_admin", "nurse", "frontdesk"],
+  },
   {
     to: "/provider/reports",
     label: "Reports",
