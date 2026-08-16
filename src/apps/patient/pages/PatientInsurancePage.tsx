@@ -28,7 +28,8 @@ const STATUS_STYLE: Record<ClaimStatus, { color: string; bg: string; label: stri
 };
 
 function formatCurrency(val: number) {
-    return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(val || 0);
+    const formatted = new Intl.NumberFormat('en-NG', { maximumFractionDigits: 0 }).format(val || 0);
+    return `₦${formatted}`;
 }
 
 export function PatientInsurancePage() {

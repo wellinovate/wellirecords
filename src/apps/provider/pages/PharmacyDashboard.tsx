@@ -98,7 +98,8 @@ const INBOUND_PRESCRIPTIONS = [
 // ─── Helper Functions ────────────────────────────────────────────────────────
 
 function formatCurrency(val: number) {
-  return new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 }).format(val);
+  const formatted = new Intl.NumberFormat("en-NG", { maximumFractionDigits: 0 }).format(val || 0);
+  return `₦${formatted}`;
 }
 
 // ─── Main Component ──────────────────────────────────────────────────────────
@@ -457,10 +458,8 @@ export function PharmacyDashboard() {
           </div>
           {claimSummary ? (
             <>
-              <div className="text-lg font-black text-sky-400 mt-1">
-                {new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 }).format(
-                  claimSummary.outstanding,
-                )}
+              <div className="text-lg font-black text-sky-400 mt-1 tabular-nums">
+                {formatCurrency(claimSummary.outstanding)}
               </div>
               <span className="text-[10px] text-slate-500 font-semibold">
                 {(claimSummary.byStatus.submitted.count ?? 0) + (claimSummary.byStatus.approved.count ?? 0)} HMO claim(s) unpaid

@@ -22,9 +22,8 @@ const T = {
 };
 
 function formatCurrency(val: number) {
-    return new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 }).format(
-        val || 0,
-    );
+    const formatted = new Intl.NumberFormat("en-NG", { maximumFractionDigits: 0 }).format(val || 0);
+    return `₦${formatted}`;
 }
 
 const STATUS_STYLE: Record<ClaimStatus, { color: string; bg: string; label: string; icon: React.ElementType }> = {
@@ -112,45 +111,88 @@ function NewClaimForm({ onCreated, onCancel }: { onCreated: () => void; onCancel
             </div>
 
             <div>
-                <label className="text-[10px] font-bold uppercase block mb-1.5" style={{ color: T.muted }}>Patient</label>
+                <label className="text-[10px] font-bold uppercase block mb-1.5" style={{ color: T.muted }}>
+                    1. Patient
+                </label>
                 {!patient ? (
-                    <PatientSearchPicker
-                        searchPatientRequest={authApi.searchPatientRequest}
-                        onSelect={(p) => setPatient({ id: p.id, name: p.name })}
-                    />
+                    <div>
+                        <PatientSearchPicker
+                            searchPatientRequest={authApi.searchPatientRequest}
+                            onSelect={(p) => setPatient({ id: p.id, name: p.name })}
+                        />
+                        <p className="text-[11px] mt-1.5" style={{ color: T.muted }}>
+                            Select a patient to load their dispensed pharmacy orders for itemized claim selection.
+                        </p>
+                    </div>
                 ) : (
                     <div className="flex items-center justify-between px-3 py-2 rounded-xl" style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.25)" }}>
                         <span className="text-sm font-semibold" style={{ color: T.text }}>{patient.name}</span>
-                        <button onClick={() => setPatient(null)} className="text-xs font-bold" style={{ color: T.danger }}>Change</button>
+                        <button onClick={() => setPatient(null)} className="text-xs font-bold cursor-pointer" style={{ color: T.danger }}>Change</button>
                     </div>
                 )}
             </div>
 
-            {patient && (
+            {patient ? (
                 <div>
-                    <label className="text-[10px] font-bold uppercase block mb-1.5" style={{ color: T.muted }}>
-                        Dispensed items to claim
-                    </label>
+                    <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-[10px] font-bold uppercase" style={{ color: T.muted }}>
+                            2. Dispensed Items to Claim ({orders.length} available)
+                        </label>
+                        {orders.length > 0 && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (selectedOrderIds.length === orders.length) {
+                                        setSelectedOrderIds([]);
+                                        setClaimAmount("0");
+                                    } else {
+                                        const allIds = orders.map((o) => o.id);
+                                        setSelectedOrderIds(allIds);
+                                        const sum = orders.reduce((s, o) => s + (o.price || 0), 0);
+                                        setClaimAmount(String(sum));
+                                    }
+                                }}
+                                className="text-[10px] font-bold px-2 py-0.5 rounded cursor-pointer transition-colors"
+                                style={{ background: "rgba(56,189,248,0.1)", color: T.accent }}
+                            >
+                                {selectedOrderIds.length === orders.length ? "Deselect All" : "Select All"}
+                            </button>
+                        )}
+                    </div>
                     {loadingOrders ? (
                         <div className="flex items-center gap-2 text-xs py-3" style={{ color: T.muted }}>
                             <Loader2 size={13} className="animate-spin" /> Loading dispensed orders…
                         </div>
                     ) : orders.length === 0 ? (
-                        <p className="text-xs py-2" style={{ color: T.muted }}>No dispensed orders found for this patient.</p>
+                        <div className="rounded-xl p-3 text-xs" style={{ background: "rgba(255,255,255,0.02)", border: `1px solid ${T.border}`, color: T.muted }}>
+                            No dispensed prescriptions found for this patient. You can enter the claim amount manually below.
+                        </div>
                     ) : (
-                        <div className="space-y-1.5 max-h-40 overflow-y-auto">
+                        <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
                             {orders.map((o) => (
-                                <label key={o.id} className="flex items-center gap-2.5 px-3 py-2 rounded-xl cursor-pointer"
-                                    style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${T.border}` }}>
+                                <label key={o.id} className="flex items-center gap-2.5 px-3 py-2 rounded-xl cursor-pointer transition-colors"
+                                    style={{
+                                        background: selectedOrderIds.includes(o.id) ? "rgba(56,189,248,0.08)" : "rgba(255,255,255,0.03)",
+                                        border: `1px solid ${selectedOrderIds.includes(o.id) ? T.accent : T.border}`,
+                                    }}>
                                     <input type="checkbox" checked={selectedOrderIds.includes(o.id)} onChange={() => toggleOrder(o.id)} />
                                     <div className="flex-1 min-w-0">
                                         <div className="text-xs font-semibold truncate" style={{ color: T.text }}>{o.medicationName}</div>
-                                        <div className="text-[10px]" style={{ color: T.muted }}>Qty {o.quantity} · {formatCurrency(o.price)}</div>
+                                        <div className="text-[10px] tabular-nums" style={{ color: T.muted }}>Qty {o.quantity} · {formatCurrency(o.price)}</div>
                                     </div>
                                 </label>
                             ))}
                         </div>
                     )}
+                    {selectedOrderIds.length > 0 && (
+                        <p className="text-[11px] mt-1 font-medium" style={{ color: T.accent }}>
+                            ✓ {selectedOrderIds.length} item(s) selected totaling <strong className="tabular-nums">{formatCurrency(Number(claimAmount))}</strong>
+                        </p>
+                    )}
+                </div>
+            ) : (
+                <div className="rounded-xl p-3 text-xs flex items-center gap-2" style={{ background: "rgba(255,255,255,0.02)", border: `1px dashed ${T.border}`, color: T.muted }}>
+                    <span>Select a patient above to load dispensed prescription items and auto-calculate claim amounts, or enter a manual amount below.</span>
                 </div>
             )}
 
@@ -172,7 +214,7 @@ function NewClaimForm({ onCreated, onCancel }: { onCreated: () => void; onCancel
                 <div>
                     <div className="flex items-center justify-between mb-1.5">
                         <label className="text-[10px] font-bold uppercase" style={{ color: T.muted }}>
-                            Member ID (optional)
+                            Member ID (Recommended)
                         </label>
                         {hmoName && hmoMemberId && (
                             <button
@@ -191,10 +233,13 @@ function NewClaimForm({ onCreated, onCancel }: { onCreated: () => void; onCancel
                             setHmoMemberId(e.target.value);
                             setEligibilityNotice(null);
                         }}
-                        placeholder="Enter membership number"
+                        placeholder="Enter membership / policy number"
                         className="w-full px-3 py-2 rounded-xl text-sm outline-none"
                         style={{ background: T.bg, border: `1px solid ${T.border}`, color: T.text }}
                     />
+                    <p className="text-[10px] mt-1" style={{ color: T.muted }}>
+                        Required by most HMOs for external claim submission and payout reconciliation.
+                    </p>
                 </div>
             </div>
 
@@ -209,7 +254,7 @@ function NewClaimForm({ onCreated, onCancel }: { onCreated: () => void; onCancel
                         </span>
                     </div>
                     <p style={{ color: T.text }}>
-                        Automated real-time eligibility verification for <strong>{eligibilityNotice.hmo}</strong> (Member ID: <code className="text-sky-300">{eligibilityNotice.memberId}</code>) will activate upon rollout of WelliRecord's NHIA live gateway integration.
+                        Automated real-time eligibility verification for <strong>{eligibilityNotice.hmo}</strong> (Member ID: <code className="text-sky-300 font-mono">{eligibilityNotice.memberId}</code>) will activate upon rollout of WelliRecord's NHIA live gateway integration.
                     </p>
                     <p className="text-[11px]" style={{ color: T.muted }}>
                         You can proceed with filing this claim for facility tracking.
@@ -218,11 +263,21 @@ function NewClaimForm({ onCreated, onCancel }: { onCreated: () => void; onCancel
             )}
 
             <div>
-                <label className="text-[10px] font-bold uppercase block mb-1.5" style={{ color: T.muted }}>Claim amount</label>
-                <input value={claimAmount} onChange={(e) => setClaimAmount(e.target.value)} type="number" min={0}
-                    placeholder="Auto-filled from selected items, editable"
-                    className="w-full px-3 py-2 rounded-xl text-sm outline-none"
-                    style={{ background: T.bg, border: `1px solid ${T.border}`, color: T.text }} />
+                <label className="text-[10px] font-bold uppercase block mb-1.5" style={{ color: T.muted }}>
+                    Claim Amount (₦)
+                </label>
+                <input
+                    value={claimAmount}
+                    onChange={(e) => setClaimAmount(e.target.value)}
+                    type="number"
+                    min={0}
+                    placeholder="e.g. 15000 (auto-calculates when items above are selected)"
+                    className="w-full px-3 py-2 rounded-xl text-sm outline-none font-mono"
+                    style={{ background: T.bg, border: `1px solid ${T.border}`, color: T.text }}
+                />
+                <p className="text-[10px] mt-1" style={{ color: T.muted }}>
+                    Auto-calculates from selected dispensed items above. You can override or adjust this figure manually for co-pays or tariff adjustments.
+                </p>
             </div>
 
             <div>
@@ -425,8 +480,10 @@ export function PharmacyClaimsTab({ triggerToast }: { triggerToast: (msg: string
             </div>
 
             {filter === "all" && !loading && !error && (
-                <div className="text-xs" style={{ color: T.muted }}>
-                    Outstanding (submitted + approved, not yet paid): <span className="font-bold" style={{ color: T.text }}>{formatCurrency(totalOutstanding)}</span>
+                <div className="text-xs flex items-center gap-2 p-3 rounded-xl border" style={{ background: "rgba(56,189,248,0.04)", borderColor: T.border, color: T.muted }}>
+                    <Banknote size={14} style={{ color: T.accent }} />
+                    <span>Outstanding (submitted + approved, not yet paid):</span>
+                    <span className="font-bold tabular-nums text-sm text-sky-400">{formatCurrency(totalOutstanding)}</span>
                 </div>
             )}
 
