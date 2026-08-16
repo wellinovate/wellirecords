@@ -484,128 +484,159 @@ export function LabOrdersPage() {
         </div>
       </div>
 
-      {/* ─── Today's Summary KPI Row ────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-8">
-        <div className="p-4 rounded-2xl border border-slate-800 bg-[#0c192b]">
-          <div className="text-xs text-slate-400 font-medium">Total Orders</div>
-          <div className="text-xl font-black text-white mt-1">{stats.total}</div>
-          <div className="text-[10px] text-sky-400 mt-1 flex items-center gap-1">
-            <Activity size={10} /> Active Today
+      {/* ─── Today's Summary KPI Row: Split into Clinical vs Billing ─── */}
+      <div className="space-y-3 mb-8">
+        {/* Clinical Operations Metrics */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div className="p-4 rounded-2xl border border-slate-800 bg-[#0c192b]">
+            <div className="text-xs text-slate-400 font-medium">Total Orders</div>
+            <div className="text-xl font-black text-white mt-1">{stats.total}</div>
+            <div className="text-[10px] text-sky-400 mt-1 flex items-center gap-1">
+              <Activity size={10} /> Active Today
+            </div>
+          </div>
+
+          <div className="p-4 rounded-2xl border border-slate-800 bg-[#0c192b]">
+            <div className="text-xs text-slate-400 font-medium">Pending Intake</div>
+            <div className="text-xl font-black text-amber-400 mt-1">{stats.pendingSamples}</div>
+            <div className="text-[10px] text-amber-400/80 mt-1 flex items-center gap-1">
+              <Syringe size={10} /> Phlebotomy Queue
+            </div>
+          </div>
+
+          <div className="p-4 rounded-2xl border border-slate-800 bg-[#0c192b]">
+            <div className="text-xs text-slate-400 font-medium">In Processing</div>
+            <div className="text-xl font-black text-sky-400 mt-1">{stats.inProcessing}</div>
+            <div className="text-[10px] text-sky-400/80 mt-1 flex items-center gap-1">
+              <Cpu size={10} /> Analyzers Running
+            </div>
+          </div>
+
+          <div className="p-4 rounded-2xl border border-slate-800 bg-[#0c192b]">
+            <div className="text-xs text-slate-400 font-medium">Results Ready</div>
+            <div className="text-xl font-black text-emerald-400 mt-1">{stats.resultsReady}</div>
+            <div className="text-[10px] text-emerald-400/80 mt-1 flex items-center gap-1">
+              <ShieldCheck size={10} /> Verified & Signed
+            </div>
+          </div>
+
+          {/* Critical Alerts Card: Alert style only when criticalCount > 0 */}
+          <div
+            className={`p-4 rounded-2xl border ${
+              stats.criticalCount > 0
+                ? "border-rose-500/40 bg-rose-500/10 text-rose-300"
+                : "border-slate-800 bg-[#0c192b]"
+            }`}
+          >
+            <div className="text-xs font-medium flex items-center justify-between">
+              <span className={stats.criticalCount > 0 ? "text-rose-300 font-semibold" : "text-slate-400"}>
+                Critical Panic Alerts
+              </span>
+              {stats.criticalCount > 0 ? (
+                <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+              ) : (
+                <span className="w-2 h-2 rounded-full bg-emerald-400/60" />
+              )}
+            </div>
+            <div className={`text-xl font-black mt-1 ${stats.criticalCount > 0 ? "text-rose-400" : "text-slate-200"}`}>
+              {stats.criticalCount}
+            </div>
+            <div className={`text-[10px] mt-1 ${stats.criticalCount > 0 ? "text-rose-400 font-semibold" : "text-slate-400"}`}>
+              {stats.criticalCount > 0 ? "Immediate Action Required" : "No panic values pending"}
+            </div>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl border border-slate-800 bg-[#0c192b]">
-          <div className="text-xs text-slate-400 font-medium">Pending Intake</div>
-          <div className="text-xl font-black text-amber-400 mt-1">{stats.pendingSamples}</div>
-          <div className="text-[10px] text-amber-400/80 mt-1 flex items-center gap-1">
-            <Syringe size={10} /> Phlebotomy Queue
+        {/* Financial / Billing Overview Sub-Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="p-3.5 rounded-xl border border-slate-800/80 bg-[#081528] flex items-center justify-between">
+            <div>
+              <div className="text-[11px] text-slate-400 font-medium">Diagnostic Revenue (Billed Today)</div>
+              <div className="text-lg font-bold text-emerald-400 mt-0.5">₦{stats.totalRevenue.toLocaleString()}</div>
+            </div>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
+              Paid Invoices
+            </span>
           </div>
-        </div>
 
-        <div className="p-4 rounded-2xl border border-slate-800 bg-[#0c192b]">
-          <div className="text-xs text-slate-400 font-medium">In Processing</div>
-          <div className="text-xl font-black text-indigo-400 mt-1">{stats.inProcessing}</div>
-          <div className="text-[10px] text-indigo-400/80 mt-1 flex items-center gap-1">
-            <Cpu size={10} /> Analyzers Running
+          <div className="p-3.5 rounded-xl border border-slate-800/80 bg-[#081528] flex items-center justify-between">
+            <div>
+              <div className="text-[11px] text-slate-400 font-medium">Outstanding Diagnostic Claims</div>
+              <div className="text-lg font-bold text-slate-200 mt-0.5">₦{stats.outstanding.toLocaleString()}</div>
+            </div>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 font-semibold">
+              HMO / Claims Pending
+            </span>
           </div>
-        </div>
-
-        <div className="p-4 rounded-2xl border border-slate-800 bg-[#0c192b]">
-          <div className="text-xs text-slate-400 font-medium">Results Ready</div>
-          <div className="text-xl font-black text-emerald-400 mt-1">{stats.resultsReady}</div>
-          <div className="text-[10px] text-emerald-400/80 mt-1 flex items-center gap-1">
-            <ShieldCheck size={10} /> Verified & Signed
-          </div>
-        </div>
-
-        <div className="p-4 rounded-2xl border border-rose-500/30 bg-rose-500/5">
-          <div className="text-xs text-rose-300 font-medium flex items-center justify-between">
-            <span>Critical Alerts</span>
-            <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
-          </div>
-          <div className="text-xl font-black text-rose-400 mt-1">{stats.criticalCount}</div>
-          <div className="text-[10px] text-rose-400/80 mt-1">Immediate Panic Action</div>
-        </div>
-
-        <div className="p-4 rounded-2xl border border-slate-800 bg-[#0c192b]">
-          <div className="text-xs text-slate-400 font-medium">Daily Revenue</div>
-          <div className="text-xl font-black text-white mt-1">₦{stats.totalRevenue.toLocaleString()}</div>
-          <div className="text-[10px] text-emerald-400 mt-1">Paid Invoices</div>
-        </div>
-
-        <div className="p-4 rounded-2xl border border-slate-800 bg-[#0c192b]">
-          <div className="text-xs text-slate-400 font-medium">Outstanding</div>
-          <div className="text-xl font-black text-slate-300 mt-1">₦{stats.outstanding.toLocaleString()}</div>
-          <div className="text-[10px] text-amber-400 mt-1">HMO Claims Pending</div>
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="flex border-b border-slate-800 mb-6 gap-2 overflow-x-auto">
+      {/* Navigation Tabs — Responsive wrapping bar */}
+      <div className="flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl bg-[#0a192f] border border-slate-800/80 mb-6">
         <button
           onClick={() => setActiveTab("pipeline")}
-          className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
             activeTab === "pipeline"
-              ? "border-sky-400 text-sky-400 bg-sky-400/5"
-              : "border-transparent text-slate-400 hover:text-slate-200"
+              ? "bg-sky-400 text-slate-950 shadow"
+              : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/40"
           }`}
         >
-          <Layers size={16} /> Workflow Pipeline & Orders
+          <Layers size={14} /> Orders & Pipeline
         </button>
 
         <button
           onClick={() => setActiveTab("entry")}
-          className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
             activeTab === "entry"
-              ? "border-sky-400 text-sky-400 bg-sky-400/5"
-              : "border-transparent text-slate-400 hover:text-slate-200"
+              ? "bg-sky-400 text-slate-950 shadow"
+              : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/40"
           }`}
         >
-          <FileSignature size={16} /> Results Entry & Sign-off
+          <FileSignature size={14} /> Results Entry
         </button>
 
         <button
           onClick={() => setActiveTab("delivery")}
-          className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
             activeTab === "delivery"
-              ? "border-sky-400 text-sky-400 bg-sky-400/5"
-              : "border-transparent text-slate-400 hover:text-slate-200"
+              ? "bg-sky-400 text-slate-950 shadow"
+              : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/40"
           }`}
         >
-          <UploadCloud size={16} /> Result Upload & Delivery Engine
+          <UploadCloud size={14} /> External Uploads
         </button>
 
         <button
           onClick={() => setActiveTab("imaging")}
-          className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
             activeTab === "imaging"
-              ? "border-sky-400 text-sky-400 bg-sky-400/5"
-              : "border-transparent text-slate-400 hover:text-slate-200"
+              ? "bg-sky-400 text-slate-950 shadow"
+              : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/40"
           }`}
         >
-          <FileImage size={16} /> Imaging & Radiology Hub
+          <FileImage size={14} /> Imaging & Radiology
         </button>
 
         <button
           onClick={() => setActiveTab("inventory")}
-          className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
             activeTab === "inventory"
-              ? "border-sky-400 text-sky-400 bg-sky-400/5"
-              : "border-transparent text-slate-400 hover:text-slate-200"
+              ? "bg-sky-400 text-slate-950 shadow"
+              : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/40"
           }`}
         >
-          <HardDrive size={16} /> Analyzers & Reagents
+          <HardDrive size={14} /> Analyzers & Reagents
         </button>
 
         <button
           onClick={() => setActiveTab("analytics")}
-          className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
             activeTab === "analytics"
-              ? "border-sky-400 text-sky-400 bg-sky-400/5"
-              : "border-transparent text-slate-400 hover:text-slate-200"
+              ? "bg-sky-400 text-slate-950 shadow"
+              : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/40"
           }`}
         >
-          <BarChart2 size={16} /> Lab Analytics & TAT
+          <BarChart2 size={14} /> Lab Analytics
         </button>
       </div>
 
@@ -613,24 +644,24 @@ export function LabOrdersPage() {
       {activeTab === "delivery" && (
         <div className="space-y-6 animate-fade-in">
           {/* Header Banner */}
-          <div className="p-6 rounded-3xl border border-sky-400/30 bg-gradient-to-r from-[#091f3d] via-[#0b2447] to-[#041224] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="p-6 rounded-3xl border border-sky-400/30 bg-[#091f3d] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2 text-sky-400 text-xs font-bold uppercase tracking-widest mb-1">
-                <Sparkles size={14} /> Longitudinally Verified Clinical Engine
+              <div className="flex items-center gap-2 text-sky-400 text-xs font-bold uppercase tracking-wider mb-1">
+                <FileText size={14} /> External Report Intake
               </div>
-              <h2 className="text-xl font-black text-white">
-                Laboratory Results & Document Delivery Engine
+              <h2 className="text-xl font-bold text-white">
+                External Lab Reports & Document Intake
               </h2>
-              <p className="text-xs text-sky-200/70 mt-1 max-w-2xl">
-                Upload external lab reports, verify patient WelliRecord identity via dual-factor checks, extract machine-readable observations, manage critical panic escalations, and release secure multi-channel notifications.
+              <p className="text-xs text-sky-200/80 mt-1 max-w-2xl leading-relaxed">
+                Upload and attach external diagnostic reports, match against verified patient IDs, extract test values, and notify patients or ordering physicians.
               </p>
             </div>
 
             <button
               onClick={() => setIsDeliveryModalOpen(true)}
-              className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-sm shadow-xl shadow-sky-500/20 transition-all shrink-0"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold text-xs shadow-lg transition-all shrink-0"
             >
-              <UploadCloud size={18} /> Launch Result Delivery Wizard
+              <UploadCloud size={16} /> Upload External Report
             </button>
           </div>
 
@@ -638,28 +669,28 @@ export function LabOrdersPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-5 rounded-2xl border border-slate-800 bg-[#0c192b] space-y-2">
               <div className="flex items-center gap-2 text-sky-400 font-bold text-sm">
-                <ShieldCheck size={18} /> 🔐 Verified Patient Identity
+                <ShieldCheck size={16} /> Patient Record Matching
               </div>
-              <p className="text-xs text-slate-300">
-                Dual-factor verification (WR ID + Phone/Email) locks high-risk delivery until identity is confirmed. Unregistered customers receive quick invitation onboarding links.
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Match incoming reports by WelliRecord ID, phone number, or email to attach results directly to the patient's longitudinal record.
               </p>
             </div>
 
             <div className="p-5 rounded-2xl border border-slate-800 bg-[#0c192b] space-y-2">
-              <div className="flex items-center gap-2 text-purple-400 font-bold text-sm">
-                <Sparkles size={18} /> 🤖 AI / Machine-Readable Extraction
+              <div className="flex items-center gap-2 text-sky-400 font-bold text-sm">
+                <FileText size={16} /> Observation Value Extraction
               </div>
-              <p className="text-xs text-slate-300">
-                OCR document engine converts PDFs and report scans into structured clinical observation rows (Test Name, Result, Unit, Ref Range, Abnormal Flag) alongside original document attachment.
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Extract individual test parameters (analyte, numeric result, reference range, abnormal flag) alongside original PDF report attachments.
               </p>
             </div>
 
             <div className="p-5 rounded-2xl border border-slate-800 bg-[#0c192b] space-y-2">
-              <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
-                <Send size={18} /> 🔔 Multi-Channel Notification Dispatch
+              <div className="flex items-center gap-2 text-sky-400 font-bold text-sm">
+                <Send size={16} /> Result Notifications
               </div>
-              <p className="text-xs text-slate-300">
-                Release Result triggers Email, SMS, WhatsApp, and Push notifications. Sensitive medical findings remain protected behind authenticated vault login links.
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Notify ordering physicians and patients via in-app alert, SMS, or email once results are verified and approved for release.
               </p>
             </div>
           </div>
@@ -710,13 +741,13 @@ export function LabOrdersPage() {
                     <td className="px-4 py-3 font-mono text-slate-300">LAB-2026-9941</td>
                     <td className="px-4 py-3 text-slate-300">2026-08-12</td>
                     <td className="px-4 py-3">
-                      <span className="px-2.5 py-1 rounded-full bg-red-500/20 text-red-400 font-bold border border-red-500/30 text-[10px]">
-                        🚨 Critical Panic
+                      <span className="px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-400 font-bold border border-rose-500/30 text-[10px]">
+                        Critical Value
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-semibold text-[10px]">
-                        Dual-Factor Verified ✓
+                        Verified (ID + Phone)
                       </span>
                     </td>
                     <td className="px-4 py-3 text-[10px] text-slate-300">
