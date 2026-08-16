@@ -15,6 +15,7 @@ import {
   ClipboardList,
   Eye,
   FlaskConical,
+  GitBranch,
   HeartPulse,
   LayoutDashboard,
   LifeBuoy,
