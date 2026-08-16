@@ -65,6 +65,8 @@ import { pharmacyInventoryApi, PharmacyInventorySummary } from "@/shared/api/pha
 import { PharmacyInventoryTab } from "./pharmacy/PharmacyInventoryTab";
 import { PharmacySuppliersTab } from "./pharmacy/PharmacySuppliersTab";
 import { PharmacyPurchasingTab } from "./pharmacy/PharmacyPurchasingTab";
+import { PharmacyClaimsTab } from "./pharmacy/PharmacyClaimsTab";
+import { pharmacyClaimsApi, type ClaimSummary } from "@/shared/api/pharmacyClaimsApi";
 
 // ─── Color Palette & Styling Tokens ─────────────────────────────────────────
 
@@ -115,6 +117,11 @@ function getPharmacyOrdersSocket() {
 export function PharmacyDashboard() {
   const { user, searchPatientRequest } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
+  const [claimSummary, setClaimSummary] = useState<ClaimSummary | null>(null);
+
+  useEffect(() => {
+    pharmacyClaimsApi.summary().then(setClaimSummary).catch(() => setClaimSummary(null));
+  }, []);
 
   // State: Medications & Inventory
   const [medications, setMedications] = useState<MedicationItem[]>([]);
@@ -444,8 +451,23 @@ export function PharmacyDashboard() {
             <span>Outstanding</span>
             <CreditCardIcon />
           </div>
-          <div className="text-lg font-black text-slate-500 mt-1">—</div>
-          <span className="text-[10px] text-slate-500 font-semibold">HMO claims tracking not built yet</span>
+          {claimSummary ? (
+            <>
+              <div className="text-lg font-black text-sky-400 mt-1">
+                {new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 }).format(
+                  claimSummary.outstanding,
+                )}
+              </div>
+              <span className="text-[10px] text-slate-500 font-semibold">
+                {(claimSummary.byStatus.submitted.count ?? 0) + (claimSummary.byStatus.approved.count ?? 0)} HMO claim(s) unpaid
+              </span>
+            </>
+          ) : (
+            <>
+              <div className="text-lg font-black text-slate-500 mt-1">—</div>
+              <span className="text-[10px] text-slate-500 font-semibold">Loading claims…</span>
+            </>
+          )}
         </div>
       </div>
 
@@ -458,6 +480,7 @@ export function PharmacyDashboard() {
           { id: "refills", label: "Refill Center", icon: RefreshCw },
           { id: "inventory", label: "Medicine Inventory", icon: Box },
           { id: "suppliers", label: "Suppliers", icon: Truck },
+          { id: "claims", label: "HMO Claims", icon: ShieldCheck },
           { id: "purchasing", label: "Purchase Orders", icon: FileSpreadsheet },
           { id: "ai-checker", label: "AI Safety Checker", icon: Sparkles },
           { id: "delivery", label: "Home Delivery", icon: Truck },
@@ -797,6 +820,8 @@ export function PharmacyDashboard() {
 
       {/* ── TAB: SUPPLIERS ───────────────────────────────────────────────── */}
       {activeTab === "suppliers" && <PharmacySuppliersTab triggerToast={triggerToast} />}
+
+      {activeTab === "claims" && <PharmacyClaimsTab triggerToast={triggerToast} />}
 
       {/* ── TAB: PURCHASE ORDERS ─────────────────────────────────────────── */}
       {activeTab === "purchasing" && <PharmacyPurchasingTab triggerToast={triggerToast} />}
