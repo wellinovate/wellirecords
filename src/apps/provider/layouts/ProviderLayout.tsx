@@ -487,12 +487,14 @@ export function ProviderLayout() {
               className="hidden md:block text-sm font-semibold capitalize"
               style={{ color: "#7ba3c8" }}
             >
-              {location.pathname
-                .split("/")
-                .filter(Boolean)
-                .slice(1)
-                .join(" / ")
-                .replace(/-/g, " ")}
+              {location.pathname === "/provider/patients/import"
+                ? "Patients / Import & Sync"
+                : location.pathname
+                    .split("/")
+                    .filter(Boolean)
+                    .slice(1)
+                    .join(" / ")
+                    .replace(/-/g, " ")}
             </div>
           </div>
           <div className="flex items-center gap-2 md:gap-3">

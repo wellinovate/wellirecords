@@ -156,8 +156,8 @@ function DropZone({ onRows }: { onRows: (rows: Record<string, any>[]) => void })
         <p className="text-base font-semibold" style={{ color: T.text }}>
           {fileName ? fileName : "Drop your CSV or Excel file here"}
         </p>
-        <p className="text-sm mt-1" style={{ color: T.muted }}>
-          Supports .csv, .xlsx, .xls — up to 5,000 rows per import
+        <p className="text-xs mt-1.5 max-w-md leading-relaxed" style={{ color: T.muted }}>
+          Supports .csv, .xlsx, .xls — up to 5,000 rows per batch. Files exceeding 5,000 rows will import the first 5,000 records; split larger archives into separate batches.
         </p>
       </div>
       {parseError && (
@@ -244,7 +244,7 @@ function ImportResultCard({ result, onDone }: { result: ImportResult; onDone: ()
         className="w-full py-2.5 rounded-xl text-sm font-semibold transition-colors"
         style={{ background: T.accent, color: "#fff" }}
       >
-        View Customer List →
+        View Patient List →
       </button>
     </div>
   );
@@ -252,61 +252,62 @@ function ImportResultCard({ result, onDone }: { result: ImportResult; onDone: ()
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export function PatientImportPage() {
-  const [activeTab, setActiveTab] = useState<"import" | "customers" | "dashboard">("import");
+  const [activeTab, setActiveTab] = useState<"import" | "patients" | "dashboard">("import");
 
   // Import tab state
   const [parsedRows, setParsedRows] = useState<Record<string, any>[]>([]);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
 
-  // Customer list state
-  const [customers, setCustomers] = useState<LocalCustomer[]>([]);
+  // Patient list state
+  const [patients, setPatients] = useState<LocalCustomer[]>([]);
   const [listLoading, setListLoading] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
   const [matchFilter, setMatchFilter] = useState("");
   const [inviteFilter, setInviteFilter] = useState("");
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
 
   // Dashboard state
   const [stats, setStats] = useState<LocalCustomerStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
 
-  // Modals & Action State
-  const [reviewCustomer, setReviewCustomer] = useState<LocalCustomer | null>(null);
-  const [inviteModal, setInviteModal] = useState<{ customer: LocalCustomer; link: string } | null>(null);
+  // Review & invite modal states
+  const [reviewPatient, setReviewPatient] = useState<LocalCustomer | null>(null);
+  const [inviteModal, setInviteModal] = useState<{ patient: LocalCustomer; link: string } | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
   const [bulkInviting, setBulkInviting] = useState(false);
-  const [notification, setNotification] = useState<string | null>(null);
 
+  // Notification banner state
+  const [notification, setNotification] = useState<string | null>(null);
   const showNotification = (msg: string) => {
     setNotification(msg);
     setTimeout(() => setNotification(null), 4000);
   };
 
-  // ── Load customers ──────────────────────────────────────────────────────────
-  const loadCustomers = useCallback(async () => {
+  // ── Load patients ──────────────────────────────────────────────────────────
+  const loadPatients = useCallback(async () => {
     setListLoading(true);
     try {
       const res = await getLocalCustomers(page, 20, {
+        search: search || undefined,
         matchStatus: matchFilter || undefined,
         invitationStatus: inviteFilter || undefined,
-        search: search || undefined,
       });
-      setCustomers(res.items);
-      setTotalPages(res.pagination.totalPages);
-      setTotalCount(res.pagination.total);
-    } catch (e) {
-      console.error(e);
+      setPatients(res.items);
+      setTotalCount(res.total);
+      setTotalPages(res.pages);
+    } catch {
+      // silently handle
     } finally {
       setListLoading(false);
     }
-  }, [page, matchFilter, inviteFilter, search]);
+  }, [page, search, matchFilter, inviteFilter]);
 
   useEffect(() => {
-    if (activeTab === "customers") loadCustomers();
-  }, [activeTab, loadCustomers]);
+    if (activeTab === "patients") loadPatients();
+  }, [activeTab, loadPatients]);
 
   // ── Load stats ──────────────────────────────────────────────────────────────
   const loadStats = useCallback(async () => {
@@ -314,8 +315,8 @@ export function PatientImportPage() {
     try {
       const s = await getLocalCustomerStats();
       setStats(s);
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // silently handle
     } finally {
       setStatsLoading(false);
     }
@@ -325,7 +326,7 @@ export function PatientImportPage() {
     if (activeTab === "dashboard") loadStats();
   }, [activeTab, loadStats]);
 
-  // ── Handle import ───────────────────────────────────────────────────────────
+  // ── Handlers ───────────────────────────────────────────────────────────────
   const handleImport = async () => {
     if (parsedRows.length === 0) return;
     setImporting(true);
@@ -333,84 +334,85 @@ export function PatientImportPage() {
       const result = await importLocalCustomers(parsedRows);
       setImportResult(result);
       setParsedRows([]);
-    } catch (e: any) {
-      console.error(e);
+      loadStats();
+    } catch {
+      // handled
     } finally {
       setImporting(false);
     }
   };
 
-  // ── Handle match actions ────────────────────────────────────────────────────
-  const handleConfirmMatch = async (customer: LocalCustomer, candidateUserId: string) => {
+  const handleConfirmMatch = async (patient: LocalCustomer, candidateUserId: string) => {
     try {
-      const updated = await confirmMatch(customer._id, candidateUserId);
-      setCustomers((prev) => prev.map((c) => (c._id === updated._id ? updated : c)));
-      setReviewCustomer(null);
-      showNotification(`Successfully linked ${customer.fullName} to WelliRecord patient!`);
-    } catch (e) { console.error(e); }
+      const updated = await confirmMatch(patient._id, candidateUserId);
+      setPatients((prev) => prev.map((c) => (c._id === updated._id ? updated : c)));
+      setReviewPatient(null);
+      showNotification(`Successfully linked ${patient.fullName} to WelliRecord patient!`);
+    } catch {}
   };
 
-  const handleDismissMatch = async (customer: LocalCustomer) => {
+  const handleDismissMatch = async (patient: LocalCustomer) => {
     try {
-      const updated = await dismissMatch(customer._id);
-      setCustomers((prev) => prev.map((c) => (c._id === updated._id ? updated : c)));
-      setReviewCustomer(null);
-      showNotification(`Match dismissed for ${customer.fullName}. Marked as local record.`);
-    } catch (e) { console.error(e); }
+      const updated = await dismissMatch(patient._id);
+      setPatients((prev) => prev.map((c) => (c._id === updated._id ? updated : c)));
+      setReviewPatient(null);
+      showNotification(`Match dismissed for ${patient.fullName}. Marked as local record.`);
+    } catch {}
   };
 
-  // ── Handle invitation actions ───────────────────────────────────────────────
-  const handleSingleInvite = async (customer: LocalCustomer) => {
+  const handleSingleInvite = async (patient: LocalCustomer) => {
     try {
-      const res = await sendInvitation(customer._id);
-      setCustomers((prev) => prev.map((c) => (c._id === customer._id ? res.customer : c)));
-      const fullUrl = `${window.location.origin}/join/${res.token}`;
-      setInviteModal({ customer: res.customer, link: fullUrl });
-    } catch (e) {
-      console.error(e);
-      showNotification("Failed to generate invitation.");
-    }
+      const res = await sendInvitation(patient._id);
+      setPatients((prev) => prev.map((c) => (c._id === patient._id ? res.customer : c)));
+      const fullUrl = `${window.location.origin}${res.inviteLink}`;
+      setInviteModal({ patient: res.customer, link: fullUrl });
+    } catch {}
   };
 
   const handleBulkInvite = async () => {
+    if (!confirm("Are you sure you want to generate invitations for all uninvited patients?")) return;
     setBulkInviting(true);
     try {
       const res = await bulkSendInvitations();
-      showNotification(`Bulk invitations generated for ${res.totalInvited} patients!`);
-      loadCustomers();
-    } catch (e) {
-      console.error(e);
-      showNotification("Bulk invitation failed.");
+      showNotification(`Generated invitations for ${res.processed} uninvited patients!`);
+      loadPatients();
+    } catch {
+      showNotification("Failed to complete bulk invitation.");
     } finally {
       setBulkInviting(false);
     }
   };
 
   const tabs = [
-    { id: "import" as const,     label: "Import",    icon: Upload },
-    { id: "customers" as const,  label: "Customers", icon: Users },
-    { id: "dashboard" as const,  label: "Dashboard", icon: BarChart3 },
+    { id: "import" as const,     label: "Import & Sync", icon: Upload },
+    { id: "patients" as const,   label: "Imported Patients", icon: Users },
+    { id: "dashboard" as const,  label: "Sync Dashboard", icon: BarChart3 },
   ];
 
   return (
-    <div className="min-h-screen p-4 sm:p-6 lg:p-8 font-sans" style={{ background: T.bg, color: T.text }}>
-      {/* ── Toast Banner ───────────────────────────────────────────────────── */}
+    <div className="space-y-6">
+      {/* ── Toast Notification Banner ───────────────────────────────────────── */}
       {notification && (
-        <div className="fixed top-5 right-5 z-50 bg-emerald-600 text-white px-4 py-3 rounded-2xl shadow-2xl font-semibold text-sm flex items-center gap-2 animate-fade-in">
+        <div
+          className="fixed top-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-2xl shadow-2xl border text-sm font-semibold text-emerald-300 animate-slide-in"
+          style={{ background: "#0c203b", borderColor: `${T.success}60` }}
+        >
           <CheckCircle size={18} />
           <span>{notification}</span>
         </div>
       )}
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
+      <div className="mb-6">
+        <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{ background: `${T.accent}20` }}>
             <Link2 size={20} color={T.accent} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold" style={{ color: T.text }}>WelliBridge Connect</h1>
-            <p className="text-sm" style={{ color: T.muted }}>Patient linking & migration engine</p>
+            <h1 className="text-2xl font-bold" style={{ color: T.text }}>Patient Import & Sync</h1>
+            <p className="text-xs mt-0.5" style={{ color: T.muted }}>
+              WelliBridge patient linking & migration engine
+            </p>
           </div>
         </div>
       </div>
@@ -439,39 +441,73 @@ export function PatientImportPage() {
           {importResult ? (
             <ImportResultCard
               result={importResult}
-              onDone={() => { setImportResult(null); setActiveTab("customers"); }}
+              onDone={() => { setImportResult(null); setActiveTab("patients"); }}
             />
           ) : (
             <>
-              {/* Supported fields info */}
+              {/* Supported fields info with explicit legend */}
               <div className="rounded-2xl p-5" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
-                <p className="text-sm font-semibold mb-3" style={{ color: T.text }}>Supported Columns</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs" style={{ color: T.muted }}>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                  <p className="text-sm font-semibold" style={{ color: T.text }}>Supported Columns</p>
+                  <div className="flex items-center gap-3 text-xs">
+                    <span className="flex items-center gap-1.5 font-medium" style={{ color: T.success }}>
+                      <span className="w-2 h-2 rounded-full bg-emerald-400" /> Required (✓)
+                    </span>
+                    <span className="flex items-center gap-1.5 font-medium" style={{ color: T.accent }}>
+                      <span className="w-2 h-2 rounded-full bg-blue-400" /> Recommended
+                    </span>
+                    <span className="flex items-center gap-1.5 font-medium" style={{ color: T.muted }}>
+                      <span className="w-2 h-2 rounded-full bg-slate-600" /> Optional (○)
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
                   {[
                     ["Full Name / Name", "Required"],
                     ["Phone / Mobile", "Required"],
                     ["Email", "Recommended"],
-                    ["Customer ID", "Optional"],
+                    ["Patient ID / MRN", "Optional"],
                     ["Date of Birth", "Optional"],
                     ["Gender", "Optional"],
                     ["Address", "Optional"],
                     ["HMO", "Optional"],
                     ["Last Visit", "Optional"],
                   ].map(([field, req]) => (
-                    <div key={field} className="flex items-center gap-2">
+                    <div
+                      key={field}
+                      className="flex items-center justify-between p-2.5 rounded-xl border"
+                      style={{
+                        background: T.card,
+                        borderColor: req === "Required" ? 'rgba(16,185,129,0.25)' : T.border,
+                      }}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span
+                          className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                          style={{
+                            background: req === "Required" ? T.success : req === "Recommended" ? T.accent : T.muted,
+                          }}
+                        />
+                        <span className="truncate" style={{ color: req === "Required" ? T.text : T.muted }}>
+                          {field}
+                        </span>
+                      </div>
                       <span
-                        className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                        style={{ background: req === "Required" ? T.success : T.border }}
-                      />
-                      <span>{field}</span>
-                      {req === "Required" && (
-                        <span className="text-xs font-bold" style={{ color: T.success }}>✓</span>
-                      )}
+                        className="text-[10px] font-bold px-1.5 py-0.5 rounded flex-shrink-0 ml-1"
+                        style={{
+                          background: req === "Required" ? 'rgba(16,185,129,0.15)' : req === "Recommended" ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.04)',
+                          color: req === "Required" ? T.success : req === "Recommended" ? T.accent : T.muted,
+                        }}
+                      >
+                        {req === "Required" ? "✓ Required" : req}
+                      </span>
                     </div>
                   ))}
                 </div>
-                <p className="text-xs mt-3" style={{ color: T.muted }}>
-                  Column names are flexible — use your own headers (e.g. "customer_id", "Customer ID", "customerId" all work).
+
+                <p className="text-xs mt-3.5 leading-relaxed" style={{ color: T.muted }}>
+                  Column headers are flexible — use your hospital's own headers (e.g. "patient_id", "Patient ID", "MRN", "Full Name", "Phone" all map automatically).
                 </p>
               </div>
 
@@ -483,7 +519,7 @@ export function PatientImportPage() {
                     <p className="text-sm font-semibold" style={{ color: T.text }}>
                       Preview — {parsedRows.length.toLocaleString()} rows detected
                     </p>
-                    <button onClick={() => setParsedRows([])} className="text-xs" style={{ color: T.muted }}>
+                    <button onClick={() => setParsedRows([])} className="text-xs text-rose-400 hover:underline">
                       Clear
                     </button>
                   </div>
@@ -491,7 +527,7 @@ export function PatientImportPage() {
                   <button
                     onClick={handleImport}
                     disabled={importing}
-                    className="w-full py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all"
+                    className="w-full py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg"
                     style={{
                       background: importing ? `${T.accent}60` : T.accent,
                       color: "#fff",
@@ -501,7 +537,7 @@ export function PatientImportPage() {
                     {importing ? (
                       <><RefreshCw size={16} className="animate-spin" /> Running matching engine…</>
                     ) : (
-                      <><Zap size={16} /> Import & Match {parsedRows.length.toLocaleString()} Customers</>
+                      <><Zap size={16} /> Import & Match {parsedRows.length.toLocaleString()} Patients</>
                     )}
                   </button>
                 </div>
@@ -511,8 +547,8 @@ export function PatientImportPage() {
         </div>
       )}
 
-      {/* ── Customers Tab ──────────────────────────────────────────────────── */}
-      {activeTab === "customers" && (
+      {/* ── Patients Tab ──────────────────────────────────────────────────── */}
+      {activeTab === "patients" && (
         <div className="space-y-4">
           {/* Action Header */}
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -521,7 +557,7 @@ export function PatientImportPage() {
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: T.muted }} />
                 <input
                   type="text"
-                  placeholder="Search name, phone, email…"
+                  placeholder="Search name, phone, email, patient ID…"
                   value={search}
                   onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                   className="w-full pl-9 pr-3 py-2 rounded-xl text-sm"
@@ -555,7 +591,7 @@ export function PatientImportPage() {
                 <option value="expired">Expired</option>
               </select>
               <button
-                onClick={loadCustomers}
+                onClick={loadPatients}
                 className="px-3 py-2 rounded-xl transition-colors"
                 style={{ background: T.surface, border: `1px solid ${T.border}`, color: T.muted }}
               >
@@ -578,7 +614,7 @@ export function PatientImportPage() {
           </div>
 
           <p className="text-xs" style={{ color: T.muted }}>
-            {totalCount.toLocaleString()} customers
+            {totalCount.toLocaleString()} imported patients
           </p>
 
           {/* Table */}
@@ -587,7 +623,7 @@ export function PatientImportPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr style={{ background: T.card }}>
-                    {["Customer", "Phone / Email", "Match Status", "Invitation", "Actions"].map((h) => (
+                    {["Patient", "Phone / Email", "Match Status", "Invitation", "Actions"].map((h) => (
                       <th key={h} className="px-4 py-3 text-left text-xs font-semibold" style={{ color: T.muted }}>{h}</th>
                     ))}
                   </tr>
@@ -597,25 +633,25 @@ export function PatientImportPage() {
                     <tr>
                       <td colSpan={5} className="py-16 text-center text-sm" style={{ color: T.muted }}>
                         <RefreshCw size={20} className="animate-spin mx-auto mb-2" />
-                        Loading…
+                        Loading patients…
                       </td>
                     </tr>
-                  ) : customers.length === 0 ? (
+                  ) : patients.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="py-16 text-center text-sm" style={{ color: T.muted }}>
-                        No customers found.{" "}
+                        No imported patients found.{" "}
                         <button onClick={() => setActiveTab("import")} style={{ color: T.accent }}>
-                          Import customers →
+                          Import patients →
                         </button>
                       </td>
                     </tr>
                   ) : (
-                    customers.map((c) => (
+                    patients.map((c) => (
                       <tr key={c._id} style={{ borderTop: `1px solid ${T.border}` }}>
                         <td className="px-4 py-3">
                           <p className="font-semibold" style={{ color: T.text }}>{c.fullName}</p>
                           {c.externalId && (
-                            <p className="text-xs" style={{ color: T.muted }}>ID: {c.externalId}</p>
+                            <p className="text-xs" style={{ color: T.muted }}>Patient ID / MRN: {c.externalId}</p>
                           )}
                           {c.hmo && (
                             <p className="text-xs" style={{ color: T.muted }}>HMO: {c.hmo}</p>
@@ -649,7 +685,7 @@ export function PatientImportPage() {
                             {/* Possible match review button */}
                             {c.matchStatus === "possible_match" && (
                               <button
-                                onClick={() => setReviewCustomer(c)}
+                                onClick={() => setReviewPatient(c)}
                                 className="px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1"
                                 style={{ background: `${T.purple}20`, color: T.purple }}
                               >
@@ -717,7 +753,7 @@ export function PatientImportPage() {
           {statsLoading || !stats ? (
             <div className="py-24 text-center" style={{ color: T.muted }}>
               <RefreshCw size={24} className="animate-spin mx-auto mb-3" />
-              Loading stats…
+              Loading sync analytics…
             </div>
           ) : (
             <>
@@ -732,7 +768,7 @@ export function PatientImportPage() {
               {/* Invitation funnel */}
               <div className="rounded-2xl p-6 space-y-4" style={{ background: T.card, border: `1px solid ${T.border}` }}>
                 <div className="flex items-center justify-between">
-                  <p className="font-bold" style={{ color: T.text }}>Invitation Funnel</p>
+                  <p className="font-bold" style={{ color: T.text }}>Patient Invitation Funnel</p>
                   <span
                     className="px-3 py-1 rounded-full text-xs font-bold"
                     style={{ background: `${T.success}20`, color: T.success }}
@@ -792,14 +828,14 @@ export function PatientImportPage() {
                   <Zap size={18} color={T.purple} />
                 </div>
                 <div>
-                  <p className="font-semibold text-sm" style={{ color: T.text }}>AI Adoption Tip</p>
+                  <p className="font-semibold text-sm" style={{ color: T.text }}>Patient Digital Onboarding Tip</p>
                   <p className="text-sm mt-1" style={{ color: T.muted }}>
                     {stats.new > 0 ? (
                       <>
-                        <strong style={{ color: T.text }}>{stats.new.toLocaleString()}</strong> customers are unregistered. Prioritize invitations for those who visited recently — they're most likely to register for digital lab results and prescriptions.
+                        <strong style={{ color: T.text }}>{stats.new.toLocaleString()}</strong> imported patients are not yet registered. Prioritize invitations for those who visited recently — they're most likely to register for digital lab results and prescriptions.
                       </>
                     ) : (
-                      "All imported customers have been matched or linked. Import more customers to continue growing your digital patient base."
+                      "All imported patients have been matched or linked. Import more records to continue growing your facility's digital patient base."
                     )}
                   </p>
                 </div>
@@ -810,7 +846,7 @@ export function PatientImportPage() {
       )}
 
       {/* ── MODAL 1: Side-by-Side Possible Match Review Modal ─────────────── */}
-      {reviewCustomer && (
+      {reviewPatient && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
           <div
             className="w-full max-w-2xl rounded-3xl p-6 space-y-6 animate-scale-up border"
@@ -821,40 +857,40 @@ export function PatientImportPage() {
                 <AlertCircle size={20} className="text-purple-400" />
                 <h3 className="font-bold text-lg text-white">Review Match Candidates</h3>
               </div>
-              <button onClick={() => setReviewCustomer(null)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setReviewPatient(null)} className="text-slate-400 hover:text-white">
                 <X size={20} />
               </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Left Column: Local Customer */}
+              {/* Left Column: Local Patient */}
               <div className="rounded-2xl p-4 space-y-3" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Imported Record</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Imported Patient Record</span>
                 <div>
-                  <p className="text-base font-bold text-white">{reviewCustomer.fullName}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">Customer ID: {reviewCustomer.externalId || "—"}</p>
+                  <p className="text-base font-bold text-white">{reviewPatient.fullName}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Patient ID / MRN: {reviewPatient.externalId || "—"}</p>
                 </div>
                 <div className="space-y-1.5 text-xs text-slate-300">
-                  <p><span className="text-slate-400">Phone:</span> {reviewCustomer.phone || "—"}</p>
-                  <p><span className="text-slate-400">Email:</span> {reviewCustomer.email || "—"}</p>
-                  <p><span className="text-slate-400">DOB:</span> {reviewCustomer.dob ? new Date(reviewCustomer.dob).toLocaleDateString() : "—"}</p>
-                  <p><span className="text-slate-400">HMO:</span> {reviewCustomer.hmo || "—"}</p>
+                  <p><span className="text-slate-400">Phone:</span> {reviewPatient.phone || "—"}</p>
+                  <p><span className="text-slate-400">Email:</span> {reviewPatient.email || "—"}</p>
+                  <p><span className="text-slate-400">DOB:</span> {reviewPatient.dob ? new Date(reviewPatient.dob).toLocaleDateString() : "—"}</p>
+                  <p><span className="text-slate-400">HMO:</span> {reviewPatient.hmo || "—"}</p>
                 </div>
               </div>
 
               {/* Right Column: Candidate */}
-              {reviewCustomer.matchCandidates.length > 0 ? (
+              {reviewPatient.matchCandidates.length > 0 ? (
                 <div className="rounded-2xl p-4 space-y-3 border" style={{ background: `${T.purple}10`, borderColor: `${T.purple}40` }}>
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold uppercase tracking-wider text-purple-300">Best Candidate Match</span>
                     <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-purple-500/20 text-purple-300">
-                      {reviewCustomer.matchCandidates[0].score}% Score
+                      {reviewPatient.matchCandidates[0].score}% Score
                     </span>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-400 font-mono">User ID: {reviewCustomer.matchCandidates[0].userId}</p>
+                    <p className="text-xs text-slate-400 font-mono">User ID: {reviewPatient.matchCandidates[0].userId}</p>
                     <div className="flex flex-wrap gap-1 mt-2">
-                      {reviewCustomer.matchCandidates[0].matchedOn.map((signal) => (
+                      {reviewPatient.matchCandidates[0].matchedOn.map((signal) => (
                         <span key={signal} className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-500/30 text-purple-200">
                           Matched on: {signal}
                         </span>
@@ -864,14 +900,14 @@ export function PatientImportPage() {
 
                   <div className="pt-4 flex flex-col gap-2">
                     <button
-                      onClick={() => handleConfirmMatch(reviewCustomer, String(reviewCustomer.matchCandidates[0].userId))}
+                      onClick={() => handleConfirmMatch(reviewPatient, String(reviewPatient.matchCandidates[0].userId))}
                       className="w-full py-2.5 rounded-xl font-bold text-xs bg-purple-600 hover:bg-purple-500 text-white transition flex items-center justify-center gap-1.5"
                     >
                       <UserCheck size={14} />
                       <span>Confirm & Link Record</span>
                     </button>
                     <button
-                      onClick={() => handleDismissMatch(reviewCustomer)}
+                      onClick={() => handleDismissMatch(reviewPatient)}
                       className="w-full py-2 rounded-xl font-semibold text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
                     >
                       Not a Match (Keep as Local Record)
@@ -906,15 +942,15 @@ export function PatientImportPage() {
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed">
-              Send this secure invitation link to <strong className="text-white">{inviteModal.customer.fullName}</strong> via WhatsApp, SMS, or Email to claim their record.
+              Send this secure invitation link to <strong className="text-white">{inviteModal.patient.fullName}</strong> via WhatsApp, SMS, or Email to claim their digital health record.
             </p>
 
             <div className="space-y-2">
               {/* WhatsApp Button */}
-              {inviteModal.customer.phone && (
+              {inviteModal.patient.phone && (
                 <a
-                  href={`https://wa.me/${inviteModal.customer.phone.replace(/\D/g, "").replace(/^0/, "234")}?text=${encodeURIComponent(
-                    `Hello ${inviteModal.customer.firstName || inviteModal.customer.fullName}, your healthcare provider has prepared your digital health records on WelliRecord. Access your prescriptions, lab results, and lifelong health vault for FREE here: ${inviteModal.link}`
+                  href={`https://wa.me/${inviteModal.patient.phone.replace(/\D/g, "").replace(/^0/, "234")}?text=${encodeURIComponent(
+                    `Hello ${inviteModal.patient.firstName || inviteModal.patient.fullName}, your healthcare provider has prepared your digital health records on WelliRecord. Access your prescriptions, lab results, and lifelong health vault for FREE here: ${inviteModal.link}`
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -927,10 +963,10 @@ export function PatientImportPage() {
               )}
 
               {/* SMS Button */}
-              {inviteModal.customer.phone && (
+              {inviteModal.patient.phone && (
                 <a
-                  href={`sms:${inviteModal.customer.phone.replace(/\D/g, "")}?body=${encodeURIComponent(
-                    `Hello ${inviteModal.customer.firstName || inviteModal.customer.fullName}, your healthcare provider has prepared your health records on WelliRecord. Claim free access here: ${inviteModal.link}`
+                  href={`sms:${inviteModal.patient.phone.replace(/\D/g, "")}?body=${encodeURIComponent(
+                    `Hello ${inviteModal.patient.firstName || inviteModal.patient.fullName}, your healthcare provider has prepared your health records on WelliRecord. Claim free access here: ${inviteModal.link}`
                   )}`}
                   className="w-full py-2.5 rounded-xl font-bold text-xs bg-sky-600 hover:bg-sky-500 text-white transition flex items-center justify-center gap-2 shadow-lg shadow-sky-600/20"
                 >
@@ -976,3 +1012,5 @@ export function PatientImportPage() {
     </div>
   );
 }
+
+export default PatientImportPage;
