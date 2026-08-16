@@ -28,6 +28,7 @@ import {
   MoreHorizontal,
   Pill,
   Settings2,
+  ShieldCheck,
   Stethoscope,
   UserCog,
   Users,
@@ -118,6 +119,12 @@ const ALL_NAV = [
     label: "Referrals",
     icon: GitBranch,
     roles: ["clinician", "provider_admin", "nurse", "frontdesk"],
+  },
+  {
+    to: "/provider/insurance",
+    label: "Insurance",
+    icon: ShieldCheck,
+    roles: ["pharmacist", "provider_admin"],
   },
   {
     to: "/provider/reports",

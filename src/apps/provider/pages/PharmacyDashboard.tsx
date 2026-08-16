@@ -65,8 +65,8 @@ import { pharmacyInventoryApi, PharmacyInventorySummary } from "@/shared/api/pha
 import { PharmacyInventoryTab } from "./pharmacy/PharmacyInventoryTab";
 import { PharmacySuppliersTab } from "./pharmacy/PharmacySuppliersTab";
 import { PharmacyPurchasingTab } from "./pharmacy/PharmacyPurchasingTab";
-import { PharmacyClaimsTab } from "./pharmacy/PharmacyClaimsTab";
 import { pharmacyClaimsApi, type ClaimSummary } from "@/shared/api/pharmacyClaimsApi";
+import { useNavigate } from "react-router-dom";
 
 // ─── Color Palette & Styling Tokens ─────────────────────────────────────────
 
@@ -116,6 +116,7 @@ function getPharmacyOrdersSocket() {
 
 export function PharmacyDashboard() {
   const { user, searchPatientRequest } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
   const [claimSummary, setClaimSummary] = useState<ClaimSummary | null>(null);
 
@@ -446,7 +447,10 @@ export function PharmacyDashboard() {
           <span className="text-[10px] text-slate-500 font-semibold">Sales tracking not built yet</span>
         </div>
 
-        <div className="rounded-2xl p-3.5 bg-slate-900/80 border border-slate-800">
+        <div
+          onClick={() => navigate("/provider/insurance")}
+          className="rounded-2xl p-3.5 bg-slate-900/80 border border-slate-800 cursor-pointer hover:border-sky-700 transition-colors"
+        >
           <div className="flex items-center justify-between text-slate-400 text-[10px] font-bold uppercase">
             <span>Outstanding</span>
             <CreditCardIcon />
@@ -480,7 +484,6 @@ export function PharmacyDashboard() {
           { id: "refills", label: "Refill Center", icon: RefreshCw },
           { id: "inventory", label: "Medicine Inventory", icon: Box },
           { id: "suppliers", label: "Suppliers", icon: Truck },
-          { id: "claims", label: "HMO Claims", icon: ShieldCheck },
           { id: "purchasing", label: "Purchase Orders", icon: FileSpreadsheet },
           { id: "ai-checker", label: "AI Safety Checker", icon: Sparkles },
           { id: "delivery", label: "Home Delivery", icon: Truck },
@@ -820,8 +823,6 @@ export function PharmacyDashboard() {
 
       {/* ── TAB: SUPPLIERS ───────────────────────────────────────────────── */}
       {activeTab === "suppliers" && <PharmacySuppliersTab triggerToast={triggerToast} />}
-
-      {activeTab === "claims" && <PharmacyClaimsTab triggerToast={triggerToast} />}
 
       {/* ── TAB: PURCHASE ORDERS ─────────────────────────────────────────── */}
       {activeTab === "purchasing" && <PharmacyPurchasingTab triggerToast={triggerToast} />}
