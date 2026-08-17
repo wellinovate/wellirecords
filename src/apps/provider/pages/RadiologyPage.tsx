@@ -5,6 +5,7 @@ import { apiUrl } from "@/shared/api/authApi";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { PatientSearchPicker } from "@/apps/components/shared/PatientSearchPicker";
 import { consentApi, ProviderGrant } from "@/shared/api/consentApi";
+import { DicomViewerModal } from "@/apps/provider/components/DicomViewerModal";
 import {
   getAllRadiologyOrders,
   createRadiologyOrder,
@@ -12,6 +13,7 @@ import {
   uploadRadiologyImage,
   publishRadiologyReport,
   RadiologyOrder,
+  RadiologyImage,
 } from "@/shared/api/radiologyOrdersApi";
 import {
   FileImage,
@@ -55,6 +57,7 @@ export function RadiologyPage() {
   const [orders, setOrders] = useState<RadiologyOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [viewingDicom, setViewingDicom] = useState<RadiologyImage | null>(null);
 
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<{ id: string; name: string } | null>(null);
@@ -397,31 +400,37 @@ export function RadiologyPage() {
                 </div>
 
                 <p className="text-[11px] mb-3" style={{ color: "#64748b" }}>
-                  JPG/PNG/WEBP exports preview inline. .dcm DICOM files are stored and downloadable — there's no in-browser DICOM viewer yet.
+                  JPG/PNG/WEBP exports preview inline. .dcm DICOM files open in an in-browser viewer (contrast, zoom/pan, frame scroll) — download is also available from there.
                 </p>
 
                 {selectedOrder.images.length === 0 ? (
                   <p className="text-xs" style={{ color: "#64748b" }}>No files uploaded yet.</p>
                 ) : (
                   <div className="grid grid-cols-3 gap-3">
-                    {selectedOrder.images.map((img) => (
-                      <a
-                        key={img.id}
-                        href={img.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="block rounded-lg overflow-hidden border border-white/10"
-                      >
-                        {img.resourceType === "image" ? (
+                    {selectedOrder.images.map((img) =>
+                      img.resourceType === "image" ? (
+                        <a
+                          key={img.id}
+                          href={img.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="block rounded-lg overflow-hidden border border-white/10"
+                        >
                           <img src={img.url} alt={img.originalFilename || "scan"} className="w-full h-24 object-cover" />
-                        ) : (
+                        </a>
+                      ) : (
+                        <button
+                          key={img.id}
+                          onClick={() => setViewingDicom(img)}
+                          className="block rounded-lg overflow-hidden border border-white/10 text-left cursor-pointer"
+                        >
                           <div className="w-full h-24 flex flex-col items-center justify-center gap-1" style={{ background: "rgba(255,255,255,0.05)" }}>
                             <FileText size={18} style={{ color: "#94a3b8" }} />
-                            <span className="text-[9px]" style={{ color: "#64748b" }}>DICOM file</span>
+                            <span className="text-[9px]" style={{ color: "#64748b" }}>View DICOM</span>
                           </div>
-                        )}
-                      </a>
-                    ))}
+                        </button>
+                      ),
+                    )}
                   </div>
                 )}
               </div>
@@ -615,6 +624,14 @@ export function RadiologyPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {viewingDicom && (
+        <DicomViewerModal
+          url={viewingDicom.url}
+          filename={viewingDicom.originalFilename}
+          onClose={() => setViewingDicom(null)}
+        />
       )}
     </div>
   );
