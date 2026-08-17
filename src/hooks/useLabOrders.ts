@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
+import Cookies from 'js-cookie';
 
 const SERVER_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 const API_BASE = `${SERVER_URL}/api`;
@@ -36,9 +37,22 @@ export interface LabOrder {
 
 let socket: Socket | null = null;
 
+// Auth note: mirrors the pattern in LabOrdersPage.tsx — the backend reads
+// this token to verify the connection and join the socket to its org's
+// room (shared/realtime/socket.js), so lab_order_change events stay scoped
+// to the connected organization. Without it, socket.data.user never gets
+// populated server-side and the connection can't be placed in any org room.
 function getSocket() {
-  if (!socket) socket = io(SOCKET_URL);
+  if (!socket) {
+    const token = Cookies.get('accessToken');
+    socket = io(SOCKET_URL, { auth: { token } });
+  }
   return socket;
+}
+
+function authHeaders(): Record<string, string> {
+  const token = Cookies.get('accessToken');
+  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 // Drop-in replacement for `useState<LabOrder[]>([])`.
@@ -53,7 +67,10 @@ export function useLabOrders() {
     let isInitialConnect = true;
 
     const fetchOrders = () => {
-      fetch(`${API_BASE}/lab-orders`)
+      fetch(`${API_BASE}/lab-orders`, {
+        headers: authHeaders(),
+        credentials: 'include',
+      })
         .then((r) => r.json())
         .then((data) => {
           if (!cancelled && Array.isArray(data)) {
@@ -109,7 +126,8 @@ export function useLabOrders() {
   const createLabOrder = useCallback(async (order: Partial<LabOrder>) => {
     await fetch(`${API_BASE}/lab-orders`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      credentials: 'include',
       body: JSON.stringify(order),
     });
     // No local state update needed here — the change stream event
@@ -119,7 +137,8 @@ export function useLabOrders() {
   const updateLabOrder = useCallback(async (id: string, updates: Partial<LabOrder>) => {
     await fetch(`${API_BASE}/lab-orders/${id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      credentials: 'include',
       body: JSON.stringify(updates),
     });
   }, []);
