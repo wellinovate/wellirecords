@@ -143,38 +143,62 @@ const MOCK_EMERGENCY_INFO = {
   allergies: ['Penicillin', 'Shellfish'],
 };
 
-const MOCK_ECOSYSTEM = [
+interface EcosystemItem {
+  id: string;
+  name: string;
+  category: string;
+  icon: React.ElementType;
+  status: 'active' | 'available' | 'roadmap';
+  statusLabel: string;
+  description: string;
+  details: string;
+  color: string;
+}
+
+const HEALTH_INTEGRATIONS: EcosystemItem[] = [
   {
-    id: 'wellibit',
-    name: 'WelliBit Wearable',
+    id: 'wearables',
+    name: 'Wearables & Health Monitors',
+    category: 'Vitals & Continuous Monitoring',
     icon: Watch,
-    status: 'synced',
-    lastSync: '2 hours ago',
-    color: 'from-blue-500 to-cyan-500',
+    status: 'available',
+    statusLabel: 'Available for Setup',
+    description: 'Sync pediatric pulse oximetry, basal temperature, and sleep metrics from compatible devices.',
+    details: 'Supports Apple Health, Google Health Connect, and Bluetooth BLE pediatric monitors. Data is encrypted end-to-end and stored directly in your private health vault.',
+    color: 'from-blue-600 to-cyan-600',
   },
   {
     id: 'welbio',
-    name: 'WelliBio Lab',
+    name: 'WelliBio Diagnostic Network',
+    category: 'Laboratory Results',
     icon: Smartphone,
-    status: 'connected',
-    lastSync: '1 day ago',
-    color: 'from-purple-500 to-pink-500',
+    status: 'active',
+    statusLabel: 'Active Partner Network',
+    description: 'Automated electronic delivery of verified lab results from accredited diagnostic centers.',
+    details: 'When a lab test is processed at an accredited partner facility, reports and reference values are securely transferred directly into the patient vault.',
+    color: 'from-purple-600 to-indigo-600',
   },
   {
     id: 'wallet',
-    name: 'WelliWallet',
+    name: 'WelliWallet Healthcare Account',
+    category: 'Claims & Payments',
     icon: Wallet,
-    status: 'active',
-    balance: '₦5,250',
-    color: 'from-green-500 to-emerald-500',
+    status: 'roadmap',
+    statusLabel: 'In Development',
+    description: 'Integrated digital wallet for HMO co-pays, direct clinic settlements, and family health allowances.',
+    details: 'WelliWallet is currently in development to streamline cashless provider settlements and automated HMO pre-authorization disbursements.',
+    color: 'from-emerald-600 to-teal-600',
   },
   {
     id: 'track',
-    name: 'WelliTrack',
+    name: 'WelliTrack Rx Delivery',
+    category: 'Pharmacy Logistics',
     icon: Truck,
     status: 'active',
-    deliveries: '2 in progress',
-    color: 'from-orange-500 to-amber-500',
+    statusLabel: 'Active for Dispensed Rx',
+    description: 'Real-time dispatch and temperature-controlled tracking for prescribed medications.',
+    details: 'Tracks courier pickup, transit temperature, and proof-of-delivery verification for medications dispensed by partner pharmacies.',
+    color: 'from-amber-600 to-orange-600',
   },
 ];
 
@@ -186,6 +210,7 @@ export function FamilyManagementPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bookingChild, setBookingChild] = useState<string | null>(null);
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
+  const [selectedIntegration, setSelectedIntegration] = useState<EcosystemItem | null>(null);
 
   const fetchDependants = async () => {
     setLoading(true);
@@ -206,6 +231,7 @@ export function FamilyManagementPage() {
         vaccinations: [],
         growth: [],
         medicalHistory: { allergies: [], chronicConditions: [] },
+        updatedAt: (dep as any).updatedAt || (dep as any).createdAt || null,
       }));
       setChildren(mapped);
     } catch (err) {
@@ -640,11 +666,7 @@ export function FamilyManagementPage() {
                   {/* ── Book Appointment for Child CTA ── */}
                   <button
                     onClick={(e) => { e.stopPropagation(); setBookingChild(child.id); }}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-black transition-all hover:-translate-y-0.5 hover:shadow-md mb-4"
-                    style={{
-                      background: 'var(--pat-primary)',
-                      color: '#ffffff',
-                    }}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm hover:shadow-md mb-4 bg-[#041E42] text-white hover:bg-[#0c2d66] cursor-pointer"
                   >
                     <CalendarPlus size={14} />
                     Book Appointment for {child.profile.fullName.split(' ')[0]}
@@ -657,7 +679,9 @@ export function FamilyManagementPage() {
                     style={{ borderColor: 'var(--pat-border)' }}
                   >
                     <span className="text-xs" style={{ color: 'var(--pat-muted)' }}>
-                      Updated: {new Date(child.updatedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      Updated: {child.updatedAt && !isNaN(new Date(child.updatedAt).getTime())
+                        ? new Date(child.updatedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                        : 'Recently'}
                     </span>
                     <div className="flex items-center gap-1 text-xs font-bold group-hover:underline" style={{ color: 'var(--pat-primary)' }}>
                       View Record <ChevronRight size={13} />
@@ -671,30 +695,37 @@ export function FamilyManagementPage() {
           </div>
 
           {/* ─────────────────────────────────────────────────────────────────
-              AI HEALTH INSIGHTS PANEL
+              PEDIATRIC HEALTH & DEVELOPMENT TRACKING
               ───────────────────────────────────────────────────────────────── */}
           <div
             className="rounded-2xl border p-6"
             style={{ background: 'var(--pat-surface)', borderColor: 'var(--pat-border)' }}
           >
             <div className="flex items-center gap-2 mb-6">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'rgba(236, 72, 153, 0.1)' }}>
-                <Sparkles size={20} style={{ color: '#ec4899' }} />
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'rgba(4, 30, 66, 0.08)' }}>
+                <Sparkles size={20} style={{ color: 'var(--pat-primary)' }} />
               </div>
-              <h2 className="font-display font-bold text-xl" style={{ color: 'var(--pat-text)' }}>AI Health Insights</h2>
+              <div>
+                <h2 className="font-display font-bold text-xl" style={{ color: 'var(--pat-text)' }}>Development &amp; Preventive Care Summary</h2>
+                <p className="text-xs" style={{ color: 'var(--pat-muted)' }}>
+                  Evaluated against WHO pediatric growth reference charts and IMCI milestone schedules
+                </p>
+              </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="rounded-xl border p-4" style={{ borderColor: 'var(--pat-border)', background: 'var(--pat-bg)' }}>
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(34, 197, 94, 0.1)' }}>
-                    <Pill size={16} style={{ color: '#22c55e' }} />
+                    <Syringe size={16} style={{ color: '#22c55e' }} />
                   </div>
                   <div className="flex-1">
-                    <div className="font-semibold text-sm mb-1" style={{ color: 'var(--pat-text)' }}>Medication Adherence</div>
-                    <div className="text-xs mb-2" style={{ color: 'var(--pat-muted)' }}>Family adherence: 92% over last 30 days</div>
-                    <div className="flex h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--pat-bg)' }}>
-                      <div className="bg-emerald-500" style={{ width: '92%' }} />
+                    <div className="font-semibold text-sm mb-1" style={{ color: 'var(--pat-text)' }}>Immunization Schedule</div>
+                    <div className="text-xs mb-2" style={{ color: 'var(--pat-muted)' }}>
+                      {totalVaccinationsDue === 0 ? 'All scheduled vaccinations are currently up to date.' : `${totalVaccinationsDue} vaccination milestone(s) pending review.`}
+                    </div>
+                    <div className="flex h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.06)' }}>
+                      <div className="bg-emerald-500" style={{ width: totalVaccinationsDue === 0 ? '100%' : '75%' }} />
                     </div>
                   </div>
                 </div>
@@ -703,26 +734,26 @@ export function FamilyManagementPage() {
               <div className="rounded-xl border p-4" style={{ borderColor: 'var(--pat-border)', background: 'var(--pat-bg)' }}>
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(139, 92, 246, 0.1)' }}>
-                    <Activity size={16} style={{ color: '#8b5cf6' }} />
+                    <CalendarClock size={16} style={{ color: '#8b5cf6' }} />
                   </div>
                   <div className="flex-1">
-                    <div className="font-semibold text-sm mb-1" style={{ color: 'var(--pat-text)' }}>Activity & Sleep</div>
+                    <div className="font-semibold text-sm mb-1" style={{ color: 'var(--pat-text)' }}>Milestone Checkups</div>
                     <div className="text-xs" style={{ color: 'var(--pat-muted)' }}>
-                      Average sleep: 8.2 hours/night • Activity: 85% goal met
+                      Next WHO milestone visits scheduled based on registered date of birth.
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-xl border p-4 bg-amber-50" style={{ borderColor: 'rgba(245, 158, 11, 0.3)' }}>
+              <div className="rounded-xl border p-4" style={{ borderColor: 'var(--pat-border)', background: 'var(--pat-bg)' }}>
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(245, 158, 11, 0.1)' }}>
-                    <AlertCircle size={16} style={{ color: '#f59e0b' }} />
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(4, 30, 66, 0.08)' }}>
+                    <ShieldCheck size={16} style={{ color: 'var(--pat-primary)' }} />
                   </div>
                   <div className="flex-1">
-                    <div className="font-semibold text-sm mb-1 text-amber-900">Abnormal Trend Detected</div>
-                    <div className="text-xs text-amber-800">
-                      Slight elevation in blood pressure readings over past week. Schedule a checkup.
+                    <div className="font-semibold text-sm mb-1" style={{ color: 'var(--pat-text)' }}>Emergency Card Readiness</div>
+                    <div className="text-xs" style={{ color: 'var(--pat-muted)' }}>
+                      Blood group and genotype data ready for emergency QR code generation.
                     </div>
                   </div>
                 </div>
@@ -797,8 +828,8 @@ export function FamilyManagementPage() {
                 <h2 className="font-display font-bold text-xl" style={{ color: 'var(--pat-text)' }}>Emergency Information</h2>
               </div>
               <button
-                onClick={() => setShowEmergencyModal(!showEmergencyModal)}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all hover:shadow-md"
+                onClick={() => navigate('/patient/emergency')}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all hover:shadow-md cursor-pointer"
                 style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}
               >
                 <QrCode size={14} />
@@ -854,8 +885,8 @@ export function FamilyManagementPage() {
 
             <div className="flex gap-3 mt-6">
               <button
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm transition-all hover:-translate-y-0.5"
-                style={{ background: 'var(--pat-primary)', color: '#fff' }}
+                onClick={() => navigate('/patient/emergency')}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm transition-all hover:-translate-y-0.5 cursor-pointer bg-[#041E42] text-white hover:bg-[#0c2d66]"
               >
                 <QrCode size={16} />
                 Generate Emergency QR
@@ -920,55 +951,73 @@ export function FamilyManagementPage() {
 
             <div className="flex items-center gap-2 mt-4 p-3 rounded-lg" style={{ background: 'rgba(16, 185, 129, 0.08)', borderLeft: '3px solid #10b981' }}>
               <Shield size={16} style={{ color: '#10b981' }} />
-              <span className="text-xs" style={{ color: '#047857' }}>
-                All access records are blockchain-verified and auditable.
+              <span className="text-xs font-medium" style={{ color: '#047857' }}>
+                All access events and consent authorizations are cryptographically timestamped and recorded in immutable provider audit logs.
               </span>
             </div>
           </div>
 
           {/* ─────────────────────────────────────────────────────────────────
-              CONNECTED ECOSYSTEM
+              CONNECTED HEALTH INTEGRATIONS
               ───────────────────────────────────────────────────────────────── */}
           <div
             className="rounded-2xl border p-6"
             style={{ background: 'var(--pat-surface)', borderColor: 'var(--pat-border)' }}
           >
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'rgba(34, 197, 94, 0.1)' }}>
-                <Zap size={20} style={{ color: '#22c55e' }} />
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'rgba(4, 30, 66, 0.08)' }}>
+                  <Zap size={20} style={{ color: 'var(--pat-primary)' }} />
+                </div>
+                <div>
+                  <h2 className="font-display font-bold text-xl" style={{ color: 'var(--pat-text)' }}>Connected Health Integrations</h2>
+                  <p className="text-xs" style={{ color: 'var(--pat-muted)' }}>
+                    External device monitoring, partner diagnostic labs, and prescription logistics
+                  </p>
+                </div>
               </div>
-              <h2 className="font-display font-bold text-xl" style={{ color: 'var(--pat-text)' }}>Connected Ecosystem</h2>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {MOCK_ECOSYSTEM.map((service) => {
+              {HEALTH_INTEGRATIONS.map((service) => {
                 const ServiceIcon = service.icon;
-                const isActive = service.status === 'connected' || service.status === 'synced' || service.status === 'active';
+                const badgeBg = service.status === 'active'
+                  ? 'rgba(34, 197, 94, 0.1)'
+                  : service.status === 'available'
+                  ? 'rgba(59, 130, 246, 0.1)'
+                  : 'rgba(100, 116, 139, 0.1)';
+                const badgeColor = service.status === 'active'
+                  ? '#16a34a'
+                  : service.status === 'available'
+                  ? '#2563eb'
+                  : '#64748b';
+
                 return (
                   <div
                     key={service.id}
-                    className="rounded-xl border p-4 hover:shadow-lg transition-all cursor-pointer group"
+                    onClick={() => setSelectedIntegration(service)}
+                    className="rounded-xl border p-4 hover:shadow-lg transition-all cursor-pointer group flex flex-col"
                     style={{ borderColor: 'var(--pat-border)', background: 'var(--pat-bg)' }}
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white bg-gradient-to-br ${service.color}`}>
                         <ServiceIcon size={18} />
                       </div>
-                      <div
-                        className="w-2 h-2 rounded-full"
-                        style={{ background: isActive ? '#22c55e' : '#d1d5db' }}
-                      />
+                      <span
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                        style={{ background: badgeBg, color: badgeColor }}
+                      >
+                        {service.statusLabel}
+                      </span>
                     </div>
                     <div className="font-semibold text-sm mb-1" style={{ color: 'var(--pat-text)' }}>
                       {service.name}
                     </div>
-                    <div className="text-xs mb-3" style={{ color: 'var(--pat-muted)' }}>
-                      {service.lastSync && <span>Synced {service.lastSync}</span>}
-                      {service.balance && <span>{service.balance}</span>}
-                      {service.deliveries && <span>{service.deliveries}</span>}
+                    <div className="text-xs mb-4 flex-1 line-clamp-2" style={{ color: 'var(--pat-muted)' }}>
+                      {service.description}
                     </div>
-                    <div className="flex items-center gap-1 text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--pat-primary)' }}>
-                      View <ArrowRight size={12} />
+                    <div className="flex items-center gap-1 text-xs font-bold pt-2 border-t mt-auto" style={{ borderColor: 'var(--pat-border)', color: 'var(--pat-primary)' }}>
+                      Details &amp; Setup <ArrowRight size={12} />
                     </div>
                   </div>
                 );
@@ -976,6 +1025,44 @@ export function FamilyManagementPage() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Integration Details Modal */}
+      {selectedIntegration && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div
+            className="w-full max-w-md rounded-2xl border shadow-xl p-6 relative"
+            style={{ background: 'var(--pat-surface)', borderColor: 'var(--pat-border)' }}
+          >
+            <button
+              onClick={() => setSelectedIntegration(null)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 cursor-pointer"
+            >
+              <XCircle size={20} />
+            </button>
+            <div className="flex items-center gap-3 mb-4">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white bg-gradient-to-br ${selectedIntegration.color}`}>
+                <selectedIntegration.icon size={24} />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg" style={{ color: 'var(--pat-text)' }}>{selectedIntegration.name}</h3>
+                <span className="text-xs font-semibold text-gray-500">{selectedIntegration.category}</span>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+              {selectedIntegration.details}
+            </p>
+            <div className="rounded-xl p-3 bg-gray-50 border border-gray-200 mb-6 text-xs text-gray-600">
+              <strong>Status:</strong> {selectedIntegration.statusLabel}
+            </div>
+            <button
+              onClick={() => setSelectedIntegration(null)}
+              className="w-full py-2.5 rounded-xl text-sm font-semibold bg-[#041E42] text-white hover:bg-[#0c2d66] transition cursor-pointer"
+            >
+              Close
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Add Family Member Modal */}

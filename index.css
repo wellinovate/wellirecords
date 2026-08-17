@@ -94,6 +94,18 @@ input, textarea, [contenteditable="true"] {
   --prov-text-primary: #E6EDF3;
   --prov-text-secondary: #9FB3C8;
   --prov-text-muted: #6B7C93;
+
+  /* 🌿 PATIENT THEME */
+  --pat-bg: #f8fafc;
+  --pat-surface: #ffffff;
+  --pat-surface2: #f1f5f9;
+  --pat-primary: #041E42;
+  --pat-primary2: #0B1F3A;
+  --pat-accent: #0EA5E9;
+  --pat-accent2: #1e293b;
+  --pat-border: #e2e8f0;
+  --pat-text: #0f172a;
+  --pat-muted: #64748b;
 }
 
 

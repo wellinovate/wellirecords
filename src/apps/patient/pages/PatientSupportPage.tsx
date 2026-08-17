@@ -234,7 +234,9 @@ export function PatientSupportPage() {
                                 <StIcon size={15} style={{ color: st.color, flexShrink: 0 }} />
                                 <div className="flex-1 min-w-0">
                                     <div className="font-semibold text-sm truncate" style={{ color: '#1e293b' }}>{t.subject}</div>
-                                    <div className="text-xs mt-0.5" style={{ color: '#64748b' }}>{t.ref} · {new Date(t.updatedAt).toLocaleDateString('en-NG')}</div>
+                                    <div className="text-xs mt-0.5" style={{ color: '#64748b' }}>
+                                        {t.ref} · {t.updatedAt && !isNaN(new Date(t.updatedAt).getTime()) ? new Date(t.updatedAt).toLocaleDateString('en-NG') : 'Recently'}
+                                    </div>
                                 </div>
                                 <span className="text-[11px] font-bold px-2 py-0.5 rounded-full flex-shrink-0" style={{ color: st.color, background: `${st.color}18` }}>{st.label}</span>
                                 <ChevronRight size={14} style={{ color: '#cbd5e1', flexShrink: 0 }} />
