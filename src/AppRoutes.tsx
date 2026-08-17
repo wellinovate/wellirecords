@@ -66,6 +66,16 @@ const VerifyEmailPage = lazy(() =>
     default: m.VerifyEmailPage,
   })),
 );
+const ForgotPasswordPage = lazy(() =>
+  import("@/apps/auth/pages/ForgotPasswordPage").then((m) => ({
+    default: m.ForgotPasswordPage,
+  })),
+);
+const ResetPasswordPage = lazy(() =>
+  import("@/apps/auth/pages/ResetPasswordPage").then((m) => ({
+    default: m.ResetPasswordPage,
+  })),
+);
 const BridgeSharePage = lazy(
   () => import("@/apps/public/pages/BridgeSharePage"),
 );
@@ -600,6 +610,8 @@ export function AppRoutes() {
           element={<OrgVerificationPage />}
         />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/bridge/:token" element={<BridgeSharePage />} />
         <Route path="/join/:token" element={<ClaimRecordPage />} />
         <Route path="/accept-invite" element={<AcceptInvitePage />} />

@@ -360,9 +360,9 @@ export function ProviderLoginPage() {
                             <div>
                                 <div className="flex items-center justify-between mb-1.5">
                                     <label className="text-sm font-semibold" style={{ color: '#1e293b' }}>Password</label>
-                                    <span className="text-xs font-semibold cursor-pointer hover:underline" style={{ color: '#1e3a8a' }}>
+                                    <Link to="/forgot-password" className="text-xs font-semibold hover:underline" style={{ color: '#1e3a8a' }}>
                                         Forgot password?
-                                    </span>
+                                    </Link>
                                 </div>
                                 <div className="relative">
                                     <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: '#64748b' }} />

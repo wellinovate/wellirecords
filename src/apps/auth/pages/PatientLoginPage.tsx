@@ -543,8 +543,10 @@ export function PatientLoginPage() {
                       </div>
                     )}
 
-                    <div className="text-right text-[14px] text-gray-500">
-                      Forgot Password?
+                    <div className="text-right text-[14px]">
+                      <Link to="/forgot-password" className="text-[#071B3F] hover:underline">
+                        Forgot Password?
+                      </Link>
                     </div>
 
                     <button
