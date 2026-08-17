@@ -43,6 +43,7 @@ const SCOPE_OPTIONS: {
 }[] = [
   { value: "full-record", label: "Full History", category: null },
   { value: "category", label: "Labs Only", category: "lab-results" },
+  { value: "category", label: "Radiology", category: "radiology" },
   { value: "category", label: "Medications", category: "medications" },
   { value: "category", label: "Vitals", category: "vitals" },
   { value: "category", label: "Diagnoses", category: "diagnoses" },
