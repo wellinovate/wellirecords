@@ -10,6 +10,7 @@ import { WelliMateWidget } from "@/shared/ui/WelliMateWidget";
 import {
   Activity,
   CalendarClock,
+  CalendarDays,
   ChevronDown,
   ChevronRight,
   ClipboardList,
@@ -86,6 +87,12 @@ const ALL_NAV = [
     roles: ["*"],
   },
 
+  {
+    to: "/provider/roster",
+    label: "Roster & Duty",
+    icon: CalendarDays,
+    roles: ["*"],
+  },
   {
     to: "/provider/pharmacy",
     label: "Pharmacy & Prescriptions",

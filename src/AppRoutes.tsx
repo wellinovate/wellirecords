@@ -267,6 +267,11 @@ const PrescriptionsPage = lazy(() =>
     default: m.PrescriptionsPage,
   })),
 );
+const RosterPage = lazy(() =>
+  import("@/apps/provider/pages/RosterPage").then((m) => ({
+    default: m.RosterPage,
+  })),
+);
 const PharmacyDashboard = lazy(() =>
   import("@/apps/provider/pages/PharmacyDashboard").then((m) => ({
     default: m.PharmacyDashboard,
@@ -685,6 +690,7 @@ export function AppRoutes() {
           <Route path="queue" element={<QueuePage />} />
           <Route path="encounters/new" element={<NewEncounterPage />} />
           <Route path="orders/labs" element={<LabOrdersPage />} />
+          <Route path="roster" element={<RosterPage />} />
           <Route path="pharmacy" element={<PharmacyDashboard />} />
           <Route path="prescriptions" element={<PharmacyDashboard />} />
           <Route path="patients/import" element={<PatientImportPage />} />

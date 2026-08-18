@@ -33,6 +33,14 @@ export interface DutyAssignment {
   backupStaffId?: string | null;
   cancelReason?: string | null;
   notes?: string;
+  checkedInAt?: string | null;
+  checkInMethod?: string | null;
+  checkInLocation?: { latitude?: number | null; longitude?: number | null } | null;
+  checkInQrCode?: string | null;
+  checkedOutAt?: string | null;
+  lateByMinutes?: number | null;
+  overtimeMinutes?: number | null;
+  missedCheckOut?: boolean;
   createdAt: string;
   updatedAt: string;
 }
