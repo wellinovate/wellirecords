@@ -137,3 +137,32 @@ export async function cancelDutyAssignment(
   );
   return data.data;
 }
+
+export async function checkInDutyAssignment(
+  assignmentId: string,
+  payload: {
+    method: "standard" | "qr" | "nfc" | "geofence";
+    qrCode?: string;
+    latitude?: number;
+    longitude?: number;
+  },
+): Promise<DutyAssignment> {
+  const { data } = await api.post(
+    `${apiUrl}/api/v1/rosters/assignments/${assignmentId}/check-in`,
+    payload,
+    { headers: authHeaders() },
+  );
+  return data.data;
+}
+
+export async function checkOutDutyAssignment(
+  assignmentId: string,
+  payload?: { notes?: string },
+): Promise<DutyAssignment> {
+  const { data } = await api.post(
+    `${apiUrl}/api/v1/rosters/assignments/${assignmentId}/check-out`,
+    payload || {},
+    { headers: authHeaders() },
+  );
+  return data.data;
+}
