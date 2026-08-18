@@ -33,7 +33,7 @@ import { FaXTwitter } from "react-icons/fa6";
    NAV DATA
 ───────────────────────────────────────────── */
 const navItems = [
-  { label: "Solution", href: "#solutions" },
+  { label: "Solution", href: "#features" },
   { label: "How It Works", href: "#how-it-works" },
   { label: "Features", href: "#features" },
   { label: "Ecosystem", href: "#ecosystem" },
@@ -571,7 +571,6 @@ function StakeholderCard({ label, icon: Icon }) {
 function Solutions() {
   return (
     <section
-      id="solutions"
       className="bg-white py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 border-b border-slate-200/80"
     >
       <div className="mx-auto max-w-7xl">
