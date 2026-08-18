@@ -57,6 +57,17 @@ function staffIdOf(staffId: DutyAssignment["staffId"]): string {
   return typeof staffId === "string" ? staffId : staffId._id;
 }
 
+// AuthProvider's user object shape isn't visible from here, so this
+// checks the field names actually in use elsewhere in this codebase
+// (JWT payloads use `sub` per roster_service.js's authUser.sub; Mongo
+// documents commonly expose `_id`) rather than assuming `id`. Once you
+// confirm which one it actually is (console.log(user) once in
+// ProviderLayout or here), this can collapse back down to a single
+// field access — this is a stopgap, not the final version.
+function currentUserId(user: any): string | undefined {
+  return user?.id ?? user?._id ?? user?.sub ?? user?.userId;
+}
+
 function staffLabel(staffId: DutyAssignment["staffId"]): string {
   if (typeof staffId === "string") return staffId;
   return staffId.fullName || `${staffId.firstName ?? ""} ${staffId.lastName ?? ""}`.trim() || staffId._id;
@@ -389,12 +400,7 @@ function RosterDetail({ rosterId, onBack }: { rosterId: string; onBack: () => vo
           </div>
         ) : (
           roster.assignments.map((a) => (
-            <AssignmentRow
-              key={a.id}
-              assignment={a}
-              currentUserId={(user as any)?.sub || (user as any)?.userId || (user as any)?.id || (user as any)?._id}
-              onChanged={refetch}
-            />
+            <AssignmentRow key={a.id} assignment={a} currentUserId={currentUserId(user)} onChanged={refetch} />
           ))
         )}
       </div>
