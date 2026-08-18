@@ -8,8 +8,15 @@ import {
   Clock,
   Eye,
   FileText,
+  FlaskConical,
+  HeartPulse,
   Lock,
+  Network,
+  Pill,
+  QrCode,
   Shield,
+  ShieldCheck,
+  Siren,
   Stethoscope,
   UserRound,
 } from "lucide-react";
@@ -33,10 +40,118 @@ import { FaXTwitter } from "react-icons/fa6";
    NAV DATA
 ───────────────────────────────────────────── */
 const navItems = [
-  { label: "Solution", href: "#features" },
+  { label: "Solution", href: "#solutions" },
   { label: "How It Works", href: "#how-it-works" },
   { label: "Features", href: "#features" },
   { label: "Ecosystem", href: "#ecosystem" },
+];
+
+/* ─────────────────────────────────────────────
+   CORE SOLUTIONS
+───────────────────────────────────────────── */
+const coreSolutions = [
+  {
+    number: "01",
+    icon: HeartPulse,
+    title: "Patient-Owned Health Record",
+    description:
+      "A lifelong digital health record that stays with the patient rather than being trapped inside one hospital.",
+    listLabel: "Solves",
+    list: [
+      "Lost paper files",
+      "Repeated medical history",
+      "Fragmented patient information",
+      "Difficulty accessing previous records",
+    ],
+  },
+  {
+    number: "02",
+    icon: Network,
+    title: "Connected Provider Records",
+    description:
+      "Connects hospitals, clinics, laboratories, pharmacies, eye clinics, diagnostic centers, and other authorized providers around the patient's record.",
+    listLabel: "Solves",
+    list: [
+      "Providers working with incomplete information",
+      "Patients moving between facilities",
+      "Disconnected healthcare providers",
+      "Poor continuity of care",
+    ],
+  },
+  {
+    number: "03",
+    icon: FlaskConical,
+    title: "Laboratory & Diagnostic Record Integration",
+    description:
+      "Diagnostic centers can send verified results directly into the patient's WelliRecord.",
+    listLabel: "Features",
+    list: [
+      "Lab results",
+      "Radiology reports",
+      "Imaging records",
+      "Diagnostic history",
+      "Result notifications",
+      "Provider access with patient authorization",
+    ],
+    note: "Nigerian evidence indicates that better digital documentation can substantially improve health-data quality.",
+  },
+  {
+    number: "04",
+    icon: Pill,
+    title: "Medication & Pharmacy Records",
+    description: "A longitudinal medication history.",
+    listLabel: "Includes",
+    list: [
+      "Prescriptions",
+      "Dispensing history",
+      "Current medications",
+      "Medication allergies",
+      "Refill information",
+      "Pharmacy encounters",
+    ],
+    note: "Solves medication duplication, missing medication history, and poor coordination between prescribers and pharmacies.",
+  },
+  {
+    number: "05",
+    icon: ShieldCheck,
+    title: "Consent & Patient-Controlled Data Sharing",
+    description:
+      "The patient decides who can access what, for what purpose, and for how long.",
+    examples: [
+      "Allow Dr. A to access my complete clinical history for 30 days.",
+      "Allow this laboratory to add my test results but not view my previous records.",
+    ],
+    note: "One of WelliRecord's core differentiators.",
+  },
+  {
+    number: "06",
+    icon: Siren,
+    title: "Emergency Health Information",
+    description:
+      "Gives authorized clinicians rapid access to critical information.",
+    listLabel: "Emergency profile",
+    list: [
+      "Blood group",
+      "Genotype",
+      "Allergies",
+      "Current medications",
+      "Chronic conditions",
+      "Emergency contacts",
+      "Important medical history",
+      "Previous major procedures",
+    ],
+    note: "Less guessing. Faster decisions.",
+  },
+];
+
+const welliBridgeChannels = [
+  "QR",
+  "NFC",
+  "Secure PDF summary",
+  "SMS/USSD",
+  "WhatsApp",
+  "Offline access",
+  "Smart health card",
 ];
 
 /* ─────────────────────────────────────────────
@@ -440,6 +555,126 @@ function Hero() {
         </div>
       </main>
     </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   CORE SOLUTIONS SECTION
+───────────────────────────────────────────── */
+function CoreSolutionCard({ solution }) {
+  const Icon = solution.icon;
+  return (
+    <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-slate-300">
+      <div className="flex items-center justify-between mb-5">
+        <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-[#071B3F] text-xs font-black text-white shadow-sm">
+          {solution.number}
+        </span>
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 border border-sky-100 text-[#1F4E79]">
+          <Icon className="h-5 w-5" />
+        </div>
+      </div>
+
+      <h3 className="text-base sm:text-lg font-bold text-[#002353] leading-snug">
+        {solution.title}
+      </h3>
+      <p className="mt-2.5 text-sm text-slate-500 leading-relaxed">
+        {solution.description}
+      </p>
+
+      {solution.list && (
+        <div className="mt-4">
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+            {solution.listLabel}
+          </p>
+          <ul className="space-y-1.5">
+            {solution.list.map((item) => (
+              <li
+                key={item}
+                className="text-sm text-slate-600 flex items-start gap-2"
+              >
+                <span className="mt-2 h-1 w-1 rounded-full bg-[#1F4E79] shrink-0" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {solution.examples && (
+        <div className="mt-4 space-y-2">
+          {solution.examples.map((example) => (
+            <p
+              key={example}
+              className="text-sm text-slate-600 italic bg-slate-50 border border-slate-200/80 rounded-lg px-3 py-2"
+            >
+              "{example}"
+            </p>
+          ))}
+        </div>
+      )}
+
+      {solution.note && (
+        <p className="mt-4 text-xs text-slate-400 leading-relaxed border-t border-slate-100 pt-3">
+          {solution.note}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function CoreSolutions() {
+  return (
+    <section
+      id="solutions"
+      className="bg-white py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 border-b border-slate-200/80"
+    >
+      <div className="mx-auto max-w-7xl">
+        <SectionHeading
+          eyebrow="WelliRecord Core Solutions"
+          title="What WelliRecord solves"
+          subtitle="A patient-owned record built for how care actually happens across hospitals, labs, pharmacies, and providers."
+        />
+
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 mb-6">
+          {coreSolutions.map((solution) => (
+            <CoreSolutionCard key={solution.number} solution={solution} />
+          ))}
+        </div>
+
+        {/* WelliBridge — portable access */}
+        <div className="rounded-2xl border border-slate-200/80 bg-[#F8FAFC] p-6 sm:p-8">
+          <div className="flex flex-col sm:flex-row sm:items-start gap-5">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#071B3F] text-white">
+              <QrCode className="h-6 w-6" />
+            </div>
+            <div>
+              <span className="inline-block px-3 py-1 rounded-full bg-sky-50 text-[#1F4E79] text-xs font-bold uppercase tracking-widest mb-2 border border-sky-100">
+                07 · WelliBridge
+              </span>
+              <h3 className="text-base sm:text-lg font-bold text-[#002353] leading-snug">
+                Portable Health Record
+              </h3>
+              <p className="mt-2 text-sm text-slate-600 leading-relaxed max-w-2xl">
+                The record does not depend entirely on internet connectivity.
+                Poor connectivity and unreliable infrastructure remain
+                barriers to digital-health adoption in Nigeria, so
+                WelliBridge provides multiple ways to access it.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {welliBridgeChannels.map((channel) => (
+                  <span
+                    key={channel}
+                    className="rounded-lg bg-white border border-slate-200/80 px-3 py-1.5 text-xs font-semibold text-[#1F4E79]"
+                  >
+                    {channel}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -982,6 +1217,7 @@ export default function App() {
       <Navbar />
       <main className="overflow-x-hidden">
         <Hero />
+        <CoreSolutions />
         <SetupSteps />
         <HowItWorks />
         <Solutions />
