@@ -53,41 +53,6 @@ type PatientRow = {
   assigned: string;
 };
 
-const MOCK_PATIENTS: PatientRow[] = [
-  {
-    id: "pat_001",
-    name: "John Doe",
-    subtitle: "Male age • records",
-    code: "WR 29281",
-    ageSex: "A10 A9",
-    lastEncounter: {
-      provider: "B. S9 Ehwado",
-      date: "5 months ago",
-      subtext: "Outpatient visit",
-    },
-    lastUpdated: "10 Mar 20098",
-    access: { label: "Consent", tone: "cyan" },
-    alerts: [{ label: "Allergies", tone: "yellow" }],
-    assigned: "Br-Pedi",
-  },
-  {
-    id: "pat_002",
-    name: "Flea Elee",
-    subtitle: "Medium risk | records",
-    code: "WR 29223",
-    ageSex: "M0 32",
-    lastEncounter: {
-      provider: "E. D. Horrelling",
-      date: "5 months ago",
-      subtext: "Outpatient visit",
-    },
-    lastUpdated: "10 Mar 20098",
-    access: { label: "Confirmed", tone: "yellow" },
-    alerts: [{ label: "Escort", tone: "cyan" }],
-    assigned: "Bp-Pendi",
-  },
-];
-
 const toneMap: Record<string, string> = {
   cyan: "bg-cyan-400/10 text-cyan-300 border-cyan-400/20",
   yellow: "bg-amber-400/10 text-amber-300 border-amber-400/20",

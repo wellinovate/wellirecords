@@ -134,7 +134,6 @@ export function isProviderRole(role: UserRole): boolean {
   return PROVIDER_ROLES.includes(role);
 }
 
-let activeChallengeToken = "";
 let lastAttemptEmail = "";
 
 /** Returns true when there is no HTTP response — i.e. the server is
@@ -144,75 +143,6 @@ let lastAttemptEmail = "";
  */
 function isNetworkError(err: any): boolean {
   return !err.response || err.code === "ERR_NETWORK" || err.code === "ECONNABORTED";
-}
-
-export async function initiateLogin(
-  email: string,
-  password: string,
-): Promise<{ status: number; challengeToken?: string; maskedPhone?: string }> {
-  try {
-    const res = await authApi.signIn(email, password);
-    const payload = res?.data || res;
-    if (payload?.challengeToken) {
-      activeChallengeToken = payload.challengeToken;
-      return {
-        status: 200,
-        challengeToken: payload.challengeToken,
-        maskedPhone: payload.maskedPhone,
-      };
-    }
-  } catch (err) {
-    console.warn("initiateLogin backend call failed, falling back to mock", err);
-  }
-
-  // Fallback to mock behavior
-  const user = MOCK_USERS.find(
-    (u) => u.email?.toLowerCase() === email.toLowerCase(),
-  );
-  return { status: user ? 200 : 401 };
-}
-
-export async function verifyOtp(
-  _email: string,
-  otp: number,
-): Promise<{ status: number; data: AuthUser | null }> {
-  try {
-    if (activeChallengeToken) {
-      const res = await authApi.verifyLoginCodeApi(activeChallengeToken, String(otp));
-      const payload = res?.data || res;
-      if (payload) {
-        const { account, profile } = payload;
-        const userObj: AuthUser = {
-          ...account,
-          fullName: profile?.fullName,
-          sub: account?._id || account?.id,
-          wrId: profile?.wrId || "",
-          wrOrgId: profile?.wrOrgId,
-        };
-        return { status: 200, data: userObj };
-      }
-    }
-  } catch (err) {
-    console.warn("a backend call failed, falling back to mock", err);
-  }
-
-  // Fallback to mock behavior
-  return { status: 200, data: null };
-}
-
-export type SignupPayload = {
-  name: string;
-  email: string;
-  phone: string;
-  password: string;
-  nin: string;
-  agreeToTerms: boolean;
-};
-
-export async function signupUser(
-  _payload: SignupPayload,
-): Promise<{ status: number }> {
-  return { status: 201 };
 }
 
 export const authApi = {

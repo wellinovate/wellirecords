@@ -100,49 +100,6 @@ const PEDIATRIC_PROVIDER: BookingProvider = {
   availability: {},
 };
 
-// Mock health data
-const MOCK_HEALTH_METRICS = {
-  totalFamilyMembers: 3,
-  upcomingAppointments: 2,
-  vaccinationsDue: 1,
-  aiWellnessScore: 87,
-  wellnessScoreTrend: 'up' as const,
-};
-
-const MOCK_ACCESS_RECORDS = [
-  {
-    id: 'access_1',
-    name: 'Dr. Adebayo',
-    role: 'Pediatrician',
-    accessExpiresIn: '24 hrs',
-    lastAccessed: '2 hours ago',
-  },
-  {
-    id: 'access_2',
-    name: 'Babcock Hospital',
-    role: 'Hospital System',
-    accessExpiresIn: 'Permanent',
-    lastAccessed: '1 day ago',
-  },
-];
-
-const MOCK_MEDICAL_ACTIVITY = [
-  { type: 'vaccination', title: 'Yellow Fever Vaccination', date: '2024-05-20', icon: Syringe, status: 'completed' },
-  { type: 'visit', title: 'Pediatric Checkup', date: '2024-05-15', icon: Activity, status: 'completed' },
-  { type: 'lab', title: 'Lab Results Uploaded', date: '2024-05-10', icon: BarChart3, status: 'completed' },
-  { type: 'prescription', title: 'Prescription Created', date: '2024-05-05', icon: Pill, status: 'pending' },
-];
-
-const MOCK_EMERGENCY_INFO = {
-  bloodGroup: 'O+',
-  genotype: 'AA',
-  emergencyContact: 'Adekunle Awobodu',
-  emergencyPhone: '+234 803 456 7890',
-  preferredHospital: 'Babcock Hospital',
-  chronicConditions: ['Mild Asthma'],
-  allergies: ['Penicillin', 'Shellfish'],
-};
-
 interface EcosystemItem {
   id: string;
   name: string;
@@ -380,7 +337,7 @@ export function FamilyManagementPage() {
           {/* ─────────────────────────────────────────────────────────────────
               HEALTH OVERVIEW CARDS
               ───────────────────────────────────────────────────────────────── */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Total Members */}
             <div
               className="rounded-2xl border p-6 transition-all hover:shadow-lg"
@@ -396,21 +353,6 @@ export function FamilyManagementPage() {
               <div className="text-xs font-medium" style={{ color: 'var(--pat-muted)' }}>Total Family Members</div>
             </div>
 
-            {/* Appointments */}
-            <div
-              className="rounded-2xl border p-6 transition-all hover:shadow-lg"
-              style={{ background: 'var(--pat-surface)', borderColor: 'var(--pat-border)' }}
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'rgba(139, 92, 246, 0.1)' }}>
-                  <CalendarClock size={24} style={{ color: '#8b5cf6' }} />
-                </div>
-                <TrendingUp size={16} style={{ color: '#10b981' }} />
-              </div>
-              <div className="text-3xl font-bold mb-1" style={{ color: 'var(--pat-text)' }}>{MOCK_HEALTH_METRICS.upcomingAppointments}</div>
-              <div className="text-xs font-medium" style={{ color: 'var(--pat-muted)' }}>Upcoming Appointments</div>
-            </div>
-
             {/* Vaccinations Due */}
             <div
               className="rounded-2xl border p-6 transition-all hover:shadow-lg"
@@ -424,21 +366,6 @@ export function FamilyManagementPage() {
               </div>
               <div className="text-3xl font-bold mb-1" style={{ color: 'var(--pat-text)' }}>{totalVaccinationsDue}</div>
               <div className="text-xs font-medium" style={{ color: 'var(--pat-muted)' }}>Vaccinations Due</div>
-            </div>
-
-            {/* AI Wellness Score */}
-            <div
-              className="rounded-2xl border p-6 transition-all hover:shadow-lg"
-              style={{ background: 'var(--pat-surface)', borderColor: 'var(--pat-border)' }}
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'rgba(236, 72, 153, 0.1)' }}>
-                  <Heart size={24} style={{ color: '#ec4899' }} />
-                </div>
-                <TrendingUp size={16} style={{ color: '#10b981' }} />
-              </div>
-              <div className="text-3xl font-bold mb-1" style={{ color: 'var(--pat-text)' }}>{MOCK_HEALTH_METRICS.aiWellnessScore}</div>
-              <div className="text-xs font-medium" style={{ color: 'var(--pat-muted)' }}>AI Wellness Score</div>
             </div>
           </div>
 
@@ -762,199 +689,32 @@ export function FamilyManagementPage() {
           </div>
 
           {/* ─────────────────────────────────────────────────────────────────
-              MEDICAL ACTIVITY TIMELINE
+              EMERGENCY INFO — lives on the dedicated Emergency Card page,
+              not duplicated here. That page pulls real allergies, blood
+              group, and emergency contacts and generates a real scannable
+              QR code (see EmergencyCardPage.tsx).
               ───────────────────────────────────────────────────────────────── */}
           <div
-            className="rounded-2xl border p-6"
+            className="rounded-2xl border p-6 flex items-center justify-between gap-4 flex-wrap"
             style={{ background: 'var(--pat-surface)', borderColor: 'var(--pat-border)' }}
           >
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'rgba(59, 130, 246, 0.1)' }}>
-                <Clock size={20} style={{ color: '#3b82f6' }} />
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'rgba(239, 68, 68, 0.1)' }}>
+                <AlertCircle size={20} style={{ color: '#ef4444' }} />
               </div>
-              <h2 className="font-display font-bold text-xl" style={{ color: 'var(--pat-text)' }}>Medical Activity Timeline</h2>
-            </div>
-
-            <div className="space-y-1">
-              {MOCK_MEDICAL_ACTIVITY.map((activity, idx) => {
-                const ActivityIcon = activity.icon;
-                const isCompleted = activity.status === 'completed';
-                return (
-                  <div key={idx} className="flex gap-4 pb-4" style={{ borderBottom: idx < MOCK_MEDICAL_ACTIVITY.length - 1 ? '1px solid var(--pat-border)' : 'none' }}>
-                    {/* Timeline dot */}
-                    <div className="flex flex-col items-center gap-1 flex-shrink-0 mt-1">
-                      <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center border-2"
-                        style={{
-                          background: isCompleted ? 'rgba(16, 185, 129, 0.1)' : 'rgba(229, 231, 235, 0.5)',
-                          borderColor: isCompleted ? '#10b981' : 'var(--pat-border)',
-                        }}
-                      >
-                        {isCompleted ? (
-                          <CheckCircle size={16} style={{ color: '#10b981' }} />
-                        ) : (
-                          <Clock size={16} style={{ color: 'var(--pat-muted)' }} />
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 pb-2">
-                      <div className="font-semibold text-sm" style={{ color: 'var(--pat-text)' }}>
-                        {activity.title}
-                      </div>
-                      <div className="text-xs mt-1" style={{ color: 'var(--pat-muted)' }}>
-                        {new Date(activity.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* ─────────────────────────────────────────────────────────────────
-              EMERGENCY INFORMATION PANEL
-              ───────────────────────────────────────────────────────────────── */}
-          <div
-            className="rounded-2xl border p-6"
-            style={{ background: 'var(--pat-surface)', borderColor: 'var(--pat-border)' }}
-          >
-            <div className="flex items-center justify-between gap-2 mb-6">
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'rgba(239, 68, 68, 0.1)' }}>
-                  <AlertCircle size={20} style={{ color: '#ef4444' }} />
-                </div>
-                <h2 className="font-display font-bold text-xl" style={{ color: 'var(--pat-text)' }}>Emergency Information</h2>
-              </div>
-              <button
-                onClick={() => navigate('/patient/emergency')}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all hover:shadow-md cursor-pointer"
-                style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}
-              >
-                <QrCode size={14} />
-                Generate QR Code
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Blood Group */}
-              <div className="rounded-xl border p-4" style={{ borderColor: 'var(--pat-border)', background: 'var(--pat-bg)' }}>
-                <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--pat-muted)' }}>Blood Group</div>
-                <div className="text-lg font-bold" style={{ color: 'var(--pat-text)' }}>{MOCK_EMERGENCY_INFO.bloodGroup}</div>
-              </div>
-
-              {/* Genotype */}
-              <div className="rounded-xl border p-4" style={{ borderColor: 'var(--pat-border)', background: 'var(--pat-bg)' }}>
-                <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--pat-muted)' }}>Genotype</div>
-                <div className="text-lg font-bold" style={{ color: 'var(--pat-text)' }}>{MOCK_EMERGENCY_INFO.genotype}</div>
-              </div>
-
-              {/* Emergency Contact */}
-              <div className="rounded-xl border p-4 sm:col-span-2" style={{ borderColor: 'var(--pat-border)', background: 'var(--pat-bg)' }}>
-                <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--pat-muted)' }}>Emergency Contact</div>
-                <div className="text-sm font-bold" style={{ color: 'var(--pat-text)' }}>{MOCK_EMERGENCY_INFO.emergencyContact}</div>
-                <div className="text-xs mt-1" style={{ color: 'var(--pat-muted)' }}>{MOCK_EMERGENCY_INFO.emergencyPhone}</div>
-              </div>
-
-              {/* Preferred Hospital */}
-              <div className="rounded-xl border p-4" style={{ borderColor: 'var(--pat-border)', background: 'var(--pat-bg)' }}>
-                <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--pat-muted)' }}>Preferred Hospital</div>
-                <div className="flex items-center gap-2">
-                  <MapPin size={16} style={{ color: 'var(--pat-primary)' }} />
-                  <div className="text-sm font-semibold" style={{ color: 'var(--pat-text)' }}>{MOCK_EMERGENCY_INFO.preferredHospital}</div>
-                </div>
-              </div>
-
-              {/* Allergies Count */}
-              <div className="rounded-xl border p-4" style={{ borderColor: 'var(--pat-border)', background: 'var(--pat-bg)' }}>
-                <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--pat-muted)' }}>Allergies</div>
-                <div className="flex flex-wrap gap-2">
-                  {MOCK_EMERGENCY_INFO.allergies.map((allergy, idx) => (
-                    <span
-                      key={idx}
-                      className="text-xs px-2 py-1 rounded-full font-semibold"
-                      style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}
-                    >
-                      {allergy}
-                    </span>
-                  ))}
-                </div>
+              <div>
+                <div className="font-display font-bold text-base" style={{ color: 'var(--pat-text)' }}>Emergency information</div>
+                <div className="text-xs" style={{ color: 'var(--pat-muted)' }}>Blood group, allergies, emergency contacts, and a scannable QR for first responders</div>
               </div>
             </div>
-
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => navigate('/patient/emergency')}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm transition-all hover:-translate-y-0.5 cursor-pointer bg-[#041E42] text-white hover:bg-[#0c2d66]"
-              >
-                <QrCode size={16} />
-                Generate Emergency QR
-              </button>
-              <button
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm transition-all border"
-                style={{ borderColor: 'var(--pat-border)', color: 'var(--pat-text)' }}
-              >
-                <Share2 size={16} />
-                Share Emergency Access
-              </button>
-            </div>
-          </div>
-
-          {/* ─────────────────────────────────────────────────────────────────
-              ACCESS & PERMISSIONS SECTION
-              ───────────────────────────────────────────────────────────────── */}
-          <div
-            className="rounded-2xl border p-6"
-            style={{ background: 'var(--pat-surface)', borderColor: 'var(--pat-border)' }}
-          >
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'rgba(139, 92, 246, 0.1)' }}>
-                <Lock size={20} style={{ color: '#8b5cf6' }} />
-              </div>
-              <h2 className="font-display font-bold text-xl" style={{ color: 'var(--pat-text)' }}>Access &amp; Permissions</h2>
-            </div>
-
-            <div className="space-y-3">
-              {MOCK_ACCESS_RECORDS.map((record) => (
-                <div
-                  key={record.id}
-                  className="flex items-center justify-between p-4 rounded-xl border"
-                  style={{ borderColor: 'var(--pat-border)', background: 'var(--pat-bg)' }}
-                >
-                  <div className="flex-1">
-                    <div className="font-semibold text-sm" style={{ color: 'var(--pat-text)' }}>
-                      {record.name}
-                    </div>
-                    <div className="text-xs mt-1 flex items-center gap-2" style={{ color: 'var(--pat-muted)' }}>
-                      <span>{record.role}</span>
-                      <span>•</span>
-                      <span>Expires in {record.accessExpiresIn}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 ml-4">
-                    <button
-                      className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:shadow-md border"
-                      style={{ borderColor: 'var(--pat-border)', color: 'var(--pat-text)' }}
-                    >
-                      Extend
-                    </button>
-                    <button
-                      className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:shadow-md text-red-600 border border-red-200 bg-red-50"
-                    >
-                      Revoke
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-2 mt-4 p-3 rounded-lg" style={{ background: 'rgba(16, 185, 129, 0.08)', borderLeft: '3px solid #10b981' }}>
-              <Shield size={16} style={{ color: '#10b981' }} />
-              <span className="text-xs font-medium" style={{ color: '#047857' }}>
-                All access events and consent authorizations are cryptographically timestamped and recorded in immutable provider audit logs.
-              </span>
-            </div>
+            <button
+              onClick={() => navigate('/patient/emergency')}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold transition-all hover:shadow-md cursor-pointer flex-shrink-0"
+              style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}
+            >
+              <QrCode size={14} />
+              Open Emergency Card
+            </button>
           </div>
 
           {/* ─────────────────────────────────────────────────────────────────
