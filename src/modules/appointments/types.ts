@@ -27,6 +27,8 @@ export type Appointment = {
   updatedAt: string;
 };
 
+export type AppointmentItem = Appointment;
+
 export type AppointmentListResponse = {
   success: boolean;
   message: string;

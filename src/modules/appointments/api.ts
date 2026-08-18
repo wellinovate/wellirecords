@@ -19,6 +19,31 @@ export const getAppointmentsApi = async (params?: Record<string, any>) => {
   return data;
 };
 
+export const getSlotAvailabilityApi = async (params: {
+  organizationId: string;
+  providerId?: string | null;
+  date: string;
+}) => {
+  const { data } = await api.get<{
+    success: boolean;
+    data: {
+      date: string;
+      organizationId: string;
+      slots: {
+        slot: string;
+        available: boolean;
+        bookedCount: number;
+        capacity: number;
+        reason: "past" | "booked" | null;
+      }[];
+    };
+  }>(`${apiUrl}/api/v1/appointments/availability`, {
+    params,
+    headers: getAuthHeader(),
+  });
+  return data;
+};
+
 export const createAppointmentApi = async (payload: {
   patientId: string;
   organizationId: string;
