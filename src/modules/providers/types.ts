@@ -1,9 +1,15 @@
 export type ProviderSearchItem = {
   _id: string;
-  fullName?: string;
-  email?: string;
-  phone?: string;
-  specialty?: string;
+  fullName?: string | null;
+  organizationName?: string | null;
+  organizationType?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  specialty?: string | null;
+  address?: string | null;
+  logo?: string | null;
+  avatar?: string | null;
+  profileImage?: string | null;
   organization?: {
     _id: string;
     name?: string;

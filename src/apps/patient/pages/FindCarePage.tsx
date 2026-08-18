@@ -43,7 +43,7 @@ const FACILITY_TYPES = [
 
 export function FindCarePage() {
   const { user } = useAuth();
-  const patientId = user?.sub;
+  const patientId = user?.userId || (user as any)?.sub;
 
   const [search, setSearch] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState("all");
