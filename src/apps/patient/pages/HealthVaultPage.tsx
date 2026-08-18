@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/shared/auth/AuthProvider";
-import { getMyHealthRecords } from "@/shared/api/healthRecordsApi";
+import { fetchMyHealthRecordsProgressively } from "@/shared/api/healthRecordsApi";
 import { HealthRecord } from "@/shared/types/types";
 import {
   Search,
@@ -21,6 +21,7 @@ import {
   Sparkles,
   Lock,
   ChevronRight,
+  RefreshCw,
 } from "lucide-react";
 import { FirstRecordWizard } from "@/apps/patient/components/FirstRecordWizard";
 import { Link, useNavigate } from "react-router-dom";
@@ -113,9 +114,14 @@ const SHOWCASE_TYPES = [
 export function HealthVaultPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const patientId = user?.sub;
+  const patientId = user?.userId || (user as any)?.sub;
   const [records, setRecords] = useState<HealthRecord[]>([]);
   const [recordsLoading, setRecordsLoading] = useState(true);
+  // Set only if the vault has zero records after every module has either
+  // settled or been waited on past the hard timeout below — distinct from
+  // "still loading" and from "genuinely empty vault".
+  const [loadTimedOut, setLoadTimedOut] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   // No care-journey concept exists on the backend yet — real records
   // only, no fabricated journey entries or fallback-to-another-patient.
   const journeys: any[] = [];
@@ -126,11 +132,48 @@ export function HealthVaultPage() {
 
   useEffect(() => {
     if (!patientId) return;
+    let cancelled = false;
     setRecordsLoading(true);
-    getMyHealthRecords(patientId)
-      .then(setRecords)
-      .finally(() => setRecordsLoading(false));
-  }, [patientId]);
+    setLoadTimedOut(false);
+    setRecords([]);
+
+    const collected: HealthRecord[] = [];
+
+    // The vault loads 7 clinical modules in parallel. Previously the page
+    // waited for every one of them before showing anything, so a single
+    // slow module (e.g. a cold backend) blocked the whole page. Now each
+    // module's records render as soon as that module settles.
+    const sortAndSet = () => {
+      setRecords(
+        [...collected].sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+        ),
+      );
+    };
+
+    // Hard ceiling so the spinner never sits there indefinitely if a
+    // module hangs past its own request timeout. If nothing has come
+    // back by then, surface a retry option instead of an endless spinner.
+    const timeoutId = window.setTimeout(() => {
+      if (cancelled) return;
+      setRecordsLoading(false);
+      if (collected.length === 0) setLoadTimedOut(true);
+    }, 20000);
+
+    fetchMyHealthRecordsProgressively(patientId, (moduleRecords) => {
+      if (cancelled) return;
+      collected.push(...moduleRecords);
+      sortAndSet();
+      setRecordsLoading(false);
+    }).finally(() => {
+      if (!cancelled) window.clearTimeout(timeoutId);
+    });
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, [patientId, reloadKey]);
 
   const loadVitals = async () => {
     try {
@@ -145,7 +188,7 @@ export function HealthVaultPage() {
     loadVitals();
   }, []);
 
-  const vaultIsEmpty = !recordsLoading && records.length === 0;
+  const vaultIsEmpty = !recordsLoading && !loadTimedOut && records.length === 0;
 
   const groupedByType = records.reduce<Record<string, HealthRecord[]>>(
     (acc, record) => {
@@ -191,6 +234,20 @@ export function HealthVaultPage() {
         <div className="flex items-center gap-3 py-16 justify-center">
           <div className="w-5 h-5 rounded-full border-2 animate-spin" style={{ borderColor: "#1e3a8a", borderTopColor: "transparent" }} />
           <span className="text-sm" style={{ color: "#5a7a63" }}>Loading your records...</span>
+        </div>
+      ) : loadTimedOut && records.length === 0 ? (
+        <div className="flex flex-col items-center gap-3 py-16 justify-center text-center">
+          <span className="text-sm" style={{ color: "#5a7a63" }}>
+            This is taking longer than expected. Your connection to the
+            server may be slow right now.
+          </span>
+          <button
+            onClick={() => setReloadKey((k) => k + 1)}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold"
+            style={{ background: "#1e3a8a", color: "white" }}
+          >
+            <RefreshCw size={14} /> Try again
+          </button>
         </div>
       ) : vaultIsEmpty ? (
         <VaultOnboarding onAddRecord={() => setWizardOpen(true)} />
