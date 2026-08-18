@@ -1,18 +1,15 @@
 import {
   Building2,
-  Copy,
-  Check,
   MapPin,
   Stethoscope,
   Video,
   FlaskConical,
   Pill,
-  Eye,
   ShieldCheck,
   Calendar,
   Sparkles,
 } from "lucide-react";
-import { useState, type MouseEvent } from "react";
+import { useState } from "react";
 import type { ProviderSearchItem } from "../types";
 
 type Props = {
@@ -20,7 +17,62 @@ type Props = {
   onSelect: (item: ProviderSearchItem) => void;
 };
 
-// ─── Helpers for normalization ───────────────────────────────────────────────
+// ─── Shared Category Helper ──────────────────────────────────────────────────
+
+export type FacilityCategoryKey = "hospital" | "pharmacy" | "laboratory" | "practice";
+
+export function getProviderCategory(item: ProviderSearchItem): FacilityCategoryKey {
+  const type = item.organizationType?.toLowerCase() || "";
+  if (type === "pharmacy") return "pharmacy";
+  if (type === "diagnostic" || type === "laboratory" || type === "lab") return "laboratory";
+  if (type === "individaul_provider" || type === "telehealth") return "practice";
+  return "hospital";
+}
+
+export const CATEGORY_THEMES = {
+  hospital: {
+    gradient: "from-[#0f172a] via-[#1e3a8a] to-[#1e40af]",
+    badgeBg: "rgba(37, 99, 235, 0.12)",
+    badgeBorder: "rgba(37, 99, 235, 0.25)",
+    badgeColor: "#1d4ed8",
+    badgeText: "Hospital & Clinic",
+    sectionTitle: "Hospitals & Medical Centers",
+    Icon: Building2,
+    accentBg: "#dbeafe",
+  },
+  pharmacy: {
+    gradient: "from-[#451a03] via-[#78350f] to-[#9a3412]",
+    badgeBg: "rgba(217, 119, 6, 0.12)",
+    badgeBorder: "rgba(217, 119, 6, 0.25)",
+    badgeColor: "#b45309",
+    badgeText: "Licensed Pharmacy",
+    sectionTitle: "Pharmacies & Retail Care",
+    Icon: Pill,
+    accentBg: "#fef3c7",
+  },
+  laboratory: {
+    gradient: "from-[#042f2e] via-[#115e59] to-[#0f766e]",
+    badgeBg: "rgba(13, 148, 136, 0.12)",
+    badgeBorder: "rgba(13, 148, 136, 0.25)",
+    badgeColor: "#0f766e",
+    badgeText: "Diagnostic Lab",
+    sectionTitle: "Diagnostic & Pathology Laboratories",
+    Icon: FlaskConical,
+    accentBg: "#ccfbf1",
+  },
+  practice: {
+    gradient: "from-[#2e1065] via-[#4c1d95] to-[#581c87]",
+    badgeBg: "rgba(124, 58, 237, 0.12)",
+    badgeBorder: "rgba(124, 58, 237, 0.25)",
+    badgeColor: "#6d28d9",
+    badgeText: "Private Practice",
+    sectionTitle: "Private Practices & Specialists",
+    Icon: Stethoscope,
+    accentBg: "#ede9fe",
+  },
+};
+
+// ─── Formatting Helpers ──────────────────────────────────────────────────────
 
 function toTitleCase(str?: string | null): string {
   if (!str) return "";
@@ -71,81 +123,9 @@ function formatProviderRole(role?: string | null, orgType?: string | null): stri
   return toTitleCase(role);
 }
 
-function getProviderTheme(item: ProviderSearchItem) {
-  const type = item.organizationType || "healthcare_provider";
-
-  if (type === "diagnostic") {
-    return {
-      gradient: "from-[#042f2e] via-[#115e59] to-[#0f766e]",
-      badgeBg: "rgba(13, 148, 136, 0.15)",
-      badgeBorder: "rgba(13, 148, 136, 0.3)",
-      badgeColor: "#0f766e",
-      badgeText: "Diagnostic Lab",
-      Icon: FlaskConical,
-      accentBg: "#ccfbf1",
-    };
-  }
-
-  if (type === "pharmacy") {
-    return {
-      gradient: "from-[#451a03] via-[#78350f] to-[#9a3412]",
-      badgeBg: "rgba(217, 119, 6, 0.15)",
-      badgeBorder: "rgba(217, 119, 6, 0.3)",
-      badgeColor: "#b45309",
-      badgeText: "Licensed Pharmacy",
-      Icon: Pill,
-      accentBg: "#fef3c7",
-    };
-  }
-
-  if (type === "individaul_provider") {
-    return {
-      gradient: "from-[#2e1065] via-[#4c1d95] to-[#581c87]",
-      badgeBg: "rgba(124, 58, 237, 0.15)",
-      badgeBorder: "rgba(124, 58, 237, 0.3)",
-      badgeColor: "#6d28d9",
-      badgeText: "Private Practice",
-      Icon: Stethoscope,
-      accentBg: "#ede9fe",
-    };
-  }
-
-  if (item.specialty?.toLowerCase().includes("eye") || item.specialty?.toLowerCase().includes("ophthalmolog")) {
-    return {
-      gradient: "from-[#082f49] via-[#0369a1] to-[#0284c7]",
-      badgeBg: "rgba(2, 132, 199, 0.15)",
-      badgeBorder: "rgba(2, 132, 199, 0.3)",
-      badgeColor: "#0369a1",
-      badgeText: "Specialty Eye Clinic",
-      Icon: Eye,
-      accentBg: "#e0f2fe",
-    };
-  }
-
-  return {
-    gradient: "from-[#0f172a] via-[#1e3a8a] to-[#1e40af]",
-    badgeBg: "rgba(37, 99, 235, 0.15)",
-    badgeBorder: "rgba(37, 99, 235, 0.3)",
-    badgeColor: "#1d4ed8",
-    badgeText: "Hospital & Clinic",
-    Icon: Building2,
-    accentBg: "#dbeafe",
-  };
-}
-
 export function ProviderSearchCard({ item, onSelect }: Props) {
-  const [copied, setCopied] = useState(false);
   const [imgError, setImgError] = useState(false);
-
   const isIndividualProvider = item.organizationType === "individaul_provider";
-
-  const copyId = (e: MouseEvent) => {
-    e.stopPropagation();
-    if (!item.wrOrgId) return;
-    navigator.clipboard.writeText(item.wrOrgId);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
 
   const rawTitle = item.organizationName || item.fullName || "Healthcare Provider";
   const title = toTitleCase(rawTitle);
@@ -155,7 +135,8 @@ export function ProviderSearchCard({ item, onSelect }: Props) {
     : null;
 
   const formattedRole = formatProviderRole(item.specialty, item.organizationType);
-  const theme = getProviderTheme(item);
+  const categoryKey = getProviderCategory(item);
+  const theme = CATEGORY_THEMES[categoryKey];
   const IconComponent = theme.Icon;
 
   const addressText =
@@ -167,16 +148,16 @@ export function ProviderSearchCard({ item, onSelect }: Props) {
   const hasCustomLogo = Boolean(logoUrl && !imgError);
 
   return (
-    <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-blue-300">
-      {/* ── Top Cover Banner ── */}
+    <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:border-slate-300">
+      {/* ── Category Gradient Header ── */}
       <div className={`relative h-28 w-full bg-gradient-to-r ${theme.gradient} p-3.5 flex flex-col justify-between overflow-hidden`}>
-        {/* Subtle decorative background glow */}
+        {/* Decorative backdrop light */}
         <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full bg-white/10 blur-xl pointer-events-none" />
 
-        {/* Top Header Row: Category Badge & Acceptance status */}
+        {/* Top Header Row: Category Badge & Availability */}
         <div className="relative z-10 flex items-center justify-between gap-2">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold text-slate-800 shadow-sm backdrop-blur">
-            <IconComponent size={12} style={{ color: theme.badgeColor }} />
+            <IconComponent size={13} style={{ color: theme.badgeColor }} />
             <span>{theme.badgeText}</span>
           </span>
 
@@ -186,10 +167,10 @@ export function ProviderSearchCard({ item, onSelect }: Props) {
           </span>
         </div>
 
-        {/* Bottom Banner Row: Emblem & Accreditation */}
+        {/* Bottom Header Row: Emblem & Accreditation */}
         <div className="relative z-10 flex items-end justify-between">
           <div className="flex items-center gap-2">
-            <div className="h-11 w-11 rounded-xl bg-white p-1.5 shadow-md flex items-center justify-center border border-white/60">
+            <div className="h-11 w-11 rounded-xl bg-white p-1 shadow-md flex items-center justify-center border border-white/60">
               {hasCustomLogo ? (
                 <img
                   src={logoUrl!}
@@ -220,16 +201,16 @@ export function ProviderSearchCard({ item, onSelect }: Props) {
         </div>
       </div>
 
-      {/* ── Card Body (Single source of truth for Role & Address) ── */}
+      {/* ── Card Body (One role instance, clean address, zero dead space) ── */}
       <div className="flex flex-1 flex-col justify-between p-4 bg-white">
         <div className="space-y-3">
-          {/* Main Provider / Facility Title */}
+          {/* Main Title & Subtitle */}
           <div>
             <h3 className="text-base font-bold text-slate-900 tracking-tight line-clamp-1 group-hover:text-blue-600 transition-colors" title={title}>
               {title}
             </h3>
 
-            {/* Single clean subtitle displaying Contact Person + Role once */}
+            {/* Exactly ONE role display on the whole card */}
             <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5 line-clamp-1">
               {contactName ? (
                 <>
@@ -243,42 +224,17 @@ export function ProviderSearchCard({ item, onSelect }: Props) {
             </p>
           </div>
 
-          {/* Details Box: Address & WR-ID (No redundant role row) */}
-          <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-2.5 space-y-2 text-xs">
-            {/* Address */}
+          {/* Location Box (Address with MapPin) */}
+          <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-2.5 space-y-1.5 text-xs">
             <div className="flex items-start gap-2 text-slate-600">
               <MapPin size={14} className="mt-0.5 shrink-0 text-emerald-600" />
               <span className="leading-snug text-slate-700 line-clamp-2" title={addressText}>
                 {addressText}
               </span>
             </div>
-
-            {/* WR-ID Copy Bar */}
-            {item.wrOrgId && (
-              <button
-                type="button"
-                onClick={copyId}
-                className="flex w-full items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-left transition hover:border-blue-400 hover:bg-blue-50/40 cursor-pointer"
-                title="Copy ID to grant consent access"
-              >
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">WR-ID:</span>
-                  <span className="font-mono text-xs font-semibold text-blue-900 truncate">{item.wrOrgId}</span>
-                </div>
-                {copied ? (
-                  <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 shrink-0">
-                    <Check size={12} /> Copied
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1 text-[11px] font-medium text-slate-500 hover:text-blue-600 shrink-0">
-                    <Copy size={12} /> Copy
-                  </span>
-                )}
-              </button>
-            )}
           </div>
 
-          {/* Non-redundant Feature Tags */}
+          {/* Actionable Tags */}
           <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
             {item.telemedicineAvailable && (
               <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200">
@@ -291,7 +247,7 @@ export function ProviderSearchCard({ item, onSelect }: Props) {
           </div>
         </div>
 
-        {/* ── Action Footer: Prominent Booking Button anchored at the bottom ── */}
+        {/* ── Prominent Action Button ── */}
         <div className="border-t border-slate-100 pt-3 mt-4">
           <button
             type="button"
