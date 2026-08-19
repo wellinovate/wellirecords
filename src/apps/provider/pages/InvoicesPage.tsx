@@ -513,86 +513,194 @@ export function InvoicesPage() {
       {/* New invoice / checkout modal */}
       {isNewModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="w-full max-w-2xl p-6 rounded-2xl border border-slate-700 bg-[#0c192b] shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+          <div className="w-full max-w-2xl p-6 rounded-2xl border border-slate-700 bg-[#0c192b] shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div>
                 <h3 className="text-lg font-bold text-white">Checkout Patient</h3>
-                <p className="text-xs text-slate-400">Pull billable charges and issue an invoice</p>
+                <p className="text-xs text-slate-400">Pull unbilled charges and issue a clinical invoice</p>
               </div>
-              <button onClick={() => setIsNewModalOpen(false)} className="text-slate-400 hover:text-white cursor-pointer"><X size={18} /></button>
+              <button
+                onClick={() => {
+                  setIsNewModalOpen(false);
+                  setSelectedPatient(null);
+                  setLineItems([]);
+                }}
+                className="text-slate-400 hover:text-white cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Step flow pill indicator */}
+            <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-900/60 border border-slate-800 text-xs">
+              <div className={`flex items-center gap-1.5 px-3 py-1 rounded-lg font-semibold ${!selectedPatient ? "bg-sky-500/20 text-sky-300 border border-sky-500/30" : "text-slate-400"}`}>
+                <span className="w-4 h-4 rounded-full bg-sky-500/30 text-sky-200 text-[10px] flex items-center justify-center font-bold">1</span>
+                <span>Select Patient</span>
+              </div>
+              <span className="text-slate-600">→</span>
+              <div className={`flex items-center gap-1.5 px-3 py-1 rounded-lg font-semibold ${selectedPatient ? "bg-sky-500/20 text-sky-300 border border-sky-500/30" : "text-slate-500"}`}>
+                <span className="w-4 h-4 rounded-full bg-slate-800 text-slate-400 text-[10px] flex items-center justify-center font-bold">2</span>
+                <span>Review & Itemize Charges</span>
+              </div>
             </div>
 
             <form onSubmit={handleCreateInvoice} className="space-y-4">
-              <PatientSearchPicker
-                open={isNewModalOpen}
-                enabled={true}
-                searchPatientRequest={searchPatientRequest}
-                onSelect={setSelectedPatient}
-              />
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                  Patient Search <span className="text-rose-400">*</span>
+                </label>
+                <PatientSearchPicker
+                  open={isNewModalOpen}
+                  enabled={true}
+                  searchPatientRequest={searchPatientRequest}
+                  onSelect={setSelectedPatient}
+                />
+              </div>
 
               {selectedPatient && (
-                <div className="rounded-xl border border-sky-500/20 bg-sky-500/10 p-3">
-                  <p className="text-sm font-medium text-sky-200">Checking out</p>
-                  <p className="mt-1 text-white">{selectedPatient.name}</p>
+                <div className="rounded-xl border border-sky-500/20 bg-sky-500/10 p-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-sky-300">Selected Patient</p>
+                    <p className="text-sm font-bold text-white mt-0.5">{selectedPatient.name}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedPatient(null);
+                      setLineItems([]);
+                      setSuggestions([]);
+                    }}
+                    className="text-xs text-slate-400 hover:text-rose-400 underline cursor-pointer"
+                  >
+                    Change patient
+                  </button>
                 </div>
               )}
 
               {loadingSuggestions && (
-                <div className="flex items-center gap-2 text-xs text-slate-400"><Loader2 size={12} className="animate-spin" /> Pulling unbilled charges…</div>
+                <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5 flex items-center justify-center gap-2.5 text-xs text-slate-300">
+                  <Loader2 size={15} className="animate-spin text-sky-400" />
+                  <span>Pulling unbilled lab orders, pharmacy prescriptions, and radiology studies…</span>
+                </div>
+              )}
+
+              {!selectedPatient && !loadingSuggestions && (
+                <div className="rounded-xl border border-dashed border-slate-800 bg-slate-900/30 p-6 text-center space-y-2">
+                  <div className="w-10 h-10 mx-auto rounded-xl bg-sky-500/10 border border-sky-400/20 flex items-center justify-center text-sky-400">
+                    <Receipt size={18} />
+                  </div>
+                  <div className="text-xs font-bold text-slate-300">Charges Review Step</div>
+                  <p className="text-[11px] text-slate-400 max-w-sm mx-auto leading-relaxed">
+                    Search and select a patient above. WelliRecord will automatically retrieve all pending unbilled orders and let you customize discounts, taxes, and HMO coverage before issuing the invoice.
+                  </p>
+                </div>
               )}
 
               {selectedPatient && !loadingSuggestions && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="text-xs font-bold text-slate-300">Line items</div>
-                    <button type="button" onClick={addManualLineItem} className="text-xs font-bold text-sky-400 cursor-pointer">+ Add item</button>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <div>
+                      <div className="text-xs font-bold text-slate-200">Billable Line Items</div>
+                      <p className="text-[11px] text-slate-400">Uncheck items to exclude or adjust prices directly</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={addManualLineItem}
+                      className="flex items-center gap-1 text-xs font-bold text-sky-400 hover:text-sky-300 cursor-pointer"
+                    >
+                      <Plus size={13} /> Add manual item
+                    </button>
                   </div>
 
                   {lineItems.length === 0 && (
-                    <p className="text-xs text-slate-500">No unbilled lab/pharmacy/radiology charges found. Add items manually below.</p>
+                    <div className="rounded-lg p-3 bg-slate-900/40 border border-slate-800 text-xs text-slate-400 flex items-center justify-between">
+                      <span>No unbilled clinical orders found for this patient.</span>
+                      <button
+                        type="button"
+                        onClick={addManualLineItem}
+                        className="text-sky-400 font-bold hover:underline cursor-pointer"
+                      >
+                        Add custom charge
+                      </button>
+                    </div>
                   )}
 
                   {lineItems.map((li, idx) => (
-                    <div key={idx} className="flex items-center gap-2 rounded-lg p-2" style={{ background: li.included ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.01)" }}>
-                      <input type="checkbox" checked={li.included} onChange={(e) => updateLineItem(idx, { included: e.target.checked })} />
+                    <div
+                      key={idx}
+                      className="flex items-center gap-2 rounded-xl p-2.5 transition-colors"
+                      style={{
+                        background: li.included ? "rgba(14,165,233,0.06)" : "rgba(255,255,255,0.02)",
+                        border: li.included ? "1px solid rgba(14,165,233,0.2)" : "1px solid rgba(255,255,255,0.05)",
+                      }}
+                    >
                       <input
-                        value={li.description}
-                        onChange={(e) => updateLineItem(idx, { description: e.target.value })}
-                        placeholder="Description"
-                        disabled={li.sourceType !== "manual"}
-                        className="flex-1 text-xs rounded-md px-2 py-1.5 bg-black/30 border border-white/10 text-white placeholder:text-slate-500 disabled:opacity-60"
+                        type="checkbox"
+                        checked={li.included}
+                        onChange={(e) => updateLineItem(idx, { included: e.target.checked })}
+                        className="rounded accent-sky-500 cursor-pointer"
                       />
+                      <div className="flex-1 min-w-0">
+                        <input
+                          value={li.description}
+                          onChange={(e) => updateLineItem(idx, { description: e.target.value })}
+                          placeholder="Item description (e.g., General Consultation)"
+                          disabled={li.sourceType !== "manual"}
+                          className="w-full text-xs rounded-md px-2 py-1.5 bg-black/40 border border-white/10 text-white placeholder:text-slate-500 disabled:opacity-75"
+                        />
+                        {li.sourceType !== "manual" && (
+                          <span className="text-[10px] font-mono text-sky-400/80 px-1 mt-0.5 inline-block">
+                            Auto-pulled from {li.sourceType.replace("_", " ")}
+                          </span>
+                        )}
+                      </div>
                       <select
                         value={li.category}
                         onChange={(e) => updateLineItem(idx, { category: e.target.value as LineItemCategory })}
-                        className="text-xs rounded-md px-1.5 py-1.5 bg-black/30 border border-white/10 text-white w-28"
+                        className="text-xs rounded-md px-1.5 py-1.5 bg-black/40 border border-white/10 text-white w-28"
                       >
                         {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
                       </select>
-                      <input
-                        type="number" min={1}
-                        value={li.quantity}
-                        onChange={(e) => updateLineItem(idx, { quantity: Number(e.target.value) || 1 })}
-                        className="w-14 text-xs rounded-md px-2 py-1.5 bg-black/30 border border-white/10 text-white"
-                      />
-                      <input
-                        type="number" min={0}
-                        value={li.unitPrice === 0 ? "" : li.unitPrice}
-                        onChange={(e) => updateLineItem(idx, { unitPrice: e.target.value === "" ? 0 : Number(e.target.value) })}
-                        placeholder="₦0"
-                        className="w-24 text-xs rounded-md px-2 py-1.5 bg-black/30 border border-white/10 text-white placeholder:text-slate-500"
-                      />
-                      {li.sourceType === "manual" && (
-                        <button type="button" onClick={() => removeLineItem(idx)} className="cursor-pointer" style={{ color: "#ef4444" }}><Trash2 size={13} /></button>
+                      <div className="w-16">
+                        <input
+                          type="number"
+                          min={1}
+                          value={li.quantity}
+                          onChange={(e) => updateLineItem(idx, { quantity: Number(e.target.value) || 1 })}
+                          placeholder="Qty"
+                          className="w-full text-xs rounded-md px-2 py-1.5 bg-black/40 border border-white/10 text-white text-center"
+                        />
+                      </div>
+                      <div className="w-28">
+                        <input
+                          type="number"
+                          min={0}
+                          value={li.unitPrice === 0 ? "" : li.unitPrice}
+                          onChange={(e) => updateLineItem(idx, { unitPrice: e.target.value === "" ? 0 : Number(e.target.value) })}
+                          placeholder="₦ Price"
+                          className="w-full text-xs rounded-md px-2 py-1.5 bg-black/40 border border-white/10 text-white placeholder:text-slate-500 text-right font-medium"
+                        />
+                      </div>
+                      {li.sourceType === "manual" ? (
+                        <button
+                          type="button"
+                          onClick={() => removeLineItem(idx)}
+                          className="p-1 text-slate-400 hover:text-rose-400 cursor-pointer"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      ) : (
+                        <div className="w-6" />
                       )}
                     </div>
                   ))}
 
                   <div className="grid grid-cols-2 gap-3 pt-2">
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-400 mb-1">Tax (₦)</label>
+                      <label className="block text-[11px] font-semibold text-slate-400 mb-1">Tax Total (₦)</label>
                       <input
-                        type="number" min={0}
+                        type="number"
+                        min={0}
                         value={taxTotal === 0 ? "" : taxTotal}
                         onChange={(e) => setTaxTotal(e.target.value === "" ? 0 : Number(e.target.value))}
                         placeholder="0"
@@ -600,9 +708,10 @@ export function InvoicesPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-400 mb-1">HMO contribution (₦)</label>
+                      <label className="block text-[11px] font-semibold text-slate-400 mb-1">HMO Contribution (₦)</label>
                       <input
-                        type="number" min={0}
+                        type="number"
+                        min={0}
                         value={hmoContribution === 0 ? "" : hmoContribution}
                         onChange={(e) => setHmoContribution(e.target.value === "" ? 0 : Number(e.target.value))}
                         placeholder="0"
@@ -610,28 +719,63 @@ export function InvoicesPage() {
                       />
                     </div>
                   </div>
-                  <p className="text-[10px] text-slate-500">Manually entered — WelliRecord doesn't yet do live HMO/payer lookup.</p>
+                  <p className="text-[10px] text-slate-500">
+                    HMO coverage is entered manually — live payer adjudication is not yet integrated.
+                  </p>
 
-                  <div className="rounded-xl p-3 space-y-1" style={{ background: "rgba(255,255,255,0.03)" }}>
-                    <div className="flex justify-between text-xs"><span className="text-slate-400">Subtotal</span><span className="text-white">{fmt(subtotal)}</span></div>
-                    <div className="flex justify-between text-xs"><span className="text-slate-400">Discount</span><span className="text-white">-{fmt(discountTotal)}</span></div>
-                    <div className="flex justify-between text-sm font-bold"><span className="text-white">Total</span><span className="text-white">{fmt(totalAmount)}</span></div>
-                    <div className="flex justify-between text-sm font-bold" style={{ color: "#0ea5e9" }}><span>Patient pays</span><span>{fmt(patientResponsibility)}</span></div>
+                  <div className="rounded-xl p-3.5 space-y-1.5 bg-slate-900/60 border border-slate-800">
+                    <div className="flex justify-between text-xs"><span className="text-slate-400">Subtotal ({activeLineItems.length} items)</span><span className="text-white font-medium">{fmt(subtotal)}</span></div>
+                    {discountTotal > 0 && <div className="flex justify-between text-xs"><span className="text-slate-400">Discount</span><span className="text-white">-{fmt(discountTotal)}</span></div>}
+                    {taxTotal > 0 && <div className="flex justify-between text-xs"><span className="text-slate-400">Tax</span><span className="text-white">+{fmt(taxTotal)}</span></div>}
+                    <div className="flex justify-between text-xs font-bold pt-1 border-t border-slate-800"><span className="text-slate-300">Gross Total</span><span className="text-white">{fmt(totalAmount)}</span></div>
+                    {hmoContribution > 0 && <div className="flex justify-between text-xs"><span className="text-slate-400">HMO Deductions</span><span className="text-slate-300">-{fmt(hmoContribution)}</span></div>}
+                    <div className="flex justify-between text-sm font-black pt-1 border-t border-slate-800" style={{ color: "#0ea5e9" }}>
+                      <span>Patient Responsibility</span>
+                      <span>{fmt(patientResponsibility)}</span>
+                    </div>
                   </div>
                 </div>
               )}
 
-              {createError && <div className="text-xs rounded-lg px-3 py-2" style={{ background: "rgba(239,68,68,0.1)", color: "#fca5a5" }}>{createError}</div>}
+              {createError && (
+                <div className="text-xs rounded-lg px-3 py-2 bg-rose-500/10 border border-rose-500/20 text-rose-300">
+                  {createError}
+                </div>
+              )}
 
-              <button
-                type="submit"
-                disabled={creating || !selectedPatient || activeLineItems.length === 0}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-50 cursor-pointer"
-                style={{ background: "#0ea5e9" }}
-              >
-                {creating ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
-                Issue Invoice
-              </button>
+              <div className="pt-2 space-y-2">
+                <button
+                  type="submit"
+                  disabled={creating || !selectedPatient || activeLineItems.length === 0}
+                  className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold text-white transition-all ${
+                    !selectedPatient || activeLineItems.length === 0
+                      ? "bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed opacity-70"
+                      : "bg-sky-500 hover:bg-sky-400 shadow-lg shadow-sky-500/20 cursor-pointer"
+                  }`}
+                >
+                  {creating ? (
+                    <Loader2 size={16} className="animate-spin text-white" />
+                  ) : (
+                    <CheckCircle size={16} />
+                  )}
+                  {!selectedPatient
+                    ? "Select a Patient to Review Charges"
+                    : activeLineItems.length === 0
+                    ? "Add at Least 1 Line Item"
+                    : `Issue Invoice · ${fmt(patientResponsibility)}`}
+                </button>
+
+                {!selectedPatient && (
+                  <p className="text-[11px] text-center text-slate-500">
+                    Search and select a patient above to review unbilled charges and enable invoice generation.
+                  </p>
+                )}
+                {selectedPatient && activeLineItems.length === 0 && (
+                  <p className="text-[11px] text-center text-amber-400/80">
+                    Include or add at least one line item before issuing the invoice.
+                  </p>
+                )}
+              </div>
             </form>
           </div>
         </div>
