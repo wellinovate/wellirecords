@@ -79,6 +79,9 @@ const ResetPasswordPage = lazy(() =>
 const BridgeSharePage = lazy(
   () => import("@/apps/public/pages/BridgeSharePage"),
 );
+const VerifyInvoicePage = lazy(
+  () => import("@/apps/public/pages/VerifyInvoicePage"),
+);
 const ClaimRecordPage = lazy(
   () => import("@/apps/public/pages/ClaimRecordPage"),
 );
@@ -623,6 +626,7 @@ export function AppRoutes() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/bridge/:token" element={<BridgeSharePage />} />
+        <Route path="/verify/:invoiceNumber" element={<VerifyInvoicePage />} />
         <Route path="/join/:token" element={<ClaimRecordPage />} />
         <Route path="/accept-invite" element={<AcceptInvitePage />} />
         <Route

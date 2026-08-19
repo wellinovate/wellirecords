@@ -155,13 +155,16 @@ function TopChip({
 function SmallActionButton({
   label,
   active,
+  onClick,
 }: {
   label: string;
   active?: boolean;
+  onClick?: () => void;
 }) {
   return (
     <button
       type="button"
+      onClick={onClick}
       className={`inline-flex h-10 items-center gap-2 rounded-md border px-4 text-sm font-medium transition ${
         active
           ? "border-[#35a8ff] bg-[#0c2c50] text-[#7fd0ff]"
@@ -668,6 +671,14 @@ export function EHRViewerPage() {
 
               <div className="flex flex-wrap gap-2">
                 <SmallActionButton label="Add Record" />
+                <SmallActionButton
+                  label="Checkout Patient"
+                  onClick={() =>
+                    navigate(
+                      `/provider/billing?checkoutPatientId=${patientId}&checkoutPatientName=${encodeURIComponent(patient?.fullName || "")}`,
+                    )
+                  }
+                />
               </div>
             </div>
           </div>

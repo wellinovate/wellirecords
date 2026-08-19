@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
+import QRCode from "react-qr-code";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { PatientSearchPicker } from "@/apps/components/shared/PatientSearchPicker";
 import {
@@ -43,6 +45,7 @@ function patientLabel(p: Invoice["patientId"]) {
 
 export function InvoicesPage() {
   const { searchPatientRequest } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -82,6 +85,22 @@ export function InvoicesPage() {
     fetchInvoices();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter]);
+
+  // Deep-link from EHRViewerPage's "Checkout Patient" button — opens
+  // straight to the new-invoice modal with the patient already selected,
+  // instead of landing here and having to search for them again.
+  useEffect(() => {
+    const checkoutPatientId = searchParams.get("checkoutPatientId");
+    const checkoutPatientName = searchParams.get("checkoutPatientName");
+    if (checkoutPatientId) {
+      setSelectedPatient({ id: checkoutPatientId, name: checkoutPatientName || "" });
+      setIsNewModalOpen(true);
+      searchParams.delete("checkoutPatientId");
+      searchParams.delete("checkoutPatientName");
+      setSearchParams(searchParams, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!selectedId) {
@@ -490,6 +509,15 @@ export function InvoicesPage() {
                   <button onClick={handleVoid} disabled={detail.status === "void" || detail.amountPaid > 0} className="flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold cursor-pointer disabled:opacity-40" style={{ background: "rgba(239,68,68,0.12)", color: "#ef4444" }}>
                     <Ban size={12} /> Void
                   </button>
+                </div>
+
+                <div className="rounded-xl p-3 flex flex-col items-center gap-2" style={{ background: "rgba(255,255,255,0.03)" }}>
+                  <div className="bg-white p-2.5 rounded-lg">
+                    <QRCode value={`${window.location.origin}/verify/${detail.invoiceNumber}`} size={100} />
+                  </div>
+                  <p className="text-[10px] text-center" style={{ color: "#64748b" }}>
+                    Scan to verify this invoice is genuine — printed on the invoice for auditors, HMOs, or banks to confirm authenticity.
+                  </p>
                 </div>
 
                 {detail.receipts.length > 0 && (

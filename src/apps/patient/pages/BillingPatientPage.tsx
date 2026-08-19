@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import QRCode from 'react-qr-code';
 import {
     CheckCircle, Clock, AlertCircle, Receipt, FileText, Loader2, Ban, X,
 } from 'lucide-react';
@@ -174,6 +175,11 @@ export function BillingPatientPage() {
                                 online payment isn't available yet, so payment is collected in person or by bank transfer at the facility.
                             </div>
                         )}
+
+                        <div className="mt-4 flex flex-col items-center gap-2 rounded-xl border border-slate-200 p-3">
+                            <QRCode value={`${window.location.origin}/verify/${viewing.invoiceNumber}`} size={90} />
+                            <p className="text-[10px] text-center text-slate-400">Scan to verify this invoice is genuine</p>
+                        </div>
 
                         <div className="mt-4 flex gap-2">
                             <button

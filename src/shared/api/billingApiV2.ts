@@ -168,3 +168,20 @@ export async function sendPaymentReminder(id: string): Promise<{ emailed: boolea
   });
   return data.data;
 }
+
+export interface InvoiceVerification {
+  invoiceNumber: string;
+  patientName: string;
+  organizationName: string;
+  totalAmount: number;
+  status: InvoiceStatus;
+  issuedAt: string;
+}
+
+// Public, unauthenticated — no auth header, since this is what a
+// scanned invoice QR code hits from any device.
+export async function verifyInvoice(invoiceNumber: string): Promise<InvoiceVerification> {
+  const { data } = await api.get(`${apiUrl}/api/v1/billing/invoices/verify/${invoiceNumber}`);
+  return data.data;
+}
+
