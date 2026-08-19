@@ -6,6 +6,7 @@ export interface Roster {
   id: string;
   organizationId: string;
   title: string;
+  department?: string;
   periodStart: string;
   periodEnd: string;
   status: "draft" | "review" | "published" | "active" | "completed";
@@ -76,6 +77,7 @@ export async function getRoster(id: string): Promise<RosterWithAssignments> {
 
 export async function createRoster(payload: {
   title: string;
+  department?: string;
   periodStart: string;
   periodEnd: string;
   notes?: string;

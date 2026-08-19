@@ -24,12 +24,28 @@ import {
   ChevronRight,
   Loader2,
   X,
+  Radio,
 } from "lucide-react";
 
 const cardStyle = {
   background: "rgba(7,24,48,0.5)",
   border: "1px solid #163761",
 };
+
+const DEPARTMENTS = [
+  "General / All Departments",
+  "Emergency & Trauma (ER)",
+  "Internal Medicine",
+  "Surgery & Operating Theatres",
+  "Nursing & Inpatient Wards",
+  "Pediatrics & Neonatal",
+  "Obstetrics & Gynaecology",
+  "Laboratory & Diagnostics",
+  "Pharmacy & Dispense",
+  "Radiology & Imaging",
+  "Outpatient Clinic",
+  "Intensive Care Unit (ICU)",
+];
 
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   draft: { bg: "rgba(148,163,184,.15)", text: "#94a3b8" },
@@ -56,6 +72,21 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+function SoonBadge({ text = "SOON" }: { text?: string }) {
+  return (
+    <span
+      className="inline-flex items-center px-1.5 py-0.2 text-[9px] font-extrabold uppercase tracking-wider rounded border"
+      style={{
+        background: "rgba(245,158,11,0.12)",
+        color: "#f59e0b",
+        borderColor: "rgba(245,158,11,0.3)",
+      }}
+    >
+      {text}
+    </span>
+  );
+}
+
 function staffIdOf(staffId: DutyAssignment["staffId"]): string {
   return typeof staffId === "string" ? staffId : staffId._id;
 }
@@ -76,7 +107,7 @@ function staffLabel(staffId: DutyAssignment["staffId"]): string {
 function RosterWorkflowCard() {
   return (
     <div
-      className="rounded-2xl border p-5 space-y-4"
+      className="rounded-2xl border p-5 space-y-4 max-w-4xl"
       style={{ background: "rgba(7,24,48,0.35)", borderColor: "#163761" }}
     >
       <div className="flex items-center justify-between">
@@ -94,42 +125,59 @@ function RosterWorkflowCard() {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
         <div
-          className="p-3 rounded-xl border space-y-1"
+          className="p-3.5 rounded-xl border space-y-1.5 flex flex-col justify-between"
           style={{ background: "rgba(7,24,48,0.5)", borderColor: "#163761" }}
         >
-          <div className="font-bold text-slate-200 flex items-center gap-1.5">
-            <Building2 size={12} className="text-sky-400" />
-            <span>Shift Coverage</span>
+          <div className="space-y-1">
+            <div className="font-bold text-slate-200 flex items-center gap-1.5">
+              <Building2 size={13} className="text-sky-400" />
+              <span>Shift Coverage</span>
+            </div>
+            <p className="text-[11px] leading-relaxed" style={{ color: "#7ba3c8" }}>
+              Assign doctors, nurses, lab scientists, and drivers to daily regular, day-call, or night-call shifts by department and date.
+            </p>
           </div>
-          <p className="text-[11px] leading-relaxed" style={{ color: "#7ba3c8" }}>
-            Assign doctors, nurses, lab techs, and drivers to daily regular, day-call, or night-call shifts.
-          </p>
+          <div className="pt-1">
+            <span className="text-[10px] font-semibold text-emerald-400">✓ Active in portal</span>
+          </div>
         </div>
 
         <div
-          className="p-3 rounded-xl border space-y-1"
+          className="p-3.5 rounded-xl border space-y-1.5 flex flex-col justify-between"
           style={{ background: "rgba(7,24,48,0.5)", borderColor: "#163761" }}
         >
-          <div className="font-bold text-slate-200 flex items-center gap-1.5">
-            <Clock size={12} className="text-emerald-400" />
-            <span>E-Check-In &amp; Overtime</span>
+          <div className="space-y-1">
+            <div className="font-bold text-slate-200 flex items-center gap-1.5">
+              <Clock size={13} className="text-emerald-400" />
+              <span>Check-In &amp; Late Tracking</span>
+            </div>
+            <p className="text-[11px] leading-relaxed" style={{ color: "#7ba3c8" }}>
+              Staff check in and out upon arrival with an automatic 15-minute grace period and late time logging.
+            </p>
           </div>
-          <p className="text-[11px] leading-relaxed" style={{ color: "#7ba3c8" }}>
-            Staff check in upon arrival with automatic grace periods, late tracking, and overtime calculation.
-          </p>
+          <div className="pt-1 flex items-center gap-2">
+            <span className="text-[10px] font-semibold text-emerald-400">✓ In-App Check-In</span>
+            <SoonBadge text="Biometrics SOON" />
+          </div>
         </div>
 
         <div
-          className="p-3 rounded-xl border space-y-1"
+          className="p-3.5 rounded-xl border space-y-1.5 flex flex-col justify-between"
           style={{ background: "rgba(7,24,48,0.5)", borderColor: "#163761" }}
         >
-          <div className="font-bold text-slate-200 flex items-center gap-1.5">
-            <ShieldCheck size={12} className="text-purple-400" />
-            <span>Real-Time Sync</span>
+          <div className="space-y-1">
+            <div className="font-bold text-slate-200 flex items-center gap-1.5">
+              <Radio size={13} className="text-sky-400" />
+              <span>Live In-App Sync</span>
+            </div>
+            <p className="text-[11px] leading-relaxed" style={{ color: "#7ba3c8" }}>
+              Published rosters, shift assignments, and attendance updates synchronize in real time across active provider sessions via WebSockets.
+            </p>
           </div>
-          <p className="text-[11px] leading-relaxed" style={{ color: "#7ba3c8" }}>
-            Published rosters and duty assignment updates stream live across all connected department terminals.
-          </p>
+          <div className="pt-1 flex items-center gap-2">
+            <span className="text-[10px] font-semibold text-emerald-400">✓ WebSocket Live</span>
+            <SoonBadge text="Terminals SOON" />
+          </div>
         </div>
       </div>
     </div>
@@ -144,6 +192,7 @@ function CreateRosterForm({
   onCancel: () => void;
 }) {
   const [title, setTitle] = useState("");
+  const [department, setDepartment] = useState(DEPARTMENTS[0]);
   const [periodStart, setPeriodStart] = useState("");
   const [periodEnd, setPeriodEnd] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -154,7 +203,12 @@ function CreateRosterForm({
     setError(null);
     setSubmitting(true);
     try {
-      const roster = await createRoster({ title, periodStart, periodEnd });
+      const roster = await createRoster({
+        title,
+        department,
+        periodStart,
+        periodEnd,
+      });
       onCreated(roster);
       setTitle("");
       setPeriodStart("");
@@ -176,7 +230,7 @@ function CreateRosterForm({
         <div>
           <div className="text-sm font-bold text-slate-100">Create New Duty Roster</div>
           <div className="text-xs" style={{ color: "#7ba3c8" }}>
-            Set a scheduling period (e.g. weekly or monthly) to organize staff duty assignments
+            Set a scheduling period and department to organize staff duty assignments
           </div>
         </div>
         <button
@@ -188,18 +242,38 @@ function CreateRosterForm({
         </button>
       </div>
 
-      <div className="space-y-1">
-        <label className="text-xs font-bold block" style={{ color: "#dbe6f2" }}>
-          Roster Title
-        </label>
-        <input
-          required
-          placeholder="e.g. August 2026 Shift Schedule — Ward & ER"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="w-full rounded-xl px-3 py-2.5 text-xs outline-none"
-          style={{ background: "rgba(7,24,48,0.6)", border: "1px solid #163761", color: "#e2eaf4" }}
-        />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <label className="text-xs font-bold block" style={{ color: "#dbe6f2" }}>
+            Roster Title
+          </label>
+          <input
+            required
+            placeholder="e.g. August 2026 Shift Schedule"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full rounded-xl px-3 py-2.5 text-xs outline-none"
+            style={{ background: "rgba(7,24,48,0.6)", border: "1px solid #163761", color: "#e2eaf4" }}
+          />
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-xs font-bold block" style={{ color: "#dbe6f2" }}>
+            Department / Clinical Scope
+          </label>
+          <select
+            value={department}
+            onChange={(e) => setDepartment(e.target.value)}
+            className="w-full rounded-xl px-3 py-2.5 text-xs outline-none"
+            style={{ background: "rgba(7,24,48,0.6)", border: "1px solid #163761", color: "#e2eaf4" }}
+          >
+            {DEPARTMENTS.map((dept) => (
+              <option key={dept} value={dept} style={{ color: "#000" }}>
+                {dept}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -599,8 +673,14 @@ function RosterDetail({
             </h2>
             <StatusBadge status={roster.status} />
           </div>
-          <div className="text-xs mt-1" style={{ color: "#7ba3c8" }}>
-            Scheduling Period: {new Date(roster.periodStart).toLocaleDateString()} – {new Date(roster.periodEnd).toLocaleDateString()}
+          <div className="text-xs mt-1.5 flex items-center flex-wrap gap-3" style={{ color: "#7ba3c8" }}>
+            <span className="flex items-center gap-1 text-sky-400 font-semibold">
+              <Building2 size={13} /> {roster.department || "General / All Departments"}
+            </span>
+            <span>·</span>
+            <span className="flex items-center gap-1">
+              <CalendarDays size={13} /> {new Date(roster.periodStart).toLocaleDateString()} – {new Date(roster.periodEnd).toLocaleDateString()}
+            </span>
           </div>
         </div>
         {canEdit && (
@@ -617,7 +697,7 @@ function RosterDetail({
 
       {canEdit && <AddAssignmentForm rosterId={rosterId} onAdded={refetch} />}
 
-      <div className="rounded-2xl p-5 border" style={cardStyle}>
+      <div className="rounded-2xl p-5 border max-w-4xl" style={cardStyle}>
         <div className="flex items-center justify-between mb-3 pb-2 border-b" style={{ borderColor: "#163761" }}>
           <div className="text-sm font-bold text-slate-100 flex items-center gap-2">
             <Users size={16} className="text-sky-400" />
@@ -704,7 +784,7 @@ export function RosterPage() {
       )}
 
       {/* Roster List or Compact Empty State */}
-      <div className="space-y-3 max-w-2xl">
+      <div className="space-y-3 max-w-4xl">
         {loading && (
           <div className="flex items-center justify-center gap-2 py-10 text-xs" style={{ color: "#7ba3c8" }}>
             <Loader2 size={16} className="animate-spin text-sky-400" /> Loading duty rosters...
@@ -746,14 +826,28 @@ export function RosterPage() {
             <button
               key={r.id}
               onClick={() => setSelectedRosterId(r.id)}
-              className="w-full flex items-center justify-between p-4 rounded-2xl border text-left cursor-pointer transition-all hover:bg-[#0c203b]"
+              className="w-full flex items-center justify-between p-4.5 rounded-2xl border text-left cursor-pointer transition-all hover:bg-[#0c203b] group"
               style={{ background: "rgba(7,24,48,0.5)", borderColor: "#163761" }}
             >
-              <div className="min-w-0">
-                <div className="text-sm font-bold text-slate-100 truncate">
-                  {r.title}
+              <div className="min-w-0 pr-4">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <span className="text-sm font-bold text-slate-100 group-hover:text-sky-300 transition-colors">
+                    {r.title}
+                  </span>
+                  <span
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border"
+                    style={{
+                      background: "rgba(56,189,248,0.08)",
+                      borderColor: "rgba(56,189,248,0.2)",
+                      color: "#38bdf8",
+                    }}
+                  >
+                    <Building2 size={11} />
+                    {r.department || "General / All Departments"}
+                  </span>
                 </div>
-                <div className="text-xs mt-1 flex items-center gap-2" style={{ color: "#7ba3c8" }}>
+                <div className="text-xs mt-1.5 flex items-center gap-2" style={{ color: "#7ba3c8" }}>
+                  <CalendarDays size={12} className="text-slate-400" />
                   <span>
                     {new Date(r.periodStart).toLocaleDateString()} – {new Date(r.periodEnd).toLocaleDateString()}
                   </span>
@@ -761,7 +855,7 @@ export function RosterPage() {
               </div>
               <div className="flex items-center gap-3 flex-shrink-0">
                 <StatusBadge status={r.status} />
-                <ChevronRight size={16} className="text-slate-400" />
+                <ChevronRight size={16} className="text-slate-400 group-hover:text-sky-400 transition-colors" />
               </div>
             </button>
           ))}
