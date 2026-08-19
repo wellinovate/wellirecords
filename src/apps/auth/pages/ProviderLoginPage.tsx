@@ -138,6 +138,16 @@ export function ProviderLoginPage() {
                 sub: account?._id || account?.id,
                 accountType: account?.accountType,
                 role: account?.role,
+                // BUGFIX: was missing entirely — the sidebar's hasAccess
+                // check (ProviderLayout.tsx) reads user.roles (plural
+                // array), not user.role. Without this, every role-gated
+                // nav item (Referrals, Insurance, Reports, Team,
+                // Settings) showed locked for every provider immediately
+                // after login, regardless of their actual role, until
+                // something else (a refresh hitting getAuthFromToken's
+                // token-decode path) happened to repopulate it. Matches
+                // the pattern AuthProvider.tsx already uses elsewhere.
+                roles: account?.role ? [account.role] : [],
                 isVerified: account?.isVerified,
                 orgId: account?._id || account?.id,
                 orgName: profile?.organizationName,

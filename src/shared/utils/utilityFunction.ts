@@ -11,6 +11,7 @@ type JwtPayload = {
   fullName: string;
   accountType: string;
   role: string;
+  membershipRole?: string;
   orgId: string;
   wrId: string;
   wrOrgId: string;
@@ -37,7 +38,17 @@ export function getAuthFromToken(token: string) {
         wrId: decoded.wrId,
         accountType: decoded.accountType,
         role: decoded.role,
-        roles: decoded.role ? [decoded.role] : [],
+        // Prefer membershipRole (the granular job function — clinician,
+        // frontdesk, pharmacist, lab_tech, etc.) over the coarse Account
+        // `role`, which only distinguishes provider_admin/doctor/nurse
+        // from everyone else (see ACCOUNT_ROLE_MAP, team_services.js on
+        // the backend). Org owners and patients don't have a membership
+        // row, so they fall back to `role` as before.
+        roles: decoded.membershipRole
+          ? [decoded.membershipRole]
+          : decoded.role
+          ? [decoded.role]
+          : [],
         isVerified: decoded.isVerified,
       },
     };
