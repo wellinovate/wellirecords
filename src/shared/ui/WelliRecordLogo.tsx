@@ -91,7 +91,7 @@ export function WelliRecordLogo({
   theme = 'dark',
   height = 40,
   tagline = false,
-  taglineText = 'YOUR HEALTH, SECURED. EVERYWHERE.',
+  taglineText = 'One patient. One trusted record. Accessible when it matters.',
   useSvg = true,
   className = '',
   style = {},
@@ -100,7 +100,7 @@ export function WelliRecordLogo({
   const wordmarkColor = isDark ? '#062B67' : '#ffffff';
   const shieldFill = isDark ? '#062B67' : '#38bdf8';
   const shieldInterior = isDark ? '#ffffff' : '#071B3F';
-  const taglineColor = isDark ? '#062B67' : 'rgba(255,255,255,0.75)';
+  const taglineColor = isDark ? '#1e3a8a' : 'rgba(255,255,255,0.75)';
 
   // ── Shield Icon (SVG with raster fallback) ─────────────────────────────────
   const ShieldMark = () => {
@@ -175,13 +175,12 @@ export function WelliRecordLogo({
             color: taglineColor,
             fontFamily:
               '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-            fontWeight: 800,
-            fontSize: Math.max(8, height * 0.19),
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
+            fontWeight: 600,
+            fontSize: Math.max(9, height * 0.22),
+            letterSpacing: '0.01em',
             marginTop: 4,
             whiteSpace: 'nowrap',
-            opacity: 0.9,
+            opacity: 0.85,
           }}
         >
           {taglineText}
