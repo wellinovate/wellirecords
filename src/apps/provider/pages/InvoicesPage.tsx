@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import QRCode from "react-qr-code";
 import { useAuth } from "@/shared/auth/AuthProvider";
+import { InvoicePrintDocument } from "@/apps/components/shared/InvoicePrintDocument";
 import { PatientSearchPicker } from "@/apps/components/shared/PatientSearchPicker";
 import {
   getInvoices,
@@ -808,6 +809,8 @@ export function InvoicesPage() {
           </div>
         </div>
       )}
+
+      {detail && <InvoicePrintDocument invoice={detail} />}
     </div>
   );
 }

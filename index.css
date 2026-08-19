@@ -753,3 +753,22 @@ body {
 .booking-calendar button {
   box-sizing: border-box;
 }
+
+/* Print isolation for invoice printing (InvoicePrintDocument.tsx).
+   Hides the entire app UI during print and shows only the invoice
+   document, which lives in a hidden div until print:block kicks in. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #invoice-print-area,
+  #invoice-print-area * {
+    visibility: visible;
+  }
+  #invoice-print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}

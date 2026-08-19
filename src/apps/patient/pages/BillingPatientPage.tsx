@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import QRCode from 'react-qr-code';
+import { InvoicePrintDocument } from '@/apps/components/shared/InvoicePrintDocument';
 import {
     CheckCircle, Clock, AlertCircle, Receipt, FileText, Loader2, Ban, X,
 } from 'lucide-react';
@@ -193,6 +194,7 @@ export function BillingPatientPage() {
                     </div>
                 </div>
             )}
+            {viewing && <InvoicePrintDocument invoice={viewing} />}
         </div>
     );
 }
