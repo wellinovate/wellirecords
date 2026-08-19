@@ -28,6 +28,8 @@ import {
   MessageSquare,
   MoreHorizontal,
   Pill,
+  Receipt,
+  ScanLine,
   Settings2,
   ShieldCheck,
   Stethoscope,
@@ -112,6 +114,20 @@ const ALL_NAV = [
     icon: FlaskConical,
     // roles: ["clinician", "lab_tech", "provider_admin"],
     roles: ["*"],
+  },
+
+  {
+    to: "/provider/radiology",
+    label: "Radiology",
+    icon: ScanLine,
+    roles: ["*"],
+  },
+
+  {
+    to: "/provider/billing",
+    label: "Billing & Invoices",
+    icon: Receipt,
+    roles: ["doctor", "clinician", "frontdesk", "pharmacist", "provider_admin"],
   },
 
   {
