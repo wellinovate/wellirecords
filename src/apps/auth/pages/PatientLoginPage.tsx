@@ -122,6 +122,8 @@ export function PatientLoginPage() {
   const [code, setCode] = useState("");
   const [challengeToken, setChallengeToken] = useState("");
   const [maskedPhone, setMaskedPhone] = useState("");
+  const [maskedEmail, setMaskedEmail] = useState("");
+  const [channel, setChannel] = useState<"sms" | "email">("sms");
 
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -151,7 +153,7 @@ export function PatientLoginPage() {
       setCode("");         // clear existing OTP
       setError("");        // clear error messages
 
-      const res = await resendVerifyLoginCodeApi(challengeToken, form.email);
+      const res = await resendVerifyLoginCodeApi(challengeToken, form.email, channel);
       const payload = res?.data || res;
 
       if (!payload?.challengeToken) {
@@ -161,6 +163,7 @@ export function PatientLoginPage() {
       // Update challenge token and optionally masked phone
       setChallengeToken(payload.challengeToken);
       setMaskedPhone(payload.maskedPhone || maskedPhone);
+      setMaskedEmail(payload.maskedEmail || maskedEmail);
       setTimeLeft(120);    // reset countdown only after a successful resend
 
       toast.success("OTP resent successfully");
@@ -208,6 +211,7 @@ export function PatientLoginPage() {
       const res = await signIn(
         form.email.trim().toLowerCase(),
         form.password,
+        channel,
       );
 
       const payload = res?.data || res;
@@ -218,7 +222,8 @@ export function PatientLoginPage() {
       }
 
       setChallengeToken(payload.challengeToken);
-      setMaskedPhone(payload.maskedPhone || "your phone number");
+      setMaskedPhone(payload.maskedPhone || "");
+      setMaskedEmail(payload.maskedEmail || "");
       setStep("otp");
 
       toast.success("Login code sent");
@@ -335,6 +340,7 @@ export function PatientLoginPage() {
     setCode("");
     setChallengeToken("");
     setMaskedPhone("");
+    setMaskedEmail("");
     setError("");
     setPendingGoogleAccountType("");
   };
@@ -359,7 +365,9 @@ export function PatientLoginPage() {
       // handled below.
       if (data?.requiresOtp && data?.challengeToken) {
         setChallengeToken(data.challengeToken);
-        setMaskedPhone(data.maskedPhone || "your phone number");
+        setMaskedPhone(data.maskedPhone || "");
+        setMaskedEmail(data.maskedEmail || "");
+        if (data?.channel) setChannel(data.channel);
         setPendingGoogleAccountType("user");
         setStep("otp");
         toast.success("Login code sent");
@@ -454,49 +462,44 @@ export function PatientLoginPage() {
       window.google.accounts.id.renderButton(googleBtnRef.current, {
         theme: "outline",
         size: "large",
+        width: 320,
         text: "signin_with",
         shape: "rectangular",
-        width: 460,
       });
     };
 
-    const existingScript = document.getElementById("google-gsi-script");
-
-    if (existingScript && window.google) {
+    if (window.google) {
       renderGoogleButton();
-      return;
+    } else {
+      const interval = setInterval(() => {
+        if (window.google) {
+          renderGoogleButton();
+          clearInterval(interval);
+        }
+      }, 300);
+
+      return () => clearInterval(interval);
     }
-
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.defer = true;
-    script.id = "google-gsi-script";
-    script.onload = renderGoogleButton;
-
-    document.head.appendChild(script);
-  }, [googleClientId, step]);
+  }, [step, profileType, googleClientId]);
 
   return (
-    <div className="min-h-screen bg-white pb-8">
-      <div className="relative h-screen w-full max-w-full border border-gray-200">
-        <PreLoginHeader />
-        <div className="absolute left-1 top-4 z-50 mb-4 rounded-lg bg-gray-100 px-5 md:left-20 md:top-10">
+    <div className="min-h-screen bg-[#F3F4F5]">
+      <PreLoginHeader />
+
+      <div className="flex h-[calc(100vh-80px)] flex-col justify-between">
+        <div className="px-6 py-4">
           <button
             onClick={() => {
               if (step === "otp") {
                 handleBackToCredentials();
-                return;
+              } else {
+                navigate(-1);
               }
-
-              navigate(-1);
             }}
-            className="flex items-center gap-2 text-[#062B67] transition hover:opacity-70"
+            className="flex items-center gap-2 text-[14px] text-[#0A2F6B] hover:underline"
           >
-            <ArrowLeft size={26} />
-            <span className="text-sm font-bold md:text-lg">
-              {step === "otp" ? "Back to Login" : "Back"}
-            </span>
+            <ArrowLeft className="h-4 w-4" />
+            {step === "otp" ? "Back to Login" : "Back"}
           </button>
         </div>
 
@@ -536,6 +539,29 @@ export function PatientLoginPage() {
                       onChange={update("password")}
                       disabled={loading || googleLoading}
                     />
+
+                    <div className="flex items-center gap-6 text-[14px] text-[#062B67]">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="otp-channel"
+                          checked={channel === "sms"}
+                          onChange={() => setChannel("sms")}
+                          disabled={loading || googleLoading}
+                        />
+                        Text me a code
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="otp-channel"
+                          checked={channel === "email"}
+                          onChange={() => setChannel("email")}
+                          disabled={loading || googleLoading}
+                        />
+                        Email me a code
+                      </label>
+                    </div>
 
                     {error && (
                       <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600">
@@ -606,6 +632,8 @@ export function PatientLoginPage() {
                   <form onSubmit={handleVerifyCode}>
                     <OTPForm
                       maskedPhone={maskedPhone}
+                      maskedEmail={maskedEmail}
+                      channel={channel}
                       code={code}
                       setCode={setCode}
                       isCodeValid={isCodeValid}

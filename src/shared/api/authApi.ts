@@ -146,11 +146,12 @@ function isNetworkError(err: any): boolean {
 }
 
 export const authApi = {
-  async signIn(email: string, password: string) {
+  async signIn(email: string, password: string, channel: 'sms' | 'email' = 'sms') {
     try {
       const response = await axios.post(`${apiUrl}/api/v1/auth/login`, {
         email: email,
         password: password,
+        channel,
       },
         {
           timeout: 30000, // 30 seconds
@@ -235,7 +236,7 @@ export const authApi = {
     }
   },
 
-  async resendVerifyLoginCodeApi(tokenOrEmail: string, email?: string) {
+  async resendVerifyLoginCodeApi(tokenOrEmail: string, email?: string, channel?: 'sms' | 'email') {
     try {
       const isEmail = Boolean(tokenOrEmail && tokenOrEmail.includes("@"));
       const body: Record<string, string> = {};
@@ -246,6 +247,8 @@ export const authApi = {
         body.challengeToken = tokenOrEmail;
         if (email) body.email = email;
       }
+
+      if (channel) body.channel = channel;
 
       const response = await axios.post(
         `${apiUrl}/api/v1/auth/resend-verify-code`,

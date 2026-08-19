@@ -59,6 +59,8 @@ export function ProviderLoginPage() {
     const [timeLeft, setTimeLeft] = useState(120);
     const [challengeToken, setChallengeToken] = useState('');
     const [maskedPhone, setMaskedPhone] = useState('');
+    const [maskedEmail, setMaskedEmail] = useState('');
+    const [channel, setChannel] = useState<'sms' | 'email'>('sms');
 
     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
@@ -85,7 +87,7 @@ export function ProviderLoginPage() {
         setError('');
 
         try {
-            const res = await signIn(email.trim().toLowerCase(), password);
+            const res = await signIn(email.trim().toLowerCase(), password, channel);
             const payload = res?.data || res;
 
             if (!payload?.requiresOtp || !payload?.challengeToken) {
@@ -93,7 +95,8 @@ export function ProviderLoginPage() {
             }
 
             setChallengeToken(payload.challengeToken);
-            setMaskedPhone(payload.maskedPhone || 'your phone number');
+            setMaskedPhone(payload.maskedPhone || '');
+            setMaskedEmail(payload.maskedEmail || '');
             setStep('otp');
         } catch (err: any) {
             const message =
@@ -189,7 +192,7 @@ export function ProviderLoginPage() {
             setCode('');
             setError('');
 
-            const res = await resendVerifyLoginCodeApi(challengeToken, form.email);
+            const res = await resendVerifyLoginCodeApi(challengeToken, email, channel);
             const payload = res?.data || res;
 
             if (!payload?.challengeToken) {
@@ -198,6 +201,7 @@ export function ProviderLoginPage() {
 
             setChallengeToken(payload.challengeToken);
             setMaskedPhone(payload.maskedPhone || maskedPhone);
+            setMaskedEmail(payload.maskedEmail || maskedEmail);
             setTimeLeft(120);
         } catch (err: any) {
             const message =
@@ -213,6 +217,7 @@ export function ProviderLoginPage() {
         setCode('');
         setChallengeToken('');
         setMaskedPhone('');
+        setMaskedEmail('');
         setError('');
     };
 
@@ -318,6 +323,8 @@ export function ProviderLoginPage() {
                         <form onSubmit={handleVerifyCode} className="space-y-4">
                             <OTPForm
                                 maskedPhone={maskedPhone}
+                                maskedEmail={maskedEmail}
+                                channel={channel}
                                 code={code}
                                 setCode={setCode}
                                 isCodeValid={isCodeValid}
@@ -376,6 +383,27 @@ export function ProviderLoginPage() {
                                         required
                                     />
                                 </div>
+                            </div>
+
+                            <div className="flex items-center gap-6 text-sm" style={{ color: '#1e293b' }}>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name="otp-channel"
+                                        checked={channel === 'sms'}
+                                        onChange={() => setChannel('sms')}
+                                    />
+                                    Text me a code
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name="otp-channel"
+                                        checked={channel === 'email'}
+                                        onChange={() => setChannel('email')}
+                                    />
+                                    Email me a code
+                                </label>
                             </div>
 
                             <button

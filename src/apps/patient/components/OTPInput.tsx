@@ -2,6 +2,8 @@ import { useRef, useEffect } from "react";
 
 interface OTPFormProps {
   maskedPhone: string;
+  maskedEmail?: string;
+  channel?: "sms" | "email";
   code: string;
   setCode: (code: string) => void;
   isCodeValid: boolean;
@@ -14,6 +16,8 @@ interface OTPFormProps {
 
 export default function OTPForm({
   maskedPhone,
+  maskedEmail,
+  channel = "sms",
   code,
   setCode,
   isCodeValid,
@@ -26,9 +30,10 @@ export default function OTPForm({
   const OTP_LENGTH = 6;
   const inputRefs = useRef<HTMLInputElement[]>([]);
 
-  // Countdown timer effect
+  const destination = channel === "email" ? (maskedEmail || maskedPhone) : maskedPhone;
+
   useEffect(() => {
-    if (timeLeft <= 0) return; // stop at 0
+    if (timeLeft <= 0) return;
     const timer = setInterval(() => {
       setTimeLeft(prev => prev - 1);
     }, 1000);
@@ -37,12 +42,10 @@ export default function OTPForm({
 
   const handleChange = (value: string, index: number) => {
     if (!/^\d?$/.test(value)) return;
-
     const codeArray = code.split("").slice(0, OTP_LENGTH);
     codeArray[index] = value;
     const newCode = codeArray.join("").padEnd(OTP_LENGTH, "");
     setCode(newCode);
-
     if (value && index < OTP_LENGTH - 1) inputRefs.current[index + 1]?.focus();
   };
 
@@ -56,9 +59,8 @@ export default function OTPForm({
     <div className="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
       <h2 className="text-xl font-bold text-slate-900">Enter login code</h2>
       <p className="mt-2 text-sm leading-6 text-slate-600">
-        We sent a 6-digit code to <span className="font-bold text-[#062B67]">{maskedPhone}</span>. Enter it below.
+        We sent a 6-digit code to <span className="font-bold text-[#062B67]">{destination}</span>. Enter it below.
       </p>
-
       <div className="mt-6 flex justify-between gap-2">
         {Array.from({ length: OTP_LENGTH }).map((_, i) => (
           <input
@@ -72,7 +74,6 @@ export default function OTPForm({
           />
         ))}
       </div>
-
       <div className="mt-4 flex items-center justify-between text-sm text-slate-600">
         <span>Expires in: {formatTime(timeLeft)}</span>
         <button
