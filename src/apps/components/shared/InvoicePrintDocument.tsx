@@ -94,8 +94,19 @@ export function InvoicePrintDocument({ invoice }: { invoice: Invoice }) {
           online payment is not yet available. Scan the code to verify this invoice is genuine.
         </div>
         <div className="flex flex-col items-center gap-1">
-          <QRCode value={`${window.location.origin}/verify/${invoice.invoiceNumber}`} size={64} />
-          <span className="text-[9px] text-slate-400">Verify</span>
+          {invoice.verificationToken ? (
+            <>
+              <QRCode value={`${window.location.origin}/verify/${invoice.verificationToken}`} size={64} />
+              <span className="text-[9px] text-slate-400">Verify</span>
+            </>
+          ) : (
+            // Invoices created before verificationToken existed won't
+            // have one until the backfill script runs — no QR code
+            // rather than one that points at a broken link.
+            <span className="text-[9px] text-slate-400 max-w-[64px] text-center">
+              Verification code unavailable for this invoice
+            </span>
+          )}
         </div>
       </div>
     </div>

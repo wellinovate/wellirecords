@@ -56,6 +56,10 @@ export interface Invoice {
   voidReason?: string | null;
   createdAt: string;
   updatedAt: string;
+  // Random lookup key for the public verify page's QR code — not the
+  // same as invoiceNumber, which is sequential and only meant as a
+  // human-readable label. See VerifyInvoicePage.
+  verificationToken?: string;
 }
 
 export interface Payment {
@@ -179,9 +183,12 @@ export interface InvoiceVerification {
 }
 
 // Public, unauthenticated — no auth header, since this is what a
-// scanned invoice QR code hits from any device.
-export async function verifyInvoice(invoiceNumber: string): Promise<InvoiceVerification> {
-  const { data } = await api.get(`${apiUrl}/api/v1/billing/invoices/verify/${invoiceNumber}`);
+// scanned invoice QR code hits from any device. Keyed on the random
+// verificationToken, not invoiceNumber (which is sequential and
+// guessable — see the backend comment on verifyInvoiceService).
+export async function verifyInvoice(token: string): Promise<InvoiceVerification> {
+  const { data } = await api.get(`${apiUrl}/api/v1/billing/invoices/verify/${token}`);
   return data.data;
 }
+
 

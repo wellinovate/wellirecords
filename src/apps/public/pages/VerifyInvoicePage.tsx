@@ -15,18 +15,18 @@ function fmt(n: number) {
 }
 
 export default function VerifyInvoicePage() {
-  const { invoiceNumber } = useParams<{ invoiceNumber: string }>();
+  const { token } = useParams<{ token: string }>();
   const [record, setRecord] = useState<InvoiceVerification | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!invoiceNumber) return;
-    verifyInvoice(invoiceNumber)
+    if (!token) return;
+    verifyInvoice(token)
       .then(setRecord)
       .catch((err) => setError(err?.response?.data?.message || "This invoice could not be verified."))
       .finally(() => setLoading(false));
-  }, [invoiceNumber]);
+  }, [token]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f3f4f6] px-4">
