@@ -49,12 +49,13 @@ type AuthContextValue = {
   createLabResult: (payload: any) => any;
   createEncounter: (payload: any) => any;
   createProcedure: (payload: any) => any;
-  signIn: (email: string, password: string) => AuthUser | null;
-  verifyLoginCodeApi: (challengeToken: string, code: string) => AuthUser | null;
-  resendVerifyLoginCodeApi: (tokenOrEmail: string, email?: string) => any;
+  signIn: (email: string, password: string, channel?: 'sms' | 'email') => Promise<any>;
+  verifyLoginCodeApi: (challengeToken: string, code: string) => Promise<any>;
+  resendVerifyLoginCodeApi: (tokenOrEmail: string, email?: string, channel?: 'sms' | 'email') => Promise<any>;
   handleGoogleCredentials: (
     response: GoogleCredentialResponse,
-  ) => AuthUser | null;
+    profileType?: string,
+  ) => Promise<any>;
   signInAsRole: (role: UserRole) => AuthUser;
   signUpPatient: (payload: any) => string | null;
   signUpProvider: (payload: any) => Promise<any>;
@@ -105,8 +106,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // console.log("🚀 ~ AuthProvider ~ users:", users)
   }, []);
 
-  const signIn = async (email: string, password: string) => {
-    const res = await authApi.signIn(email, password);
+  const signIn = async (email: string, password: string, channel: 'sms' | 'email' = 'sms') => {
+    const res = await authApi.signIn(email, password, channel);
 
     return res;
   };
@@ -141,8 +142,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return res;
   };
 
-  const resendVerifyLoginCodeApi = async (tokenOrEmail: string, email?: string) => {
-    const res = await authApi.resendVerifyLoginCodeApi(tokenOrEmail, email);
+  const resendVerifyLoginCodeApi = async (tokenOrEmail: string, email?: string, channel?: 'sms' | 'email') => {
+    const res = await authApi.resendVerifyLoginCodeApi(tokenOrEmail, email, channel);
     return res;
   };
 
