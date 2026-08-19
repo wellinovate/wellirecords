@@ -1,5 +1,5 @@
 import React from 'react';
-import { welliIcon } from '@/assets';
+import { WelliRecordLogo } from '@/shared/ui/WelliRecordLogo';
 
 export function PreLoginHeader() {
   return (
@@ -8,11 +8,11 @@ export function PreLoginHeader() {
         position: 'absolute',
         top: 0,
         left: 0,
-        padding: '24px 32px',
+        padding: '20px 32px',
         zIndex: 50,
         display: 'flex',
         alignItems: 'center',
-        gap: '10px'
+        gap: '10px',
       }}
     >
       <a
@@ -20,23 +20,10 @@ export function PreLoginHeader() {
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 10,
-          textDecoration: 'none'
+          textDecoration: 'none',
         }}
       >
-        <img
-          src="/logo-mark.svg"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = welliIcon;
-          }}
-          alt="WelliRecord"
-          width={32}
-          height={32}
-          style={{ width: 32, height: 32, objectFit: 'contain' }}
-        />
-        <span style={{ fontWeight: 800, fontSize: 16, color: '#0B1E3D' }}>
-          WelliRecord
-        </span>
+        <WelliRecordLogo height={34} theme="dark" />
       </a>
     </header>
   );
