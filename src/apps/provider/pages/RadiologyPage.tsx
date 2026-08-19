@@ -600,8 +600,11 @@ export function RadiologyPage() {
               <input
                 type="number"
                 min={0}
-                value={newOrder.price}
-                onChange={(e) => setNewOrder((f) => ({ ...f, price: Number(e.target.value) }))}
+                value={newOrder.price === 0 ? "" : newOrder.price}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  setNewOrder((f) => ({ ...f, price: raw === "" ? 0 : Number(raw) }));
+                }}
                 placeholder="Price (₦)"
                 className="w-full text-sm rounded-lg px-3 py-2.5 bg-black/30 border border-white/10 text-white placeholder:text-slate-500"
               />

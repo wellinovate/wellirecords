@@ -223,8 +223,11 @@ export function PharmacySuppliersTab({ triggerToast }: { triggerToast: (msg: str
                   <input
                     type="number"
                     min={0}
-                    value={form.creditLimit}
-                    onChange={(e) => setForm({ ...form, creditLimit: Number(e.target.value) })}
+                    value={form.creditLimit === 0 ? "" : form.creditLimit}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      setForm({ ...form, creditLimit: raw === "" ? 0 : Number(raw) });
+                    }}
                     className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white"
                   />
                 </div>

@@ -1126,8 +1126,11 @@ export function PharmacyDashboard() {
                   <input
                     type="number"
                     min={1}
-                    value={newRx.quantity}
-                    onChange={(e) => setNewRx({ ...newRx, quantity: Number(e.target.value) })}
+                    value={newRx.quantity === 0 ? "" : newRx.quantity}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      setNewRx({ ...newRx, quantity: raw === "" ? 0 : Number(raw) });
+                    }}
                     className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white"
                   />
                 </div>
@@ -1183,8 +1186,11 @@ export function PharmacyDashboard() {
                   <label className="block text-xs font-bold text-slate-300 mb-1">Price (₦)</label>
                   <input
                     type="number"
-                    value={newRx.price}
-                    onChange={(e) => setNewRx({ ...newRx, price: Number(e.target.value) })}
+                    value={newRx.price === 0 ? "" : newRx.price}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      setNewRx({ ...newRx, price: raw === "" ? 0 : Number(raw) });
+                    }}
                     className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white"
                   />
                 </div>

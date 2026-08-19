@@ -479,8 +479,11 @@ export function PharmacyPurchasingTab({ triggerToast }: { triggerToast: (msg: st
                         <input
                           type="number"
                           min={0}
-                          value={rl.costPrice}
-                          onChange={(e) => updateReceiptLine(i, { costPrice: Number(e.target.value) })}
+                          value={rl.costPrice === 0 ? "" : rl.costPrice}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            updateReceiptLine(i, { costPrice: raw === "" ? 0 : Number(raw) });
+                          }}
                           className="w-full p-2 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white"
                         />
                       </div>
@@ -489,8 +492,11 @@ export function PharmacyPurchasingTab({ triggerToast }: { triggerToast: (msg: st
                         <input
                           type="number"
                           min={0}
-                          value={rl.sellingPrice}
-                          onChange={(e) => updateReceiptLine(i, { sellingPrice: Number(e.target.value) })}
+                          value={rl.sellingPrice === 0 ? "" : rl.sellingPrice}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            updateReceiptLine(i, { sellingPrice: raw === "" ? 0 : Number(raw) });
+                          }}
                           className="w-full p-2 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white"
                         />
                       </div>

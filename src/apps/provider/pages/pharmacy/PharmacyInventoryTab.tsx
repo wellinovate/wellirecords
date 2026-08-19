@@ -59,6 +59,7 @@ export function PharmacyInventoryTab({ triggerToast }: { triggerToast: (msg: str
 
   const [adjustingBatch, setAdjustingBatch] = useState<PharmacyBatch | null>(null);
   const [adjustDelta, setAdjustDelta] = useState(0);
+  const [adjustDeltaInput, setAdjustDeltaInput] = useState("");
   const [adjustReason, setAdjustReason] = useState("");
   const [savingAdjustment, setSavingAdjustment] = useState(false);
 
@@ -144,6 +145,7 @@ export function PharmacyInventoryTab({ triggerToast }: { triggerToast: (msg: str
       triggerToast(`Stock adjusted for ${productName(adjustingBatch.productId)}.`);
       setAdjustingBatch(null);
       setAdjustDelta(0);
+      setAdjustDeltaInput("");
       setAdjustReason("");
       refreshAll();
     } catch (err: any) {
@@ -440,8 +442,11 @@ export function PharmacyInventoryTab({ triggerToast }: { triggerToast: (msg: str
                   <input
                     type="number"
                     min={0}
-                    value={productForm.reorderLevel}
-                    onChange={(e) => setProductForm({ ...productForm, reorderLevel: Number(e.target.value) })}
+                    value={productForm.reorderLevel === 0 ? "" : productForm.reorderLevel}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      setProductForm({ ...productForm, reorderLevel: raw === "" ? 0 : Number(raw) });
+                    }}
                     className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white"
                   />
                 </div>
@@ -450,8 +455,11 @@ export function PharmacyInventoryTab({ triggerToast }: { triggerToast: (msg: str
                   <input
                     type="number"
                     min={0}
-                    value={productForm.defaultSellingPrice}
-                    onChange={(e) => setProductForm({ ...productForm, defaultSellingPrice: Number(e.target.value) })}
+                    value={productForm.defaultSellingPrice === 0 ? "" : productForm.defaultSellingPrice}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      setProductForm({ ...productForm, defaultSellingPrice: raw === "" ? 0 : Number(raw) });
+                    }}
                     className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white"
                   />
                 </div>
@@ -515,8 +523,14 @@ export function PharmacyInventoryTab({ triggerToast }: { triggerToast: (msg: str
                 <input
                   type="number"
                   required
-                  value={adjustDelta}
-                  onChange={(e) => setAdjustDelta(Number(e.target.value))}
+                  value={adjustDeltaInput}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    setAdjustDeltaInput(raw);
+                    const parsed = Number(raw);
+                    setAdjustDelta(raw === "" || raw === "-" || Number.isNaN(parsed) ? 0 : parsed);
+                  }}
+                  placeholder="e.g. 10 or -5"
                   className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white"
                 />
               </div>

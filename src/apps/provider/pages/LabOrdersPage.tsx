@@ -1609,8 +1609,12 @@ export function LabOrdersPage() {
                   <label className="block text-xs font-medium text-slate-300 mb-1">Price (₦)</label>
                   <input
                     type="number"
-                    value={newOrder.price}
-                    onChange={(e) => setNewOrder({ ...newOrder, price: Number(e.target.value) })}
+                    value={newOrder.price === 0 ? "" : newOrder.price}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      setNewOrder({ ...newOrder, price: raw === "" ? 0 : Number(raw) });
+                    }}
+                    placeholder="0"
                     className="w-full bg-[#081220] border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"
                   />
                 </div>
