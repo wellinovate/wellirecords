@@ -113,6 +113,29 @@ export function InvoicesPage() {
       .finally(() => setLoadingSuggestions(false));
   }, [selectedPatient?.id]);
 
+  const stats = useMemo(() => {
+    const activeInvoices = invoices.filter((i) => i.status !== "void");
+    const totalInvoiced = activeInvoices.reduce((sum, i) => sum + i.totalAmount, 0);
+    const totalPaid = activeInvoices.reduce((sum, i) => sum + i.amountPaid, 0);
+    const outstandingBalance = invoices
+      .filter((i) => i.status === "unpaid" || i.status === "partially-paid")
+      .reduce((sum, i) => sum + Math.max(0, i.totalAmount - i.amountPaid), 0);
+    const paidInvoicesCount = invoices.filter((i) => i.status === "paid").length;
+    const unpaidInvoicesCount = invoices.filter(
+      (i) => i.status === "unpaid" || i.status === "partially-paid"
+    ).length;
+    const hmoTotal = activeInvoices.reduce((sum, i) => sum + (i.hmoContribution || 0), 0);
+
+    return {
+      totalInvoiced,
+      totalPaid,
+      outstandingBalance,
+      paidInvoicesCount,
+      unpaidInvoicesCount,
+      hmoTotal,
+    };
+  }, [invoices]);
+
   const filteredInvoices = useMemo(() => {
     if (!search.trim()) return invoices;
     const q = search.toLowerCase();
@@ -228,22 +251,55 @@ export function InvoicesPage() {
   };
 
   return (
-    <div className="animate-fade-in">
-      <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
+    <div className="animate-fade-in space-y-6">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-xl font-black" style={{ color: "#e2e8f0" }}>Billing — Invoices</h1>
           <p className="text-sm mt-0.5" style={{ color: "#94a3b8" }}>Checkout patients, track payments, issue receipts</p>
         </div>
         <button
           onClick={() => setIsNewModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white cursor-pointer"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white cursor-pointer shadow-lg shadow-sky-500/20 hover:opacity-95 transition-opacity"
           style={{ background: "#0ea5e9" }}
         >
           <Plus size={16} /> Checkout Patient
         </button>
       </div>
 
-      <div className="flex gap-3 mb-4 flex-wrap">
+      {/* Financial Overview KPI Strip */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="p-4 rounded-2xl border border-slate-800 bg-[#0c192b]">
+          <div className="text-xs text-slate-400 font-medium">Total Invoiced</div>
+          <div className="text-xl font-black text-white mt-1">{fmt(stats.totalInvoiced)}</div>
+          <div className="text-[10px] text-slate-500 mt-1">Across all facility invoices</div>
+        </div>
+
+        <div className="p-4 rounded-2xl border border-slate-800 bg-[#0c192b]">
+          <div className="text-xs text-slate-400 font-medium">Outstanding Balance</div>
+          <div className={`text-xl font-black mt-1 ${stats.outstandingBalance > 0 ? "text-amber-400" : "text-slate-200"}`}>
+            {fmt(stats.outstandingBalance)}
+          </div>
+          <div className="text-[10px] text-amber-400/80 mt-1">
+            {stats.unpaidInvoicesCount} invoice{stats.unpaidInvoicesCount === 1 ? "" : "s"} pending settlement
+          </div>
+        </div>
+
+        <div className="p-4 rounded-2xl border border-slate-800 bg-[#0c192b]">
+          <div className="text-xs text-slate-400 font-medium">Total Collected</div>
+          <div className="text-xl font-black text-emerald-400 mt-1">{fmt(stats.totalPaid)}</div>
+          <div className="text-[10px] text-emerald-400/80 mt-1">
+            {stats.paidInvoicesCount} fully settled invoice{stats.paidInvoicesCount === 1 ? "" : "s"}
+          </div>
+        </div>
+
+        <div className="p-4 rounded-2xl border border-slate-800 bg-[#0c192b]">
+          <div className="text-xs text-slate-400 font-medium">HMO Deductions</div>
+          <div className="text-xl font-black text-indigo-400 mt-1">{fmt(stats.hmoTotal)}</div>
+          <div className="text-[10px] text-slate-500 mt-1">Applied insurer coverage</div>
+        </div>
+      </div>
+
+      <div className="flex gap-3 flex-wrap">
         <div className="relative flex-1 min-w-[220px]">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "#64748b" }} />
           <input
@@ -265,61 +321,92 @@ export function InvoicesPage() {
         </select>
       </div>
 
-      <div className="flex gap-6">
-        {/* Invoice table */}
-        <div className="flex-1 rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(14,165,233,0.15)" }}>
-          <table className="w-full text-sm">
-            <thead>
-              <tr style={{ background: "rgba(255,255,255,0.04)" }}>
-                <th className="text-left px-4 py-3 text-xs font-black uppercase tracking-widest" style={{ color: "#64748b" }}>Invoice</th>
-                <th className="text-left px-4 py-3 text-xs font-black uppercase tracking-widest" style={{ color: "#64748b" }}>Patient</th>
-                <th className="text-left px-4 py-3 text-xs font-black uppercase tracking-widest" style={{ color: "#64748b" }}>Amount</th>
-                <th className="text-left px-4 py-3 text-xs font-black uppercase tracking-widest" style={{ color: "#64748b" }}>Status</th>
-                <th className="text-left px-4 py-3 text-xs font-black uppercase tracking-widest" style={{ color: "#64748b" }}>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading && (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-sm" style={{ color: "#64748b" }}>
-                  <Loader2 size={16} className="animate-spin inline" /> Loading…
-                </td></tr>
-              )}
-              {!loading && filteredInvoices.length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-sm" style={{ color: "#64748b" }}>No invoices yet.</td></tr>
-              )}
-              {filteredInvoices.map((inv) => {
-                const meta = STATUS_META[inv.status];
-                return (
-                  <tr
-                    key={inv.id}
-                    onClick={() => setSelectedId(inv.id)}
-                    className="cursor-pointer transition-colors"
-                    style={{
-                      background: selectedId === inv.id ? "rgba(14,165,233,0.08)" : "transparent",
-                      borderTop: "1px solid rgba(255,255,255,0.05)",
-                    }}
-                  >
-                    <td className="px-4 py-3 font-mono text-xs" style={{ color: "#e2e8f0" }}>{inv.invoiceNumber}</td>
-                    <td className="px-4 py-3" style={{ color: "#e2e8f0" }}>{patientLabel(inv.patientId)}</td>
-                    <td className="px-4 py-3 font-bold" style={{ color: "#e2e8f0" }}>{fmt(inv.totalAmount)}</td>
-                    <td className="px-4 py-3">
-                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full uppercase" style={{ background: `${meta.color}22`, color: meta.color }}>
-                        {meta.label}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-xs" style={{ color: "#94a3b8" }}>
-                      {new Date(inv.createdAt).toLocaleDateString("en-NG", { day: "numeric", month: "short" })}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+      {invoices.length === 0 && !loading ? (
+        <div className="py-12 flex items-center justify-center">
+          <div className="max-w-md w-full p-8 rounded-3xl border border-slate-800 bg-[#0c192b] text-center shadow-xl flex flex-col items-center">
+            <div className="w-14 h-14 rounded-2xl bg-sky-500/10 border border-sky-400/20 flex items-center justify-center text-sky-400 mb-4">
+              <Receipt size={28} />
+            </div>
 
-        {/* Detail panel */}
-        {selectedId && (
-          <div className="w-[380px] flex-shrink-0 rounded-2xl p-5 space-y-4" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(14,165,233,0.15)", maxHeight: "calc(100vh - 220px)", overflowY: "auto" }}>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700 text-[11px] font-semibold text-slate-300 mb-3">
+              <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
+              <span>Ready for Billing</span>
+            </div>
+
+            <h2 className="text-base font-bold text-white mb-2">
+              No Invoices Issued Yet
+            </h2>
+
+            <p className="text-xs text-slate-400 leading-relaxed max-w-sm mb-6">
+              Start by checking out a patient to automatically pull unbilled lab orders, pharmacy prescriptions, or radiology studies into a single trackable invoice.
+            </p>
+
+            <button
+              onClick={() => setIsNewModalOpen(true)}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs shadow-lg shadow-sky-500/20 transition-all cursor-pointer"
+            >
+              <Plus size={15} /> Checkout First Patient
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex gap-6">
+          {/* Invoice table */}
+          <div className="flex-1 rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(14,165,233,0.15)" }}>
+            <table className="w-full text-sm">
+              <thead>
+                <tr style={{ background: "rgba(255,255,255,0.04)" }}>
+                  <th className="text-left px-4 py-3 text-xs font-black uppercase tracking-widest" style={{ color: "#64748b" }}>Invoice</th>
+                  <th className="text-left px-4 py-3 text-xs font-black uppercase tracking-widest" style={{ color: "#64748b" }}>Patient</th>
+                  <th className="text-left px-4 py-3 text-xs font-black uppercase tracking-widest" style={{ color: "#64748b" }}>Amount</th>
+                  <th className="text-left px-4 py-3 text-xs font-black uppercase tracking-widest" style={{ color: "#64748b" }}>Status</th>
+                  <th className="text-left px-4 py-3 text-xs font-black uppercase tracking-widest" style={{ color: "#64748b" }}>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading && (
+                  <tr><td colSpan={5} className="px-4 py-8 text-center text-sm" style={{ color: "#64748b" }}>
+                    <Loader2 size={16} className="animate-spin inline" /> Loading…
+                  </td></tr>
+                )}
+                {!loading && filteredInvoices.length === 0 && (
+                  <tr><td colSpan={5} className="px-4 py-8 text-center text-sm" style={{ color: "#64748b" }}>
+                    No invoices matching current filter criteria.
+                  </td></tr>
+                )}
+                {filteredInvoices.map((inv) => {
+                  const meta = STATUS_META[inv.status];
+                  return (
+                    <tr
+                      key={inv.id}
+                      onClick={() => setSelectedId(inv.id)}
+                      className="cursor-pointer transition-colors"
+                      style={{
+                        background: selectedId === inv.id ? "rgba(14,165,233,0.08)" : "transparent",
+                        borderTop: "1px solid rgba(255,255,255,0.05)",
+                      }}
+                    >
+                      <td className="px-4 py-3 font-mono text-xs" style={{ color: "#e2e8f0" }}>{inv.invoiceNumber}</td>
+                      <td className="px-4 py-3" style={{ color: "#e2e8f0" }}>{patientLabel(inv.patientId)}</td>
+                      <td className="px-4 py-3 font-bold" style={{ color: "#e2e8f0" }}>{fmt(inv.totalAmount)}</td>
+                      <td className="px-4 py-3">
+                        <span className="text-[10px] font-black px-2 py-0.5 rounded-full uppercase" style={{ background: `${meta.color}22`, color: meta.color }}>
+                          {meta.label}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-xs" style={{ color: "#94a3b8" }}>
+                        {new Date(inv.createdAt).toLocaleDateString("en-NG", { day: "numeric", month: "short" })}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Detail panel */}
+          {selectedId && (
+            <div className="w-[380px] flex-shrink-0 rounded-2xl p-5 space-y-4" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(14,165,233,0.15)", maxHeight: "calc(100vh - 220px)", overflowY: "auto" }}>
             {detailLoading && <Loader2 size={18} className="animate-spin" style={{ color: "#0ea5e9" }} />}
 
             {detail && !detailLoading && (
@@ -421,6 +508,7 @@ export function InvoicesPage() {
           </div>
         )}
       </div>
+      )}
 
       {/* New invoice / checkout modal */}
       {isNewModalOpen && (
