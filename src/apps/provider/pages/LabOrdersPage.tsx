@@ -1640,11 +1640,19 @@ export function LabOrdersPage() {
         </div>
       )}
 
-      {/* Verified Result Delivery Engine Modal */}
+      {/* Upload Lab Result Modal */}
       <VerifiedResultDeliveryModal
         isOpen={isDeliveryModalOpen}
         onClose={() => setIsDeliveryModalOpen(false)}
         onSuccess={(msg) => showToast(msg)}
+        initialPatientWrId={selectedOrder?.patientWrId || ""}
+        initialPatientPhone={selectedOrder?.patientPhone || ""}
+        initialPatientEmail={selectedOrder?.patientEmail || ""}
+        preselectedSource={
+          selectedOrder?.orderNumber
+            ? `From Order #${selectedOrder.orderNumber}`
+            : undefined
+        }
       />
     </div>
   );

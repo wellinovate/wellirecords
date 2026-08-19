@@ -28,12 +28,20 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: (msg: string) => void;
+  initialPatientWrId?: string;
+  initialPatientPhone?: string;
+  initialPatientEmail?: string;
+  preselectedSource?: string;
 };
 
 export const VerifiedResultDeliveryModal: React.FC<Props> = ({
   isOpen,
   onClose,
   onSuccess,
+  initialPatientWrId = "",
+  initialPatientPhone = "",
+  initialPatientEmail = "",
+  preselectedSource,
 }) => {
   const [step, setStep] = useState<"verify" | "upload" | "extract" | "release">(
     "verify"
@@ -41,9 +49,9 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
 
   // 1. Patient Verification State
   const [verifyForm, setVerifyForm] = useState({
-    wrId: "",
-    secondFactor: "",
-    secondFactorType: "phone" as "phone" | "email",
+    wrId: initialPatientWrId,
+    secondFactor: initialPatientPhone || initialPatientEmail,
+    secondFactorType: (initialPatientPhone ? "phone" : initialPatientEmail ? "email" : "phone") as "phone" | "email",
   });
   const [verifying, setVerifying] = useState(false);
   const [verifiedPatient, setVerifiedPatient] = useState<any>(null);
@@ -149,14 +157,12 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
         phone: inviteForm.phone.trim() || undefined,
         email: inviteForm.email.trim() || undefined,
       });
-      const fullUrl = `${window.location.origin}${res.inviteUrl}`;
-      setInviteLink(fullUrl);
       setInviteSent(true);
-      navigator.clipboard.writeText(fullUrl);
+      setInviteLink(res.inviteUrl || res.inviteCode ? `Code: ${res.inviteCode}` : null);
       setAuditLog((prev) => [
         ...prev,
-        `[${new Date().toLocaleTimeString()}] Generated invitation for ${inviteForm.fullName.trim()}${
-          res.smsDispatched ? " (SMS sent)" : " (link copied — SMS not sent)"
+        `[${new Date().toLocaleTimeString()}] Sent account registration invite to ${
+          inviteForm.fullName
         }`,
       ]);
     } catch (err: any) {
@@ -294,16 +300,16 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
             </div>
             <div>
               <h2 className="text-lg font-black tracking-tight text-white">
-                Verified Result Upload & Multi-Channel Delivery
+                Upload Lab Result
               </h2>
               <p className="text-xs text-sky-300/70">
-                Identity Verification · Document Upload · Observation Entry · Panic Escalation · Patient Release
+                Patient Identity Verification · Report Upload · Observation Entry · Panic Alerts · Patient EHR Release
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X size={18} />
           </button>
@@ -357,18 +363,32 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
               <div className="p-4 rounded-2xl border border-sky-400/20 bg-sky-500/5 text-xs text-sky-200 flex items-start gap-3">
                 <Info size={18} className="text-sky-400 shrink-0 mt-0.5" />
                 <div>
-                  <strong className="text-sky-300 font-bold block mb-0.5">
-                    Dual-Factor Patient Identity Safeguard
-                  </strong>
+                  <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                    <strong className="text-sky-300 font-bold">
+                      Dual-Factor Patient Identity Safeguard
+                    </strong>
+                    {verifyForm.wrId && (
+                      <span className="text-[10px] font-semibold text-sky-300 bg-sky-500/20 px-2 py-0.5 rounded-full border border-sky-400/30">
+                        {preselectedSource || "Pre-filled from active selection"}
+                      </span>
+                    )}
+                  </div>
                   High-risk clinical result delivery requires confirming the patient's WelliRecord ID (`WR-...`) alongside a second factor (Phone or Email). Upload actions remain locked until identity is verified.
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    WelliRecord Patient ID <span className="text-sky-400">*</span>
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-300">
+                      WelliRecord Patient ID <span className="text-sky-400">*</span>
+                    </label>
+                    {verifyForm.wrId && (
+                      <span className="text-[10px] text-slate-400">
+                        {preselectedSource || "From active selection"}
+                      </span>
+                    )}
+                  </div>
                   <input
                     type="text"
                     value={verifyForm.wrId}
@@ -394,7 +414,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
                             prev.secondFactorType === "phone" ? "email" : "phone",
                         }))
                       }
-                      className="text-[11px] text-sky-400 hover:underline"
+                      className="text-[11px] text-sky-400 hover:underline cursor-pointer"
                     >
                       Switch to {verifyForm.secondFactorType === "phone" ? "Email" : "Phone"}
                     </button>
@@ -426,7 +446,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
                 <button
                   type="button"
                   onClick={() => setIsUnregistered((prev) => !prev)}
-                  className="text-xs text-slate-400 hover:text-sky-300 flex items-center gap-1.5"
+                  className="text-xs text-slate-400 hover:text-sky-300 flex items-center gap-1.5 cursor-pointer"
                 >
                   <span>Patient not on WelliRecord yet?</span>
                   <span className="text-sky-400 font-semibold underline">
@@ -438,7 +458,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
                   type="button"
                   onClick={handleVerifyPatient}
                   disabled={verifying}
-                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-sm shadow-lg shadow-sky-500/20 transition-all disabled:opacity-50"
+                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-sm shadow-lg shadow-sky-500/20 transition-all disabled:opacity-50 cursor-pointer"
                 >
                   <ShieldCheck size={16} />
                   {verifying ? "Verifying..." : "Verify Patient Identity"}
@@ -504,7 +524,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
                       type="button"
                       onClick={handleSendInvite}
                       disabled={inviteSending}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition-colors disabled:opacity-50"
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition-colors disabled:opacity-50 cursor-pointer"
                     >
                       <Copy size={14} /> {inviteSending ? "Sending..." : "Send Invitation Link"}
                     </button>
@@ -556,7 +576,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
                   </div>
                   <button
                     onClick={() => setStep("verify")}
-                    className="text-xs text-slate-400 hover:text-white underline"
+                    className="text-xs text-slate-400 hover:text-white underline cursor-pointer"
                   >
                     Change Patient
                   </button>
@@ -615,7 +635,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
 
                 <div>
                   <label className="block text-slate-300 font-semibold mb-1">
-                    Lab Order / Ref Number
+                    Lab Order / Ref Number <span className="text-slate-500 font-normal">(Optional for walk-in)</span>
                   </label>
                   <input
                     type="text"
@@ -660,7 +680,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
 
                 <div>
                   <label className="block text-slate-300 font-semibold mb-1">
-                    Laboratory Scientist / Pathologist
+                    Laboratory Scientist / Pathologist <span className="text-slate-500 font-normal">(Optional)</span>
                   </label>
                   <input
                     type="text"
@@ -675,7 +695,7 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
 
                 <div>
                   <label className="block text-slate-300 font-semibold mb-1">
-                    Result Status
+                    Result Status <span className="text-sky-400">*</span>
                   </label>
                   <select
                     value={metadata.status}
@@ -684,8 +704,8 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
                     }
                     className="w-full rounded-xl border border-slate-800 bg-[#051122] px-3.5 py-2 text-white outline-none focus:border-sky-400"
                   >
-                    <option value="Preliminary">Preliminary</option>
                     <option value="Final">Final</option>
+                    <option value="Preliminary">Preliminary</option>
                     <option value="Corrected">Corrected</option>
                     <option value="Cancelled">Cancelled</option>
                   </select>
