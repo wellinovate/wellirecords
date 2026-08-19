@@ -40,8 +40,15 @@ function fmt(n: number) {
 }
 
 function patientLabel(p: Invoice["patientId"]) {
-  if (typeof p === "string") return p;
-  return p?.fullName || p?.wrId || "Unknown patient";
+  if (!p) return "Unknown patient";
+  if (typeof p === "string") {
+    // If an unresolved 24-char ObjectId string arrives, show a readable short ID
+    if (/^[0-9a-fA-F]{24}$/.test(p)) {
+      return `Patient #${p.slice(-6).toUpperCase()}`;
+    }
+    return p;
+  }
+  return p.fullName || p.wrId || "Unknown patient";
 }
 
 export function InvoicesPage() {
@@ -381,16 +388,17 @@ export function InvoicesPage() {
                   <th className="text-left px-4 py-3 text-xs font-black uppercase tracking-widest" style={{ color: "#64748b" }}>Amount</th>
                   <th className="text-left px-4 py-3 text-xs font-black uppercase tracking-widest" style={{ color: "#64748b" }}>Status</th>
                   <th className="text-left px-4 py-3 text-xs font-black uppercase tracking-widest" style={{ color: "#64748b" }}>Date</th>
+                  <th className="text-right px-4 py-3 text-xs font-black uppercase tracking-widest" style={{ color: "#64748b" }}>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {loading && (
-                  <tr><td colSpan={5} className="px-4 py-8 text-center text-sm" style={{ color: "#64748b" }}>
+                  <tr><td colSpan={6} className="px-4 py-8 text-center text-sm" style={{ color: "#64748b" }}>
                     <Loader2 size={16} className="animate-spin inline" /> Loading…
                   </td></tr>
                 )}
                 {!loading && filteredInvoices.length === 0 && (
-                  <tr><td colSpan={5} className="px-4 py-8 text-center text-sm" style={{ color: "#64748b" }}>
+                  <tr><td colSpan={6} className="px-4 py-8 text-center text-sm" style={{ color: "#64748b" }}>
                     No invoices matching current filter criteria.
                   </td></tr>
                 )}
@@ -416,6 +424,18 @@ export function InvoicesPage() {
                       </td>
                       <td className="px-4 py-3 text-xs" style={{ color: "#94a3b8" }}>
                         {new Date(inv.createdAt).toLocaleDateString("en-NG", { day: "numeric", month: "short" })}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedId(inv.id);
+                          }}
+                          className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 border border-sky-500/20 cursor-pointer transition-colors"
+                        >
+                          View
+                        </button>
                       </td>
                     </tr>
                   );
