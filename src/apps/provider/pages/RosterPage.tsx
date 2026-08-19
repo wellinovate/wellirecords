@@ -10,6 +10,7 @@ import {
   type Roster,
   type DutyAssignment,
 } from "@/shared/api/rostersApi";
+import { teamApi, type TeamMember } from "@/shared/api/teamApi";
 import { useRoster } from "@/hooks/useRoster";
 import {
   CalendarDays,
@@ -19,12 +20,15 @@ import {
   AlertTriangle,
   Send,
   Users,
-  ShieldCheck,
   Building2,
   ChevronRight,
   Loader2,
   X,
   Radio,
+  UserCheck,
+  ShieldAlert,
+  Sparkles,
+  Search,
 } from "lucide-react";
 
 const cardStyle = {
@@ -104,6 +108,18 @@ function staffLabel(staffId: DutyAssignment["staffId"]): string {
   );
 }
 
+function formatDateRange(start?: string, end?: string): string {
+  if (!start) return "";
+  try {
+    const s = new Date(start).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    if (!end) return s;
+    const e = new Date(end).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+    return `${s} – ${e}`;
+  } catch {
+    return `${start} – ${end || ""}`;
+  }
+}
+
 function RosterWorkflowCard() {
   return (
     <div
@@ -134,7 +150,7 @@ function RosterWorkflowCard() {
               <span>Shift Coverage</span>
             </div>
             <p className="text-[11px] leading-relaxed" style={{ color: "#7ba3c8" }}>
-              Assign doctors, nurses, lab scientists, and drivers to daily regular, day-call, or night-call shifts by department and date.
+              Assign doctors, nurses, lab scientists, and hospital staff to daily regular, day-call, or night-call shifts by department and date.
             </p>
           </div>
           <div className="pt-1">
@@ -191,12 +207,25 @@ function CreateRosterForm({
   onCreated: (r: Roster) => void;
   onCancel: () => void;
 }) {
-  const [title, setTitle] = useState("");
   const [department, setDepartment] = useState(DEPARTMENTS[0]);
   const [periodStart, setPeriodStart] = useState("");
   const [periodEnd, setPeriodEnd] = useState("");
+  const [title, setTitle] = useState("");
+  const [isCustomTitle, setIsCustomTitle] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Auto-generate title based on Department + Date Range unless user manually overrides
+  useEffect(() => {
+    if (!isCustomTitle) {
+      if (periodStart && periodEnd) {
+        const range = formatDateRange(periodStart, periodEnd);
+        setTitle(`${department} · ${range}`);
+      } else {
+        setTitle(`${department} Schedule`);
+      }
+    }
+  }, [department, periodStart, periodEnd, isCustomTitle]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -204,15 +233,12 @@ function CreateRosterForm({
     setSubmitting(true);
     try {
       const roster = await createRoster({
-        title,
+        title: title.trim() || `${department} Schedule`,
         department,
         periodStart,
         periodEnd,
       });
       onCreated(roster);
-      setTitle("");
-      setPeriodStart("");
-      setPeriodEnd("");
     } catch (err: any) {
       setError(err?.response?.data?.message || "Could not create roster");
     } finally {
@@ -245,20 +271,6 @@ function CreateRosterForm({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1">
           <label className="text-xs font-bold block" style={{ color: "#dbe6f2" }}>
-            Roster Title
-          </label>
-          <input
-            required
-            placeholder="e.g. August 2026 Shift Schedule"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full rounded-xl px-3 py-2.5 text-xs outline-none"
-            style={{ background: "rgba(7,24,48,0.6)", border: "1px solid #163761", color: "#e2eaf4" }}
-          />
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-xs font-bold block" style={{ color: "#dbe6f2" }}>
             Department / Clinical Scope
           </label>
           <select
@@ -273,6 +285,23 @@ function CreateRosterForm({
               </option>
             ))}
           </select>
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-xs font-bold block" style={{ color: "#dbe6f2" }}>
+            Roster Title
+          </label>
+          <input
+            required
+            placeholder="e.g. Emergency & Trauma · Aug 21 – Aug 22, 2026"
+            value={title}
+            onChange={(e) => {
+              setIsCustomTitle(true);
+              setTitle(e.target.value);
+            }}
+            className="w-full rounded-xl px-3 py-2.5 text-xs outline-none"
+            style={{ background: "rgba(7,24,48,0.6)", border: "1px solid #163761", color: "#e2eaf4" }}
+          />
         </div>
       </div>
 
@@ -338,28 +367,74 @@ function CreateRosterForm({
 
 function AddAssignmentForm({
   rosterId,
+  defaultLocation = "",
+  defaultDate = "",
   onAdded,
+  onCancel,
 }: {
   rosterId: string;
+  defaultLocation?: string;
+  defaultDate?: string;
   onAdded: () => void;
+  onCancel?: () => void;
 }) {
-  const [staffId, setStaffId] = useState("");
-  const [staffRole, setStaffRole] = useState("nurse");
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [loadingTeam, setLoadingTeam] = useState(false);
+
+  const [selectedStaffId, setSelectedStaffId] = useState("");
+  const [customStaffId, setCustomStaffId] = useState("");
+  const [staffRole, setStaffRole] = useState("doctor");
   const [duty, setDuty] = useState("regular");
-  const [location, setLocation] = useState("");
-  const [date, setDate] = useState("");
+  const [location, setLocation] = useState(defaultLocation || "Main Clinical Floor");
+  const [date, setDate] = useState(defaultDate || new Date().toISOString().split("T")[0]);
   const [startTime, setStartTime] = useState("08:00");
   const [endTime, setEndTime] = useState("16:00");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    setLoadingTeam(true);
+    teamApi
+      .listMembers()
+      .then((members) => {
+        setTeamMembers(members || []);
+        if (members && members.length > 0) {
+          const first = members[0];
+          setSelectedStaffId(first.userId);
+          if (first.role === "nurse") setStaffRole("nurse");
+          else if (first.role === "lab_tech") setStaffRole("laboratory-technician");
+          else if (first.role === "pharmacist") setStaffRole("pharmacist");
+          else setStaffRole("doctor");
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoadingTeam(false));
+  }, []);
+
+  const handleMemberChange = (userId: string) => {
+    setSelectedStaffId(userId);
+    const member = teamMembers.find((m) => m.userId === userId);
+    if (member) {
+      if (member.role === "nurse") setStaffRole("nurse");
+      else if (member.role === "lab_tech") setStaffRole("laboratory-technician");
+      else if (member.role === "pharmacist") setStaffRole("pharmacist");
+      else if (member.role === "doctor" || member.role === "clinician") setStaffRole("doctor");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    const targetStaffId = selectedStaffId || customStaffId;
+    if (!targetStaffId) {
+      setError("Please select or specify a staff member");
+      return;
+    }
+
     setSubmitting(true);
     try {
       await addDutyAssignment(rosterId, {
-        staffId,
+        staffId: targetStaffId,
         staffRole,
         duty,
         location,
@@ -368,9 +443,7 @@ function AddAssignmentForm({
         endTime,
       });
       onAdded();
-      setStaffId("");
-      setLocation("");
-      setDate("");
+      if (onCancel) onCancel();
     } catch (err: any) {
       setError(err?.response?.data?.message || "Could not add assignment");
     } finally {
@@ -379,25 +452,58 @@ function AddAssignmentForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-2xl p-5 space-y-3 border" style={cardStyle}>
-      <div className="text-sm font-bold text-slate-100 mb-1">
-        Add Duty Assignment
-      </div>
-      <div className="space-y-1">
-        <label className="text-xs font-bold block" style={{ color: "#dbe6f2" }}>
-          Staff Identifier
-        </label>
-        <input
-          required
-          placeholder="Staff UserProfile ID (e.g. 64b...)"
-          value={staffId}
-          onChange={(e) => setStaffId(e.target.value)}
-          className="w-full rounded-xl px-3 py-2.5 text-xs outline-none"
-          style={{ background: "rgba(7,24,48,0.6)", border: "1px solid #163761", color: "#e2eaf4" }}
-        />
+    <form onSubmit={handleSubmit} className="rounded-2xl p-5 space-y-4 border max-w-4xl" style={cardStyle}>
+      <div className="flex items-center justify-between pb-2 border-b" style={{ borderColor: "#163761" }}>
+        <div>
+          <div className="text-sm font-bold text-slate-100 flex items-center gap-2">
+            <Plus size={15} className="text-sky-400" />
+            <span>Schedule Staff Member</span>
+          </div>
+          <div className="text-xs" style={{ color: "#7ba3c8" }}>
+            Assign a clinician or team member to this roster's duty shift
+          </div>
+        </div>
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer"
+          >
+            <X size={16} />
+          </button>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="space-y-1 sm:col-span-2">
+          <label className="text-xs font-bold block" style={{ color: "#dbe6f2" }}>
+            Staff Member
+          </label>
+          {teamMembers.length > 0 ? (
+            <select
+              value={selectedStaffId}
+              onChange={(e) => handleMemberChange(e.target.value)}
+              className="w-full rounded-xl px-3 py-2.5 text-xs outline-none"
+              style={{ background: "rgba(7,24,48,0.6)", border: "1px solid #163761", color: "#e2eaf4" }}
+            >
+              {teamMembers.map((m) => (
+                <option key={m.userId} value={m.userId} style={{ color: "#000" }}>
+                  {m.name || m.email} ({m.role.replace("_", " ")})
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input
+              required
+              placeholder="Staff User ID or Profile ID"
+              value={customStaffId}
+              onChange={(e) => setCustomStaffId(e.target.value)}
+              className="w-full rounded-xl px-3 py-2.5 text-xs outline-none"
+              style={{ background: "rgba(7,24,48,0.6)", border: "1px solid #163761", color: "#e2eaf4" }}
+            />
+          )}
+        </div>
+
         <div className="space-y-1">
           <label className="text-xs font-bold block" style={{ color: "#dbe6f2" }}>
             Role
@@ -426,10 +532,12 @@ function AddAssignmentForm({
             ))}
           </select>
         </div>
+      </div>
 
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1">
           <label className="text-xs font-bold block" style={{ color: "#dbe6f2" }}>
-            Duty Type
+            Duty Shift Type
           </label>
           <select
             value={duty}
@@ -454,26 +562,26 @@ function AddAssignmentForm({
             ))}
           </select>
         </div>
-      </div>
 
-      <div className="space-y-1">
-        <label className="text-xs font-bold block" style={{ color: "#dbe6f2" }}>
-          Department / Location
-        </label>
-        <input
-          required
-          placeholder="e.g. Emergency Ward, Main Lab, Pharmacy Dispense"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          className="w-full rounded-xl px-3 py-2.5 text-xs outline-none"
-          style={{ background: "rgba(7,24,48,0.6)", border: "1px solid #163761", color: "#e2eaf4" }}
-        />
+        <div className="space-y-1">
+          <label className="text-xs font-bold block" style={{ color: "#dbe6f2" }}>
+            Department / Station Location
+          </label>
+          <input
+            required
+            placeholder="e.g. Emergency Ward, Theatre 1, Main Lab"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            className="w-full rounded-xl px-3 py-2.5 text-xs outline-none"
+            style={{ background: "rgba(7,24,48,0.6)", border: "1px solid #163761", color: "#e2eaf4" }}
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="space-y-1">
           <label className="text-xs font-bold block" style={{ color: "#dbe6f2" }}>
-            Duty Date
+            Shift Date
           </label>
           <input
             required
@@ -521,14 +629,26 @@ function AddAssignmentForm({
         </div>
       )}
 
-      <button
-        type="submit"
-        disabled={submitting}
-        className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold shadow-lg transition-all text-slate-950 bg-sky-400 hover:bg-sky-300 disabled:opacity-50 cursor-pointer"
-      >
-        <Plus size={14} />
-        {submitting ? "Adding Assignment..." : "Add Assignment"}
-      </button>
+      <div className="flex items-center gap-2 pt-1">
+        <button
+          type="submit"
+          disabled={submitting}
+          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold shadow-lg transition-all text-slate-950 bg-sky-400 hover:bg-sky-300 disabled:opacity-50 cursor-pointer"
+        >
+          <Plus size={14} />
+          {submitting ? "Adding Assignment..." : "Save Duty Assignment"}
+        </button>
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2.5 rounded-xl text-xs font-bold border transition-all text-slate-300 hover:text-white cursor-pointer"
+            style={{ borderColor: "#163761" }}
+          >
+            Cancel
+          </button>
+        )}
+      </div>
     </form>
   );
 }
@@ -568,30 +688,37 @@ function AssignmentRow({
 
   return (
     <div
-      className="flex items-center justify-between gap-3 py-3.5 border-b last:border-b-0"
-      style={{ borderColor: "rgba(120,150,255,0.08)" }}
+      className="flex items-center justify-between gap-3 py-3.5 px-3 rounded-xl border border-transparent hover:border-[#163761] hover:bg-[#092244]/40 transition-all border-b last:border-b-0"
     >
       <div className="min-w-0">
-        <div className="text-sm font-semibold truncate" style={{ color: "#e2eaf4" }}>
-          {staffLabel(assignment.staffId)}
+        <div className="text-sm font-semibold truncate flex items-center gap-2" style={{ color: "#e2eaf4" }}>
+          <span>{staffLabel(assignment.staffId)}</span>
           <span
-            className="ml-2 text-[10px] font-normal uppercase tracking-wider"
-            style={{ color: "#7ba3c8" }}
+            className="text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider border"
+            style={{
+              background: "rgba(56,189,248,0.08)",
+              borderColor: "rgba(56,189,248,0.2)",
+              color: "#38bdf8",
+            }}
           >
             {assignment.staffRole.replace("-", " ")}
           </span>
         </div>
-        <div className="text-xs mt-0.5 flex items-center flex-wrap gap-2" style={{ color: "#7ba3c8" }}>
-          <span>
-            {assignment.duty.replace("-", " ")} · {assignment.location} · {assignment.startTime}–{assignment.endTime}
+        <div className="text-xs mt-1 flex items-center flex-wrap gap-2" style={{ color: "#7ba3c8" }}>
+          <span className="capitalize font-medium text-slate-300">
+            {assignment.duty.replace("-", " ")}
           </span>
+          <span>·</span>
+          <span>{assignment.location}</span>
+          <span>·</span>
+          <span>{new Date(assignment.date).toLocaleDateString(undefined, { month: "short", day: "numeric" })} ({assignment.startTime}–{assignment.endTime})</span>
           {assignment.lateByMinutes ? (
-            <span className="inline-flex items-center gap-1 font-semibold" style={{ color: "#f59e0b" }}>
+            <span className="inline-flex items-center gap-1 font-semibold text-amber-400">
               <AlertTriangle size={11} /> {assignment.lateByMinutes}m late
             </span>
           ) : null}
           {assignment.overtimeMinutes ? (
-            <span className="inline-flex items-center gap-1 font-semibold" style={{ color: "#10b981" }}>
+            <span className="inline-flex items-center gap-1 font-semibold text-emerald-400">
               +{assignment.overtimeMinutes}m overtime
             </span>
           ) : null}
@@ -634,6 +761,7 @@ function RosterDetail({
   const { roster, loading, refetch } = useRoster(rosterId);
   const { user } = useAuth();
   const [publishing, setPublishing] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
 
   const handlePublish = async () => {
     setPublishing(true);
@@ -654,9 +782,12 @@ function RosterDetail({
   }
 
   const canEdit = roster.status === "draft" || roster.status === "review";
+  const assignments = roster.assignments || [];
+  const checkedInCount = assignments.filter((a) => a.status === "checked-in" || a.status === "completed").length;
+  const scheduledCount = assignments.filter((a) => a.status === "scheduled").length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-4xl animate-fade-in">
       <button
         onClick={onBack}
         className="text-xs font-semibold hover:underline flex items-center gap-1 cursor-pointer"
@@ -665,15 +796,16 @@ function RosterDetail({
         ← Back to all rosters
       </button>
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border" style={cardStyle}>
         <div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <h2 className="text-xl font-bold font-display" style={{ color: "#e2eaf4" }}>
               {roster.title}
             </h2>
             <StatusBadge status={roster.status} />
           </div>
-          <div className="text-xs mt-1.5 flex items-center flex-wrap gap-3" style={{ color: "#7ba3c8" }}>
+          <div className="text-xs mt-2 flex items-center flex-wrap gap-3" style={{ color: "#7ba3c8" }}>
             <span className="flex items-center gap-1 text-sky-400 font-semibold">
               <Building2 size={13} /> {roster.department || "General / All Departments"}
             </span>
@@ -683,41 +815,135 @@ function RosterDetail({
             </span>
           </div>
         </div>
-        {canEdit && (
-          <button
-            onClick={handlePublish}
-            disabled={publishing}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs shadow-lg transition-all text-slate-950 bg-sky-400 hover:bg-sky-300 shrink-0 cursor-pointer"
-          >
-            <Send size={14} />
-            {publishing ? "Publishing Roster..." : "Publish Roster"}
-          </button>
+
+        <div className="flex items-center gap-2 shrink-0">
+          {canEdit && (
+            <button
+              onClick={() => setShowAddForm((v) => !v)}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold text-xs shadow-md transition-all text-slate-950 bg-sky-400 hover:bg-sky-300 cursor-pointer"
+            >
+              <Plus size={14} />
+              {showAddForm ? "Close Form" : "Schedule Staff"}
+            </button>
+          )}
+          {canEdit && (
+            <button
+              onClick={handlePublish}
+              disabled={publishing || assignments.length === 0}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold text-xs shadow-md transition-all text-white bg-blue-600 hover:bg-blue-500 disabled:opacity-40 cursor-pointer"
+              title={assignments.length === 0 ? "Add at least one duty assignment before publishing" : "Publish Roster"}
+            >
+              <Send size={13} />
+              {publishing ? "Publishing..." : "Publish"}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Metrics Row */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+        <div className="p-3.5 rounded-xl border" style={{ background: "rgba(7,24,48,0.4)", borderColor: "#163761" }}>
+          <div className="text-[11px] font-semibold" style={{ color: "#7ba3c8" }}>Total Scheduled</div>
+          <div className="text-lg font-bold text-slate-100 mt-0.5">{assignments.length}</div>
+        </div>
+        <div className="p-3.5 rounded-xl border" style={{ background: "rgba(7,24,48,0.4)", borderColor: "#163761" }}>
+          <div className="text-[11px] font-semibold" style={{ color: "#7ba3c8" }}>On Duty / Checked In</div>
+          <div className="text-lg font-bold text-emerald-400 mt-0.5">{checkedInCount}</div>
+        </div>
+        <div className="p-3.5 rounded-xl border" style={{ background: "rgba(7,24,48,0.4)", borderColor: "#163761" }}>
+          <div className="text-[11px] font-semibold" style={{ color: "#7ba3c8" }}>Upcoming Shifts</div>
+          <div className="text-lg font-bold text-sky-400 mt-0.5">{scheduledCount}</div>
+        </div>
+        <div className="p-3.5 rounded-xl border" style={{ background: "rgba(7,24,48,0.4)", borderColor: "#163761" }}>
+          <div className="text-[11px] font-semibold" style={{ color: "#7ba3c8" }}>Roster State</div>
+          <div className="text-xs font-bold uppercase tracking-wider mt-1.5" style={{ color: STATUS_COLORS[roster.status]?.text || "#94a3b8" }}>
+            {roster.status}
+          </div>
+        </div>
+      </div>
+
+      {/* Inline Form when open */}
+      {canEdit && showAddForm && (
+        <AddAssignmentForm
+          rosterId={rosterId}
+          defaultLocation={roster.department && roster.department !== "General / All Departments" ? roster.department : ""}
+          defaultDate={roster.periodStart ? new Date(roster.periodStart).toISOString().split("T")[0] : ""}
+          onAdded={refetch}
+          onCancel={() => setShowAddForm(false)}
+        />
+      )}
+
+      {/* Duty Assignments List or Clean Actionable Empty State */}
+      <div className="rounded-2xl p-5 border" style={cardStyle}>
+        <div className="flex items-center justify-between mb-4 pb-3 border-b" style={{ borderColor: "#163761" }}>
+          <div className="text-sm font-bold text-slate-100 flex items-center gap-2">
+            <Users size={16} className="text-sky-400" />
+            <span>Duty Assignments ({assignments.length})</span>
+          </div>
+          {canEdit && !showAddForm && assignments.length > 0 && (
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="text-xs font-bold text-sky-400 hover:text-sky-300 flex items-center gap-1 cursor-pointer"
+            >
+              <Plus size={13} /> Add Staff
+            </button>
+          )}
+        </div>
+
+        {assignments.length === 0 ? (
+          <div className="py-8 px-4 text-center flex flex-col items-center gap-3">
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center"
+              style={{ background: "rgba(56,189,248,0.08)" }}
+            >
+              <Users size={22} className="text-sky-400" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-slate-200">
+                No staff assignments scheduled yet
+              </p>
+              <p className="text-xs max-w-md leading-relaxed mt-1" style={{ color: "#7ba3c8" }}>
+                {canEdit
+                  ? "Schedule doctors, nurses, and lab scientists to regular shifts, day-calls, or night-calls for this department."
+                  : "This roster was published with no staff assignments recorded."}
+              </p>
+            </div>
+            {canEdit && !showAddForm && (
+              <button
+                onClick={() => setShowAddForm(true)}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-950 bg-sky-400 hover:bg-sky-300 transition-all mt-1 cursor-pointer shadow-lg"
+              >
+                <Plus size={14} />
+                Schedule First Staff Member
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-1">
+            {assignments.map((a) => (
+              <AssignmentRow
+                key={a.id}
+                assignment={a}
+                currentUserId={currentUserId(user)}
+                onChanged={refetch}
+              />
+            ))}
+          </div>
         )}
       </div>
 
-      {canEdit && <AddAssignmentForm rosterId={rosterId} onAdded={refetch} />}
-
-      <div className="rounded-2xl p-5 border max-w-4xl" style={cardStyle}>
-        <div className="flex items-center justify-between mb-3 pb-2 border-b" style={{ borderColor: "#163761" }}>
-          <div className="text-sm font-bold text-slate-100 flex items-center gap-2">
-            <Users size={16} className="text-sky-400" />
-            <span>Duty Assignments ({roster.assignments.length})</span>
-          </div>
+      {/* Operational Policy Note */}
+      <div
+        className="p-4 rounded-xl border text-xs space-y-1.5"
+        style={{ background: "rgba(7,24,48,0.25)", borderColor: "#163761", color: "#7ba3c8" }}
+      >
+        <div className="font-bold text-slate-300 flex items-center gap-1.5">
+          <ShieldAlert size={13} className="text-sky-400" />
+          <span>Roster Publishing &amp; Exception Policy</span>
         </div>
-        {roster.assignments.length === 0 ? (
-          <div className="text-xs py-4 text-center" style={{ color: "#7ba3c8" }}>
-            No staff assignments added to this roster yet. Use the form above to schedule staff.
-          </div>
-        ) : (
-          roster.assignments.map((a) => (
-            <AssignmentRow
-              key={a.id}
-              assignment={a}
-              currentUserId={currentUserId(user)}
-              onChanged={refetch}
-            />
-          ))
-        )}
+        <p className="text-[11px] leading-relaxed">
+          While in <strong>Draft</strong> or <strong>Review</strong>, shift assignments can be scheduled and adjusted freely. Once <strong>Published</strong>, any shift swaps, emergency on-calls, or cancellations are recorded with full audit trail timestamps.
+        </p>
       </div>
     </div>
   );
@@ -812,7 +1038,7 @@ export function RosterPage() {
             </div>
             <button
               onClick={() => setShowCreate(true)}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-950 bg-sky-400 hover:bg-sky-300 transition-all mt-1 cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-950 bg-sky-400 hover:bg-sky-300 transition-all mt-1 cursor-pointer shadow-lg"
             >
               <Plus size={14} />
               Create First Roster
