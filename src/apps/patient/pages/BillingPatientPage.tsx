@@ -1,203 +1,192 @@
-import React, { useMemo, useState } from 'react';
-import { CreditCard, Download, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+    CheckCircle, Clock, AlertCircle, Receipt, FileText, Loader2, Ban, X,
+} from 'lucide-react';
+import { getMyInvoices, Invoice, InvoiceStatus } from '@/shared/api/billingApiV2';
 
-const INVOICES = [
-    { id: 'inv001', date: '2026-03-01', facility: 'Lagos General Hospital', service: 'Outpatient Consultation', amount: 5000, status: 'paid', receipt: true },
-    { id: 'inv002', date: '2026-02-15', facility: 'CityLab Diagnostics', service: 'Full Blood Count + Lipid Panel', amount: 12500, status: 'paid', receipt: true },
-    { id: 'inv003', date: '2026-02-01', facility: 'WelliRecord Premium', service: 'Premium Plan – February', amount: 5000, status: 'paid', receipt: true },
-    { id: 'inv004', date: '2026-03-01', facility: 'WelliRecord Premium', service: 'Premium Plan – March', amount: 5000, status: 'pending', receipt: false },
-    { id: 'inv005', date: '2026-03-08', facility: 'Apex Care Clinic', service: 'Telemedicine Consult', amount: 8500, status: 'pending', receipt: false },
-    { id: 'inv006', date: '2026-02-08', facility: 'Pearl Radiology', service: 'Chest X-ray', amount: 9500, status: 'overdue', receipt: false },
-];
-
-const STATUS_CFG: Record<string, { color: string; bg: string; icon: React.ElementType; label: string }> = {
+const STATUS_CFG: Record<InvoiceStatus, { color: string; bg: string; icon: React.ElementType; label: string }> = {
+    unpaid: { color: '#f59e0b', bg: 'rgba(245,158,11,0.08)', icon: Clock, label: 'Unpaid' },
+    'partially-paid': { color: '#3b82f6', bg: 'rgba(59,130,246,0.08)', icon: AlertCircle, label: 'Part-paid' },
     paid: { color: '#10b981', bg: 'rgba(16,185,129,0.08)', icon: CheckCircle, label: 'Paid' },
-    pending: { color: '#f59e0b', bg: 'rgba(245,158,11,0.08)', icon: Clock, label: 'Pending' },
-    overdue: { color: '#ef4444', bg: 'rgba(239,68,68,0.08)', icon: AlertCircle, label: 'Overdue' },
+    void: { color: '#64748b', bg: 'rgba(100,116,139,0.08)', icon: Ban, label: 'Void' },
 };
 
-const SCENARIOS = [
-    { id: 'current', label: 'Current', description: 'Your current balance, due dates, and likely payment outlook.', multiplier: 1.0, cashFlowFactor: 1.0 },
-    { id: 'fast_pay', label: 'Fast Pay', description: 'If you settle all upcoming invoices this week, your balance drops fast.', multiplier: 0.65, cashFlowFactor: 1.1 },
-    { id: 'delay', label: 'Delay', description: 'If payments slip into next month, your forecast increases and risk stays high.', multiplier: 1.25, cashFlowFactor: 0.8 },
-] as const;
-
-type ScenarioId = (typeof SCENARIOS)[number]['id'];
-
 function fmt(amount: number) {
-    return `₦${amount.toLocaleString('en-NG')}`;
+    return `₦${(amount || 0).toLocaleString('en-NG')}`;
 }
 
-function formatDate(value: string | number | Date) {
+function orgName(o: Invoice['organizationId']) {
+    if (typeof o === 'string') return o;
+    return o?.organizationName || 'Your provider';
+}
+
+function formatDate(value: string) {
     return new Date(value).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 export function BillingPatientPage() {
-    const [activeScenario, setActiveScenario] = useState<ScenarioId>('current');
-    const outstanding = INVOICES.filter(i => i.status !== 'paid').reduce((sum, i) => sum + i.amount, 0);
-    const paid = INVOICES.filter(i => i.status === 'paid').reduce((sum, i) => sum + i.amount, 0);
-    const total = INVOICES.reduce((sum, i) => sum + i.amount, 0);
+    const [invoices, setInvoices] = useState<Invoice[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [viewing, setViewing] = useState<Invoice | null>(null);
 
-    const overdueAmount = INVOICES.filter(i => i.status === 'overdue').reduce((sum, i) => sum + i.amount, 0);
-    const dueSoon = useMemo(() => {
-        const today = new Date();
-        return INVOICES.filter(i => i.status !== 'paid' && new Date(i.date) >= today && new Date(i.date) <= new Date(today.getTime() + 14 * 86400000));
+    useEffect(() => {
+        getMyInvoices()
+            .then((res) => setInvoices(res.items))
+            .catch(() => setError('Could not load your invoices right now.'))
+            .finally(() => setLoading(false));
     }, []);
 
-    const scenario = SCENARIOS.find(s => s.id === activeScenario) ?? SCENARIOS[0];
-    const simulation = useMemo(() => {
-        const projectedBalance = Math.round(outstanding * scenario.multiplier);
-        const cashFlow = Math.round((total - projectedBalance) * scenario.cashFlowFactor);
-        return {
-            projectedBalance,
-            cashFlow,
-            statusLabel: scenario.id === 'fast_pay' ? 'Improving' : scenario.id === 'delay' ? 'At risk' : 'On track',
-        };
-    }, [outstanding, total, scenario]);
+    const outstanding = useMemo(
+        () => invoices.filter((i) => i.status === 'unpaid' || i.status === 'partially-paid')
+            .reduce((sum, i) => sum + (i.totalAmount - i.amountPaid), 0),
+        [invoices],
+    );
+    const paidTotal = useMemo(
+        () => invoices.filter((i) => i.status === 'paid').reduce((sum, i) => sum + i.amountPaid, 0),
+        [invoices],
+    );
+    const hmoCovered = useMemo(
+        () => invoices.reduce((sum, i) => sum + (i.hmoContribution || 0), 0),
+        [invoices],
+    );
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center py-24">
+                <Loader2 size={26} className="animate-spin" style={{ color: '#0ea5e9' }} />
+            </div>
+        );
+    }
 
     return (
-        <div className="animate-fade-in space-y-6 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="animate-fade-in space-y-6 mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8">
             <div>
-                <h1 className="text-2xl font-black" style={{ color: '#1e293b' }}>Billing</h1>
-                <p className="text-sm mt-1" style={{ color: '#64748b' }}>Check invoices, receipts, and your payment forecast.</p>
+                <h1 className="text-2xl font-black" style={{ color: '#1e293b' }}>Billing & Payments</h1>
+                <p className="text-sm mt-1" style={{ color: '#64748b' }}>Invoices, receipts, and balances from your providers.</p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {error && (
+                <div className="rounded-xl px-4 py-3 text-sm font-semibold" style={{ background: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca' }}>
+                    {error}
+                </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="rounded-2xl p-5" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
                     <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Outstanding Balance</div>
                     <div className="mt-3 text-3xl font-black text-slate-900">{fmt(outstanding)}</div>
-                    <div className="mt-2 text-sm text-slate-500">Current unpaid invoices and overdue items.</div>
+                    <div className="mt-2 text-sm text-slate-500">Across unpaid and part-paid invoices.</div>
                 </div>
                 <div className="rounded-2xl p-5" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                    <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Paid This Year</div>
-                    <div className="mt-3 text-3xl font-black text-slate-900">{fmt(paid)}</div>
-                    <div className="mt-2 text-sm text-slate-500">Total amount settled in 2026 so far.</div>
+                    <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Paid</div>
+                    <div className="mt-3 text-3xl font-black text-slate-900">{fmt(paidTotal)}</div>
+                    <div className="mt-2 text-sm text-slate-500">Total settled across all invoices.</div>
                 </div>
                 <div className="rounded-2xl p-5" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                    <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Invoice Book</div>
-                    <div className="mt-3 text-3xl font-black text-slate-900">{INVOICES.length}</div>
-                    <div className="mt-2 text-sm text-slate-500">Total invoices recorded in your account.</div>
+                    <div className="text-xs font-bold uppercase tracking-wider text-slate-500">HMO Covered</div>
+                    <div className="mt-3 text-3xl font-black text-slate-900">{fmt(hmoCovered)}</div>
+                    <div className="mt-2 text-sm text-slate-500">Contributions applied by your insurer.</div>
                 </div>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-                <div className="rounded-2xl p-6" style={{ background: '#fff', border: '1px solid #e2e8f0' }}>
-                    <div className="flex items-center justify-between gap-3 mb-5">
-                        <div>
-                            <h2 className="text-base font-bold text-slate-900">Invoice summary</h2>
-                            <p className="text-sm text-slate-500 mt-1">Your latest charges and payment status.</p>
-                        </div>
-                        <button className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold text-slate-700" style={{ borderColor: '#cbd5e1' }}>
-                            <CreditCard size={14} /> Export statements
-                        </button>
-                    </div>
+            <div className="rounded-2xl p-6" style={{ background: '#fff', border: '1px solid #e2e8f0' }}>
+                <h2 className="text-base font-bold text-slate-900 mb-1">Your invoices</h2>
+                <p className="text-sm text-slate-500 mb-5">Tap an invoice to see the full breakdown and any receipts.</p>
+
+                {invoices.length === 0 ? (
+                    <p className="text-sm text-slate-500 py-8 text-center">No invoices yet.</p>
+                ) : (
                     <div className="space-y-3">
-                        {INVOICES.map(inv => {
+                        {invoices.map((inv) => {
                             const st = STATUS_CFG[inv.status];
                             const StIcon = st.icon;
+                            const remaining = inv.totalAmount - inv.amountPaid;
                             return (
-                                <div key={inv.id} className="grid gap-3 rounded-2xl border p-4 md:grid-cols-[1fr_auto]" style={{ borderColor: '#e2e8f0', background: '#f8fafc' }}>
+                                <button
+                                    key={inv.id}
+                                    onClick={() => setViewing(inv)}
+                                    className="w-full text-left grid gap-3 rounded-2xl border p-4 md:grid-cols-[1fr_auto] cursor-pointer hover:shadow-sm transition-shadow"
+                                    style={{ borderColor: '#e2e8f0', background: '#f8fafc' }}
+                                >
                                     <div>
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-10 w-10 rounded-2xl grid place-items-center" style={{ background: st.bg }}>
-                                                <StIcon size={18} style={{ color: st.color }} />
-                                            </div>
-                                            <div>
-                                                <div className="font-semibold text-slate-900">{inv.service}</div>
-                                                <div className="text-xs text-slate-500 mt-1">{inv.facility} · {formatDate(inv.date)}</div>
-                                            </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-mono text-xs text-slate-500">{inv.invoiceNumber}</span>
+                                            <span
+                                                className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full"
+                                                style={{ color: st.color, background: st.bg }}
+                                            >
+                                                <StIcon size={10} /> {st.label}
+                                            </span>
                                         </div>
+                                        <div className="font-bold text-slate-900 mt-1">{orgName(inv.organizationId)}</div>
+                                        <div className="text-xs text-slate-500 mt-0.5">{formatDate(inv.createdAt)} · {inv.lineItems.length} item{inv.lineItems.length !== 1 ? 's' : ''}</div>
                                     </div>
-                                    <div className="text-right md:text-left">
-                                        <div className="font-black text-slate-900">{fmt(inv.amount)}</div>
-                                        <div className="mt-2 flex flex-wrap items-center justify-end gap-2 text-[11px] font-semibold uppercase" style={{ color: st.color }}>
-                                            <span className="rounded-full px-2 py-1" style={{ background: st.bg }}>{st.label}</span>
-                                            {inv.receipt && (
-                                                <button className="rounded-lg p-1" style={{ color: '#64748b' }}>
-                                                    <Download size={12} />
-                                                </button>
-                                            )}
-                                        </div>
+                                    <div className="text-right">
+                                        <div className="text-lg font-black text-slate-900">{fmt(inv.totalAmount)}</div>
+                                        {inv.hmoContribution > 0 && (
+                                            <div className="text-xs text-slate-500">HMO: {fmt(inv.hmoContribution)}</div>
+                                        )}
+                                        {remaining > 0 && inv.status !== 'void' && (
+                                            <div className="text-xs font-bold" style={{ color: '#f59e0b' }}>You pay: {fmt(remaining)}</div>
+                                        )}
                                     </div>
-                                </div>
+                                </button>
                             );
                         })}
                     </div>
-                </div>
-
-                <div className="space-y-6">
-                    <div className="rounded-2xl p-6" style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.08)' }}>
-                        <div className="mb-5">
-                            <h2 className="text-sm font-bold" style={{ color: '#9ca3af' }}>Payment forecast</h2>
-                            <p className="text-xs mt-1" style={{ color: '#6b7280' }}>Choose a scenario to project your balance and cash movement.</p>
-                        </div>
-                        <div className="grid grid-cols-3 gap-2 mb-4">
-                            {SCENARIOS.map(s => (
-                                <button
-                                    type="button"
-                                    key={s.id}
-                                    onClick={() => setActiveScenario(s.id)}
-                                    className={`rounded-xl px-3 py-2 text-xs font-semibold transition ${activeScenario === s.id ? 'ring-2 ring-cyan-400/40' : 'hover:bg-white/5'}`}
-                                    style={{ color: activeScenario === s.id ? '#fff' : '#cbd5e1', background: activeScenario === s.id ? '#0f172a' : 'transparent', border: '1px solid rgba(148,163,184,0.16)' }}>
-                                    {s.label}
-                                </button>
-                            ))}
-                        </div>
-                        <div className="rounded-3xl p-5" style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.06)' }}>
-                            <div className="flex items-center justify-between mb-4">
-                                <div>
-                                    <div className="text-[11px] uppercase tracking-[0.24em] font-bold" style={{ color: '#6b7280' }}>Projected balance</div>
-                                    <div className="text-3xl font-black mt-2" style={{ color: '#e5e7eb' }}>{fmt(simulation.projectedBalance)}</div>
-                                </div>
-                                <div className="text-right">
-                                    <div className="text-xs font-semibold" style={{ color: '#34d399' }}>{fmt(simulation.cashFlow)}</div>
-                                    <div className="text-[11px] mt-1" style={{ color: '#9ca3af' }}>potential cash flow</div>
-                                </div>
-                            </div>
-                            <div className="text-xs leading-5" style={{ color: '#9ca3af' }}>{scenario.description}</div>
-                        </div>
-                        <div className="grid gap-3 mt-5">
-                            {[
-                                { label: 'Scenario status', value: simulation.statusLabel },
-                                { label: 'Outstanding invoices', value: INVOICES.filter(i => i.status !== 'paid').length },
-                                { label: 'Overdue amount', value: fmt(overdueAmount) },
-                            ].map(item => (
-                                <div key={item.label} className="rounded-2xl p-4" style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.08)' }}>
-                                    <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: '#6b7280' }}>{item.label}</div>
-                                    <div className="mt-3 text-lg font-black" style={{ color: '#e5e7eb' }}>{item.value}</div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="rounded-2xl p-6" style={{ background: '#fff', border: '1px solid #e2e8f0' }}>
-                        <h2 className="text-sm font-bold text-slate-900">Due soon</h2>
-                        <p className="text-xs text-slate-500 mt-1">Invoices coming due in the next 14 days.</p>
-                        <div className="mt-4 space-y-3">
-                            {dueSoon.length > 0 ? dueSoon.map(inv => {
-                                const st = STATUS_CFG[inv.status];
-                                return (
-                                    <div key={inv.id} className="rounded-2xl border p-4" style={{ borderColor: '#e2e8f0', background: '#f8fafc' }}>
-                                        <div className="flex items-start justify-between gap-4">
-                                            <div>
-                                                <div className="font-semibold text-slate-900">{inv.service}</div>
-                                                <div className="text-xs text-slate-500 mt-1">{inv.facility}</div>
-                                            </div>
-                                            <div className="text-right">
-                                                <div className="font-black text-slate-900">{fmt(inv.amount)}</div>
-                                                <div className="text-[11px] text-slate-500 mt-1">{formatDate(inv.date)}</div>
-                                            </div>
-                                        </div>
-                                        <div className="mt-3 inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold" style={{ background: st.bg, color: st.color }}>{st.label}</div>
-                                    </div>
-                                );
-                            }) : (
-                                <div className="text-sm text-slate-500">No invoices due in the next two weeks.</div>
-                            )}
-                        </div>
-                    </div>
-                </div>
+                )}
             </div>
+
+            {viewing && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl max-h-[85vh] overflow-y-auto">
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <div className="font-mono text-xs text-slate-500">{viewing.invoiceNumber}</div>
+                                <h3 className="text-lg font-bold text-slate-900">{orgName(viewing.organizationId)}</h3>
+                            </div>
+                            <button onClick={() => setViewing(null)} className="text-slate-400 hover:text-slate-700 cursor-pointer"><X size={18} /></button>
+                        </div>
+
+                        <div className="space-y-1.5 mb-4">
+                            {viewing.lineItems.map((li) => (
+                                <div key={li.id} className="flex justify-between text-sm">
+                                    <span className="text-slate-600">{li.description} ×{li.quantity}</span>
+                                    <span className="text-slate-900 font-medium">{fmt(li.lineTotal || li.quantity * li.unitPrice - li.discount)}</span>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="border-t border-slate-200 pt-3 space-y-1.5">
+                            <div className="flex justify-between text-sm"><span className="text-slate-500">Subtotal</span><span className="text-slate-900">{fmt(viewing.subtotal)}</span></div>
+                            {viewing.discountTotal > 0 && <div className="flex justify-between text-sm"><span className="text-slate-500">Discount</span><span className="text-slate-900">-{fmt(viewing.discountTotal)}</span></div>}
+                            {viewing.taxTotal > 0 && <div className="flex justify-between text-sm"><span className="text-slate-500">Tax</span><span className="text-slate-900">{fmt(viewing.taxTotal)}</span></div>}
+                            <div className="flex justify-between text-base font-bold"><span className="text-slate-900">Total</span><span className="text-slate-900">{fmt(viewing.totalAmount)}</span></div>
+                            {viewing.hmoContribution > 0 && <div className="flex justify-between text-sm"><span className="text-slate-500">HMO covers</span><span className="text-slate-900">-{fmt(viewing.hmoContribution)}</span></div>}
+                            <div className="flex justify-between text-base font-bold" style={{ color: '#0ea5e9' }}><span>You pay</span><span>{fmt(viewing.patientResponsibility)}</span></div>
+                            <div className="flex justify-between text-sm"><span className="text-slate-500">Paid so far</span><span style={{ color: '#10b981' }}>{fmt(viewing.amountPaid)}</span></div>
+                        </div>
+
+                        {viewing.status !== 'paid' && viewing.status !== 'void' && (
+                            <div className="mt-4 rounded-xl p-3 text-xs" style={{ background: '#fffbeb', color: '#92400e', border: '1px solid #fde68a' }}>
+                                Outstanding balance of {fmt(viewing.totalAmount - viewing.amountPaid)}. Settle this at {orgName(viewing.organizationId)} —
+                                online payment isn't available yet, so payment is collected in person or by bank transfer at the facility.
+                            </div>
+                        )}
+
+                        <div className="mt-4 flex gap-2">
+                            <button
+                                onClick={() => window.print()}
+                                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm border cursor-pointer"
+                                style={{ borderColor: '#e2e8f0', color: '#1e293b' }}
+                            >
+                                <FileText size={14} /> Print / Save
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

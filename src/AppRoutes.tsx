@@ -337,6 +337,11 @@ const RadiologyPage = lazy(() =>
     default: m.RadiologyPage,
   })),
 );
+const InvoicesPage = lazy(() =>
+  import("@/apps/provider/pages/InvoicesPage").then((m) => ({
+    default: m.InvoicesPage,
+  })),
+);
 const FrontDeskPage = lazy(() =>
   import("@/apps/provider/pages/FrontDeskPage").then((m) => ({
     default: m.FrontDeskPage,
@@ -708,6 +713,8 @@ export function AppRoutes() {
           />
           <Route path="nursing" element={<NursePage />} />
           <Route path="radiology" element={<RadiologyPage />} />
+          <Route path="billing" element={<InvoicesPage />} />
+          <Route path="invoices" element={<InvoicesPage />} />
           <Route path="front-desk" element={<FrontDeskPage />} />
           <Route path="hmo-desk" element={<HMODeskPage />} />
           <Route path="reports" element={<ReportsPage />} />
