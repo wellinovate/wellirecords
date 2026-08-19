@@ -300,7 +300,7 @@ export function LabOrdersPage() {
     });
   }, [orders, searchQuery, searchBy, sourceFilter, priorityFilter, stageFilter]);
 
-  // Metric Computations
+  // Metric Computations & Analytics derived strictly from live facility orders
   const stats = useMemo(() => {
     const total = orders.length;
     const pendingSamples = orders.filter((o) => o.status === "requested" || o.status === "collected").length;
@@ -311,6 +311,81 @@ export function LabOrdersPage() {
     const outstanding = orders.reduce((acc, o) => acc + (o.paymentStatus === "pending" ? o.price : 0), 0);
 
     return { total, pendingSamples, inProcessing, resultsReady, criticalCount, totalRevenue, outstanding };
+  }, [orders]);
+
+  const analyticsData = useMemo(() => {
+    const total = orders.length;
+    const completedOrders = orders.filter(
+      (o) => o.status === "verified" || o.status === "released" || o.status === "delivered"
+    );
+    const cancelledOrRejected = orders.filter(
+      (o) => o.status === "cancelled" || o.status === "rejected"
+    );
+
+    // Compute real elapsed turnaround time in minutes for completed orders
+    const tatValues = completedOrders
+      .map((o) => {
+        const start = new Date(o.createdAt || o.orderedAt || 0).getTime();
+        const end = new Date(o.verifiedAt || o.updatedAt || 0).getTime();
+        if (start > 0 && end > start) {
+          return Math.round((end - start) / 60000);
+        }
+        return null;
+      })
+      .filter((v): v is number => v !== null && v > 0 && v < 43200);
+
+    const avgTat =
+      tatValues.length > 0
+        ? Math.round(tatValues.reduce((a, b) => a + b, 0) / tatValues.length)
+        : null;
+
+    const rejectionRate =
+      total > 0
+        ? ((cancelledOrRejected.length / total) * 100).toFixed(1)
+        : "0.0";
+
+    const verifiedRate =
+      total > 0
+        ? Math.round((completedOrders.length / total) * 100)
+        : 0;
+
+    // Test volume breakdown
+    const testCounts: { [key: string]: { count: number; sampleType: string; price: number } } = {};
+    orders.forEach((ord) => {
+      const name = ord.testName || "Unspecified Panel";
+      if (!testCounts[name]) {
+        testCounts[name] = { count: 0, sampleType: ord.sampleType || "Specimen", price: ord.price || 0 };
+      }
+      testCounts[name].count += 1;
+    });
+
+    const testDistribution = Object.entries(testCounts)
+      .map(([name, data]) => ({
+        name,
+        sampleType: data.sampleType,
+        count: data.count,
+        price: data.price,
+        percentage: total > 0 ? Math.round((data.count / total) * 100) : 0,
+      }))
+      .sort((a, b) => b.count - a.count);
+
+    // Urgency composition
+    const routineCount = orders.filter((o) => o.priority === "Routine" || !o.priority).length;
+    const urgentCount = orders.filter((o) => o.priority === "Urgent").length;
+    const statCount = orders.filter((o) => o.priority === "STAT").length;
+
+    return {
+      total,
+      completedCount: completedOrders.length,
+      cancelledOrRejectedCount: cancelledOrRejected.length,
+      avgTat,
+      rejectionRate,
+      verifiedRate,
+      testDistribution,
+      routineCount,
+      urgentCount,
+      statCount,
+    };
   }, [orders]);
 
   // ─── Print Barcode Labels ──────────────────────────────────────────────
@@ -1332,33 +1407,211 @@ export function LabOrdersPage() {
         </div>
       )}
 
-      {/* TAB 5: ANALYTICS & TAT */}
+      {/* TAB 5: ANALYTICS & OPERATIONAL BENCHMARKING */}
       {activeTab === "analytics" && (
-        <div className="space-y-6">
-          <div className="p-6 rounded-2xl border border-slate-800 bg-[#0c192b]">
-            <h2 className="text-lg font-bold text-white mb-1">Laboratory Operational Performance & TAT</h2>
-            <p className="text-xs text-slate-400 mb-6">Turnaround time benchmarking, sample rejection rates, and test distribution</p>
+        <div className="space-y-6 animate-fade-in">
+          {orders.length === 0 ? (
+            <div className="py-12 flex items-center justify-center">
+              <div className="max-w-md w-full p-8 rounded-3xl border border-slate-800 bg-[#0c192b] text-center shadow-xl flex flex-col items-center">
+                <div className="w-14 h-14 rounded-2xl bg-sky-500/10 border border-sky-400/20 flex items-center justify-center text-sky-400 mb-4">
+                  <BarChart2 size={28} />
+                </div>
 
-            <div className="grid md:grid-cols-3 gap-4">
-              <div className="p-5 rounded-xl border border-slate-800 bg-[#081220] text-center">
-                <div className="text-xs text-slate-400">Average Turnaround Time (TAT)</div>
-                <div className="text-2xl font-black text-emerald-400 mt-2">42 Mins</div>
-                <div className="text-[10px] text-slate-500 mt-1">Goal: &lt;60 Mins</div>
-              </div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700 text-[11px] font-semibold text-slate-300 mb-3">
+                  <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
+                  <span>Awaiting Facility Activity</span>
+                </div>
 
-              <div className="p-5 rounded-xl border border-slate-800 bg-[#081220] text-center">
-                <div className="text-xs text-slate-400">Sample Rejection Rate</div>
-                <div className="text-2xl font-black text-sky-400 mt-2">0.4%</div>
-                <div className="text-[10px] text-slate-500 mt-1">Hemolyzed / Clotted</div>
-              </div>
+                <h2 className="text-base font-bold text-white mb-2">
+                  Insufficient Data for Analytics
+                </h2>
 
-              <div className="p-5 rounded-xl border border-slate-800 bg-[#081220] text-center">
-                <div className="text-xs text-slate-400">QC Pass Rate</div>
-                <div className="text-2xl font-black text-indigo-400 mt-2">99.2%</div>
-                <div className="text-[10px] text-slate-500 mt-1">Westgard Rules Passed</div>
+                <p className="text-xs text-slate-400 leading-relaxed max-w-sm mb-6">
+                  Turnaround time benchmarking, rejection rates, and test distribution metrics will compute automatically as laboratory orders are processed through intake, processing, and verification.
+                </p>
+
+                <button
+                  onClick={() => setActiveTab("pipeline")}
+                  className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-sky-300 border border-slate-700 hover:border-sky-400/30 transition-all cursor-pointer"
+                >
+                  ← Return to Orders &amp; Pipeline
+                </button>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Header Context Banner */}
+              <div className="p-6 rounded-3xl border border-slate-800 bg-[#0c192b]">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30">
+                        Live Facility Analytics
+                      </span>
+                      <span className="text-xs text-slate-400">
+                        Computed from {analyticsData.total} order{analyticsData.total === 1 ? "" : "s"}
+                      </span>
+                    </div>
+                    <h2 className="text-lg font-bold text-white">
+                      Laboratory Operational Performance &amp; TAT
+                    </h2>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Real-time turnaround time calculations, sample status, and test distribution
+                    </p>
+                  </div>
+
+                  <div className="text-xs text-slate-400 bg-[#081220] px-3.5 py-2 rounded-xl border border-slate-800 flex items-center gap-2">
+                    <Activity size={14} className="text-sky-400" />
+                    <span>Real-time sync active</span>
+                  </div>
+                </div>
+
+                {/* 4 Live Operational Metric Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
+                  <div className="p-4 rounded-xl border border-slate-800 bg-[#081220]">
+                    <div className="text-xs text-slate-400 font-medium">Average Turnaround (TAT)</div>
+                    <div className="text-2xl font-black text-emerald-400 mt-1">
+                      {analyticsData.avgTat !== null ? `${analyticsData.avgTat} Mins` : "—"}
+                    </div>
+                    <div className="text-[10px] text-slate-500 mt-1">
+                      {analyticsData.avgTat !== null
+                        ? `Goal: <60 Mins · ${analyticsData.completedCount} verified order${analyticsData.completedCount === 1 ? "" : "s"}`
+                        : `${analyticsData.completedCount} verified orders so far`}
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl border border-slate-800 bg-[#081220]">
+                    <div className="text-xs text-slate-400 font-medium">Sample Rejection Rate</div>
+                    <div className="text-2xl font-black text-sky-400 mt-1">
+                      {analyticsData.rejectionRate}%
+                    </div>
+                    <div className="text-[10px] text-slate-500 mt-1">
+                      {analyticsData.cancelledOrRejectedCount} of {analyticsData.total} order{analyticsData.total === 1 ? "" : "s"} rejected/cancelled
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl border border-slate-800 bg-[#081220]">
+                    <div className="text-xs text-slate-400 font-medium">Verified &amp; Released</div>
+                    <div className="text-2xl font-black text-indigo-400 mt-1">
+                      {analyticsData.verifiedRate}%
+                    </div>
+                    <div className="text-[10px] text-slate-500 mt-1">
+                      {analyticsData.completedCount} of {analyticsData.total} order{analyticsData.total === 1 ? "" : "s"} delivered
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl border border-slate-800 bg-[#081220]">
+                    <div className="text-xs text-slate-400 font-medium">Critical Panic Rate</div>
+                    <div className={`text-2xl font-black mt-1 ${stats.criticalCount > 0 ? "text-rose-400" : "text-slate-200"}`}>
+                      {analyticsData.total > 0 ? ((stats.criticalCount / analyticsData.total) * 100).toFixed(1) : "0.0"}%
+                    </div>
+                    <div className="text-[10px] text-slate-500 mt-1">
+                      {stats.criticalCount} panic alert{stats.criticalCount === 1 ? "" : "s"} triggered
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Promised Test Distribution Breakdown & Urgency Breakdown */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Test Volume Distribution */}
+                <div className="lg:col-span-2 p-6 rounded-3xl border border-slate-800 bg-[#0c192b] space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-bold text-white">Test &amp; Panel Volume Distribution</h3>
+                      <p className="text-xs text-slate-400">Order breakdown by diagnostic test category</p>
+                    </div>
+                    <span className="text-xs text-slate-400 font-medium">
+                      {analyticsData.testDistribution.length} distinct test{analyticsData.testDistribution.length === 1 ? "" : "s"}
+                    </span>
+                  </div>
+
+                  {analyticsData.testDistribution.length === 0 ? (
+                    <div className="text-xs text-slate-500 text-center py-6">
+                      No test data recorded yet.
+                    </div>
+                  ) : (
+                    <div className="space-y-3 pt-1">
+                      {analyticsData.testDistribution.map((item, idx) => (
+                        <div key={idx} className="p-3.5 rounded-xl border border-slate-800 bg-[#081220] space-y-2">
+                          <div className="flex items-center justify-between text-xs">
+                            <div className="font-semibold text-slate-200 flex items-center gap-2">
+                              <span>{item.name}</span>
+                              <span className="text-[10px] font-normal text-slate-400 px-1.5 py-0.5 rounded bg-slate-800">
+                                {item.sampleType}
+                              </span>
+                            </div>
+                            <div className="text-slate-300 font-medium">
+                              <span className="text-white font-bold">{item.count}</span> order{item.count === 1 ? "" : "s"} ({item.percentage}%)
+                            </div>
+                          </div>
+                          <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-sky-400 transition-all duration-500"
+                              style={{ width: `${Math.max(item.percentage, 4)}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Urgency & Pipeline Composition */}
+                <div className="p-6 rounded-3xl border border-slate-800 bg-[#0c192b] space-y-4 flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Order Urgency Breakdown</h3>
+                    <p className="text-xs text-slate-400 mb-4">Volume distribution by clinical priority</p>
+
+                    <div className="space-y-3">
+                      <div className="p-3.5 rounded-xl border border-slate-800 bg-[#081220]">
+                        <div className="flex items-center justify-between text-xs mb-1.5">
+                          <span className="text-slate-300 font-medium">Routine Orders</span>
+                          <span className="text-white font-bold">{analyticsData.routineCount} ({analyticsData.total > 0 ? Math.round((analyticsData.routineCount / analyticsData.total) * 100) : 0}%)</span>
+                        </div>
+                        <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-emerald-400"
+                            style={{ width: `${analyticsData.total > 0 ? (analyticsData.routineCount / analyticsData.total) * 100 : 0}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="p-3.5 rounded-xl border border-slate-800 bg-[#081220]">
+                        <div className="flex items-center justify-between text-xs mb-1.5">
+                          <span className="text-amber-300 font-medium">Urgent Orders</span>
+                          <span className="text-white font-bold">{analyticsData.urgentCount} ({analyticsData.total > 0 ? Math.round((analyticsData.urgentCount / analyticsData.total) * 100) : 0}%)</span>
+                        </div>
+                        <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-amber-400"
+                            style={{ width: `${analyticsData.total > 0 ? (analyticsData.urgentCount / analyticsData.total) * 100 : 0}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="p-3.5 rounded-xl border border-slate-800 bg-[#081220]">
+                        <div className="flex items-center justify-between text-xs mb-1.5">
+                          <span className="text-rose-300 font-medium">STAT Emergency</span>
+                          <span className="text-white font-bold">{analyticsData.statCount} ({analyticsData.total > 0 ? Math.round((analyticsData.statCount / analyticsData.total) * 100) : 0}%)</span>
+                        </div>
+                        <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-rose-500"
+                            style={{ width: `${analyticsData.total > 0 ? (analyticsData.statCount / analyticsData.total) * 100 : 0}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl border border-sky-500/20 bg-sky-500/5 text-[11px] text-sky-300">
+                    💡 Benchmarking metrics update automatically as new orders are entered, processed, and verified.
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
