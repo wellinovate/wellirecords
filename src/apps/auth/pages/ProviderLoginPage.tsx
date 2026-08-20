@@ -10,7 +10,6 @@ import { UserRole } from '@/shared/types/types';
 import { ROLE_METADATA } from '@/shared/rbac/permissions';
 import OTPForm from '@/apps/patient/components/OTPInput';
 import Cookies from 'js-cookie';
-import { PreLoginHeader } from '@/components/layout/PreLoginHeader';
 import { PATIENT_SIDE_ROLES } from '@/shared/auth/RequireRole';
 
 const BRAND_FEATURES = [
@@ -237,7 +236,16 @@ export function ProviderLoginPage() {
             className="min-h-screen flex relative"
             style={{ fontFamily: '"Inter", system-ui, sans-serif', background: '#fcfcfc' }}
         >
-            <PreLoginHeader />
+            {/* Was rendering both <PreLoginHeader /> (a generic, absolutely-
+                positioned logo shared across auth pages) AND this page's own
+                logo+"Provider Portal" label below — the two landed on top of
+                each other since both start at the same top-left corner.
+                This page's own logo is the more complete one (has the
+                Provider Portal label, uses the light theme matching this
+                page's panel background), so that's the one kept; wrapped it
+                in the same "click logo to go home" link PreLoginHeader used
+                to provide, so removing the duplicate doesn't quietly drop
+                that behavior. */}
             {/* ── Left brand panel ── */}
             <div
                 className="hidden lg:flex flex-col justify-between w-5/12 px-12 py-10 relative overflow-hidden flex-shrink-0"
@@ -251,10 +259,10 @@ export function ProviderLoginPage() {
 
                 <div className="relative z-10">
                     {/* Logo */}
-                    <div className="flex flex-col gap-1 items-start mb-14">
+                    <Link to="/" className="flex flex-col gap-1 items-start mb-14">
                         <WelliRecordLogo height={40} theme="light" />
                         <div className="text-[10px] font-bold tracking-widest uppercase mt-1 pl-1" style={{ color: '#1e3a8a' }}>Provider Portal</div>
-                    </div>
+                    </Link>
 
                     <h2 className="font-black text-4xl leading-tight mb-3 tracking-tight" style={{ color: '#1e293b' }}>
                         Enterprise-grade<br />health access.
