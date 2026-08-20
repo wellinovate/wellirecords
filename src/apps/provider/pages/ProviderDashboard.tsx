@@ -111,23 +111,29 @@ function SummaryCard({
 function EmptyState({
   title,
   description,
+  compact = false,
 }: {
   title: string;
   description: string;
+  compact?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-dashed border-[#163761] px-6 py-10 text-center">
-      <p className="text-base font-medium text-slate-100">{title}</p>
-      <p className="mt-2 text-sm text-[#9FB3CF]">{description}</p>
+    <div
+      className={`rounded-2xl border border-dashed border-[#163761] text-center ${
+        compact ? "px-4 py-5" : "px-5 py-6 sm:py-7"
+      }`}
+    >
+      <p className="text-sm font-semibold text-slate-100 sm:text-base">{title}</p>
+      <p className="mx-auto mt-1.5 max-w-md text-xs text-[#9FB3CF] sm:text-sm">{description}</p>
     </div>
   );
 }
 
 function BoxLoader({ text = "Loading..." }: { text?: string }) {
   return (
-    <div className="flex min-h-[180px] items-center justify-center">
+    <div className="flex min-h-[120px] items-center justify-center">
       <div className="flex items-center gap-3 text-[#9FB3CF]">
-        <Loader2 className="animate-spin text-blue-400" size={22} />
+        <Loader2 className="animate-spin text-blue-400" size={20} />
         <span className="text-sm">{text}</span>
       </div>
     </div>
