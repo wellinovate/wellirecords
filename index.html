@@ -18,7 +18,6 @@
 
   <!-- Primary Meta -->
   <title>WelliRecord™ — Nigeria's Patient-Owned Health Vault</title>
-    <script src="https://cdn.tailwindcss.com"></script>
 
   <meta name="description"
     content="WelliRecord gives every Nigerian patient one secure, private health vault — connecting your hospitals, labs, pharmacies and clinics in one record you fully control. NDPA compliant. Free to join." />
@@ -137,34 +136,7 @@
 <body class="antialiased">
   <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.getRegistrations().then(function (registrations) {
-          for (let registration of registrations) {
-            registration.unregister();
-            console.log('ServiceWorker unregistered successfully.');
-          }
-        });
-      });
-    }
-
-    // Prevent text copying outside form input elements
-    document.addEventListener('copy', function (e) {
-      const activeEl = document.activeElement;
-      const isInput = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable);
-      if (!isInput) {
-        e.preventDefault();
-      }
-    });
-    document.addEventListener('cut', function (e) {
-      const activeEl = document.activeElement;
-      const isInput = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable);
-      if (!isInput) {
-        e.preventDefault();
-      }
-    });
-  </script>
+  <script src="/init.js"></script>
 </body>
 
 </html>
