@@ -181,12 +181,46 @@ export function PatientSupportPage() {
                             style={{ background: '#f8fafc', borderColor: '#e2e8f0', color: '#1e293b' }} />
                     </div>
                     {submitError && <p className="text-xs" style={{ color: '#ef4444' }}>{submitError}</p>}
-                    <button onClick={handleSubmit} disabled={!category || !subject.trim() || !description.trim() || submitting}
-                        className="w-full py-3 rounded-xl font-bold text-sm text-white disabled:opacity-40 transition-all flex items-center justify-center gap-2"
-                        style={{ background: '#0d9488' }}>
-                        {submitting && <Loader2 size={14} className="animate-spin" />}
-                        Submit Support Request
-                    </button>
+                    
+                    {(() => {
+                        const isComplete = Boolean(category && subject.trim() && description.trim());
+                        let label = "Submit Support Request";
+                        let helper = "";
+
+                        if (!category) {
+                            label = "Select an Issue Type to Continue";
+                            helper = "Select an issue category above to continue.";
+                        } else if (!subject.trim()) {
+                            label = "Enter a Subject to Continue";
+                            helper = "Provide a brief summary of the issue.";
+                        } else if (!description.trim()) {
+                            label = "Add a Description to Continue";
+                            helper = "Describe what happened so our team can assist you.";
+                        }
+
+                        return (
+                            <div className="space-y-2 pt-1">
+                                <button
+                                    type="button"
+                                    onClick={handleSubmit}
+                                    disabled={!isComplete || submitting}
+                                    className={`w-full py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${
+                                        isComplete
+                                            ? "bg-teal-600 hover:bg-teal-700 text-white shadow-md shadow-teal-600/20 cursor-pointer active:scale-[0.99]"
+                                            : "bg-slate-100 text-slate-500 border border-slate-200 cursor-not-allowed"
+                                    }`}
+                                >
+                                    {submitting && <Loader2 size={14} className="animate-spin" />}
+                                    {label}
+                                </button>
+                                {helper && (
+                                    <p className="text-[11px] text-center text-slate-500 font-medium">
+                                        {helper}
+                                    </p>
+                                )}
+                            </div>
+                        );
+                    })()}
                 </div>
             )}
 
