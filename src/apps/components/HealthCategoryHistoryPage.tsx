@@ -1,6 +1,7 @@
 import { FirstRecordWizard } from "@/apps/patient/components/FirstRecordWizard";
 import { getUsersRecords } from "@/shared/utils/utilityFunction";
 import { ArrowLeft, Search, UploadCloud, ExternalLink } from "lucide-react";
+import { LabDocumentViewerModal } from "./shared/LabDocumentViewerModal";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -96,6 +97,7 @@ export function RecordShell({
   footerLeft,
   actionLabel = "View Details",
   actionHref,
+  onActionClick,
   children,
   accentColor = "#2F915C",
   iconBg = "#EAF7F1",
@@ -113,9 +115,12 @@ export function RecordShell({
   actionLabel?: string;
   // actionLabel existed before with no way to actually trigger
   // anything — no onClick, no href, so it was never rendered at all.
-  // This is the fix: pass a URL (e.g. a lab result's attachment) and
-  // the button actually renders and opens it in a new tab.
+  // actionHref opens the URL directly in a new tab (still used
+  // elsewhere); onActionClick takes precedence when provided — the
+  // lab tab uses it to open LabDocumentViewerModal instead of handing
+  // off to a bare external link.
   actionHref?: string | null;
+  onActionClick?: (() => void) | null;
   children?: React.ReactNode;
   accentColor?: string;
   iconBg?: string;
@@ -200,7 +205,7 @@ export function RecordShell({
         </div>
       )}
 
-      {(footerLeft || actionHref) && (
+      {(footerLeft || actionHref || onActionClick) && (
         <div
           className={`mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-3 text-sm ${
             isDark
@@ -210,12 +215,13 @@ export function RecordShell({
         >
           <span>{footerLeft}</span>
 
-          {actionHref && (
-            <a
-              href={actionHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
+          {onActionClick ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onActionClick();
+              }}
               className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${
                 isDark
                   ? "bg-sky-400/10 text-sky-300 hover:bg-sky-400/20"
@@ -224,7 +230,24 @@ export function RecordShell({
             >
               <ExternalLink size={13} />
               {actionLabel}
-            </a>
+            </button>
+          ) : (
+            actionHref && (
+              <a
+                href={actionHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${
+                  isDark
+                    ? "bg-sky-400/10 text-sky-300 hover:bg-sky-400/20"
+                    : "bg-blue-50 text-blue-700 hover:bg-blue-100"
+                }`}
+              >
+                <ExternalLink size={13} />
+                {actionLabel}
+              </a>
+            )
           )}
         </div>
       )}
@@ -261,6 +284,7 @@ export function HealthCategoryHistoryPage() {
   const [tab, setTab] = useState<string>(category || "vitals");
   const [record, setRecord] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [viewerDoc, setViewerDoc] = useState<{ url: string; title: string } | null>(null);
 
   const title = CATEGORY_LABELS[tab] || "Health History";
 
@@ -897,7 +921,11 @@ const vitalsChips = (
   }
   footerLeft={item.notes || "Lab history entry"}
   actionLabel="View Document"
-  actionHref={item.attachments?.[0]?.url || null}
+  onActionClick={
+    item.attachments?.[0]?.url
+      ? () => setViewerDoc({ url: item.attachments[0].url, title: item.testName })
+      : null
+  }
 />
       );
     }
@@ -918,6 +946,15 @@ const vitalsChips = (
   return (
     <div className="animate-fade-in">
       {wizardOpen && <FirstRecordWizard onClose={() => setWizardOpen(false)} />}
+
+      {viewerDoc && (
+        <LabDocumentViewerModal
+          open={!!viewerDoc}
+          url={viewerDoc.url}
+          title={viewerDoc.title}
+          onClose={() => setViewerDoc(null)}
+        />
+      )}
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
