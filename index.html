@@ -10,7 +10,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#071B3F" />
   <link rel="manifest" href="/manifest.json" />
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Do NOT add <script src="https://cdn.tailwindcss.com"> here. It was
+       removed deliberately (see the CSP work in vercel.json) and got
+       re-added once already by someone trying to fix a styling issue,
+       which then got silently blocked by the Content-Security-Policy
+       and did nothing but throw a console error on every page load.
+       Tailwind is compiled at build time via @tailwindcss/vite
+       (vite.config.ts) — this script was never needed for that and
+       actively conflicts with build-time-generated Tailwind classes
+       when it does load. If a styling issue looks like a Tailwind
+       problem, the fix is almost certainly in index.css or the
+       component's own classes, not this script. -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
