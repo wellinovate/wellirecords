@@ -241,24 +241,22 @@ body {
   transform: translateY(-2px);
 }
 
-/* ─── Sidebar ───────────────────────────────────────────────────────────────── */
-.sidebar-provider {
-  background: var(--prov-surface);
-  border-right: 1px solid var(--prov-border);
-  width: 260px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.sidebar-patient {
-  background: var(--pat-surface);
-  border-right: 1px solid var(--pat-border);
-  width: 260px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-}
+/* ─── Sidebar ─────────────────────────────────────────────────────────────────
+   .sidebar-provider and .sidebar-patient used to live here as plain CSS,
+   unconditionally setting display:flex/width/flex-shrink/flex-direction —
+   no media query at all. Both elements also carry the equivalent
+   Tailwind utilities directly in their className (hidden md:flex
+   flex-col w-16 lg:w-64 flex-shrink-0) and their own background/border
+   (inline style on the provider sidebar, bg-[...]/border-* classes on
+   the patient one), so this block was pure duplication — but duplication
+   that fights the Tailwind utilities at identical specificity for the
+   display property. Whichever rule happened to land later in the
+   compiled stylesheet won, independent of screen width — confirmed via
+   DevTools: .hidden was winning over this class's display:flex at every
+   viewport size, which is why the sidebar never showed regardless of
+   window width, on both the provider and patient dashboards. Removed
+   rather than reordered, since nothing here wasn't already covered by
+   the element's own classes/inline style. */
 
 .sidebar-item {
   display: flex;
