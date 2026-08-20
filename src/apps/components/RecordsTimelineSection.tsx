@@ -22,6 +22,25 @@ type RecordItem = {
   journeyId?: string;
 };
 
+// Maps a record's `type` (from healthRecordsApi.ts — Allergy, Prescription,
+// Clinical Note, Lab Result, Imaging, Vaccination, Chronic Condition) to the
+// category slug HealthCategoryHistoryPage's CATEGORY_TABS actually renders
+// (vitals, medications, allergies, diagnoses, procedures, lab — see that
+// file for the live list; "immunizations" is currently commented out
+// there). This used to navigate to `/patient/history/${rec.type}`, a route
+// that was never registered in AppRoutes.tsx — every click fell through to
+// the catch-all `<Route path="*" element={<Navigate to="/" replace />} />`,
+// bouncing the patient back to the dashboard instead of opening the record.
+// Clinical Note, Imaging, and Vaccination have no live category tab to land
+// on yet, so those stay non-clickable below rather than navigating
+// somewhere broken or empty.
+const RECORD_TYPE_TO_CATEGORY: Record<string, string> = {
+  "Lab Result": "lab",
+  Prescription: "medications",
+  Allergy: "allergies",
+  "Chronic Condition": "diagnoses",
+};
+
 type JourneyItem = {
   id: string;
   title: string;
@@ -187,6 +206,7 @@ export function RecordsTimelineSection({
                     const Icon = TYPE_ICONS[rec.type] ?? FileText;
                     const color = TYPE_COLORS[rec.type] ?? "#1a6b42";
                     const i = globalIndex++;
+                    const categorySlug = RECORD_TYPE_TO_CATEGORY[rec.type];
 
                     return (
                       <div
@@ -200,11 +220,11 @@ export function RecordsTimelineSection({
                         />
 
                         <div
-                          className="card-patient cursor-pointer p-5 transition-shadow hover:shadow-md"
-                          onClick={() =>
-                            navigate(
-                              `/patient/history/${encodeURIComponent(rec.type)}`
-                            )
+                          className={`card-patient p-5 transition-shadow ${categorySlug ? "cursor-pointer hover:shadow-md" : ""}`}
+                          onClick={
+                            categorySlug
+                              ? () => navigate(`/patient/vault/${categorySlug}`)
+                              : undefined
                           }
                         >
                           <div className="flex items-start gap-4">
