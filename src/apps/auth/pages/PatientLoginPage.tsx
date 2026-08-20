@@ -486,7 +486,14 @@ export function PatientLoginPage() {
     <div className="min-h-screen bg-[#F3F4F5]">
       <PreLoginHeader />
 
-      <div className="flex h-[calc(100vh-80px)] flex-col justify-between">
+      {/* PreLoginHeader is position: absolute (it needs to be, for
+          UserTypeSelectionLogin.tsx's layered background-image design) —
+          so it doesn't push this content down on its own. mt-20 (80px)
+          matches the height this div already assumes below via
+          calc(100vh-80px); without it, this content started at the very
+          top of the viewport and rendered directly under/behind the
+          logo instead of below it. */}
+      <div className="mt-20 flex h-[calc(100vh-80px)] flex-col justify-between">
         <div className="px-6 py-4">
           <button
             onClick={() => {

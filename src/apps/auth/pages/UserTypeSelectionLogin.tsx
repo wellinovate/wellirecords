@@ -1,4 +1,4 @@
-import { prelogin } from "@/assets";
+import { wellirecordimage } from "@/assets";
 import React from "react";
 import { Link } from "react-router-dom";
 import { PreLoginHeader } from "@/components/layout/PreLoginHeader";
@@ -179,7 +179,7 @@ export default function UserTypeSelectionLogin() {
           style={{
             width: "100%",
             height: "100%",
-            backgroundImage: `url(${prelogin})`,
+            backgroundImage: `url(${wellirecordimage})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
             // backgroundRepeat: "no-repeat",
