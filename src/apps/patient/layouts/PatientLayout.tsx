@@ -408,7 +408,6 @@ export function PatientLayout() {
         <div className="p-2 lg:p-3 border-t border-slate-200 space-y-0.5">
           <button
             onClick={() => navigate("/patient/settings")}
-            title="Settings"
             className={`sidebar-item sidebar-item-patient w-full justify-center lg:justify-start ${location.pathname === "/patient/settings" ? "active" : ""}`}
           >
             <Settings size={18} />
@@ -416,7 +415,6 @@ export function PatientLayout() {
           </button>
           <button
             onClick={handleSignOut}
-            title="Sign Out"
             className="sidebar-item w-full text-red-500 hover:bg-red-50 justify-center lg:justify-start"
           >
             <LogOut size={18} />

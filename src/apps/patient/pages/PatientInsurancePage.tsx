@@ -175,14 +175,42 @@ export function PatientInsurancePage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-xs font-bold block mb-1.5" style={{ color: '#475569' }}>Plan</label>
+                                    <label className="text-xs font-bold block mb-1.5" style={{ color: '#475569' }}>Plan Tier</label>
                                     <input
+                                        list="hmo-plan-tiers"
                                         value={insurance.planName || ''}
                                         onChange={(e) => setInsurance((p) => ({ ...p, planName: e.target.value }))}
-                                        placeholder="e.g. Tier 1"
+                                        placeholder="Select or enter plan (e.g. Bronze, Silver, Gold)"
                                         className="w-full px-3 py-2.5 rounded-xl text-sm border"
                                         style={{ background: '#f8fafc', borderColor: '#e2e8f0', color: '#1e293b' }}
                                     />
+                                    <datalist id="hmo-plan-tiers">
+                                        <option value="Bronze / Basic (Tier 1)" />
+                                        <option value="Silver / Standard (Tier 2)" />
+                                        <option value="Gold / Executive (Tier 3)" />
+                                        <option value="Platinum / Comprehensive" />
+                                        <option value="Corporate / Enterprise" />
+                                        <option value="Family Care Plan" />
+                                        <option value="NHIA Formal Sector Plan" />
+                                        <option value="NHIA Informal Sector (GIFSHIP)" />
+                                    </datalist>
+                                    <div className="flex flex-wrap gap-1.5 mt-2">
+                                        {['Tier 1 (Bronze)', 'Tier 2 (Silver)', 'Tier 3 (Gold)', 'Platinum', 'Corporate'].map((tier) => (
+                                            <button
+                                                key={tier}
+                                                type="button"
+                                                onClick={() => setInsurance((p) => ({ ...p, planName: tier }))}
+                                                className="text-[10px] font-semibold px-2 py-0.5 rounded-md transition-all border cursor-pointer hover:border-teal-400"
+                                                style={{
+                                                    background: insurance.planName === tier ? '#f0fdfa' : '#f8fafc',
+                                                    color: insurance.planName === tier ? '#0d9488' : '#64748b',
+                                                    borderColor: insurance.planName === tier ? '#99f6e4' : '#e2e8f0',
+                                                }}
+                                            >
+                                                {tier}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
 
