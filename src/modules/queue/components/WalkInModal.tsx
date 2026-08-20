@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { PatientSearchPicker } from "@/apps/components/shared/PatientSearchPicker";
 import { useAuth } from "@/shared/auth/AuthProvider";
+import { teamApi } from "@/shared/api/teamApi";
 
 type Props = {
   open: boolean;
@@ -9,7 +10,7 @@ type Props = {
   onSubmit: (payload: {
     patientId: string;
     organizationId: string;
-    providerId?: string | null;
+    assignedDoctorId?: string | null;
     visitType?: "consultation" | "follow-up" | "review" | "emergency";
     priority?: "normal" | "urgent" | "emergency";
     chiefComplaint?: string;
@@ -23,9 +24,11 @@ export const WalkInModal = ({
   onSubmit,
   organizationId,
 }: Props) => {
-   const {  searchPatientRequest, user } =
-      useAuth();
+   const { searchPatientRequest } = useAuth();
   const [providerId, setProviderId] = useState("");
+  const [availableProviders, setAvailableProviders] = useState<
+    { id: string; name: string }[]
+  >([{ id: "", name: "Unassigned / General Queue" }]);
   const [visitType, setVisitType] = useState<
     "consultation" | "follow-up" | "review" | "emergency"
   >("consultation");
@@ -40,7 +43,48 @@ export const WalkInModal = ({
     avatar?: string;
     raw: any;
   } | null>(null);
-  console.log("🚀 ~ WalkInModal ~ selectedPatient:", selectedPatient)
+
+  // Was a hardcoded list of four fake doctors (Dr. Fatima Aliyu, Dr.
+  // Sola Martins, Dr. Emeka Okonkwo, Dr. Amina Bello) that never existed
+  // as real team members at any organization — left over from early
+  // development and never wired to real data. Now pulls the actual
+  // roster via the same teamApi.listMembers() call the Doctors
+  // Directory and Team Management pages already use.
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+
+    teamApi
+      .listMembers()
+      .then((members) => {
+        if (cancelled) return;
+        const clinicians = members
+          .filter(
+            (m) =>
+              (m.role === "doctor" || m.role === "clinician") &&
+              m.status === "active",
+          )
+          .map((m) => ({ id: m.userId, name: m.name }));
+
+        setAvailableProviders([
+          { id: "", name: "Unassigned / General Queue" },
+          ...clinicians,
+        ]);
+      })
+      .catch(() => {
+        // Leave the "Unassigned" option only — a failed fetch here
+        // shouldn't block adding the walk-in at all.
+        if (!cancelled) {
+          setAvailableProviders([
+            { id: "", name: "Unassigned / General Queue" },
+          ]);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
 
   if (!open) return null;
 
@@ -53,7 +97,7 @@ export const WalkInModal = ({
       await onSubmit({
         patientId: selectedPatient.id,
         organizationId,
-        providerId: providerId || null,
+        assignedDoctorId: providerId || null,
         visitType,
         priority,
         chiefComplaint,
@@ -77,17 +121,6 @@ export const WalkInModal = ({
       return "border-amber-500/70 bg-amber-500/20 text-amber-300 font-semibold";
     return "border-[#163761] bg-[#0b2447] text-white font-normal";
   };
-
-  const availableProviders = [
-    { id: "", name: "Unassigned / General Queue" },
-    ...(user?.name
-      ? [{ id: user.sub || user._id || user.userId || "", name: `${user.name} (Current User)` }]
-      : []),
-    { id: "prov_001", name: "Dr. Fatima Aliyu (Cardiology)" },
-    { id: "prov_002", name: "Dr. Sola Martins (General Practice)" },
-    { id: "prov_003", name: "Dr. Emeka Okonkwo (Pediatrics)" },
-    { id: "prov_004", name: "Dr. Amina Bello (Internal Medicine)" },
-  ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">

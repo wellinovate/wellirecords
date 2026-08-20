@@ -45,7 +45,7 @@ export const useQueue = (params?: Record<string, any>) => {
   const addWalkIn = async (payload: {
     patientId: string;
     organizationId: string;
-    providerId?: string | null;
+    assignedDoctorId?: string | null;
     visitType?: "consultation" | "follow-up" | "review" | "emergency";
     priority?: "normal" | "urgent" | "emergency";
     chiefComplaint?: string;

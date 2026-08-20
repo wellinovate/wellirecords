@@ -20,7 +20,12 @@ export const getQueueApi = async (params?: Record<string, any>) => {
 export const createWalkInQueueApi = async (payload: {
   patientId: string;
   organizationId: string;
-  providerId?: string | null;
+  // Was "providerId" — the backend's createWalkInQueueService only ever
+  // reads req.body.assignedDoctorId (see visitQueue_service.js). The old
+  // field name meant this was silently dropped on every submission —
+  // whatever the front desk picked in the dropdown, the walk-in always
+  // landed in the queue as unassigned.
+  assignedDoctorId?: string | null;
   visitType?: "consultation" | "follow-up" | "review" | "emergency";
   priority?: "normal" | "urgent" | "emergency";
   chiefComplaint?: string;
