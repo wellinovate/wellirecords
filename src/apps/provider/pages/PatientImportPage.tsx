@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
+import Papa from "papaparse";
 import {
   Upload, Users, CheckCircle, AlertCircle, Clock, BarChart3,
   Search, Filter, ChevronDown, X, RefreshCw, FileSpreadsheet,
@@ -104,13 +105,84 @@ function DropZone({ onRows }: { onRows: (rows: Record<string, any>[]) => void })
   const parseFile = useCallback((file: File) => {
     setParseError(null);
     setFileName(file.name);
+
+    const isCsv = file.name.toLowerCase().endsWith(".csv");
+
+    if (isCsv) {
+      // Papa.parse on a File runs its own FileReader internally and
+      // calls back once fully parsed — no need to wrap this one.
+      Papa.parse<Record<string, any>>(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          if (!results.data || results.data.length === 0) {
+            setParseError("The file appears to be empty.");
+            return;
+          }
+          onRows(results.data);
+        },
+        error: () => {
+          setParseError("Could not parse file. Please use CSV or XLSX format.");
+        },
+      });
+      return;
+    }
+
+    // .xlsx — was XLSX.read()/sheet_to_json (SheetJS). Swapped for
+    // exceljs: the xlsx npm package has two unpatched vulnerabilities
+    // (prototype pollution, ReDoS) with no fix available, and this is
+    // the one place in the app that parses an uploaded file rather than
+    // generating one, so it's the one place that mattered. Note:
+    // exceljs only reads modern .xlsx (OOXML), not legacy binary .xls —
+    // dropped .xls from the accepted-formats list above rather than
+    // silently leaving a broken claim of support.
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
-        const data = new Uint8Array(e.target!.result as ArrayBuffer);
-        const wb = XLSX.read(data, { type: "array", cellDates: true });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json<Record<string, any>>(ws, { defval: "" });
+        const buffer = e.target!.result as ArrayBuffer;
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(buffer);
+        const worksheet = workbook.worksheets[0];
+
+        if (!worksheet || worksheet.rowCount <= 1) {
+          setParseError("The file appears to be empty.");
+          return;
+        }
+
+        const headers: string[] = [];
+        worksheet.getRow(1).eachCell({ includeEmpty: false }, (cell, colNumber) => {
+          headers[colNumber] = String(cell.value ?? "").trim();
+        });
+
+        const rows: Record<string, any>[] = [];
+        worksheet.eachRow((row, rowNumber) => {
+          if (rowNumber === 1) return;
+
+          const obj: Record<string, any> = {};
+          let hasValue = false;
+
+          for (let col = 1; col < headers.length; col += 1) {
+            const key = headers[col];
+            if (!key) continue;
+
+            let value: any = row.getCell(col).value;
+            // exceljs represents formulas/rich text as objects rather
+            // than a plain scalar — unwrap to the displayed value,
+            // matching what sheet_to_json produced for the same cell.
+            if (value && typeof value === "object" && !(value instanceof Date)) {
+              if ("result" in value) value = (value as any).result;
+              else if ("richText" in value) {
+                value = (value as any).richText.map((r: any) => r.text).join("");
+              } else if ("text" in value) value = (value as any).text;
+            }
+
+            obj[key] = value ?? "";
+            if (value !== "" && value !== null && value !== undefined) hasValue = true;
+          }
+
+          if (hasValue) rows.push(obj);
+        });
+
         if (rows.length === 0) {
           setParseError("The file appears to be empty.");
           return;
@@ -145,7 +217,7 @@ function DropZone({ onRows }: { onRows: (rows: Record<string, any>[]) => void })
       <input
         ref={inputRef}
         type="file"
-        accept=".csv,.xlsx,.xls"
+        accept=".csv,.xlsx"
         className="hidden"
         onChange={(e) => e.target.files?.[0] && parseFile(e.target.files[0])}
       />
@@ -157,7 +229,7 @@ function DropZone({ onRows }: { onRows: (rows: Record<string, any>[]) => void })
           {fileName ? fileName : "Drop your CSV or Excel file here"}
         </p>
         <p className="text-xs mt-1.5 max-w-md leading-relaxed" style={{ color: T.muted }}>
-          Supports .csv, .xlsx, .xls — up to 5,000 rows per batch. Files exceeding 5,000 rows will import the first 5,000 records; split larger archives into separate batches.
+          Supports .csv, .xlsx — up to 5,000 rows per batch. Files exceeding 5,000 rows will import the first 5,000 records; split larger archives into separate batches.
         </p>
       </div>
       {parseError && (
