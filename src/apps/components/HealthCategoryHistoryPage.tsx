@@ -1,6 +1,6 @@
 import { FirstRecordWizard } from "@/apps/patient/components/FirstRecordWizard";
 import { getUsersRecords } from "@/shared/utils/utilityFunction";
-import { ArrowLeft, Search, UploadCloud } from "lucide-react";
+import { ArrowLeft, Search, UploadCloud, ExternalLink } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -95,6 +95,7 @@ export function RecordShell({
   metaRight,
   footerLeft,
   actionLabel = "View Details",
+  actionHref,
   children,
   accentColor = "#2F915C",
   iconBg = "#EAF7F1",
@@ -110,6 +111,11 @@ export function RecordShell({
   metaRight?: React.ReactNode;
   footerLeft?: React.ReactNode;
   actionLabel?: string;
+  // actionLabel existed before with no way to actually trigger
+  // anything — no onClick, no href, so it was never rendered at all.
+  // This is the fix: pass a URL (e.g. a lab result's attachment) and
+  // the button actually renders and opens it in a new tab.
+  actionHref?: string | null;
   children?: React.ReactNode;
   accentColor?: string;
   iconBg?: string;
@@ -194,15 +200,32 @@ export function RecordShell({
         </div>
       )}
 
-      {footerLeft && (
+      {(footerLeft || actionHref) && (
         <div
-          className={`mt-4 border-t pt-3 text-sm ${
+          className={`mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-3 text-sm ${
             isDark
               ? "border-[#163761] text-[#9FB3CF]"
               : "border-[#EAECF0] text-[#667085]"
           }`}
         >
-          {footerLeft}
+          <span>{footerLeft}</span>
+
+          {actionHref && (
+            <a
+              href={actionHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${
+                isDark
+                  ? "bg-sky-400/10 text-sky-300 hover:bg-sky-400/20"
+                  : "bg-blue-50 text-blue-700 hover:bg-blue-100"
+              }`}
+            >
+              <ExternalLink size={13} />
+              {actionLabel}
+            </a>
+          )}
         </div>
       )}
     </div>
@@ -873,7 +896,8 @@ const vitalsChips = (
     </>
   }
   footerLeft={item.notes || "Lab history entry"}
-  actionLabel="View Result"
+  actionLabel="View Document"
+  actionHref={item.attachments?.[0]?.url || null}
 />
       );
     }

@@ -253,19 +253,22 @@ export const VerifiedResultDeliveryModal: React.FC<Props> = ({
 
     setReleasing(true);
     try {
-      const res = await releaseLabDeliveryApi({
-        patientId: verifiedPatient.id,
-        patientWrId: verifiedPatient.wrId,
-        patientName: verifiedPatient.name,
-        reportMetadata: {
-          ...metadata,
-          filesCount: files.length,
+      const res = await releaseLabDeliveryApi(
+        {
+          patientId: verifiedPatient.id,
+          patientWrId: verifiedPatient.wrId,
+          patientName: verifiedPatient.name,
+          reportMetadata: {
+            ...metadata,
+            filesCount: files.length,
+          },
+          extractedObservations: extractedData,
+          notificationChannels,
+          isCritical: resultFlag === "Critical",
+          recordedBy: metadata.pathologist || undefined,
         },
-        extractedObservations: extractedData,
-        notificationChannels,
-        isCritical: resultFlag === "Critical",
-        recordedBy: metadata.pathologist || undefined,
-      });
+        files,
+      );
 
       const dispatchSummary = res.dispatch
         ? Object.entries(res.dispatch)

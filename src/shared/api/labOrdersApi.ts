@@ -108,16 +108,39 @@ export async function extractReportDataApi(payload: {
   return data.data;
 }
 
-export async function releaseLabDeliveryApi(payload: {
-  patientId: string;
-  patientWrId: string;
-  patientName: string;
-  reportMetadata: any;
-  extractedObservations: any[];
-  notificationChannels: { email: boolean; sms: boolean; whatsapp: boolean; push: boolean };
-  isCritical: boolean;
-  recordedBy?: string;
-}) {
+export async function releaseLabDeliveryApi(
+  payload: {
+    patientId: string;
+    patientWrId: string;
+    patientName: string;
+    reportMetadata: any;
+    extractedObservations: any[];
+    notificationChannels: { email: boolean; sms: boolean; whatsapp: boolean; push: boolean };
+    isCritical: boolean;
+    recordedBy?: string;
+  },
+  files: File[] = [],
+) {
+  // Was always sent as plain JSON — the actual selected file(s) never
+  // left the browser. The "External Report Intake" screen's own copy
+  // says it attaches "original PDF report attachments", but nothing
+  // uploaded them anywhere, so a released result had no document a
+  // patient could ever open. Sending multipart when files are present
+  // is what makes the upload (and later "View Document" on the
+  // patient's Lab Results page) actually work; falls back to plain
+  // JSON when there's nothing to attach, so existing no-file releases
+  // are unaffected.
+  if (files.length > 0) {
+    const formData = new FormData();
+    formData.append("payload", JSON.stringify(payload));
+    files.forEach((file) => formData.append("reportFiles", file));
+
+    const { data } = await api.post(`${apiUrl}/api/v1/lab-delivery/release`, formData, {
+      headers: { ...authHeaders(), "Content-Type": "multipart/form-data" },
+    });
+    return data.data;
+  }
+
   const { data } = await api.post(`${apiUrl}/api/v1/lab-delivery/release`, payload, {
     headers: authHeaders(),
   });
