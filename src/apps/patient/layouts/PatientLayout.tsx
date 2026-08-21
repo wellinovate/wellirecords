@@ -308,7 +308,7 @@ export function PatientLayout() {
       )}
 
       {/* ─── Desktop / Tablet Sidebar ─── */}
-      <aside className="sidebar-patient hidden md:flex flex-col w-16 lg:w-64 z-20 flex-shrink-0 border bg-[##FFFFFF] border-r-2 border-gray-100">
+      <aside className="sidebar-patient hidden md:flex flex-col w-16 lg:w-64 z-20 flex-shrink-0 border bg-white border-r-2 border-gray-100">
         {/* Logo */}
         <div className="px-3 py-4 border-b border-slate-200 flex items-center justify-center lg:justify-start">
           <Link to="/" className="flex items-center gap-2.5 cursor-pointer">
