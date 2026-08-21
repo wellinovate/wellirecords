@@ -1,520 +1,857 @@
-import { WelliRecordLogo } from '@/shared/ui/WelliRecordLogo';
-import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '@/shared/auth/AuthProvider';
+import { WelliRecordLogo } from "@/shared/ui/WelliRecordLogo";
+import React, { useState, useRef, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "@/shared/auth/AuthProvider";
 import {
-    Building2, Mail, Lock, ArrowLeft, ArrowRight,
-    Shield, CheckCircle, Activity, Users, ChevronDown, Check
-} from 'lucide-react';
-import { UserRole } from '@/shared/types/types';
-import { ROLE_METADATA } from '@/shared/rbac/permissions';
-import OTPForm from '@/apps/patient/components/OTPInput';
-import Cookies from 'js-cookie';
-import { PATIENT_SIDE_ROLES } from '@/shared/auth/RequireRole';
+  Building2,
+  Mail,
+  Lock,
+  ArrowLeft,
+  ArrowRight,
+  Shield,
+  CheckCircle,
+  Activity,
+  Users,
+  ChevronDown,
+  Check,
+} from "lucide-react";
+import { UserRole } from "@/shared/types/types";
+import { ROLE_METADATA } from "@/shared/rbac/permissions";
+import OTPForm from "@/apps/patient/components/OTPInput";
+import Cookies from "js-cookie";
+import { PATIENT_SIDE_ROLES } from "@/shared/auth/RequireRole";
+import { welliIcon } from "@/assets";
 
 const BRAND_FEATURES = [
-    {
-        icon: Building2,
-        title: 'Org Verification',
-        desc: 'Every provider undergoes identity and licence verification before gaining access.',
-    },
-    {
-        icon: Shield,
-        title: 'Consent-gated Access',
-        desc: 'Records are only accessible with explicit patient approval — zero exceptions.',
-    },
-    {
-        icon: Activity,
-        title: 'Full Audit Trail',
-        desc: 'Every record access is timestamped, logged, and traceable for compliance.',
-    },
-    {
-        icon: Users,
-        title: 'Multi-role Teams',
-        desc: 'Clinicians, labs, pharmacists, and admins operating under one verified org.',
-    },
+  {
+    icon: Building2,
+    title: "Org Verification",
+    desc: "Every provider undergoes identity and licence verification before gaining access.",
+  },
+  {
+    icon: Shield,
+    title: "Consent-gated Access",
+    desc: "Records are only accessible with explicit patient approval — zero exceptions.",
+  },
+  {
+    icon: Activity,
+    title: "Full Audit Trail",
+    desc: "Every record access is timestamped, logged, and traceable for compliance.",
+  },
+  {
+    icon: Users,
+    title: "Multi-role Teams",
+    desc: "Clinicians, labs, pharmacists, and admins operating under one verified org.",
+  },
 ];
 
-const TRUST = ['SOC 2 Type II', 'ISO 27001', 'NDPA Compliant', 'Patient-first'];
+const TRUST = ["SOC 2 Type II", "ISO 27001", "NDPA Compliant", "Patient-first"];
 
-type LoginStep = 'credentials' | 'otp';
+type LoginStep = "credentials" | "otp";
 
 export function ProviderLoginPage() {
-    const navigate = useNavigate();
-    const { signIn, signInAsRole, verifyLoginCodeApi, resendVerifyLoginCodeApi, setUser } = useAuth();
-    const [step, setStep] = useState<LoginStep>('credentials');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [verifying, setVerifying] = useState(false);
-    const [resending, setResending] = useState(false);
-    const [showRoleDrop, setShowRoleDrop] = useState(false);
-    const [selectedRole, setSelectedRole] = useState<UserRole>('clinician');
-    const roleDropRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const {
+    signIn,
+    signInAsRole,
+    verifyLoginCodeApi,
+    resendVerifyLoginCodeApi,
+    setUser,
+  } = useAuth();
+  const [step, setStep] = useState<LoginStep>("credentials");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [showRoleDrop, setShowRoleDrop] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<UserRole>("clinician");
+  const roleDropRef = useRef<HTMLDivElement>(null);
 
-    const [code, setCode] = useState('');
-    const [isCodeValid, setIsCodeValid] = useState(false);
-    const [timeLeft, setTimeLeft] = useState(120);
-    const [challengeToken, setChallengeToken] = useState('');
-    const [maskedPhone, setMaskedPhone] = useState('');
-    const [maskedEmail, setMaskedEmail] = useState('');
-    const [channel, setChannel] = useState<'sms' | 'email'>('sms');
+  const [code, setCode] = useState("");
+  const [isCodeValid, setIsCodeValid] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(120);
+  const [challengeToken, setChallengeToken] = useState("");
+  const [maskedPhone, setMaskedPhone] = useState("");
+  const [maskedEmail, setMaskedEmail] = useState("");
+  const [channel, setChannel] = useState<"sms" | "email">("sms");
 
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const isLocalhost =
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1";
 
-    useEffect(() => setIsCodeValid(code.length === 6), [code]);
+  useEffect(() => setIsCodeValid(code.length === 6), [code]);
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (roleDropRef.current && !roleDropRef.current.contains(event.target as Node)) {
-                setShowRoleDrop(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    const handleDemoLogin = () => {
-        signInAsRole(selectedRole);
-        navigate('/provider/overview');
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        roleDropRef.current &&
+        !roleDropRef.current.contains(event.target as Node)
+      ) {
+        setShowRoleDrop(false);
+      }
     };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setError('');
+  const handleDemoLogin = () => {
+    signInAsRole(selectedRole);
+    navigate("/provider/overview");
+  };
 
-        try {
-            const res = await signIn(email.trim().toLowerCase(), password, channel);
-            const payload = res?.data || res;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
-            if (!payload?.requiresOtp || !payload?.challengeToken) {
-                throw new Error('Login verification could not be started.');
-            }
+    try {
+      const res = await signIn(email.trim().toLowerCase(), password, channel);
+      const payload = res?.data || res;
 
-            setChallengeToken(payload.challengeToken);
-            setMaskedPhone(payload.maskedPhone || '');
-            setMaskedEmail(payload.maskedEmail || '');
-            setStep('otp');
-        } catch (err: any) {
-            const message =
-                err?.response?.data?.message ||
-                err?.message ||
-                'Invalid email or password. Try again.';
-            setError(message);
-        } finally {
-            setLoading(false);
-        }
-    };
+      if (!payload?.requiresOtp || !payload?.challengeToken) {
+        throw new Error("Login verification could not be started.");
+      }
 
-    const handleVerifyCode = async (e?: React.FormEvent) => {
-        e?.preventDefault();
+      setChallengeToken(payload.challengeToken);
+      setMaskedPhone(payload.maskedPhone || "");
+      setMaskedEmail(payload.maskedEmail || "");
+      setStep("otp");
+    } catch (err: any) {
+      const message =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Invalid email or password. Try again.";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        if (!challengeToken) {
-            setError('Login session expired. Please start again.');
-            setStep('credentials');
-            return;
-        }
+  const handleVerifyCode = async (e?: React.FormEvent) => {
+    e?.preventDefault();
 
-        if (!isCodeValid) {
-            setError('Enter the 6-digit login code.');
-            return;
-        }
+    if (!challengeToken) {
+      setError("Login session expired. Please start again.");
+      setStep("credentials");
+      return;
+    }
 
-        try {
-            setVerifying(true);
-            setError('');
+    if (!isCodeValid) {
+      setError("Enter the 6-digit login code.");
+      return;
+    }
 
-            const res = await verifyLoginCodeApi(challengeToken, code);
-            const payload = res?.data || res;
+    try {
+      setVerifying(true);
+      setError("");
 
-            const account = payload?.account;
-            const profile = payload?.profile;
+      const res = await verifyLoginCodeApi(challengeToken, code);
+      const payload = res?.data || res;
 
-            const uiUser = {
-                id: account?._id || account?.id,
-                sub: account?._id || account?.id,
-                accountType: account?.accountType,
-                role: account?.role,
-                // BUGFIX: was missing entirely — the sidebar's hasAccess
-                // check (ProviderLayout.tsx) reads user.roles (plural
-                // array), not user.role. Without this, every role-gated
-                // nav item (Referrals, Insurance, Reports, Team,
-                // Settings) showed locked for every provider immediately
-                // after login, regardless of their actual role, until
-                // something else (a refresh hitting getAuthFromToken's
-                // token-decode path) happened to repopulate it. Matches
-                // the pattern AuthProvider.tsx already uses elsewhere.
-                roles: account?.role ? [account.role] : [],
-                isVerified: account?.isVerified,
-                orgId: account?._id || account?.id,
-                orgName: profile?.organizationName,
-                profile,
-            };
+      const account = payload?.account;
+      const profile = payload?.profile;
 
-            // Org owner accounts are accountType "organization" outright.
-            // Invited staff (doctor, nurse, lab tech, ...) keep accountType
-            // "user" — identical to a patient account — and are told apart
-            // only by role. Same rule as RequireRole's "organization" gate;
-            // see PATIENT_SIDE_ROLES there for why it's shared rather than
-            // redefined here.
-            const isProviderAccount =
-                account?.accountType === "organization" ||
-                (!!account?.role && !PATIENT_SIDE_ROLES.includes(account.role as any));
+      const uiUser = {
+        id: account?._id || account?.id,
+        sub: account?._id || account?.id,
+        accountType: account?.accountType,
+        role: account?.role,
+        // BUGFIX: was missing entirely — the sidebar's hasAccess
+        // check (ProviderLayout.tsx) reads user.roles (plural
+        // array), not user.role. Without this, every role-gated
+        // nav item (Referrals, Insurance, Reports, Team,
+        // Settings) showed locked for every provider immediately
+        // after login, regardless of their actual role, until
+        // something else (a refresh hitting getAuthFromToken's
+        // token-decode path) happened to repopulate it. Matches
+        // the pattern AuthProvider.tsx already uses elsewhere.
+        roles: account?.role ? [account.role] : [],
+        isVerified: account?.isVerified,
+        orgId: account?._id || account?.id,
+        orgName: profile?.organizationName,
+        profile,
+      };
 
-            if (!isProviderAccount) {
-                Cookies.remove('accessToken');
-                localStorage.removeItem('ui_user');
-                setUser?.(null);
-                setError('This login is for provider accounts. Please use the patient portal to sign in.');
-                setStep('credentials');
-                return;
-            }
+      // Org owner accounts are accountType "organization" outright.
+      // Invited staff (doctor, nurse, lab tech, ...) keep accountType
+      // "user" — identical to a patient account — and are told apart
+      // only by role. Same rule as RequireRole's "organization" gate;
+      // see PATIENT_SIDE_ROLES there for why it's shared rather than
+      // redefined here.
+      const isProviderAccount =
+        account?.accountType === "organization" ||
+        (!!account?.role && !PATIENT_SIDE_ROLES.includes(account.role as any));
 
-            localStorage.setItem('ui_user', JSON.stringify(uiUser));
-            setUser?.(uiUser);
+      if (!isProviderAccount) {
+        Cookies.remove("accessToken");
+        localStorage.removeItem("ui_user");
+        setUser?.(null);
+        setError(
+          "This login is for provider accounts. Please use the patient portal to sign in.",
+        );
+        setStep("credentials");
+        return;
+      }
 
-            navigate('/provider/overview');
-        } catch (err: any) {
-            const message =
-                err?.response?.data?.message ||
-                err?.message ||
-                'Invalid or expired login code.';
-            setError(message);
-        } finally {
-            setVerifying(false);
-        }
-    };
+      localStorage.setItem("ui_user", JSON.stringify(uiUser));
+      setUser?.(uiUser);
 
-    const handleResend = async () => {
-        if (!challengeToken) {
-            setError('Login session expired. Please start again.');
-            setStep('credentials');
-            return;
-        }
+      navigate("/provider/overview");
+    } catch (err: any) {
+      const message =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Invalid or expired login code.";
+      setError(message);
+    } finally {
+      setVerifying(false);
+    }
+  };
 
-        if (resending) return; // a request is already in flight, ignore repeat clicks
+  const handleResend = async () => {
+    if (!challengeToken) {
+      setError("Login session expired. Please start again.");
+      setStep("credentials");
+      return;
+    }
 
-        try {
-            setResending(true);
-            setCode('');
-            setError('');
+    if (resending) return; // a request is already in flight, ignore repeat clicks
 
-            const res = await resendVerifyLoginCodeApi(challengeToken, email, channel);
-            const payload = res?.data || res;
+    try {
+      setResending(true);
+      setCode("");
+      setError("");
 
-            if (!payload?.challengeToken) {
-                throw new Error('Failed to resend OTP');
-            }
+      const res = await resendVerifyLoginCodeApi(
+        challengeToken,
+        email,
+        channel,
+      );
+      const payload = res?.data || res;
 
-            setChallengeToken(payload.challengeToken);
-            setMaskedPhone(payload.maskedPhone || maskedPhone);
-            setMaskedEmail(payload.maskedEmail || maskedEmail);
-            setTimeLeft(120);
-        } catch (err: any) {
-            const message =
-                err?.response?.data?.message || err?.message || 'Unable to resend OTP';
-            setError(message);
-        } finally {
-            setResending(false);
-        }
-    };
+      if (!payload?.challengeToken) {
+        throw new Error("Failed to resend OTP");
+      }
 
-    const handleBackToCredentials = () => {
-        setStep('credentials');
-        setCode('');
-        setChallengeToken('');
-        setMaskedPhone('');
-        setMaskedEmail('');
-        setError('');
-    };
+      setChallengeToken(payload.challengeToken);
+      setMaskedPhone(payload.maskedPhone || maskedPhone);
+      setMaskedEmail(payload.maskedEmail || maskedEmail);
+      setTimeLeft(120);
+    } catch (err: any) {
+      const message =
+        err?.response?.data?.message || err?.message || "Unable to resend OTP";
+      setError(message);
+    } finally {
+      setResending(false);
+    }
+  };
 
+  const handleBackToCredentials = () => {
+    setStep("credentials");
+    setCode("");
+    setChallengeToken("");
+    setMaskedPhone("");
+    setMaskedEmail("");
+    setError("");
+  };
 
-    return (
+  return (
+  <div
+    className="min-h-screen flex bg-[#f8fafc] text-slate-900"
+    style={{
+      fontFamily: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+    }}
+  >
+    {/* ================================================================
+        LEFT — ENTERPRISE BRAND PANEL
+    ================================================================= */}
+    <aside className="hidden lg:flex lg:w-[43%] xl:w-[40%] relative overflow-hidden bg-[#071a33] text-white">
+      {/* Subtle architectural background */}
+      <div className="absolute inset-0 pointer-events-none">
         <div
-            className="min-h-screen flex relative"
-            style={{ fontFamily: '"Inter", system-ui, sans-serif', background: '#fcfcfc' }}
-        >
-            {/* Was rendering both <PreLoginHeader /> (a generic, absolutely-
-                positioned logo shared across auth pages) AND this page's own
-                logo+"Provider Portal" label below — the two landed on top of
-                each other since both start at the same top-left corner.
-                This page's own logo is the more complete one (has the
-                Provider Portal label, uses the light theme matching this
-                page's panel background), so that's the one kept; wrapped it
-                in the same "click logo to go home" link PreLoginHeader used
-                to provide, so removing the duplicate doesn't quietly drop
-                that behavior. */}
-            {/* ── Left brand panel ── */}
-            <div
-                className="hidden lg:flex flex-col justify-between w-5/12 px-12 py-10 relative overflow-hidden flex-shrink-0"
-                style={{ background: '#f0f4ff', borderRight: '1px solid #dbeafe' }}
-            >
-                {/* Decorative soft orbs */}
-                <div className="absolute top-[-100px] left-[-60px] w-[360px] h-[360px] rounded-full pointer-events-none"
-                    style={{ background: 'radial-gradient(circle, rgba(13,148,136,.06) 0%, transparent 70%)' }} />
-                <div className="absolute bottom-[-80px] right-[-80px] w-[300px] h-[300px] rounded-full pointer-events-none"
-                    style={{ background: 'radial-gradient(circle, rgba(30,58,138,.04) 0%, transparent 70%)' }} />
+          className="absolute -top-40 -left-40 w-[520px] h-[520px] rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(53,92,160,0.22) 0%, rgba(53,92,160,0) 68%)",
+          }}
+        />
 
-                <div className="relative z-10">
-                    {/* Logo */}
-                    <Link to="/" className="flex flex-col gap-1 items-start mb-14">
-                        <WelliRecordLogo height={40} theme="light" />
-                        <div className="text-[10px] font-bold tracking-widest uppercase mt-1 pl-1" style={{ color: '#1e3a8a' }}>Provider Portal</div>
-                    </Link>
+        <div
+          className="absolute -bottom-48 -right-48 w-[600px] h-[600px] rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(20,184,166,0.08) 0%, rgba(20,184,166,0) 65%)",
+          }}
+        />
 
-                    <h2 className="font-black text-4xl leading-tight mb-3 tracking-tight" style={{ color: '#1e293b' }}>
-                        Enterprise-grade<br />health access.
-                    </h2>
-                    <p className="text-sm leading-relaxed mb-10" style={{ color: '#475569' }}>
-                        Connect your organisation to patient-owned records with consent gating, full audit trails, and regulatory compliance built in.
-                    </p>
-
-                    {/* Feature list */}
-                    <div className="flex flex-col gap-5">
-                        {BRAND_FEATURES.map(({ icon: Icon, title, desc }) => (
-                            <div key={title} className="flex items-start gap-4">
-                                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                                    style={{ background: '#ffffff', border: '1px solid #dbeafe' }}>
-                                    <Icon size={16} style={{ color: '#1e3a8a' }} />
-                                </div>
-                                <div>
-                                    <div className="text-sm font-bold" style={{ color: '#1e293b' }}>{title}</div>
-                                    <div className="text-xs leading-relaxed mt-0.5" style={{ color: '#64748b' }}>{desc}</div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Trust badges */}
-                <div className="relative z-10 pt-8 border-t" style={{ borderColor: '#e2e8f0' }}>
-                    <div className="flex flex-wrap gap-x-5 gap-y-2">
-                        {TRUST.map(t => (
-                            <div key={t} className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: '#64748b' }}>
-                                <CheckCircle size={12} style={{ color: '#1e3a8a' }} /> {t}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* ── Right form panel ── */}
-            <div
-                className="flex-1 flex flex-col items-center justify-center px-6 py-12"
-                style={{ background: '#ffffff' }}
-            >
-                <div className="w-full max-w-sm animate-fade-in-up">
-                    {/* Back */}
-                    <button
-                        onClick={() => {
-                            if (step === 'otp') {
-                                handleBackToCredentials();
-                                return;
-                            }
-                            navigate('/auth');
-                        }}
-                        className="flex items-center gap-2 mb-8 text-sm font-semibold hover:opacity-70 transition-opacity"
-                        style={{ color: '#475569' }}
-                    >
-                        <ArrowLeft size={15} /> {step === 'otp' ? 'Back to sign in' : 'Back to portal selection'}
-                    </button>
-
-                    <div className="mb-7">
-                        <h1 className="font-black text-3xl leading-tight mb-1" style={{ color: '#1e293b' }}>
-                            {step === 'otp' ? 'Verify Sign In' : 'Provider Sign In'}
-                        </h1>
-                        <p className="text-sm" style={{ color: '#64748b' }}>
-                            {step === 'otp' ? 'Enter the code sent to your organisation phone.' : 'Organisation access portal'}
-                        </p>
-                    </div>
-
-                    {error && (
-                        <div className="mb-5 p-3 rounded-xl text-sm"
-                            style={{ background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca' }}>
-                            {error}
-                        </div>
-                    )}
-
-                    {step === 'otp' ? (
-                        <form onSubmit={handleVerifyCode} className="space-y-4">
-                            <OTPForm
-                                maskedPhone={maskedPhone}
-                                maskedEmail={maskedEmail}
-                                channel={channel}
-                                code={code}
-                                setCode={setCode}
-                                isCodeValid={isCodeValid}
-                                verifying={verifying}
-                                handleResend={handleResend}
-                                resending={resending}
-                                timeLeft={timeLeft}
-                                setTimeLeft={setTimeLeft}
-                            />
-
-                            <button
-                                type="submit"
-                                disabled={verifying || !isCodeValid}
-                                className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 text-white transition-all hover:opacity-90 hover:-translate-y-0.5 shadow-sm"
-                                style={{ background: '#1e3a8a', opacity: (verifying || !isCodeValid) ? 0.7 : 1, marginTop: '6px' }}
-                            >
-                                {verifying ? 'Verifying…' : 'Verify and Sign In'} {!verifying && <ArrowRight size={15} />}
-                            </button>
-                        </form>
-                    ) : (
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-semibold mb-1.5" style={{ color: '#1e293b' }}>
-                                    Organisation email
-                                </label>
-                                <div className="relative">
-                                    <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: '#64748b' }} />
-                                    <input
-                                        type="email"
-                                        value={email}
-                                        onChange={e => setEmail(e.target.value)}
-                                        className="input input-light bg-white border-slate-200"
-                                        style={{ paddingLeft: '2.5rem' }}
-                                        placeholder="you@hospital.ng"
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <div className="flex items-center justify-between mb-1.5">
-                                    <label className="text-sm font-semibold" style={{ color: '#1e293b' }}>Password</label>
-                                    <Link to="/forgot-password" className="text-xs font-semibold hover:underline" style={{ color: '#1e3a8a' }}>
-                                        Forgot password?
-                                    </Link>
-                                </div>
-                                <div className="relative">
-                                    <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: '#64748b' }} />
-                                    <input
-                                        type="password"
-                                        value={password}
-                                        onChange={e => setPassword(e.target.value)}
-                                        className="input input-light bg-white border-slate-200"
-                                        style={{ paddingLeft: '2.5rem' }}
-                                        placeholder="Password"
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-6 text-sm" style={{ color: '#1e293b' }}>
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        name="otp-channel"
-                                        checked={channel === 'sms'}
-                                        onChange={() => setChannel('sms')}
-                                    />
-                                    Text me a code
-                                </label>
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        name="otp-channel"
-                                        checked={channel === 'email'}
-                                        onChange={() => setChannel('email')}
-                                    />
-                                    Email me a code
-                                </label>
-                            </div>
-
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 text-white transition-all hover:opacity-90 hover:-translate-y-0.5 shadow-sm"
-                                style={{ background: '#1e3a8a', opacity: loading ? 0.7 : 1, marginTop: '6px' }}
-                            >
-                                {loading ? 'Signing in…' : 'Sign In to Provider Portal'} {!loading && <ArrowRight size={15} />}
-                            </button>
-                        </form>
-                    )}
-
-                    {step === 'credentials' && (
-                        <>
-                            <p className="mt-6 text-center text-sm" style={{ color: '#64748b' }}>
-                                New organisation?{' '}
-                                <Link to="/auth/provider/signup" className="font-bold hover:underline" style={{ color: '#1e3a8a' }}>
-                                    Register →
-                                </Link>
-                            </p>
-
-                            {/* Dev-mode demo link — clearly scoped */}
-                            {import.meta.env.DEV && isLocalhost && (
-                                <div className="mt-8 rounded-xl p-4 text-left relative"
-                                    style={{ background: '#f8fafc', border: '1px dashed #cbd5e1' }}>
-                                    <div className="flex items-center justify-between mb-3">
-                                        <p className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5" style={{ color: '#7ba3c8' }}>
-                                            <Activity size={12} style={{ color: '#38bdf8' }} /> Development Mode
-                                        </p>
-                                    </div>
-
-                                    <p className="text-xs mb-3" style={{ color: '#7ba3c8' }}>Select a role below to bypass authentication and preview the provider portal.</p>
-
-                                    <div className="relative mb-3" ref={roleDropRef}>
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowRoleDrop(!showRoleDrop)}
-                                            className="w-full flex items-center justify-between p-3 rounded-lg text-sm font-semibold transition-colors focus:outline-none"
-                                            style={{ background: '#0a1e38', color: '#e2eaf4', border: '1px solid rgba(56,189,248,.2)' }}
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-2.5 h-2.5 rounded-full" style={{ background: ROLE_METADATA[selectedRole]?.color || '#38bdf8' }} />
-                                                {ROLE_METADATA[selectedRole]?.label || selectedRole}
-                                            </div>
-                                            <ChevronDown size={16} style={{ color: '#7ba3c8' }} />
-                                        </button>
-
-                                        {showRoleDrop && (
-                                            <div className="absolute top-full left-0 right-0 mt-1 rounded-lg overflow-hidden z-50 shadow-2xl"
-                                                style={{ background: '#071628', border: '1px solid rgba(56,189,248,.2)' }}>
-                                                <div className="max-h-60 overflow-y-auto p-1 py-1.5 space-y-0.5">
-                                                    {(['provider_admin', 'clinician', 'lab_tech', 'pharmacist', 'insurer', 'telehealth'] as UserRole[]).map(role => {
-                                                        const meta = ROLE_METADATA[role];
-                                                        if (!meta) return null;
-                                                        return (
-                                                            <button
-                                                                key={role}
-                                                                type="button"
-                                                                onClick={() => { setSelectedRole(role); setShowRoleDrop(false); }}
-                                                                className="w-full flex items-center justify-between p-2.5 rounded-md text-sm text-left hover:bg-white/5 transition-colors focus:outline-none focus:bg-white/10"
-                                                                style={{ color: selectedRole === role ? '#fff' : '#e2eaf4', background: selectedRole === role ? 'rgba(56,189,248,.1)' : 'transparent' }}
-                                                            >
-                                                                <div className="flex items-center gap-2">
-                                                                    <div className="w-2 h-2 rounded-full" style={{ background: meta.color }} />
-                                                                    <div>
-                                                                        <div className="font-semibold">{meta.label}</div>
-                                                                        <div className="text-[10px]" style={{ color: '#7ba3c8' }}>{meta.description?.split('.')[0]}</div>
-                                                                    </div>
-                                                                </div>
-                                                                {selectedRole === role && <Check size={14} style={{ color: '#38bdf8' }} />}
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        onClick={handleDemoLogin}
-                                        className="w-full flex items-center justify-center p-2.5 rounded-lg text-sm font-bold transition-all hover:opacity-90 active:scale-95"
-                                        style={{ background: 'rgba(56,189,248,.1)', color: '#38bdf8', border: '1px solid rgba(56,189,248,.2)' }}
-                                    >
-                                        Sign In as {ROLE_METADATA[selectedRole]?.label || selectedRole} <ArrowRight size={14} className="ml-1.5" />
-                                    </button>
-                                </div>
-                            )}
-                        </>
-                    )}
-                </div>
-            </div>
+        <div className="absolute inset-0 opacity-[0.025]">
+          <div
+            className="h-full w-full"
+            style={{
+              backgroundImage:
+                "linear-gradient(rgba(255,255,255,.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.8) 1px, transparent 1px)",
+              backgroundSize: "44px 44px",
+            }}
+          />
         </div>
-    );
+      </div>
+
+      <div className="relative z-10 flex h-full w-full flex-col justify-between px-10 xl:px-14 py-10">
+        {/* Brand */}
+        <div>
+          <Link
+            to="/"
+            className="inline-flex items-center gap-3 group"
+          >
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white shadow-sm">
+              <img
+                src={welliIcon}
+                alt="WelliRecord"
+                className="h-8 w-8 object-contain transition-transform duration-200 group-hover:scale-105"
+              />
+            </div>
+
+            <div className="flex flex-col">
+              <div className="flex items-baseline">
+                <span className="text-xl font-extrabold tracking-[-0.04em] text-white">
+                  Welli
+                </span>
+                <span className="text-xl font-normal tracking-[-0.04em] text-slate-300">
+                  Record
+                </span>
+                <sup className="ml-0.5 text-[8px] text-slate-400">
+                  TM
+                </sup>
+              </div>
+
+              <span className="mt-0.5 text-[8px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                One patient. One trusted record.
+              </span>
+            </div>
+          </Link>
+
+          {/* Portal badge */}
+          <div className="mt-12 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-300">
+              Provider Portal
+            </span>
+          </div>
+
+          {/* Main headline */}
+          <div className="mt-7 max-w-[480px]">
+            <h2 className="text-[38px] font-extrabold leading-[1.08] tracking-[-0.04em] text-white xl:text-[42px]">
+              Healthcare access,
+              <br />
+              <span className="text-slate-400">built around trust.</span>
+            </h2>
+
+            <p className="mt-5 max-w-[440px] text-[15px] leading-7 text-slate-400">
+              Connect your organisation to patient-owned records through
+              consent-aware access, verified identities, and complete
+              auditability.
+            </p>
+          </div>
+
+          {/* Enterprise capabilities */}
+          <div className="mt-10 space-y-5">
+            {BRAND_FEATURES.map(({ icon: Icon, title, desc }) => (
+              <div
+                key={title}
+                className="group flex items-start gap-4"
+              >
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.045] transition-colors group-hover:border-white/20 group-hover:bg-white/[0.08]">
+                  <Icon
+                    size={17}
+                    strokeWidth={1.7}
+                    className="text-slate-300"
+                  />
+                </div>
+
+                <div className="pt-0.5">
+                  <div className="text-sm font-semibold text-slate-100">
+                    {title}
+                  </div>
+
+                  <p className="mt-1 max-w-[390px] text-xs leading-5 text-slate-500">
+                    {desc}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Trust footer */}
+        <div>
+          <div className="mb-5 h-px w-full bg-white/10" />
+
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
+            {TRUST.map((item) => (
+              <div
+                key={item}
+                className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500"
+              >
+                <CheckCircle
+                  size={12}
+                  strokeWidth={1.8}
+                  className="text-slate-400"
+                />
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    {/* ================================================================
+        RIGHT — AUTHENTICATION AREA
+    ================================================================= */}
+    <main className="flex min-h-screen flex-1 items-center justify-center bg-[#f8fafc] px-5 py-8 sm:px-8 lg:px-12">
+      <div className="w-full max-w-[470px]">
+        {/* Top navigation */}
+        <button
+          onClick={() => {
+            if (step === "otp") {
+              handleBackToCredentials();
+              return;
+            }
+
+            navigate("/auth");
+          }}
+          className="group mb-8 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"
+        >
+          <ArrowLeft
+            size={15}
+            className="transition-transform group-hover:-translate-x-0.5"
+          />
+
+          {step === "otp"
+            ? "Back to sign in"
+            : "Back to portal selection"}
+        </button>
+
+        {/* Authentication card */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-7 shadow-[0_20px_60px_-30px_rgba(15,23,42,0.25)] sm:p-9">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="mb-3 flex items-center gap-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-[#1e3a8a]" />
+
+              <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                Secure provider access
+              </span>
+            </div>
+
+            <h1 className="text-[30px] font-extrabold leading-tight tracking-[-0.035em] text-slate-900">
+              {step === "otp"
+                ? "Verify your sign in"
+                : "Welcome back"}
+            </h1>
+
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              {step === "otp"
+                ? "Confirm your identity with the verification code we sent."
+                : "Sign in to securely access your organisation's provider workspace."}
+            </p>
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div className="mb-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3.5">
+              <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-red-100 text-[10px] font-bold text-red-600">
+                !
+              </div>
+
+              <p className="text-xs font-medium leading-5 text-red-700">
+                {error}
+              </p>
+            </div>
+          )}
+
+          {/* ============================================================
+              OTP
+          ========================================================== */}
+          {step === "otp" ? (
+            <form onSubmit={handleVerifyCode}>
+              <OTPForm
+                maskedPhone={maskedPhone}
+                maskedEmail={maskedEmail}
+                channel={channel}
+                code={code}
+                setCode={setCode}
+                isCodeValid={isCodeValid}
+                verifying={verifying}
+                handleResend={handleResend}
+                resending={resending}
+                timeLeft={timeLeft}
+                setTimeLeft={setTimeLeft}
+              />
+
+              <button
+                type="submit"
+                disabled={verifying || !isCodeValid}
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#173b82] px-4 py-3.5 text-sm font-bold text-white shadow-sm transition-all duration-200 hover:bg-[#12316c] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {verifying ? (
+                  <>
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                    Verifying...
+                  </>
+                ) : (
+                  <>
+                    Verify and continue
+                    <ArrowRight size={15} />
+                  </>
+                )}
+              </button>
+            </form>
+          ) : (
+            /* ============================================================
+               CREDENTIALS
+            ========================================================== */
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Email */}
+              <div>
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-600">
+                  Organisation email
+                </label>
+
+                <div className="relative">
+                  <Mail
+                    size={17}
+                    strokeWidth={1.8}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                  />
+
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@organisation.ng"
+                    required
+                    className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm font-medium text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-[#4266a8] focus:bg-white focus:ring-4 focus:ring-[#1e3a8a]/[0.07]"
+                  />
+                </div>
+              </div>
+
+              {/* Password */}
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <label className="text-xs font-bold uppercase tracking-wide text-slate-600">
+                    Password
+                  </label>
+
+                  <Link
+                    to="/forgot-password"
+                    className="text-xs font-semibold text-[#23458e] transition-colors hover:text-[#142e63] hover:underline"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
+
+                <div className="relative">
+                  <Lock
+                    size={17}
+                    strokeWidth={1.8}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                  />
+
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    required
+                    className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm font-medium text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-[#4266a8] focus:bg-white focus:ring-4 focus:ring-[#1e3a8a]/[0.07]"
+                  />
+                </div>
+              </div>
+
+              {/* Verification method */}
+              <div>
+                <div className="mb-2.5 text-xs font-bold uppercase tracking-wide text-slate-600">
+                  Verification method
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {/* SMS */}
+                  <label
+                    className={`relative flex cursor-pointer items-center gap-3 rounded-xl border p-3.5 transition-all ${
+                      channel === "sms"
+                        ? "border-[#31589d] bg-[#f4f7fc] ring-1 ring-[#31589d]/10"
+                        : "border-slate-200 bg-white hover:border-slate-300"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="otp-channel"
+                      checked={channel === "sms"}
+                      onChange={() => setChannel("sms")}
+                      className="sr-only"
+                    />
+
+                    <div
+                      className={`flex h-4 w-4 items-center justify-center rounded-full border ${
+                        channel === "sms"
+                          ? "border-[#1e3a8a]"
+                          : "border-slate-300"
+                      }`}
+                    >
+                      {channel === "sms" && (
+                        <div className="h-2 w-2 rounded-full bg-[#1e3a8a]" />
+                      )}
+                    </div>
+
+                    <div>
+                      <div className="text-xs font-bold text-slate-800">
+                        Text message
+                      </div>
+                      <div className="mt-0.5 text-[10px] text-slate-400">
+                        SMS verification
+                      </div>
+                    </div>
+                  </label>
+
+                  {/* Email */}
+                  <label
+                    className={`relative flex cursor-pointer items-center gap-3 rounded-xl border p-3.5 transition-all ${
+                      channel === "email"
+                        ? "border-[#31589d] bg-[#f4f7fc] ring-1 ring-[#31589d]/10"
+                        : "border-slate-200 bg-white hover:border-slate-300"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="otp-channel"
+                      checked={channel === "email"}
+                      onChange={() => setChannel("email")}
+                      className="sr-only"
+                    />
+
+                    <div
+                      className={`flex h-4 w-4 items-center justify-center rounded-full border ${
+                        channel === "email"
+                          ? "border-[#1e3a8a]"
+                          : "border-slate-300"
+                      }`}
+                    >
+                      {channel === "email" && (
+                        <div className="h-2 w-2 rounded-full bg-[#1e3a8a]" />
+                      )}
+                    </div>
+
+                    <div>
+                      <div className="text-xs font-bold text-slate-800">
+                        Email
+                      </div>
+                      <div className="mt-0.5 text-[10px] text-slate-400">
+                        Email verification
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="group flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#173b82] px-4 text-sm font-bold text-white shadow-sm transition-all duration-200 hover:bg-[#12316c] hover:shadow-lg hover:shadow-[#173b82]/10 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {loading ? (
+                  <>
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                    Signing you in...
+                  </>
+                ) : (
+                  <>
+                    Continue to provider portal
+                    <ArrowRight
+                      size={15}
+                      className="transition-transform group-hover:translate-x-0.5"
+                    />
+                  </>
+                )}
+              </button>
+            </form>
+          )}
+
+          {/* Registration */}
+          {step === "credentials" && (
+            <>
+              <div className="my-7 flex items-center gap-3">
+                <div className="h-px flex-1 bg-slate-100" />
+                <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+                  New organisation?
+                </span>
+                <div className="h-px flex-1 bg-slate-100" />
+              </div>
+
+              <Link
+                to="/auth/provider/signup"
+                className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-700 transition-all hover:border-slate-300 hover:bg-slate-50"
+              >
+                Register your organisation
+                <ArrowRight size={14} />
+              </Link>
+            </>
+          )}
+        </div>
+
+        {/* Security footer */}
+        <div className="mt-6 flex items-center justify-center gap-2 text-center">
+          <Shield
+            size={13}
+            strokeWidth={1.8}
+            className="text-slate-400"
+          />
+
+          <p className="text-[10px] font-medium leading-4 text-slate-400">
+            Secure access · Consent-aware · Fully auditable
+          </p>
+        </div>
+
+        {/* ================================================================
+            DEVELOPMENT MODE
+        ============================================================= */}
+        {/* {import.meta.env.DEV && isLocalhost && (
+          <div className="mt-6 rounded-2xl border border-dashed border-amber-200 bg-amber-50/50 p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-amber-100">
+                  <Activity
+                    size={13}
+                    className="text-amber-600"
+                  />
+                </div>
+
+                <div>
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-amber-700">
+                    Development mode
+                  </p>
+
+                  <p className="text-[10px] text-amber-600/70">
+                    Authentication bypass enabled
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div
+              className="relative"
+              ref={roleDropRef}
+            >
+              <button
+                type="button"
+                onClick={() => setShowRoleDrop(!showRoleDrop)}
+                className="flex h-11 w-full items-center justify-between rounded-xl border border-amber-200 bg-white px-3.5 text-left transition-colors hover:bg-amber-50"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{
+                      background:
+                        ROLE_METADATA[selectedRole]?.color ||
+                        "#38bdf8",
+                    }}
+                  />
+
+                  <span className="text-xs font-bold text-slate-700">
+                    {ROLE_METADATA[selectedRole]?.label ||
+                      selectedRole}
+                  </span>
+                </div>
+
+                <ChevronDown
+                  size={15}
+                  className={`text-slate-400 transition-transform ${
+                    showRoleDrop ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {showRoleDrop && (
+                <div className="absolute bottom-full left-0 right-0 z-50 mb-2 overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-2xl">
+                  {(
+                    [
+                      "provider_admin",
+                      "clinician",
+                      "lab_tech",
+                      "pharmacist",
+                      "insurer",
+                      "telehealth",
+                    ] as UserRole[]
+                  ).map((role) => {
+                    const meta = ROLE_METADATA[role];
+
+                    if (!meta) return null;
+
+                    const selected = selectedRole === role;
+
+                    return (
+                      <button
+                        key={role}
+                        type="button"
+                        onClick={() => {
+                          setSelectedRole(role);
+                          setShowRoleDrop(false);
+                        }}
+                        className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left transition-colors ${
+                          selected
+                            ? "bg-slate-50"
+                            : "hover:bg-slate-50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div
+                            className="h-2 w-2 rounded-full"
+                            style={{
+                              background: meta.color,
+                            }}
+                          />
+
+                          <div>
+                            <div className="text-xs font-bold text-slate-700">
+                              {meta.label}
+                            </div>
+
+                            <div className="mt-0.5 text-[9px] text-slate-400">
+                              {meta.description?.split(".")[0]}
+                            </div>
+                          </div>
+                        </div>
+
+                        {selected && (
+                          <Check
+                            size={14}
+                            className="text-[#1e3a8a]"
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={handleDemoLogin}
+              className="mt-2.5 flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#071a33] text-xs font-bold text-white transition-all hover:bg-[#0b2547]"
+            >
+              Preview as{" "}
+              {ROLE_METADATA[selectedRole]?.label ||
+                selectedRole}
+              <ArrowRight size={13} />
+            </button>
+          </div>
+        )} */}
+      </div>
+    </main>
+  </div>
+);
 }
