@@ -1,11 +1,8 @@
-/* ─────────────────────────────────────────────────────────────────────────────
-   WelliRecord Design System — index.css
-   Two-portal theming: Provider (navy/teal) + Patient (forest green/ochre)
-   ───────────────────────────────────────────────────────────────────────────── */
+
 
 @import "tailwindcss";
 
-/* ─── Global Anti-Copy Protection ─────────────────────────────────────────── */
+* ─── Global Anti-Copy Protection ─────────────────────────────────────────── */
 html, body {
   -webkit-user-select: none;
   -moz-user-select: none;
@@ -20,42 +17,6 @@ input, textarea, [contenteditable="true"] {
   -ms-user-select: text !important;
   user-select: text !important;
 }
-
-/* ─── CSS Variables ─────────────────────────────────────────────────────────── */
-/* Provider Portal — Deep Navy/Teal */
-/* :root {
-  --prov-bg: #050d1a;
-  --prov-surface: #01072b;
-  --prov-surface2: #0f2545;
-  --prov-primary: #041E42;
-  --prov-accent: #38bdf8;
-  --prov-accent2: #06b6d4;
-  --prov-border: #1e3a5f;
-  --prov-text: #e2eaf4;
-  --prov-muted: #7ba3c8;
-
-  --pat-bg: #f8fafc;
-  --pat-surface: #ffffff;
-  --pat-surface2: #f1f5f9;
-  --pat-primary: #0d9488;
-  --pat-primary2: #0f766e;
-  --pat-accent: #1e3a8a;
-  --pat-accent2: #1e293b;
-  --pat-border: #e2e8f0;
-  --pat-text: #1e293b;
-  --pat-muted: #64748b;
-
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
-  --radius-xl: 28px;
-
-  --shadow-sm: 0 1px 4px rgba(0, 0, 0, .08);
-  --shadow-md: 0 4px 20px rgba(0, 0, 0, .12);
-  --shadow-lg: 0 8px 40px rgba(0, 0, 0, .18);
-  --shadow-glow-blue: 0 0 30px rgba(4, 30, 66, .15);
-  --shadow-glow-green: 0 0 30px rgba(4, 30, 66, .15);
-} */
 
 
 :root {
@@ -116,13 +77,7 @@ input, textarea, [contenteditable="true"] {
 }
 
 /* ─── Base Reset ────────────────────────────────────────────────────────────── */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+
 
 html,
 body {

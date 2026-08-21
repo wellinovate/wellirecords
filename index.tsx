@@ -2,7 +2,8 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
-import { Web3Provider } from "./src/shared/auth/providers";
+import "./index.css";
+// import { Web3Provider } from "./src/shared/auth/providers";
 import "react-day-picker/style.css";
 
 // Automatically reload the page if a Vite dynamic import chunk fails to load
