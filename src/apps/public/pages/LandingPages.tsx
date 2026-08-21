@@ -292,11 +292,25 @@ export function Navbar() {
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6 lg:px-8">
         {/* Logo */}
         <div className="flex items-center min-w-0">
-          <Link to="/" className="flex items-center gap-2.5 cursor-pointer group">
-            <img src={welliIcon} alt="WelliRecord" className="h-8 w-8 sm:h-9 sm:w-9 object-contain flex-shrink-0 transition-transform group-hover:scale-105" />
+          <Link
+            to="/"
+            className="flex items-center gap-2.5 cursor-pointer group"
+          >
+            <img
+              src={welliIcon}
+              alt="WelliRecord"
+              className="h-8 w-8 sm:h-9 sm:w-9 object-contain flex-shrink-0 transition-transform group-hover:scale-105"
+            />
             <div className="flex flex-col leading-tight">
-              <span className="text-[#1e3a8a] font-black text-base sm:text-lg tracking-tight" style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '-0.02em' }}>
-                Welli<span className="font-normal">Record</span><sup className="text-[10px] font-normal align-super">™</sup>
+              <span
+                className="text-[#1e3a8a] font-black text-base sm:text-lg tracking-tight"
+                style={{
+                  fontFamily: "Inter, system-ui, sans-serif",
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                Welli<span className="font-normal">Record</span>
+                <sup className="text-[10px] font-normal align-super">™</sup>
               </span>
               <span className="text-[#1e3a8a] text-[7px] sm:text-[8px] font-bold tracking-[0.12em] uppercase opacity-70">
                 One patient. One trusted record. Accessible when it matters.
@@ -540,17 +554,20 @@ function Hero() {
         <div className="mt-12 sm:mt-16 pt-8 border-t border-slate-200/80 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs sm:text-sm font-semibold text-slate-600">
           <span className="inline-flex items-center gap-2">
             <Shield className="h-4 w-4 text-[#1F4E79]" />
-            <strong className="text-slate-800">End-to-End Encrypted</strong> · Zero-knowledge architecture
+            <strong className="text-slate-800">End-to-End Encrypted</strong> ·
+            Zero-knowledge architecture
           </span>
           <span className="hidden sm:inline text-slate-300">•</span>
           <span className="inline-flex items-center gap-2">
             <Lock className="h-4 w-4 text-[#1F4E79]" />
-            <strong className="text-slate-800">Patient-Owned Keys</strong> · You control access
+            <strong className="text-slate-800">Patient-Owned Keys</strong> · You
+            control access
           </span>
           <span className="hidden sm:inline text-slate-300">•</span>
           <span className="inline-flex items-center gap-2">
             <BadgeCheck className="h-4 w-4 text-emerald-600" />
-            <strong className="text-slate-800">NDPA Compliant</strong> · Fully compliant &amp; secured
+            <strong className="text-slate-800">NDPA Compliant</strong> · Fully
+            compliant &amp; secured
           </span>
         </div>
       </main>
@@ -656,9 +673,9 @@ function CoreSolutions() {
               </h3>
               <p className="mt-2 text-sm text-slate-600 leading-relaxed max-w-2xl">
                 The record does not depend entirely on internet connectivity.
-                Poor connectivity and unreliable infrastructure remain
-                barriers to digital-health adoption in Nigeria, so
-                WelliBridge provides multiple ways to access it.
+                Poor connectivity and unreliable infrastructure remain barriers
+                to digital-health adoption in Nigeria, so WelliBridge provides
+                multiple ways to access it.
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {welliBridgeChannels.map((channel) => (
@@ -805,9 +822,7 @@ function StakeholderCard({ label, icon: Icon }) {
 
 function Solutions() {
   return (
-    <section
-      className="bg-white py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 border-b border-slate-200/80"
-    >
+    <section className="bg-white py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 border-b border-slate-200/80">
       <div className="mx-auto max-w-7xl">
         <div id="ecosystem" className="scroll-mt-24">
           <SectionHeading
@@ -849,7 +864,10 @@ function StatsBar() {
       <div className="mx-auto max-w-5xl">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center divide-y sm:divide-y-0 sm:divide-x divide-slate-200/80">
           {stats.map((stat, idx) => (
-            <div key={stat.label} className={`pt-4 sm:pt-0 ${idx !== 0 ? "sm:pl-6" : ""}`}>
+            <div
+              key={stat.label}
+              className={`pt-4 sm:pt-0 ${idx !== 0 ? "sm:pl-6" : ""}`}
+            >
               <p className="text-4xl sm:text-5xl font-black text-[#002353] tracking-tight">
                 {stat.value}
               </p>
@@ -875,7 +893,8 @@ function VoicesHeading() {
           Voices Across Africa
         </span>
         <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-[#002353] leading-snug max-w-3xl mx-auto">
-          Join thousands across Nigeria and beyond who have taken control of their health data
+          Join thousands across Nigeria and beyond who have taken control of
+          their health data
         </h2>
       </div>
     </section>
@@ -900,7 +919,8 @@ function ConversionBanner() {
             Your health passport starts here.
           </h2>
           <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto mb-8 leading-relaxed">
-            Set up your free health vault in minutes, with no paperwork or waiting on records from your last hospital.
+            Set up your free health vault in minutes, with no paperwork or
+            waiting on records from your last hospital.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -927,7 +947,6 @@ function ConversionBanner() {
    LANDING FOOTER
 ───────────────────────────────────────────── */
 function LandingFooter() {
-
   const socialLinks = [
     {
       name: "Instagram",
@@ -967,7 +986,6 @@ function LandingFooter() {
   ];
   return (
     <footer className="relative overflow-hidden bg-[#f9fbfd] text-slate-700">
-
       {/* Background pattern */}
       <div
         className="absolute inset-0 pointer-events-none opacity-70"
@@ -990,19 +1008,20 @@ function LandingFooter() {
         }}
       />
 
-      
-
       <div className="relative mx-auto max-w-7xl px-6 pb-10 pt-16 sm:px-8 lg:px-12">
-
         {/* Main footer columns */}
         <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4 lg:gap-16">
-
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2.5">
-              <img src={welliIcon} alt="WelliRecord" className="h-8 w-8 object-contain" />
+              <img
+                src={welliIcon}
+                alt="WelliRecord"
+                className="h-8 w-8 object-contain"
+              />
               <span className="text-[#1e3a8a] font-black text-lg tracking-tight">
-                Welli<span className="font-normal">Record</span><sup className="text-[10px] font-normal">™</sup>
+                Welli<span className="font-normal">Record</span>
+                <sup className="text-[10px] font-normal">™</sup>
               </span>
             </div>
 
@@ -1038,9 +1057,7 @@ function LandingFooter() {
 
           {/* Product */}
           <div>
-            <p className="mb-5 text-sm font-bold text-slate-700">
-              Product
-            </p>
+            <p className="mb-5 text-sm font-bold text-slate-700">Product</p>
 
             <ul className="space-y-3 text-sm font-medium text-slate-500">
               <li>
@@ -1083,9 +1100,7 @@ function LandingFooter() {
 
           {/* Ecosystem */}
           <div>
-            <p className="mb-5 text-sm font-bold text-slate-700">
-              Ecosystem
-            </p>
+            <p className="mb-5 text-sm font-bold text-slate-700">Ecosystem</p>
 
             <ul className="space-y-3 text-sm font-medium text-slate-500">
               <li>
@@ -1110,9 +1125,7 @@ function LandingFooter() {
 
           {/* Company */}
           <div>
-            <p className="mb-5 text-sm font-bold text-slate-700">
-              Company
-            </p>
+            <p className="mb-5 text-sm font-bold text-slate-700">Company</p>
 
             <ul className="space-y-3 text-sm font-medium text-slate-500">
               <li>
@@ -1164,26 +1177,30 @@ function LandingFooter() {
         </div>
 
         {/* Social links */}
-        <div className="mt-14 flex justify-center">
-          <div className="flex items-center gap-10 lg:gap-10">
+        <div className="mt-10 sm:mt-14 flex justify-center px-4">
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-5 sm:gap-x-10 sm:gap-y-6">
             {socialLinks.map((social) => {
               const Icon = social.icon;
 
               return (
-                <div key={social.name} className="flex flex-col items-center gap-1">
-                <a
+                <div
                   key={social.name}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`Visit WelliRecord on ${social.name}`}
-                  className={`transition-all duration-200 hover:-translate-y-0.5 hover:opacity-70  ${social.className}`}
+                  className="flex min-w-[70px] flex-col items-center gap-1"
                 >
-                  <Icon size={15} />
-                </a>
-                <p className="text-xs">{social.handleName}</p>
-                </div>
+                  <a
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Visit WelliRecord on ${social.name}`}
+                    className={`transition-all duration-200 hover:-translate-y-0.5 hover:opacity-70 ${social.className}`}
+                  >
+                    <Icon size={15} />
+                  </a>
 
+                  <p className="text-center text-xs whitespace-nowrap">
+                    {social.handleName}
+                  </p>
+                </div>
               );
             })}
           </div>
@@ -1192,8 +1209,8 @@ function LandingFooter() {
         {/* Copyright */}
         <div className="mt-8 border-t border-slate-200/70 pt-6 text-center">
           <p className="text-xs text-slate-400">
-            © {new Date().getFullYear()} WelliRecord™ — WelliNovate Limited.
-            All rights reserved.
+            © {new Date().getFullYear()} WelliRecord™ — WelliNovate Limited. All
+            rights reserved.
           </p>
 
           <p className="mt-8 text-xs font-medium text-slate-400">
