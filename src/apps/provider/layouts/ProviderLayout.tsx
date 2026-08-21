@@ -1,6 +1,10 @@
 import { health_companion_image, logos, welliIcon } from "@/assets";
 import { NotificationBell } from "@/shared/ui/NotificationBell";
-import { getMyOrganization, type MyOrganization } from "@/shared/api/organizationApi";import { orgApi } from "@/shared/api/orgApi";
+import {
+  getMyOrganization,
+  type MyOrganization,
+} from "@/shared/api/organizationApi";
+import { orgApi } from "@/shared/api/orgApi";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { useWelliMate } from "@/shared/context/WelliMateContext";
 import { useNetwork } from "@/shared/hooks/useNetwork";
@@ -196,24 +200,25 @@ const BOTTOM_NAV = [
 ];
 
 // Copy for the verification lock modal, keyed by OrganizationProfile.verificationStatus.
-const VERIFICATION_LOCK_COPY: Record<string, { title: string; desc: string }> = {
-  not_submitted: {
-    title: "Verification Required",
-    desc: "Upload your CAC certificate or operating licence to start review and unlock full access.",
-  },
-  pending: {
-    title: "Verification In Progress",
-    desc: "Your documents are with our compliance team. This usually takes 24-48 hours.",
-  },
-  more_info_requested: {
-    title: "More Information Needed",
-    desc: "The reviewer requested additional documentation before your organisation can be approved.",
-  },
-  rejected: {
-    title: "Verification Rejected",
-    desc: "Your last submission was rejected. Review the note and re-upload a corrected document.",
-  },
-};
+const VERIFICATION_LOCK_COPY: Record<string, { title: string; desc: string }> =
+  {
+    not_submitted: {
+      title: "Verification Required",
+      desc: "Upload your CAC certificate or operating licence to start review and unlock full access.",
+    },
+    pending: {
+      title: "Verification In Progress",
+      desc: "Your documents are with our compliance team. This usually takes 24-48 hours.",
+    },
+    more_info_requested: {
+      title: "More Information Needed",
+      desc: "The reviewer requested additional documentation before your organisation can be approved.",
+    },
+    rejected: {
+      title: "Verification Rejected",
+      desc: "Your last submission was rejected. Review the note and re-upload a corrected document.",
+    },
+  };
 
 export function ProviderLayout() {
   const { user, signOut } = useAuth();
@@ -235,7 +240,8 @@ export function ProviderLayout() {
   const { isWelliMateEnabled, setWelliMateEnabled } = useWelliMate();
   const { can, roleMetadata, primaryRole } = useRBAC();
   const [devBypass, setDevBypass] = useState(() => {
-    const fromUrl = new URLSearchParams(window.location.search).get("dev_bypass") === "true";
+    const fromUrl =
+      new URLSearchParams(window.location.search).get("dev_bypass") === "true";
     if (fromUrl) {
       localStorage.setItem("dev_bypass", "true");
     }
@@ -252,7 +258,8 @@ export function ProviderLayout() {
   // at login). While org is still loading, treat access as unlocked
   // rather than flashing the lock modal for every provider on load.
   const verificationStatus = org?.verificationStatus ?? "not_submitted";
-  const isVerified = orgLoading || verificationStatus === "approved" || (isDev && devBypass);
+  const isVerified =
+    orgLoading || verificationStatus === "approved" || (isDev && devBypass);
   const isLocked = !isVerified;
 
   const [syncTime, setSyncTime] = useState(() => new Date());
@@ -297,15 +304,34 @@ export function ProviderLayout() {
       >
         {/* Logo */}
         <div className="px-3 py-4 border-b border-blue-950 flex flex-col items-center justify-center lg:items-start">
-          <Link to="/" className="flex items-center gap-2.5 cursor-pointer">
-            {/* Shield icon — always visible */}
-            <img src={welliIcon} alt="WelliRecord" className="h-9 w-9 object-contain flex-shrink-0" />
-            {/* Wordmark — only on lg+ sidebar */}
-            <div className="hidden lg:flex flex-col leading-tight">
-              <span className="text-white font-black text-lg" style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '-0.02em' }}>
-                Welli<span className="font-normal">Record</span><sup className="text-xs font-normal align-super">™</sup>
+          <Link
+            to="/"
+            className="inline-flex items-center gap-3 group"
+          >
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white shadow-sm">
+              <img
+                src={welliIcon}
+                alt="WelliRecord"
+                className="h-8 w-8 object-contain transition-transform duration-200 group-hover:scale-105"
+              />
+            </div>
+
+            <div className="flex flex-col">
+              <div className="flex items-baseline">
+                <span className="text-xl font-extrabold tracking-[-0.04em] text-white">
+                  Welli
+                </span>
+                <span className="text-xl font-normal tracking-[-0.04em] text-slate-300">
+                  Record
+                </span>
+                <sup className="ml-0.5 text-[8px] text-slate-400">
+                  TM
+                </sup>
+              </div>
+
+              <span className="mt-0.5 text-[8px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                One patient. One trusted record.
               </span>
-              <span className="text-blue-200 text-[8px] font-bold tracking-[0.12em] uppercase opacity-70">One patient. One trusted record. Accessible when it matters.</span>
             </div>
           </Link>
 
@@ -327,7 +353,6 @@ export function ProviderLayout() {
           style={{ borderColor: "var(--prov-border)" }}
         >
           <button
-            
             className="flex items-center gap-2 p-2 lg:p-2.5 rounded-xl w-full text-left hover:bg-white/5 justify-center lg:justify-start"
             // className="ml-2 lg:block text-[16px] font-bold rounded-lg tracking-widest uppercase mt-2 py-2 px-3 text-white"
             style={{
@@ -344,7 +369,11 @@ export function ProviderLayout() {
               }}
             >
               {org?.logo ? (
-                <img src={org.logo} alt={org.organizationName} className="w-full h-full object-cover" />
+                <img
+                  src={org.logo}
+                  alt={org.organizationName}
+                  className="w-full h-full object-cover"
+                />
               ) : (
                 orgApi.getOrgTypeIcon(org?.organizationType ?? "hospital")
               )}

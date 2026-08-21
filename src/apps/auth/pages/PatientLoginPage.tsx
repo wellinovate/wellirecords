@@ -91,12 +91,9 @@ function TextInput({
   );
 }
 
-
-
-
-
 export function PatientLoginPage() {
-  const { setUser, verifyLoginCodeApi, signIn, resendVerifyLoginCodeApi } = useAuth();
+  const { setUser, verifyLoginCodeApi, signIn, resendVerifyLoginCodeApi } =
+    useAuth();
   const navigate = useNavigate();
 
   const googleBtnRef = useRef<HTMLDivElement | null>(null);
@@ -150,10 +147,14 @@ export function PatientLoginPage() {
 
     try {
       setResending(true);
-      setCode("");         // clear existing OTP
-      setError("");        // clear error messages
+      setCode(""); // clear existing OTP
+      setError(""); // clear error messages
 
-      const res = await resendVerifyLoginCodeApi(challengeToken, form.email, channel);
+      const res = await resendVerifyLoginCodeApi(
+        challengeToken,
+        form.email,
+        channel,
+      );
       const payload = res?.data || res;
 
       if (!payload?.challengeToken) {
@@ -164,10 +165,9 @@ export function PatientLoginPage() {
       setChallengeToken(payload.challengeToken);
       setMaskedPhone(payload.maskedPhone || maskedPhone);
       setMaskedEmail(payload.maskedEmail || maskedEmail);
-      setTimeLeft(120);    // reset countdown only after a successful resend
+      setTimeLeft(120); // reset countdown only after a successful resend
 
       toast.success("OTP resent successfully");
-
     } catch (err: any) {
       console.error("Resend OTP error:", err);
       const message =
@@ -215,7 +215,7 @@ export function PatientLoginPage() {
       );
 
       const payload = res?.data || res;
-      console.log("🚀 ~ handleSubmitCredentials ~ payload:", payload)
+      console.log("🚀 ~ handleSubmitCredentials ~ payload:", payload);
 
       if (!payload?.requiresOtp || !payload?.challengeToken) {
         throw new Error("Login verification could not be started.");
@@ -300,20 +300,26 @@ export function PatientLoginPage() {
             variables: {
               patientName: profile?.fullName || account?.fullName || "",
               loginDateTime: new Date().toLocaleString(),
-              loginMethod: pendingGoogleAccountType ? "Google" : "Email & Password",
+              loginMethod: pendingGoogleAccountType
+                ? "Google"
+                : "Email & Password",
               deviceInfo: navigator.userAgent,
               dashboardUrl: `${window.location.origin}/dashboard`,
-              secureAccountUrl: `${window.location.origin}/security`
-            }
-          })
-        }).catch(err => console.error("Failed to send welcome-back email:", err));
+              secureAccountUrl: `${window.location.origin}/security`,
+            },
+          }),
+        }).catch((err) =>
+          console.error("Failed to send welcome-back email:", err),
+        );
       }
 
       if (account?.accountType !== "user") {
         Cookies.remove("accessToken");
         localStorage.removeItem("ui_user");
         setUser?.(null);
-        setError("This login is for patient accounts. Please use the provider portal to sign in.");
+        setError(
+          "This login is for patient accounts. Please use the provider portal to sign in.",
+        );
         toast.error("This login is for patient accounts.");
         setStep("credentials");
         return;
@@ -332,8 +338,6 @@ export function PatientLoginPage() {
       setVerifying(false);
     }
   };
-
-
 
   const handleBackToCredentials = () => {
     setStep("credentials");
@@ -421,10 +425,12 @@ export function PatientLoginPage() {
               loginMethod: "Google",
               deviceInfo: navigator.userAgent,
               dashboardUrl: `${window.location.origin}/dashboard`,
-              secureAccountUrl: `${window.location.origin}/security`
-            }
-          })
-        }).catch(err => console.error("Failed to send welcome-back email:", err));
+              secureAccountUrl: `${window.location.origin}/security`,
+            },
+          }),
+        }).catch((err) =>
+          console.error("Failed to send welcome-back email:", err),
+        );
       }
 
       redirectAfterLogin(data?.user?.accountType);
@@ -483,183 +489,405 @@ export function PatientLoginPage() {
   }, [step, profileType, googleClientId]);
 
   return (
-    <div className="min-h-screen bg-[#F3F4F5]">
+    <div className="min-h-screen bg-[#F6F8FB] text-[#071B3F]">
       <PreLoginHeader />
 
-      {/* PreLoginHeader is position: absolute (it needs to be, for
-          UserTypeSelectionLogin.tsx's layered background-image design) —
-          so it doesn't push this content down on its own. mt-20 (80px)
-          matches the height this div already assumes below via
-          calc(100vh-80px); without it, this content started at the very
-          top of the viewport and rendered directly under/behind the
-          logo instead of below it. */}
-      <div className="mt-20 flex h-[calc(100vh-80px)] flex-col justify-between">
-        <div className="px-6 py-4">
-          <button
-            onClick={() => {
-              if (step === "otp") {
-                handleBackToCredentials();
-              } else {
-                navigate(-1);
-              }
-            }}
-            className="flex items-center gap-2 text-[14px] text-[#0A2F6B] hover:underline"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            {step === "otp" ? "Back to Login" : "Back"}
-          </button>
-        </div>
+      <div className="mt-20 min-h-[calc(100vh-80px)]">
+    
+        <div className="mx-auto flex min-h-[calc(100vh-145px)] max-w-[1500px] px-4 pb-5 md:px-8">
+          {/* =========================================================
+            LEFT VISUAL PANEL
+        ========================================================= */}
+          <div className="relative hidden overflow-hidden rounded-2xl bg-[#E8EEF7] lg:block lg:w-[48%]">
+            <button
+              onClick={() => {
+                if (step === "otp") {
+                  handleBackToCredentials();
+                } else {
+                  navigate(-1);
+                }
+              }}
+              className="group absolute left-6 top-6 z-20 flex items-center gap-2 rounded-lg border border-white/40 bg-white/80 px-3.5 py-2 text-[13px] font-medium text-[#173A71] shadow-sm backdrop-blur-md transition-all hover:bg-white hover:shadow-md"
+            >
+              <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
 
-        <div className="flex h-full px-1">
-          <div className="relative hidden w-full flex-1 overflow-hidden bg-[#E8EDF2] md:block">
+              {step === "otp" ? "Back to Login" : "Back"}
+            </button>
             <img
               src={phone}
-              alt="Phone UI"
-              className="h-full w-full object-cover"
+              alt="WelliRecord secure health record"
+              className="absolute inset-0 h-full w-full object-cover"
             />
-            <div className="absolute left-0 top-0 h-[4px] w-full bg-[#071B3F]" />
+
+            {/* Soft overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#071B3F]/20 via-transparent to-transparent" />
+
+            {/* Top accent */}
+            <div className="absolute left-0 top-0 h-1 w-full bg-[#071B3F]" />
+
+            {/* Trust message */}
+            <div className="absolute bottom-8 left-8 right-8">
+              <div className="max-w-md rounded-xl border border-white/50 bg-white/80 p-5 shadow-lg backdrop-blur-md">
+                <div className="mb-3 flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#E5F3ED]">
+                    <svg
+                      className="h-4 w-4 text-[#16805C]"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+                      <path d="m9 12 2 2 4-4" />
+                    </svg>
+                  </div>
+
+                  <span className="text-sm font-semibold text-[#071B3F]">
+                    Your health records, protected
+                  </span>
+                </div>
+
+                <p className="text-sm leading-6 text-[#52647D]">
+                  Securely access your medical information whenever and wherever
+                  you need it.
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div className="flex w-full flex-1 items-start justify-center bg-[#F3F4F5] px-3">
-            <div className="mt-[70px] w-full max-w-[460px]">
+          {/* =========================================================
+            RIGHT AUTH PANEL
+        ========================================================= */}
+          <div className="flex w-full items-center justify-center mt-5 lg:w-[52%]">
+            <div className="w-full max-w-[500px] px-3 py-4 pt-0 md:px-6">
               {step === "credentials" && (
                 <>
-                  <h1 className="text-center text-[34px] font-extrabold text-[#062B67] md:text-[44px]">
-                    Welcome Back!
-                  </h1>
+                  {/* Header */}
+                  <div className="mb-2">
+                    <p className="mb-2 text-center text-xs font-semibold uppercase tracking-[0.18em] text-[#6881A3]">
+                      Secure Patient Access
+                    </p>
 
-                  <form
-                    onSubmit={handleSubmitCredentials}
-                    className="mt-12 space-y-8"
-                  >
-                    <TextInput
-                      label="Email"
-                      placeholder="johndoe@gmail.com"
-                      value={form.email}
-                      onChange={update("email")}
-                      disabled={loading || googleLoading}
-                    />
+                    <h1 className="text-center text-[32px] font-bold tracking-[-0.02em] text-[#071B3F] md:text-[38px]">
+                      Welcome back
+                    </h1>
 
-                    <PasswordInput
-                      label="Password"
-                      value={form.password}
-                      onChange={update("password")}
-                      disabled={loading || googleLoading}
-                    />
+                    <p className="mx-auto mt-2 max-w-sm text-center text-[14px] leading-6 text-[#68788E]">
+                      Sign in to securely access your WelliRecord health
+                      records.
+                    </p>
+                  </div>
 
-                    <div className="flex items-center gap-6 text-[14px] text-[#062B67]">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="otp-channel"
-                          checked={channel === "sms"}
-                          onChange={() => setChannel("sms")}
-                          disabled={loading || googleLoading}
-                        />
-                        Text me a code
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="otp-channel"
-                          checked={channel === "email"}
-                          onChange={() => setChannel("email")}
-                          disabled={loading || googleLoading}
-                        />
-                        Email me a code
-                      </label>
-                    </div>
-
-                    {error && (
-                      <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600">
-                        {error}
-                      </div>
-                    )}
-
-                    <div className="text-right text-[14px]">
-                      <Link to="/forgot-password" className="text-[#071B3F] hover:underline">
-                        Forgot Password?
-                      </Link>
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={loading || googleLoading || !isFormValid}
-                      className={`flex h-[46px] w-full items-center justify-center gap-2 rounded-md text-[18px] font-semibold text-white transition ${loading || googleLoading || !isFormValid
-                        ? "cursor-not-allowed bg-gray-400"
-                        : "bg-[#071B3F] hover:bg-[#0c2d66]"
-                        }`}
+                  {/* Form Card */}
+                  <div className="rounded-2xl border border-[#E1E7EF] bg-white p-6 shadow-[0_12px_40px_rgba(7,27,63,0.06)] md:p-8">
+                    <form
+                      onSubmit={handleSubmitCredentials}
+                      className="space-y-6"
                     >
-                      {loading ? (
-                        <>
-                          <Loader2 className="h-5 w-5 animate-spin" />
-                          Sending code...
-                        </>
-                      ) : (
-                        "Log In"
+                      {/* Email */}
+                      <TextInput
+                        label="Email address"
+                        placeholder="you@example.com"
+                        value={form.email}
+                        onChange={update("email")}
+                        disabled={loading || googleLoading}
+                      />
+
+                      {/* Password */}
+                      <PasswordInput
+                        label="Password"
+                        value={form.password}
+                        onChange={update("password")}
+                        disabled={loading || googleLoading}
+                      />
+
+                      {/* OTP Method */}
+                      <div>
+                        <div className="mb-3 flex items-center justify-between">
+                          <span className="text-[13px] font-semibold text-[#34445A]">
+                            Verification method
+                          </span>
+
+                          <span className="text-[12px] text-[#8996A8]">
+                            Required
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          {/* SMS */}
+                          <label
+                            className={`relative cursor-pointer rounded-xl border p-3.5 transition-all ${
+                              channel === "sms"
+                                ? "border-[#173A71] bg-[#F3F7FC] ring-1 ring-[#173A71]"
+                                : "border-[#DDE4EC] bg-white hover:border-[#AEBBCB]"
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="otp-channel"
+                              checked={channel === "sms"}
+                              onChange={() => setChannel("sms")}
+                              disabled={loading || googleLoading}
+                              className="sr-only"
+                            />
+
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                                  channel === "sms"
+                                    ? "bg-[#173A71] text-white"
+                                    : "bg-[#EEF2F7] text-[#52647D]"
+                                }`}
+                              >
+                                <svg
+                                  className="h-4 w-4"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                >
+                                  <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8Z" />
+                                </svg>
+                              </div>
+
+                              <div>
+                                <p className="text-[13px] font-semibold text-[#172B4D]">
+                                  Text message
+                                </p>
+                                <p className="mt-0.5 text-[11px] text-[#8996A8]">
+                                  Send via SMS
+                                </p>
+                              </div>
+                            </div>
+                          </label>
+
+                          {/* Email */}
+                          <label
+                            className={`relative cursor-pointer rounded-xl border p-3.5 transition-all ${
+                              channel === "email"
+                                ? "border-[#173A71] bg-[#F3F7FC] ring-1 ring-[#173A71]"
+                                : "border-[#DDE4EC] bg-white hover:border-[#AEBBCB]"
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="otp-channel"
+                              checked={channel === "email"}
+                              onChange={() => setChannel("email")}
+                              disabled={loading || googleLoading}
+                              className="sr-only"
+                            />
+
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                                  channel === "email"
+                                    ? "bg-[#173A71] text-white"
+                                    : "bg-[#EEF2F7] text-[#52647D]"
+                                }`}
+                              >
+                                <svg
+                                  className="h-4 w-4"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                >
+                                  <rect
+                                    x="3"
+                                    y="5"
+                                    width="18"
+                                    height="14"
+                                    rx="2"
+                                  />
+                                  <path d="m3 7 9 6 9-6" />
+                                </svg>
+                              </div>
+
+                              <div>
+                                <p className="text-[13px] font-semibold text-[#172B4D]">
+                                  Email
+                                </p>
+                                <p className="mt-0.5 text-[11px] text-[#8996A8]">
+                                  Send to your email
+                                </p>
+                              </div>
+                            </div>
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Error */}
+                      {error && (
+                        <div className="flex items-start gap-3 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+                          <div className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-red-500" />
+                          <span>{error}</span>
+                        </div>
                       )}
-                    </button>
 
-                    <div className="flex items-center gap-4">
-                      <div className="h-px flex-1 bg-gray-300" />
-                      <span className="text-[14px] text-gray-500">Or</span>
-                      <div className="h-px flex-1 bg-gray-300" />
-                    </div>
+                      {/* Forgot password */}
+                      <div className="flex justify-end">
+                        <Link
+                          to="/forgot-password"
+                          className="text-[13px] font-semibold text-[#173A71] transition-colors hover:text-[#071B3F] hover:underline"
+                        >
+                          Forgot password?
+                        </Link>
+                      </div>
 
-                    <div className="mx-auto flex w-[90%] justify-center">
+                      {/* Login */}
+                      <button
+                        type="submit"
+                        disabled={loading || googleLoading || !isFormValid}
+                        className={`flex h-[50px] w-full items-center justify-center gap-2 rounded-xl text-[15px] font-semibold text-white shadow-sm transition-all ${
+                          loading || googleLoading || !isFormValid
+                            ? "cursor-not-allowed bg-[#AAB4C2]"
+                            : "bg-[#071B3F] hover:-translate-y-[1px] hover:bg-[#0C2D66] hover:shadow-md active:translate-y-0"
+                        }`}
+                      >
+                        {loading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Sending verification code...
+                          </>
+                        ) : (
+                          "Continue"
+                        )}
+                      </button>
+
+                      {/* Divider */}
+                      <div className="flex items-center gap-4 py-1">
+                        <div className="h-px flex-1 bg-[#E3E7ED]" />
+                        <span className="text-[12px] font-medium text-[#9AA5B4]">
+                          OR
+                        </span>
+                        <div className="h-px flex-1 bg-[#E3E7ED]" />
+                      </div>
+
+                      <div className="mx-auto flex w-[90%] justify-center">
+                        {googleLoading ? (
+                          <div className="flex items-center gap-2 text-[16px] text-[#173A71]">
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                            Signing in with Google...
+                          </div>
+                        ) : (
+                          <div ref={googleBtnRef} />
+                        )}
+                      </div>
+                    </form>
+                    {/* Google */}
+                    {/* <div className="flex min-h-[44px] w-full justify-center">
                       {googleLoading ? (
-                        <div className="flex items-center gap-2 text-[16px] text-[#173A71]">
-                          <Loader2 className="h-5 w-5 animate-spin" />
+                        <div className="flex items-center gap-2 text-sm font-medium text-[#52647D]">
+                          <Loader2 className="h-4 w-4 animate-spin" />
                           Signing in with Google...
                         </div>
                       ) : (
                         <div ref={googleBtnRef} />
                       )}
-                    </div>
+                    </div> */}
 
-                    <div className="text-center text-[15px] text-gray-500">
-                      Don’t have an account?{" "}
+                    {/* Sign up */}
+                    <div className="mt-7 border-t border-[#EEF1F5] pt-6 text-center text-[13px] text-[#748196]">
+                      Don't have an account?{" "}
                       <Link
                         to="/auth/patient/signup"
-                        className="cursor-pointer font-bold text-[#071B3F] hover:text-[#0c2d66] underline underline-offset-2"
+                        className="font-semibold text-[#173A71] transition-colors hover:text-[#071B3F] hover:underline"
                       >
-                        Sign Up
+                        Create an account
                       </Link>
                     </div>
-                  </form>
+                  </div>
+
+                  {/* Security note */}
+                  <div className="mt-5 flex items-center justify-center gap-2 text-[11px] text-[#8996A8]">
+                    <svg
+                      className="h-3.5 w-3.5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <rect x="5" y="11" width="14" height="10" rx="2" />
+                      <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+                    </svg>
+
+                    <span>Your connection is secure and encrypted</span>
+                  </div>
                 </>
               )}
 
+              {/* =======================================================
+                OTP
+            ======================================================= */}
               {step === "otp" && (
                 <>
-                  <h1 className="text-center text-[32px] font-extrabold text-[#062B67] md:text-[40px]">
-                    Verify Login
-                  </h1>
+                  <div className="mb-9">
+                    <p className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.18em] text-[#6881A3]">
+                      Identity Verification
+                    </p>
 
-                  <form onSubmit={handleVerifyCode}>
-                    <OTPForm
-                      maskedPhone={maskedPhone}
-                      maskedEmail={maskedEmail}
-                      channel={channel}
-                      code={code}
-                      setCode={setCode}
-                      isCodeValid={isCodeValid}
-                      verifying={verifying}
-                      handleResend={handleResend}
-                      resending={resending}
-                      timeLeft={timeLeft}
-                      setTimeLeft={setTimeLeft}
-                    />
+                    <h1 className="text-center text-[32px] font-bold tracking-[-0.02em] text-[#071B3F] md:text-[38px]">
+                      Verify your login
+                    </h1>
 
-                    <button
-                      type="submit"
-                      disabled={verifying || !isCodeValid}
-                      className={`mt-6 w-full rounded-xl py-3 text-white font-bold transition-all ${verifying || !isCodeValid ? "bg-gray-400 cursor-not-allowed" : "bg-[#071B3F] hover:bg-[#0c2d66]"
+                    <p className="mx-auto mt-3 max-w-sm text-center text-[14px] leading-6 text-[#68788E]">
+                      Enter the verification code we sent to confirm your
+                      identity.
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-[#E1E7EF] bg-white p-6 shadow-[0_12px_40px_rgba(7,27,63,0.06)] md:p-8">
+                    <form onSubmit={handleVerifyCode}>
+                      <OTPForm
+                        maskedPhone={maskedPhone}
+                        maskedEmail={maskedEmail}
+                        channel={channel}
+                        code={code}
+                        setCode={setCode}
+                        isCodeValid={isCodeValid}
+                        verifying={verifying}
+                        handleResend={handleResend}
+                        resending={resending}
+                        timeLeft={timeLeft}
+                        setTimeLeft={setTimeLeft}
+                      />
+
+                      <button
+                        type="submit"
+                        disabled={verifying || !isCodeValid}
+                        className={`mt-7 flex h-[50px] w-full items-center justify-center rounded-xl text-[15px] font-semibold text-white transition-all ${
+                          verifying || !isCodeValid
+                            ? "cursor-not-allowed bg-[#AAB4C2]"
+                            : "bg-[#071B3F] hover:-translate-y-[1px] hover:bg-[#0C2D66] hover:shadow-md"
                         }`}
+                      >
+                        {verifying ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Verifying...
+                          </>
+                        ) : (
+                          "Verify and continue"
+                        )}
+                      </button>
+                    </form>
+                  </div>
+
+                  <div className="mt-5 flex items-center justify-center gap-2 text-[11px] text-[#8996A8]">
+                    <svg
+                      className="h-3.5 w-3.5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
                     >
-                      {verifying ? "Verifying..." : "Verify and Login"}
-                    </button>
-                  </form>
+                      <rect x="5" y="11" width="14" height="10" rx="2" />
+                      <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+                    </svg>
+
+                    <span>WelliRecord protects your personal health data</span>
+                  </div>
                 </>
               )}
             </div>
@@ -669,20 +897,6 @@ export function PatientLoginPage() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // import { phone } from "@/assets";
 // import { useAuth } from "@/shared/auth/AuthProvider";

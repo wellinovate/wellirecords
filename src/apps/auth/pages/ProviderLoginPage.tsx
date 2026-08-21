@@ -341,7 +341,7 @@ export function ProviderLoginPage() {
           </div>
 
           {/* Main headline */}
-          <div className="mt-7 max-w-[480px]">
+          <div className="mt-7 max-w-480px">
             <h2 className="text-[38px] font-extrabold leading-[1.08] tracking-[-0.04em] text-white xl:text-[42px]">
               Healthcare access,
               <br />
