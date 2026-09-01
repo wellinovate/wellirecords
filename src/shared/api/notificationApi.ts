@@ -44,6 +44,13 @@ export interface DeliverySummary {
   note: string;
 }
 
+export interface DeviceTokenPayload {
+  token: string;
+  platform: 'ios' | 'android' | 'web';
+  deviceName?: string;
+  appVersion?: string;
+}
+
 export const notificationApi = {
   list: async (page = 1, limit = 20): Promise<NotificationListResult> => {
     const res: any = await apiClient.get('/notifications', { params: { page, limit } });
@@ -62,6 +69,17 @@ export const notificationApi = {
 
   markAllAsRead: async () => {
     const res: any = await apiClient.patch('/notifications/read-all');
+    return res?.data;
+  },
+
+  // ─── Mobile / Web Device Push Token Registration ───────────────────────
+  registerDeviceToken: async (payload: DeviceTokenPayload): Promise<{ success: boolean; message?: string }> => {
+    const res: any = await apiClient.post('/notifications/device-token', payload);
+    return res?.data;
+  },
+
+  unregisterDeviceToken: async (token: string): Promise<{ success: boolean; message?: string }> => {
+    const res: any = await apiClient.delete('/notifications/device-token', { data: { token } });
     return res?.data;
   },
 
