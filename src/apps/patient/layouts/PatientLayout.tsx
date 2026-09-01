@@ -259,11 +259,10 @@ export function PatientLayout() {
                   <button
                     key={item.to}
                     onClick={() => navTo(item.to)}
-                    className={`sidebar-item sidebar-item-patient w-full ${active ? "active " : ""} ${
-                      !item.premium
-                        ? "opacity-60 grayscale text-gray-400 cursor-not-allowed"
-                        : "text-gray-800 font-semibold"
-                    }`}
+                    className={`sidebar-item sidebar-item-patient w-full ${active ? "active " : ""} ${!item.premium
+                      ? "opacity-60 grayscale text-gray-400 cursor-not-allowed"
+                      : "text-gray-800 font-semibold"
+                      }`}
                   >
                     <item.icon size={18} />
                     <span className="flex-1 text-left">{item.label}</span>
@@ -359,11 +358,10 @@ export function PatientLayout() {
                 onClick={() => navigate(item.to)}
                 disabled={!item.premium}
                 title={item.label}
-                className={`sidebar-item  sidebar-item-patient rounded-xl w-full ${active ? "active " : ""} justify-center lg:justify-start ${
-                  !item.premium
-                    ? "opacity-60 grayscale  text-gray-400 cursor-not-allowed"
-                    : "text-[#07335B]  font-semibold"
-                }`}
+                className={`sidebar-item  sidebar-item-patient rounded-xl w-full ${active ? "active " : ""} justify-center lg:justify-start ${!item.premium
+                  ? "opacity-60 grayscale  text-gray-400 cursor-not-allowed"
+                  : "text-[#07335B]  font-semibold"
+                  }`}
               >
                 <item.icon size={18} />
                 {!item.premium && (

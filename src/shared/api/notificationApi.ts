@@ -2,7 +2,7 @@ import apiClient from './apiClient';
 
 export interface AppNotification {
   _id: string;
-  type: 'appointment' | 'consent_request' | 'lab_result' | 'team_invite_accepted' | 'critical_alert' | 'system';
+  type: 'appointment' | 'consent_request' | 'lab_result' | 'team_invite_accepted' | 'critical_alert' | 'referral' | 'system';
   title: string;
   body: string;
   link: string | null;
