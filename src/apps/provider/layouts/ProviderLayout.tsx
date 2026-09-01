@@ -41,9 +41,14 @@ import {
   Users,
   Video,
   WifiOff,
+  X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { referralsApi } from "@/shared/api/referralsApi";
+import { io, Socket } from "socket.io-client";
+import Cookies from "js-cookie";
+import { apiUrl } from "@/shared/api/authApi";
 
 const ALL_NAV = [
   {
@@ -262,6 +267,55 @@ export function ProviderLayout() {
     orgLoading || verificationStatus === "approved" || (isDev && devBypass);
   const isLocked = !isVerified;
 
+  const [pendingReferralsCount, setPendingReferralsCount] = useState(0);
+
+  useEffect(() => {
+    const fetchPendingReferrals = () => {
+      referralsApi
+        .listReceived("pending")
+        .then((items) => {
+          if (Array.isArray(items)) {
+            setPendingReferralsCount(items.length);
+          }
+        })
+        .catch(() => {});
+    };
+
+    fetchPendingReferrals();
+    const interval = setInterval(fetchPendingReferrals, 60_000);
+
+    const token = Cookies.get("accessToken");
+    let socket: Socket | null = null;
+    if (token) {
+      const serverUrl =
+        import.meta.env.VITE_API_URL || apiUrl || "https://wellirecord.onrender.com";
+      try {
+        socket = io(serverUrl, {
+          auth: { token },
+          transports: ["websocket", "polling"],
+        });
+        const handleReferralChange = () => {
+          fetchPendingReferrals();
+        };
+        socket.on("referral_change", handleReferralChange);
+        socket.on("referral:created", handleReferralChange);
+        socket.on("referral:status_updated", handleReferralChange);
+      } catch (err) {
+        console.warn("Socket error in ProviderLayout:", err);
+      }
+    }
+
+    return () => {
+      clearInterval(interval);
+      if (socket) {
+        socket.off("referral_change");
+        socket.off("referral:created");
+        socket.off("referral:status_updated");
+        socket.disconnect();
+      }
+    };
+  }, []);
+
   const [syncTime, setSyncTime] = useState(() => new Date());
   useEffect(() => {
     const id = setInterval(() => setSyncTime(new Date()), 60_000);
@@ -438,7 +492,11 @@ export function ProviderLayout() {
                 <span className="hidden lg:block flex-1 text-left">
                   {item.label}
                 </span>
-                {item.badge ? (
+                {item.to === "/provider/referrals" && pendingReferralsCount > 0 ? (
+                  <span className="hidden lg:inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500 text-white shadow-sm ml-1 flex-shrink-0 animate-pulse">
+                    {pendingReferralsCount}
+                  </span>
+                ) : item.badge ? (
                   <span className="hidden lg:inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-sky-500/20 text-sky-300 border border-sky-500/30 uppercase tracking-wider ml-1 flex-shrink-0">
                     {item.badge}
                   </span>
@@ -670,6 +728,88 @@ export function ProviderLayout() {
           )}
         </main>
       </div>
+
+      {/* ─── Slide-over Drawer (mobile) ─── */}
+      {drawerOpen && (
+        <div className="fixed inset-0 z-50 flex md:hidden">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setDrawerOpen(false)}
+          />
+          <aside
+            className="relative flex flex-col w-72 max-w-[85vw] h-full shadow-2xl z-10"
+            style={{
+              background: "linear-gradient(180deg, #0B1730 0%, #081225 100%)",
+              borderRight: "1px solid rgba(120,150,255,0.15)",
+            }}
+          >
+            <div className="p-4 border-b border-blue-950 flex items-center justify-between">
+              <Link to="/" className="flex items-center gap-2.5" onClick={() => setDrawerOpen(false)}>
+                <img
+                  src={welliIcon}
+                  alt="WelliRecord"
+                  className="h-8 w-8 object-contain"
+                />
+                <span className="text-base font-extrabold text-white">
+                  Provider Portal
+                </span>
+              </Link>
+              <button
+                onClick={() => setDrawerOpen(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <nav className="flex-1 px-3 py-3 space-y-1 overflow-y-auto">
+              {navWithAccess.map((item) => {
+                const active = location.pathname.startsWith(item.to);
+                const locked = !item.hasAccess || isLocked;
+                return (
+                  <button
+                    key={item.to}
+                    onClick={() => {
+                      if (isLocked) return;
+                      if (!locked) {
+                        navigate(item.to);
+                        setDrawerOpen(false);
+                      }
+                    }}
+                    className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                      active ? "bg-white/15 text-white" : "text-slate-300 hover:bg-white/5"
+                    }`}
+                  >
+                    <item.icon size={18} />
+                    <span className="flex-1 text-left">{item.label}</span>
+                    {item.to === "/provider/referrals" && pendingReferralsCount > 0 ? (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500 text-white animate-pulse">
+                        {pendingReferralsCount}
+                      </span>
+                    ) : item.badge ? (
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-sky-500/20 text-sky-300 border border-sky-500/30">
+                        {item.badge}
+                      </span>
+                    ) : locked ? (
+                      <Lock size={14} className="text-slate-500" />
+                    ) : null}
+                  </button>
+                );
+              })}
+            </nav>
+
+            <div className="p-4 border-t border-blue-950">
+              <button
+                onClick={handleSignOut}
+                className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-sm font-semibold text-rose-400 hover:bg-rose-500/10"
+              >
+                <LogOut size={18} />
+                <span>Sign Out</span>
+              </button>
+            </div>
+          </aside>
+        </div>
+      )}
 
       {/* ─── Mobile Bottom Nav ─── */}
       <nav
