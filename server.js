@@ -8,6 +8,7 @@ import { MongoClient, ObjectId } from 'mongodb';
 import mongoose from 'mongoose';
 import chargeRoutes from './routes/charge.routes.js';
 import labTestCatalogRoutes from './routes/lab_test_catalog_routes.js';
+import chatbotRoutes from './routes/chatbot.routes.js';
 import { seedDefaultLabTestCatalog } from './services/lab_test_catalog_service.js';
 
 const app = express();
@@ -15,6 +16,7 @@ app.use(cors());
 app.use(express.json());
 app.use('/api', chargeRoutes);
 app.use('/api/lab-tests-catalog', labTestCatalogRoutes);
+app.use('/api', chatbotRoutes);
 
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
