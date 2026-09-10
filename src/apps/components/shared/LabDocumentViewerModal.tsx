@@ -21,6 +21,10 @@ export function LabDocumentViewerModal({ open, url, title, onClose }: Props) {
 
   if (!open) return null;
 
+  const inlineUrl = url.includes("/upload/")
+    ? url.replace("/upload/", "/upload/fl_attachment:false/")
+    : url;
+
   const handlePrint = () => {
     // Printing an iframe's own content (rather than window.print() on
     // the host page) is what makes this print the document itself, not
@@ -30,7 +34,7 @@ export function LabDocumentViewerModal({ open, url, title, onClose }: Props) {
     // contentWindow.print() is blocked by most browsers for
     // cross-origin content, which this always is (Cloudinary's domain,
     // not wellirecord.com).
-    const printWindow = window.open(url, "_blank");
+    const printWindow = window.open(inlineUrl, "_blank");
     if (!printWindow) return;
     printWindow.addEventListener("load", () => {
       printWindow.focus();
@@ -128,7 +132,7 @@ export function LabDocumentViewerModal({ open, url, title, onClose }: Props) {
                 The file couldn't be displayed here. It may still be reachable directly.
               </p>
               <a
-                href={url}
+                href={inlineUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs font-semibold text-blue-700 hover:underline"
@@ -139,7 +143,7 @@ export function LabDocumentViewerModal({ open, url, title, onClose }: Props) {
           )}
 
           <iframe
-            src={url}
+            src={inlineUrl}
             title={title || "Lab result document"}
             className="h-full w-full border-0"
             style={{ visibility: loaded ? "visible" : "hidden" }}
