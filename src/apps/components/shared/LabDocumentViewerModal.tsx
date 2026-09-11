@@ -15,15 +15,16 @@ type Props = {
 // handles both PDF and image attachments — browsers render PDFs natively
 // inside an iframe without needing a PDF.js dependency) and adds real
 // print/share/download actions.
+const rawApiBase = import.meta.env.VITE_API_BASE_URL || "https://wellirecord.onrender.com";
+const API_BASE_URL = rawApiBase.endsWith("/api/v1") ? rawApiBase : `${rawApiBase.replace(/\/+$/, "")}/api/v1`;
+
 export function LabDocumentViewerModal({ open, url, title, onClose }: Props) {
   const [loadFailed, setLoadFailed] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
   if (!open) return null;
 
-  const inlineUrl = url.includes("/upload/")
-    ? url.replace("/upload/", "/upload/fl_attachment:false/")
-    : url;
+  const proxiedUrl = `${API_BASE_URL}/lab-documents/proxy?url=${encodeURIComponent(url)}`;
 
   const handlePrint = () => {
     // Printing an iframe's own content (rather than window.print() on
@@ -34,7 +35,7 @@ export function LabDocumentViewerModal({ open, url, title, onClose }: Props) {
     // contentWindow.print() is blocked by most browsers for
     // cross-origin content, which this always is (Cloudinary's domain,
     // not wellirecord.com).
-    const printWindow = window.open(inlineUrl, "_blank");
+    const printWindow = window.open(proxiedUrl, "_blank");
     if (!printWindow) return;
     printWindow.addEventListener("load", () => {
       printWindow.focus();
@@ -132,7 +133,7 @@ export function LabDocumentViewerModal({ open, url, title, onClose }: Props) {
                 The file couldn't be displayed here. It may still be reachable directly.
               </p>
               <a
-                href={inlineUrl}
+                href={proxiedUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs font-semibold text-blue-700 hover:underline"
@@ -143,7 +144,7 @@ export function LabDocumentViewerModal({ open, url, title, onClose }: Props) {
           )}
 
           <iframe
-            src={inlineUrl}
+            src={proxiedUrl}
             title={title || "Lab result document"}
             className="h-full w-full border-0"
             style={{ visibility: loaded ? "visible" : "hidden" }}
