@@ -31,3 +31,4 @@ dist-ssr
 .firebase/
 .env
 .env*
+.vercel

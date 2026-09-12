@@ -61,12 +61,25 @@ export function SupportPage() {
               <div>
                 <h3 className="text-base font-semibold text-slate-900 mb-1">How do I delete my account?</h3>
                 <p className="text-slate-600 leading-8">
-                  You can delete your account and all associated data directly from the app under
-                  Settings → Privacy &amp; Security. See our{" "}
-                  <Link to="/delete-account" className="text-[#1e3a8a] hover:underline">
-                    account deletion page
-                  </Link>{" "}
-                  for details.
+                  You can permanently delete your WelliRecord account and all associated data
+                  directly from the app:
+                </p>
+                <ol className="list-decimal pl-5 space-y-1 text-slate-600 leading-8 mt-2">
+                  <li>Sign in to your WelliRecord account</li>
+                  <li>Go to <strong>Settings → Privacy &amp; Security</strong></li>
+                  <li>Select <strong>Delete Account</strong> and confirm</li>
+                </ol>
+                <p className="text-slate-600 leading-8 mt-2">
+                  This permanently removes your profile, health records, medications, diagnoses,
+                  vitals, and any consent grants you've issued to providers. Data is purged within
+                  30 days, except where retention is required by Nigerian law.
+                </p>
+                <p className="text-slate-600 leading-8 mt-2">
+                  If you can't access the app, email{" "}
+                  <a href="mailto:privacy@wellirecord.com" className="text-[#1e3a8a] hover:underline">
+                    privacy@wellirecord.com
+                  </a>{" "}
+                  from your account's registered email and we'll process the deletion within 30 days.
                 </p>
               </div>
             </div>
