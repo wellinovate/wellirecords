@@ -62,9 +62,9 @@ const routes = [
   '/auth/pre-signup',
   '/auth/patient/signup',
   '/auth/provider/signup',
-  '/support',
+'/support',
   '/delete-account',
-
+];
 const isVercel = !!process.env.VERCEL;
 
 async function getBrowser() {
