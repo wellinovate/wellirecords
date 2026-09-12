@@ -64,8 +64,6 @@ const routes = [
   '/auth/provider/signup',
   '/support',
   '/delete-account',
-  '/test-route-xyz123',
-];
 
 const isVercel = !!process.env.VERCEL;
 

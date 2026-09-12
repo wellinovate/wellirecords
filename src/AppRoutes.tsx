@@ -561,12 +561,8 @@ export function AppRoutes() {
         <Route path="/about" element={<AboutUsPage />} />
         <Route path="/support" element={<SupportPage />} />
         <Route path="/delete-account" element={<DeleteAccountPage />} />
-        <Route path="/test-route-xyz123" element={<SupportPage />} />
-        <Route path="/blog" element={<BlogPage />} />
         <Route path="/blog/:slug" element={<BlogPage />} />
-
-        {/* Auth */}
-        <Route
+           {/* Auth */}        <Route
           path="/auth/login"
           element={
             <PublicOnlyRoute>
