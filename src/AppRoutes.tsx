@@ -18,6 +18,8 @@ import { SecurityPage } from "@/apps/public/pages/SecurityPage";
 import { PrivacyPolicyPage } from "@/apps/public/pages/PrivacyPolicyPage";
 import { TermsOfServicePage } from "@/apps/public/pages/TermsOfServicePage";
 import { AboutUsPage } from "@/apps/public/pages/AboutUsPage";
+import { SupportPage } from "@/apps/public/pages/SupportPage";
+import { DeleteAccountPage } from "@/apps/public/pages/DeleteAccountPage";
 import LandingPages from "./apps/public/pages/LandingPages";
 
 // ─── Blog Page (lazy) ─────────────────────────────────────────────────────────
@@ -557,6 +559,8 @@ export function AppRoutes() {
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
         <Route path="/terms" element={<TermsOfServicePage />} />
         <Route path="/about" element={<AboutUsPage />} />
+        <Route path="/support" element={<SupportPage />} />
+        <Route path="/delete-account" element={<DeleteAccountPage />} />
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/blog/:slug" element={<BlogPage />} />
 
