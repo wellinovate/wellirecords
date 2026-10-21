@@ -169,6 +169,16 @@ const PatientSettingsPage = lazy(() =>
     default: m.PatientSettingsPage,
   })),
 );
+const BecomeProviderPage = lazy(() =>
+  import("@/apps/patient/pages/BecomeProviderPage").then((m) => ({
+    default: m.BecomeProviderPage,
+  })),
+);
+const PractitionerProfilePage = lazy(() =>
+  import("@/apps/provider/pages/PractitionerProfilePage").then((m) => ({
+    default: m.PractitionerProfilePage,
+  })),
+);
 const FindCarePage = lazy(() =>
   import("@/apps/patient/pages/FindCarePage").then((m) => ({
     default: m.FindCarePage,
@@ -663,6 +673,7 @@ export function AppRoutes() {
           <Route path="appointments" element={<AppointmentsPage />} />
           <Route path="messages" element={<MessagesPage />} />
           <Route path="find-care" element={<FindCarePage />} />
+          <Route path="become-provider" element={<BecomeProviderPage />} />
           <Route path="insurance" element={<PatientInsurancePage />} />
           <Route path="family" element={<FamilyManagementPage />} />
           <Route path="dependants/:id" element={<ChildProfilePage />} />
@@ -708,6 +719,7 @@ export function AppRoutes() {
           <Route path="insurance" element={<ProviderInsurancePage />} />
           <Route path="team" element={<TeamManagementPage />} />
           <Route path="settings" element={<ProviderSettingsPage />} />
+          <Route path="practitioner-profile" element={<PractitionerProfilePage />} />
           <Route path="audit-logs" element={<AuditLogsPage />} />
           <Route path="integrations/api-keys" element={<IntegrationsPage />} />
           <Route path="public-health" element={<PublicHealthDashboard />} />

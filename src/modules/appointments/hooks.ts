@@ -62,6 +62,7 @@ export const useAppointments = (
     providerId?: string | null;
     scheduledFor: string;
     reasonForVisit?: string;
+    visitType?: "in_person" | "virtual";
   }) => {
     await createAppointmentApi(payload);
     await fetchAppointments();

@@ -20,6 +20,7 @@ import {
   Lock,
   LogOut,
   MapPin,
+  Stethoscope,
   Menu,
   MoreHorizontal,
   Pill,
@@ -91,6 +92,13 @@ const patientNav = [
     label: "Find Care",
     icon: MapPin,
     premium: true,
+  },
+
+  {
+    to: "/patient/become-provider",
+    label: "Work as a provider",
+    icon: Stethoscope,
+    premium: false,
   },
 
   {
