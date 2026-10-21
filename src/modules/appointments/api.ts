@@ -50,6 +50,8 @@ export const createAppointmentApi = async (payload: {
   providerId?: string | null;
   scheduledFor: string;
   reasonForVisit?: string;
+  visitType?: "in_person" | "virtual";
+  durationMin?: number;
 }) => {
   const { data } = await api.post(`${apiUrl}/api/v1/appointments`, payload, {
     headers: getAuthHeader(),

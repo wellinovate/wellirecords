@@ -171,6 +171,12 @@ const ALL_NAV = [
     roles: ["provider_admin"],
   },
   {
+    to: "/provider/practitioner-profile",
+    label: "My practice",
+    icon: UserCog,
+    roles: ["provider_admin"],
+  },
+  {
     to: "/provider/settings",
     label: "Settings",
     icon: Settings2,

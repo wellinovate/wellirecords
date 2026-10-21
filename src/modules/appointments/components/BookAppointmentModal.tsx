@@ -24,6 +24,7 @@ type Props = {
     providerId?: string | null;
     scheduledFor: string;
     reasonForVisit?: string;
+    visitType?: "in_person" | "virtual";
   }) => Promise<void>;
   patientId: string;
   organizationId: string;
@@ -63,6 +64,7 @@ export function BookAppointmentModal({
   const [scheduledDate, setScheduledDate] = useState("");
   const [scheduledTime, setScheduledTime] = useState("");
   const [reasonForVisit, setReasonForVisit] = useState("");
+  const [visitType, setVisitType] = useState<"in_person" | "virtual">("in_person");
   const [submitting, setSubmitting] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
 
@@ -146,6 +148,7 @@ export function BookAppointmentModal({
     setScheduledDate("");
     setScheduledTime("");
     setReasonForVisit("");
+    setVisitType("in_person");
     setSelectedDate(undefined);
     setSlotData([]);
   };
@@ -181,6 +184,7 @@ export function BookAppointmentModal({
         providerId: providerId || null,
         scheduledFor,
         reasonForVisit: reasonForVisit.trim() || undefined,
+        visitType,
       });
       handleClose();
     } finally {
@@ -363,6 +367,25 @@ export function BookAppointmentModal({
                 })}
               </div>
             )}
+          </div>
+
+          {/* ── Visit type ── */}
+          <div className="space-y-1.5">
+            <span className="text-xs font-bold text-slate-800">Visit type</span>
+            <div className="grid grid-cols-2 gap-2">
+              {([["in_person", "In person"], ["virtual", "Video visit"]] as const).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setVisitType(value)}
+                  className={`rounded-xl border px-3 py-2.5 text-xs font-semibold transition ${
+                    visitType === value ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 bg-white text-slate-600"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* ── Step 3: Reason for Visit (Explicitly Optional) ── */}

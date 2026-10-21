@@ -22,6 +22,8 @@ export type Appointment = {
   } | null;
   scheduledFor: string;
   reasonForVisit?: string | null;
+  visitType?: "in_person" | "virtual";
+  durationMin?: number;
   status: AppointmentStatus;
   createdAt: string;
   updatedAt: string;

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { CheckCircle, Clock, UserCheck, X } from 'lucide-react';
+import { CheckCircle, Clock, UserCheck, Video, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import {
     getAppointmentsApi,
     checkInAppointmentApi,
@@ -142,6 +143,13 @@ export function AppointmentQueuePage() {
                                     style={{ background: st.bg, color: st.color }}>
                                     <StIcon size={10} /> {st.label}
                                 </span>
+                                {item.visitType === 'virtual' && canAdvance && (
+                                    <Link to={`/provider/telemedicine/session/${item._id}`}
+                                        className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg flex-shrink-0 transition-all hover:-translate-y-0.5"
+                                        style={{ background: 'rgba(56,189,248,0.15)', color: '#38bdf8' }}>
+                                        <Video size={11} /> Join video
+                                    </Link>
+                                )}
                                 {canAdvance && (
                                     <button onClick={() => advance(item)} disabled={isBusy}
                                         className="text-[11px] font-bold px-3 py-1.5 rounded-lg flex-shrink-0 transition-all hover:-translate-y-0.5 disabled:opacity-60"

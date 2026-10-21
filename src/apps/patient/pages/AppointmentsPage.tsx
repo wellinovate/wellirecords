@@ -101,7 +101,7 @@ function UpcomingCard({
   onCancel: (id: string) => void;
 }) {
   const statusUI = getStatus(apt.status);
-  const isVirtual = !apt.providerId;
+  const isVirtual = apt.visitType === "virtual";
   const countdown = apt.scheduledFor ? getCountdown(apt.scheduledFor) : null;
 
   return (
@@ -174,9 +174,9 @@ function UpcomingCard({
 
               {/* Action buttons */}
               <div className="mt-4 flex flex-wrap gap-2">
-                {isVirtual && apt.status === "booked" && (
+                {isVirtual && (apt.status === "booked" || apt.status === "checked-in") && (
                   <Link
-                    to={`/patient/telemedicine`}
+                    to={`/patient/telemedicine/room/${apt._id}`}
                     className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all"
                     style={{
                       background: "rgba(37,99,235,0.10)",
@@ -184,7 +184,7 @@ function UpcomingCard({
                       color: "#2563eb",
                     }}
                   >
-                    <Video size={12} /> Join Telemedicine
+                    <Video size={12} /> Join video visit
                   </Link>
                 )}
                 {apt.status === "booked" && (
