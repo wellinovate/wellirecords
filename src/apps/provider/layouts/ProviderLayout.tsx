@@ -50,7 +50,7 @@ import { io, Socket } from "socket.io-client";
 import Cookies from "js-cookie";
 import { apiUrl } from "@/shared/api/authApi";
 
-const ALL_NAV = [
+const ALL_NAV: { to: string; label: string; icon: any; roles: string[]; badge?: string }[] = [
   {
     to: "/provider/overview",
     label: "Overview",
@@ -141,10 +141,9 @@ const ALL_NAV = [
 
   {
     to: "/provider/telemedicine",
-    label: "Telemedicine",
+    label: "App bookings",
     icon: Video,
-    roles: ["clinician", "provider_admin", "telehealth_provider"],
-    badge: "Soon",
+    roles: ["clinician", "provider_admin", "telehealth_provider", "doctor", "frontdesk"],
   },
   {
     to: "/provider/referrals",

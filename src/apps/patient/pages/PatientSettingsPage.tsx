@@ -25,6 +25,7 @@ import { Link, useNavigate, useLocation, useSearchParams } from "react-router-do
 import { health_companion_image } from "@/assets";
 import { fetchProfile } from "@/shared/utils/utilityFunction";
 import { toast } from "react-toastify";
+import { MobileLinkCard } from "@/shared/ui/MobileLinkCard";
 
 type SettingsTab = "profile" | "notifications" | "wearables" | "identity";
 
@@ -1077,6 +1078,7 @@ export function PatientSettingsPage() {
               )}
 
               <DataPortabilitySection />
+              <MobileLinkCard />
             </>
           )}
 

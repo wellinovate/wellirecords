@@ -3,12 +3,12 @@ import { Room, RoomEvent, Track, RemoteTrack, RemoteParticipant } from "livekit-
 import { Mic, MicOff, Video, VideoOff, PhoneOff, Clock, AlertTriangle, Loader2 } from "lucide-react";
 import { getJoinInfo, JoinError } from "@/shared/api/telehealthApi";
 
-type Props = { appointmentId: string; selfLabel: string; otherLabel: string; onLeave: () => void };
+type Props = { appointmentId: string; selfLabel: string; otherLabel: string; onLeave: () => void; getJoin?: (id: string) => Promise<{ url: string; token: string }> };
 type Phase = "loading" | "waiting" | "connecting" | "live" | "error";
 
 const fmt = (iso?: string) => (iso ? new Date(iso).toLocaleString("en-NG", { timeZone: "Africa/Lagos", dateStyle: "medium", timeStyle: "short" }) : "");
 
-export function VideoRoom({ appointmentId, selfLabel, otherLabel, onLeave }: Props) {
+export function VideoRoom({ appointmentId, selfLabel, otherLabel, onLeave, getJoin }: Props) {
   const [phase, setPhase] = useState<Phase>("loading");
   const [message, setMessage] = useState("");
   const [opensAt, setOpensAt] = useState<string | undefined>();
@@ -33,7 +33,7 @@ export function VideoRoom({ appointmentId, selfLabel, otherLabel, onLeave }: Pro
   const connect = useCallback(async () => {
     setPhase("loading");
     try {
-      const info = await getJoinInfo(appointmentId);
+      const info = await (getJoin || getJoinInfo)(appointmentId);
       setPhase("connecting");
       const room = new Room({ adaptiveStream: true, dynacast: true });
       roomRef.current = room;
@@ -62,7 +62,7 @@ export function VideoRoom({ appointmentId, selfLabel, otherLabel, onLeave }: Pro
       setMessage(e instanceof Error ? e.message : "Could not join the visit.");
       setPhase("error");
     }
-  }, [appointmentId, attach]);
+  }, [appointmentId, attach, getJoin]);
 
   useEffect(() => {
     connect();
