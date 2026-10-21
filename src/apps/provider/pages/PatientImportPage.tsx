@@ -20,6 +20,8 @@ import {
   type ImportResult,
   type LocalCustomerStats,
 } from "@/shared/api/localCustomersApi";
+import { startRecordLink } from "@/shared/api/recordLinksApi";
+import { RecordLinksPanel } from "@/apps/provider/components/RecordLinksPanel";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const T = {
@@ -324,7 +326,10 @@ function ImportResultCard({ result, onDone }: { result: ImportResult; onDone: ()
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export function PatientImportPage() {
-  const [activeTab, setActiveTab] = useState<"import" | "patients" | "dashboard">("import");
+  const [activeTab, setActiveTab] = useState<"import" | "patients" | "linking" | "dashboard">("import");
+  const [linkKey, setLinkKey] = useState(0);
+  const [linkModal, setLinkModal] = useState<{ patient: LocalCustomer; link: string; hint: string } | null>(null);
+  const [linkError, setLinkError] = useState<string | null>(null);
 
   // Import tab state
   const [parsedRows, setParsedRows] = useState<Record<string, any>[]>([]);
@@ -443,6 +448,18 @@ export function PatientImportPage() {
     } catch {}
   };
 
+  const handleStartLink = async (patient: LocalCustomer) => {
+    setLinkError(null);
+    try {
+      const res = await startRecordLink(patient._id);
+      setLinkModal({ patient, link: res.url, hint: res.phoneHint });
+      setLinkKey((k) => k + 1);
+    } catch (err: any) {
+      setLinkError(err?.response?.data?.message || "Could not start the link.");
+      showNotification(err?.response?.data?.message || "Could not start the link.");
+    }
+  };
+
   const handleBulkInvite = async () => {
     if (!confirm("Are you sure you want to generate invitations for all uninvited patients?")) return;
     setBulkInviting(true);
@@ -460,6 +477,7 @@ export function PatientImportPage() {
   const tabs = [
     { id: "import" as const,     label: "Import & Sync", icon: Upload },
     { id: "patients" as const,   label: "Imported Patients", icon: Users },
+    { id: "linking" as const,     label: "Record linking", icon: Link2 },
     { id: "dashboard" as const,  label: "Sync Dashboard", icon: BarChart3 },
   ];
 
@@ -765,6 +783,18 @@ export function PatientImportPage() {
                               >
                                 <AlertCircle size={13} />
                                 <span>Review Candidates</span>
+                              </button>
+                            )}
+
+                            {/* Record linking */}
+                            {c.invitationStatus !== "linked" && c.matchStatus !== "matched" && c.phone && (
+                              <button
+                                onClick={() => handleStartLink(c)}
+                                className="px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1"
+                                style={{ background: `${T.success}20`, color: T.success }}
+                              >
+                                <Link2 size={13} />
+                                <span>Link to WelliRecord</span>
                               </button>
                             )}
 
@@ -1079,6 +1109,51 @@ export function PatientImportPage() {
               className="w-full py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 transition"
             >
               Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Record linking tab ─────────────────────────────────────────────── */}
+      {activeTab === "linking" && <RecordLinksPanel refreshKey={linkKey} />}
+
+      {/* ── Record link created ────────────────────────────────────────────── */}
+      {linkModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" role="dialog" aria-modal="true">
+          <div className="w-full max-w-md rounded-3xl p-6 space-y-4 border" style={{ background: T.card, borderColor: `${T.success}40` }}>
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-base text-white">Link created for {linkModal.patient.fullName}</h3>
+              <button onClick={() => { setLinkModal(null); setCopiedLink(false); }} className="text-slate-400 hover:text-white"><X size={18} /></button>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Send this link to the patient. They confirm with a code we text to <strong className="text-white">{linkModal.hint}</strong>, the number on your record, then give consent. You review and release the record afterwards. This link is shown once; if lost, cancel it in Record linking and start a new one.
+            </p>
+            <div className="p-3 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
+              <p className="text-[11px] font-mono text-emerald-400 break-all">{linkModal.link}</p>
+              <button
+                onClick={() => { navigator.clipboard.writeText(linkModal.link); setCopiedLink(true); setTimeout(() => setCopiedLink(false), 2000); }}
+                className="w-full py-2 rounded-xl font-bold text-xs bg-slate-800 hover:bg-slate-700 text-white border border-slate-700"
+              >
+                {copiedLink ? "Copied" : "Copy link"}
+              </button>
+            </div>
+            {linkModal.patient.phone && (
+              <a
+                href={`https://wa.me/${linkModal.patient.phone.replace(/\D/g, "").replace(/^0/, "234")}?text=${encodeURIComponent(
+                  `Hello ${linkModal.patient.firstName || linkModal.patient.fullName}, your hospital started linking your record to your WelliRecord account. Open this link to confirm it is you and choose what to share: ${linkModal.link}`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-2.5 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center gap-2"
+              >
+                <MessageSquare size={16} /><span>Send via WhatsApp</span>
+              </a>
+            )}
+            <button
+              onClick={() => { setLinkModal(null); setActiveTab("linking"); }}
+              className="w-full py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-slate-800"
+            >
+              Open Record linking
             </button>
           </div>
         </div>
