@@ -337,6 +337,12 @@ const ProviderTelemedicinePage = lazy(() =>
     default: m.ProviderTelemedicinePage,
   })),
 );
+const MobileBookingPage = lazy(() =>
+  import("@/apps/provider/pages/MobileBookingPage").then((m) => ({ default: m.MobileBookingPage }))
+);
+const MobileVisitRoomPage = lazy(() =>
+  import("@/apps/provider/pages/MobileVisitRoomPage").then((m) => ({ default: m.MobileVisitRoomPage }))
+);
 const TeleConsultSessionPage = lazy(() =>
   import("@/apps/provider/pages/TeleConsultSessionPage").then((m) => ({
     default: m.TeleConsultSessionPage,
@@ -723,7 +729,9 @@ export function AppRoutes() {
           <Route path="audit-logs" element={<AuditLogsPage />} />
           <Route path="integrations/api-keys" element={<IntegrationsPage />} />
           <Route path="public-health" element={<PublicHealthDashboard />} />
-          <Route path="telemedicine" element={<ProviderTelemedicinePage />} />
+          <Route path="telemedicine" element={<MobileBookingPage />} />
+          <Route path="app-bookings" element={<MobileBookingPage />} />
+          <Route path="app-bookings/visit/:visitId" element={<MobileVisitRoomPage />} />
           <Route
             path="telemedicine/session/:sessionId"
             element={<TeleConsultSessionPage />}
