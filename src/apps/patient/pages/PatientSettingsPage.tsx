@@ -1078,7 +1078,7 @@ export function PatientSettingsPage() {
 </>
               )}
 
-              <ResidenceCard key={profile?.residenceState ?? "loading"} initialState={profile?.residenceState || ""} registeredIn={profile?.registrationState || ""} />
+              <ResidenceCard key={profile?.residenceState ?? "loading"} initialState={profile?.residenceState || ""} initialLga={profile?.lgaText || profile?.residenceLga || ""} initialLgaCode={profile?.lgaCode || ""} registeredIn={profile?.registrationState || ""} />
               <DataPortabilitySection />
               <MobileLinkCard />
             </>
