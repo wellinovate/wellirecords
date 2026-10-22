@@ -26,6 +26,7 @@ import { health_companion_image } from "@/assets";
 import { fetchProfile } from "@/shared/utils/utilityFunction";
 import { toast } from "react-toastify";
 import { MobileLinkCard } from "@/shared/ui/MobileLinkCard";
+import { ResidenceCard } from "@/shared/ui/ResidenceCard";
 
 type SettingsTab = "profile" | "notifications" | "wearables" | "identity";
 
@@ -1077,6 +1078,7 @@ export function PatientSettingsPage() {
 </>
               )}
 
+              <ResidenceCard key={profile?.residenceState ?? "loading"} initialState={profile?.residenceState || ""} registeredIn={profile?.registrationState || ""} />
               <DataPortabilitySection />
               <MobileLinkCard />
             </>
