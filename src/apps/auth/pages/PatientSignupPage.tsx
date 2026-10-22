@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { STATE_NAMES } from "@/shared/data/nigeriaRegions";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -110,6 +111,7 @@ type FormState = {
   email: string;
   phone: string; // ← remains string
   gender: string;
+  state: string;
   address: string;
   password: string;
   confirmPassword: string;
@@ -151,6 +153,7 @@ export default function PatientSignupPage() {
     email: "",
     phone: "",
     gender: "",
+    state: "",
     password: "",
     confirmPassword: "",
     role: "",
@@ -161,6 +164,7 @@ export default function PatientSignupPage() {
     email: "",
     phone: "",
     gender: "",
+    state: "",
     address: "",
     password: "",
     confirmPassword: "",
@@ -232,6 +236,7 @@ export default function PatientSignupPage() {
     }
 
     if (!form.gender) newErrors.gender = "Gender is required";
+    if (!form.state) newErrors.state = "Select your state of residence";
 
     if (!form.password) {
       newErrors.password = "Password is required";
@@ -263,6 +268,7 @@ export default function PatientSignupPage() {
       email: form.email.trim().toLowerCase(),
       phone: form.phone.trim(),
       gender: form.gender,
+      state: form.state,
       address: form.address.trim() || null,
       password: form.password,
       role: form.role,
@@ -753,6 +759,21 @@ export default function PatientSignupPage() {
                   <option value="">Select Gender</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
+                </InputField>
+
+                <InputField
+                  label="State of residence"
+                  placeholder="Select your state"
+                  required
+                  isSelect
+                  value={form.state}
+                  onChange={update("state")}
+                  error={errors.state}
+                >
+                  <option value="">Select your state</option>
+                  {STATE_NAMES.map((n) => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
                 </InputField>
 
                 <div className="relative w-full group">
