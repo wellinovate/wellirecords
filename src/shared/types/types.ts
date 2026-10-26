@@ -87,6 +87,10 @@ export type UserRole =
   | 'security_admin'
   | 'finance_admin'
   | 'data_governance'
+  // Provider verification reviewers (website Account.role)
+  | 'reviewer'
+  | 'senior_reviewer'
+  | 'compliance_admin'
   // Legacy
   | 'admin';
 
