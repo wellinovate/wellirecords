@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { PublicOnlyRoute, RequireRole } from "@/shared/auth/RequireRole";
+import { UserRole } from "@/shared/types/types";
 
 // ─── Loading fallback ─────────────────────────────────────────────────────────
 function PageLoader() {
@@ -550,6 +551,20 @@ const SuperAdminImpersonations = lazy(() =>
   })),
 );
 
+// ─── Provider verification reviewers ─────────────────────────────────────────
+const ReviewerStepUpGate = lazy(() =>
+  import("@/apps/reviewer/ReviewerStepUpGate").then((m) => ({
+    default: m.ReviewerStepUpGate,
+  })),
+);
+const ReviewerQueuePage = lazy(() =>
+  import("@/apps/reviewer/ReviewerQueuePage").then((m) => ({
+    default: m.ReviewerQueuePage,
+  })),
+);
+// The API checks the role again on every call. This only decides who sees the page.
+const REVIEWER_ROLES: UserRole[] = ["reviewer", "senior_reviewer", "compliance_admin"];
+
 // ─── Admin role list ──────────────────────────────────────────────────────────
 const ADMIN_ROLES = [
   "verification_officer",
@@ -795,6 +810,18 @@ export function AppRoutes() {
           <Route path="blog" element={<BlogManagementPage />} />
           <Route path="blog/write" element={<BlogAdminPage />} />
         </Route>
+
+        {/* ─── Provider verification reviewers (second step required) ─── */}
+        <Route
+          path="/reviewer"
+          element={
+            <RequireRole allow={REVIEWER_ROLES}>
+              <ReviewerStepUpGate>
+                <ReviewerQueuePage />
+              </ReviewerStepUpGate>
+            </RequireRole>
+          }
+        />
 
         {/* ─── Super Admin Portal ─── */}
         <Route
