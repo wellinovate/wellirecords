@@ -1,5 +1,6 @@
 import { welliIcon } from "@/assets";
 import { Link } from "react-router-dom";
+import { OPEN_CONSENT_EVENT } from "@/shared/analytics/trackingPolicy";
 
 export default function WelliFooter() {
   return (
@@ -233,6 +234,7 @@ export default function WelliFooter() {
             <Link to="/privacy">Privacy policy</Link>
             <Link to="/terms">Terms of service</Link>
             <Link to="/privacy">NDPA notice</Link>
+            <a href="#cookie-choices" onClick={(e) => { e.preventDefault(); window.dispatchEvent(new Event(OPEN_CONSENT_EVENT)); }}>Cookie choices</a>
           </div>
         </div>
 

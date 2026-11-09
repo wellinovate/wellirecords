@@ -2,6 +2,7 @@ import { AuthProvider } from "./src/shared/auth/AuthProvider";
 import { AppRoutes } from "./src/AppRoutes";
 import { WelliMateProvider } from "./src/shared/context/WelliMateContext";
 import { ToastContainer } from "react-toastify";
+import TrackingConsent from "./src/shared/analytics/TrackingConsent";
 import "react-toastify/dist/ReactToastify.css";
 // Note: BrowserRouter and Web3Provider are provided by index.tsx
 export default function App() {
@@ -12,6 +13,7 @@ export default function App() {
           <AppRoutes />
         </WelliMateProvider>
       </AuthProvider>
+      <TrackingConsent />
         <ToastContainer
         position="top-right"
         autoClose={4000}
