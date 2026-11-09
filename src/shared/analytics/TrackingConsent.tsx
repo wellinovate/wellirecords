@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
+  GTM_ID,
   OPEN_CONSENT_EVENT,
   isPublicPath,
   readConsent,
@@ -10,6 +11,7 @@ import {
 
 declare global {
   interface Window {
+    dataLayer?: unknown[];
     ttq?: {
       page: () => void;
       grantConsent: () => void;
@@ -19,43 +21,61 @@ declare global {
 }
 
 /**
- * Loads the TikTok Pixel (public/tiktok-pixel.js) on public pages only, and tells it what the visitor chose.
- * The script is not requested until the visitor accepts, so TikTok is not contacted before that.
- * Signed-in and sign-in pages never load it; if it was loaded earlier in the visit, consent is withdrawn there.
+ * Loads the TikTok Pixel (public/tiktok-pixel.js) and Google Tag Manager on public pages only, and only after the
+ * visitor accepts. Before that, neither TikTok nor Google is contacted.
+ * Neither script can be unloaded, so if the visitor declines later or moves to a sign-in or signed-in page after
+ * accepting, the page is reloaded without them. That keeps a tag in the container from running on private pages.
  */
 export default function TrackingConsent() {
   const { pathname } = useLocation();
   const publicPage = isPublicPath(pathname);
   const [choice, setChoice] = useState<Consent | null>(() => readConsent());
   const [reopened, setReopened] = useState(false);
-  const [ready, setReady] = useState(false);
+  const [tiktokReady, setTiktokReady] = useState(false);
   const started = useRef(false);
   const lastPage = useRef<string | null>(null);
+  const allowed = publicPage && choice === "granted";
 
-  // Load the pixel only after the visitor accepts, on a public page. Before that, TikTok is not contacted at all.
+  // Load both scripts once, after the visitor accepts on a public page.
   useEffect(() => {
-    if (!publicPage || choice !== "granted" || started.current) return;
+    if (!allowed || started.current) return;
     started.current = true;
-    lastPage.current = pathname; // the script sends its own first page view
-    const s = document.createElement("script");
-    s.src = "/tiktok-pixel.js";
-    s.async = true;
-    s.onload = () => setReady(true);
-    document.body.appendChild(s);
-  }, [publicPage, choice, pathname]);
+    lastPage.current = pathname; // each script sends its own first page view
 
-  // Apply the choice. Only an accepted visitor on a public page is tracked.
+    // Google Tag Manager: the standard start event, then the container.
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({ "gtm.start": Date.now(), event: "gtm.js" });
+    const g = document.createElement("script");
+    g.async = true;
+    g.src = `https://www.googletagmanager.com/gtm.js?id=${GTM_ID}`;
+    document.head.appendChild(g);
+
+    // TikTok Pixel.
+    const t = document.createElement("script");
+    t.src = "/tiktok-pixel.js";
+    t.async = true;
+    t.onload = () => setTiktokReady(true);
+    document.body.appendChild(t);
+  }, [allowed, pathname]);
+
+  // Once loaded, a visitor who declines or leaves the public pages gets a clean page.
   useEffect(() => {
-    if (!ready || !window.ttq) return;
-    if (publicPage && choice === "granted") {
-      window.ttq.grantConsent();
-      if (lastPage.current !== pathname) window.ttq.page();
-      lastPage.current = pathname;
-    } else {
-      window.ttq.revokeConsent();
-      if (!publicPage) lastPage.current = null;
-    }
-  }, [ready, publicPage, choice, pathname]);
+    if (started.current && !allowed) window.location.reload();
+  }, [allowed]);
+
+  // Tell TikTok the visitor accepted, and report page changes inside the app (the scripts only see the first load).
+  useEffect(() => {
+    if (!allowed || !started.current) return;
+    if (tiktokReady && window.ttq) window.ttq.grantConsent();
+    if (lastPage.current === pathname) return;
+    lastPage.current = pathname;
+    window.dataLayer?.push({
+      event: "virtual_page_view",
+      page_path: pathname,
+      page_title: document.title,
+    });
+    window.ttq?.page();
+  }, [allowed, tiktokReady, pathname]);
 
   // The footer's "Cookie choices" link reopens the banner.
   useEffect(() => {
@@ -79,8 +99,8 @@ export default function TrackingConsent() {
       className="fixed inset-x-0 bottom-0 z-[100] border-t border-slate-200 bg-white p-4 shadow-lg sm:left-auto sm:right-4 sm:bottom-4 sm:max-w-md sm:rounded-xl sm:border"
     >
       <p className="text-sm leading-6 text-slate-700">
-        We use the TikTok Pixel on our public pages to measure whether our TikTok ads work. It does not run on
-        sign-in or signed-in pages. Nothing is sent to TikTok unless you accept.{" "}
+        We use Google Tag Manager and the TikTok Pixel on our public pages to measure visits and whether our ads
+        work. They do not run on sign-in or signed-in pages. Nothing is sent to Google or TikTok unless you accept.{" "}
         <Link to="/privacy#advertising" className="text-[#1e3a8a] underline">
           Read the privacy policy
         </Link>

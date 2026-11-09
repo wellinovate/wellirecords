@@ -114,14 +114,15 @@ export function PrivacyPolicyPage() {
             <h2 className="text-xl font-bold text-slate-900 mb-3">Advertising and cookies</h2>
             <p className="text-slate-600 leading-8">
               Our public pages (home, how it works, partners, security, about, support, blog, privacy and terms) can load
-              the <strong>TikTok Pixel</strong>, provided by TikTok. If you accept, TikTok receives information about your
-              visit to those pages, such as the page viewed, your device and browser details and your IP address, and may
-              set cookies. We use it to measure whether our TikTok ads lead people to visit WelliRecord. If you decline, or
-              do nothing, nothing is sent to TikTok.
+              <strong>Google Tag Manager</strong>, provided by Google, and the <strong>TikTok Pixel</strong>, provided by
+              TikTok. If you accept, Google and TikTok receive information about your visit to those pages, such as the
+              page viewed, your device and browser details and your IP address, and may set cookies. We use them to count
+              visits and to measure whether our ads lead people to visit WelliRecord. If you decline, or do nothing,
+              nothing is sent to Google or TikTok.
             </p>
             <p className="text-slate-600 leading-8 mt-4">
-              The pixel is not loaded on sign-in or sign-up pages, or on any signed-in page, and your health records are
-              never sent to TikTok. You can change your choice at any time with <strong>Cookie choices</strong> in the
+              These tools are not loaded on sign-in or sign-up pages, or on any signed-in page, and your health records are
+              never sent to Google or TikTok. You can change your choice at any time with <strong>Cookie choices</strong> in the
               footer.
             </p>
           </section>
