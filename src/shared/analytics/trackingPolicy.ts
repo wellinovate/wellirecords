@@ -1,11 +1,12 @@
-// Where the TikTok Pixel may run, and the visitor's saved choice. No React, so it can be tested on its own.
+// Where Google Tag Manager and the TikTok Pixel may run, and the visitor's saved choice. No React, so it can be tested on its own.
 //
-// The site also holds signed-in health records. The pixel is allowed on the public marketing and legal pages
+// The site also holds signed-in health records. The trackers are allowed on the public marketing and legal pages
 // listed here and nowhere else. Anything not listed (sign-in, sign-up, /patient, /provider, share links,
 // record links, invites, password reset) is blocked by default, so a new private route is safe without a change here.
 
-export const CONSENT_KEY = "wr.tiktok.consent.v1";
+export const CONSENT_KEY = "wr.tracking.consent.v1";
 export const OPEN_CONSENT_EVENT = "wr:open-tracking-consent";
+export const GTM_ID = "GTM-MTRHSVXW";
 
 export type Consent = "granted" | "denied";
 
