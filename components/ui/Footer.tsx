@@ -1,7 +1,7 @@
 import { welliIcon } from "@/assets";
 import { Link } from "react-router-dom";
 import { OPEN_CONSENT_EVENT } from "@/shared/analytics/trackingPolicy";
-import { PLAY_STORE_URL } from "@/shared/ui/PlayStoreButton";
+import PlayStoreButton, { PLAY_STORE_URL } from "@/shared/ui/PlayStoreButton";
 
 export default function WelliFooter() {
   return (
@@ -228,6 +228,13 @@ export default function WelliFooter() {
               <li><a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer">Get the Android app</a></li>
             </ul>
           </div>
+        </div>
+
+        <div className="flex flex-col items-center gap-4 border-t border-white/10 py-8 sm:flex-row sm:justify-between">
+          <p className="m-0 text-sm font-semibold text-[#D7E1F4]">
+            Get the WelliRecord app on your Android phone
+          </p>
+          <PlayStoreButton tone="light" />
         </div>
 
         <div className="bottom">

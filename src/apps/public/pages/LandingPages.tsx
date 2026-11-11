@@ -1194,6 +1194,14 @@ function LandingFooter() {
           </div>
         </div>
 
+        {/* Download the app */}
+        <div className="mt-10 sm:mt-14 flex flex-col items-center gap-3 text-center">
+          <p className="text-sm font-bold text-slate-700">
+            Get the WelliRecord app on your Android phone
+          </p>
+          <PlayStoreButton />
+        </div>
+
         {/* Social links */}
         <div className="mt-10 sm:mt-14 flex justify-center px-4">
           <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-5 sm:gap-x-10 sm:gap-y-6">
