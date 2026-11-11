@@ -1,6 +1,7 @@
 import { welliIcon } from "@/assets";
 import { Link } from "react-router-dom";
 import { OPEN_CONSENT_EVENT } from "@/shared/analytics/trackingPolicy";
+import { PLAY_STORE_URL } from "@/shared/ui/PlayStoreButton";
 
 export default function WelliFooter() {
   return (
@@ -224,6 +225,7 @@ export default function WelliFooter() {
               <li><Link to="/auth/patient/signup">Create health vault</Link></li>
               <li><Link to="/auth/provider/signup">Register your organisation</Link></li>
               <li><Link to="/auth/login">Log in</Link></li>
+              <li><a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer">Get the Android app</a></li>
             </ul>
           </div>
         </div>
