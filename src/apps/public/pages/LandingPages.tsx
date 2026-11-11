@@ -21,6 +21,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import PlayStoreButton, { PLAY_STORE_URL } from "@/shared/ui/PlayStoreButton";
 import { useAuth } from "@/shared/auth/AuthProvider";
 import {
   diagonize,
@@ -521,6 +522,8 @@ function Hero() {
                 Create Health Vault <ArrowRight className="h-5 w-5" />
               </Link>
 
+              <PlayStoreButton className="w-full sm:w-auto" />
+
               <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-600">
                 <a
                   href="https://wa.me/2348053355504?text=REGISTER"
@@ -937,6 +940,10 @@ function ConversionBanner() {
               Register Your Organisation
             </Link>
           </div>
+
+          <div className="mt-6 flex justify-center">
+            <PlayStoreButton tone="light" className="w-full sm:w-auto" />
+          </div>
         </div>
       </div>
     </section>
@@ -1153,6 +1160,17 @@ function LandingFooter() {
                 >
                   Partners
                 </Link>
+              </li>
+
+              <li>
+                <a
+                  href={PLAY_STORE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-colors hover:text-[#1F4E79]"
+                >
+                  Android app
+                </a>
               </li>
 
               <li>
