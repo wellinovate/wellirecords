@@ -27,6 +27,7 @@ import { fetchProfile } from "@/shared/utils/utilityFunction";
 import { toast } from "react-toastify";
 import { MobileLinkCard } from "@/shared/ui/MobileLinkCard";
 import { ResidenceCard } from "@/shared/ui/ResidenceCard";
+import { NinVerificationCard } from "@/shared/ui/NinVerificationCard";
 
 type SettingsTab = "profile" | "notifications" | "wearables" | "identity";
 
@@ -134,8 +135,8 @@ function VerificationDashboard({ ninVerified }: { ninVerified: boolean }) {
       done: ninVerified,
       icon: Fingerprint,
       note: ninVerified
-        ? "Linked to NIMC"
-        : "Required for cross-border transfers",
+        ? "Name and date of birth matched your NIN record"
+        : "Not checked yet",
     },
     {
       label: "Advanced Identity Signing",
@@ -391,12 +392,8 @@ export function PatientSettingsPage() {
     emergencyContacts: [],
   });
 
-  // NIN Verification Mock State
-  const [ninStatus, setNinStatus] = useState<
-    "unverified" | "sending" | "otp" | "verifying" | "verified"
-  >("unverified");
-  const [ninNumber, setNinNumber] = useState("");
-  const [otpCode, setOtpCode] = useState("");
+  // Set by NinVerificationCard from the server.
+  const [ninVerified, setNinVerified] = useState(false);
 
   const canEditPhone = !profile?.phone;
   const canEditGender = !profile?.gender;
@@ -593,17 +590,6 @@ export function PatientSettingsPage() {
         next.delete(id);
         return next;
       });
-    }
-  };
-
-  const handleNinSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (ninStatus === "unverified") {
-      setNinStatus("sending");
-      setTimeout(() => setNinStatus("otp"), 1500);
-    } else if (ninStatus === "otp") {
-      setNinStatus("verifying");
-      setTimeout(() => setNinStatus("verified"), 2000);
     }
   };
 
@@ -1088,124 +1074,9 @@ export function PatientSettingsPage() {
           {tab === "identity" && (
             <div className="space-y-6">
               {/* Verification Status Dashboard */}
-              <VerificationDashboard ninVerified={ninStatus === "verified"} />
+              <VerificationDashboard ninVerified={ninVerified} />
 
-              {/* NIN Verification Section */}
-              <div className="card-patient p-6 border-2 border-emerald-100 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-bl-full -z-10 opacity-50" />
-
-                <h2 className="font-bold text-base mb-2 text-gray-900 flex items-center gap-2">
-                  <ShieldCheck size={20} className="text-emerald-600" />{" "}
-                  Government Identity Verification
-                </h2>
-                <p className="text-sm text-gray-600 mb-6">
-                  Verify your identity using your National Identification Number
-                  (NIN). This is required for cross-border hospital transfers
-                  and emergency access overrides.
-                </p>
-
-                {ninStatus === "verified" ? (
-                  <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                      <Check size={20} className="text-emerald-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-emerald-800">
-                        Identity Verified
-                      </h3>
-                      <p className="text-sm text-emerald-600 mt-1">
-                        Your National Identification Number has been securely
-                        verified and linked to your WelliRecord.
-                      </p>
-                      <div className="mt-3 text-xs font-mono bg-white px-2 py-1 rounded inline-block text-gray-500 border border-emerald-100 shadow-sm">
-                        NIN: ** *** **** 892
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <form
-                    onSubmit={handleNinSubmit}
-                    className="bg-white border border-gray-200 p-5 rounded-xl shadow-sm"
-                  >
-                    {ninStatus === "unverified" || ninStatus === "sending" ? (
-                      <>
-                        <label className="block text-sm font-semibold mb-2 text-gray-700">
-                          Enter your 11-digit NIN
-                        </label>
-                        <div className="flex gap-3">
-                          <input
-                            type="text"
-                            placeholder="e.g. 12345678901"
-                            className="input input-light flex-1 font-mono tracking-widest text-lg"
-                            value={ninNumber}
-                            onChange={(e) =>
-                              setNinNumber(
-                                e.target.value.replace(/\D/g, "").slice(0, 11),
-                              )
-                            }
-                            disabled={ninStatus === "sending"}
-                            required
-                            minLength={11}
-                          />
-                          <button
-                            type="submit"
-                            disabled={
-                              ninNumber.length !== 11 || ninStatus === "sending"
-                            }
-                            className="btn btn-patient whitespace-nowrap"
-                          >
-                            {ninStatus === "sending"
-                              ? "Sending OTP..."
-                              : "Verify NIN"}
-                          </button>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-3 flex items-center gap-1.5">
-                          <Phone size={12} /> A one-time code will be sent to
-                          the phone number registered with NIMC.
-                        </p>
-                      </>
-                    ) : (
-                      <div className="animate-fade-in text-center">
-                        <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3">
-                          <Phone size={20} className="text-blue-600" />
-                        </div>
-                        <h3 className="font-bold text-gray-900 mb-1">
-                          Enter OTP Code
-                        </h3>
-                        <p className="text-xs text-gray-500 mb-4">
-                          We sent a 6-digit code to your NIMC registered phone
-                          number ending in ****456.
-                        </p>
-                        <div className="max-w-[240px] mx-auto">
-                          <input
-                            type="text"
-                            placeholder="000000"
-                            className="input input-light text-center font-mono tracking-[0.5em] text-2xl mb-4"
-                            value={otpCode}
-                            onChange={(e) =>
-                              setOtpCode(
-                                e.target.value.replace(/\D/g, "").slice(0, 6),
-                              )
-                            }
-                            disabled={ninStatus === "verifying"}
-                          />
-                          <button
-                            type="submit"
-                            disabled={
-                              otpCode.length !== 6 || ninStatus === "verifying"
-                            }
-                            className="btn btn-patient w-full justify-center"
-                          >
-                            {ninStatus === "verifying"
-                              ? "Verifying with NIMC..."
-                              : "Confirm Identity"}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </form>
-                )}
-              </div>
+              <NinVerificationCard onStatus={setNinVerified} />
 
               {/* Advanced Identity Verification (formerly "Blockchain Identity (Web3)") */}
               <div className="card-patient p-6">
