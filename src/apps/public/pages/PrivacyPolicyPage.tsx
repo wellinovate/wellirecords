@@ -39,7 +39,7 @@ export function PrivacyPolicyPage() {
             <h2 className="text-xl font-bold text-slate-900 mb-3">2. Data We Collect</h2>
             <p className="text-slate-600 leading-8">We collect only what is necessary to deliver our services:</p>
             <ul className="list-disc pl-5 space-y-2 text-slate-600 leading-8">
-              <li><strong>Identity data</strong>: full name, date of birth, NIN (where provided), gender</li>
+              <li><strong>Identity data</strong>: full name, date of birth, gender. If you choose to check your identity with your NIN, the NIN is sent to our verification partner, 2AM Connect, for that one check and is not saved by WelliRecord. We keep only the result (confirmed or not) and the date.</li>
               <li><strong>Contact data</strong>: email address, phone number, home address</li>
               <li><strong>Health data</strong>: medical records, lab results, prescriptions, diagnoses uploaded by you or your care providers</li>
               <li><strong>Usage data</strong>: login timestamps, pages visited, features accessed</li>
