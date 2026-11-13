@@ -158,13 +158,10 @@ export function SuperAdminPlatformSettings() {
                                 <span className={`text-sm font-mono ${setting.type === 'boolean' ? (setting.value ? 'text-emerald-400' : 'text-slate-400') : 'text-indigo-200'}`}>
                                     {formatValue(setting.value, setting.type)}
                                 </span>
-                                <button
-                                    onClick={() => handleEditStart(key)}
-                                    className="p-1.5 rounded-md hover:bg-white/10 transition-colors"
-                                    style={{ color: 'var(--sa-muted)' }}
-                                >
-                                    <Edit2 size={14} />
-                                </button>
+                                {/* Read-only: these values are sample data, not connected to the platform. */}
+                                <span className="p-1.5" style={{ color: 'var(--sa-muted)', opacity: 0.4 }} title="Not editable: sample data">
+                                    <Lock size={14} />
+                                </span>
                             </div>
                         )}
                     </div>
@@ -179,6 +176,11 @@ export function SuperAdminPlatformSettings() {
             <div>
                 <h1 className="text-2xl font-black tracking-tight" style={{ color: '#e2e8f0' }}>Platform Settings</h1>
                 <p className="text-sm mt-1" style={{ color: 'var(--sa-muted)' }}>Global configuration for the WelliRecord platform, integrations, and compliance rules.</p>
+            </div>
+
+            <div role="status" className="rounded-xl px-4 py-3 text-sm flex items-start gap-3" style={{ background: 'rgba(245,158,11,0.10)', border: '1px solid rgba(245,158,11,0.35)', color: '#fcd34d' }}>
+                <AlertTriangle size={16} className="mt-0.5 flex-shrink-0" />
+                <span>Sample data, read-only. These values are not connected to the platform and do not reflect or change how it is configured. Names, dates, data region, MFA and session settings shown here are placeholders.</span>
             </div>
 
             <div className="flex flex-col xl:flex-row gap-6 items-start">
