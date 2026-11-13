@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/shared/auth/AuthProvider';
 import { WelliRecordLogo } from '@/shared/ui/WelliRecordLogo';
 import {
@@ -248,9 +248,9 @@ export function SuperAdminLoginPage() {
                                 <div>
                                     <div className="flex items-center justify-between mb-1.5">
                                         <label className="text-sm font-semibold" style={{ color: '#94a3b8' }}>Password</label>
-                                        <span className="text-xs font-semibold cursor-pointer hover:opacity-80 transition-opacity" style={{ color: '#818cf8' }}>
+                                        <Link to="/forgot-password" className="text-xs font-semibold hover:opacity-80 transition-opacity" style={{ color: '#818cf8' }}>
                                             Forgot password?
-                                        </span>
+                                        </Link>
                                     </div>
                                     <div className="relative">
                                         <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: '#4b5563' }} />
