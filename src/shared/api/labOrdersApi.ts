@@ -22,6 +22,11 @@ export interface LabOrder {
   normalRange?: string;
   interpretation?: string;
   verifiedBy?: string;
+  enteredByName?: string;
+  enteredAt?: string;
+  verifiedAt?: string;
+  selfVerified?: boolean;
+  rejectionReason?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -62,10 +67,10 @@ export async function createLabOrder(payload: {
   return data.data;
 }
 
-export async function updateLabOrderStatus(id: string, status: string): Promise<LabOrder> {
+export async function updateLabOrderStatus(id: string, status: string, reason?: string): Promise<LabOrder> {
   const { data } = await api.patch(
     `${apiUrl}/api/v1/lab-orders/${id}/status`,
-    { status },
+    reason ? { status, reason } : { status },
     { headers: authHeaders() },
   );
   return data.data;
@@ -78,12 +83,16 @@ export async function enterLabOrderResult(
     normalRange?: string;
     interpretation?: string;
     isCritical?: boolean;
-    verifiedBy?: string;
   },
 ): Promise<LabOrder> {
   const { data } = await api.patch(`${apiUrl}/api/v1/lab-orders/${id}/result`, payload, {
     headers: authHeaders(),
   });
+  return data.data;
+}
+
+export async function verifyLabOrderResult(id: string): Promise<LabOrder> {
+  const { data } = await api.patch(`${apiUrl}/api/v1/lab-orders/${id}/verify`, {}, { headers: authHeaders() });
   return data.data;
 }
 

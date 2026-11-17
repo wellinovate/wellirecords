@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { getAllLabOrders, createLabOrder, updateLabOrderStatus, enterLabOrderResult } from "@/shared/api/labOrdersApi";
+import { getAllLabOrders, createLabOrder, updateLabOrderStatus, enterLabOrderResult, verifyLabOrderResult } from "@/shared/api/labOrdersApi";
 import { getLabTestCatalog, LabTestCatalogGroup } from "@/shared/api/labTestCatalogApi";
 import VerifiedResultDeliveryModal from "@/apps/provider/components/VerifiedResultDeliveryModal";
 import JsBarcode from "jsbarcode";
@@ -123,6 +123,34 @@ function getLabOrdersSocket() {
   return labOrdersSocket;
 }
 
+// The API returns the patient as a populated object and the doctor as doctorName.
+// The page reads flat fields, so map them once here.
+const toUiOrder = (raw: any) => {
+  const p = raw?.patientId && typeof raw.patientId === "object" ? raw.patientId : null;
+  const name = p ? p.fullName || [p.firstName, p.lastName].filter(Boolean).join(" ") : "";
+  return {
+    ...raw,
+    patientName: name || "Unknown patient",
+    patientWrId: p?.wrId || "",
+    phone: p?.phone || "",
+    doctor: raw?.doctorName || "",
+    sourceType: raw?.source || "",
+    barcode: raw?.barcode || "",
+    price: Number(raw?.price) || 0,
+  };
+};
+
+// Stages the Advance button can move an order to. Verification and the end of the
+// workflow follow the same rules as the server (verified only through the verify step).
+const NEXT_STAGE: Record<string, string> = {
+  requested: "collected",
+  collected: "received",
+  received: "processing",
+  processing: "quality-control",
+  verified: "released",
+  released: "delivered",
+};
+
 export function LabOrdersPage() {
   const { user, searchPatientRequest } = useAuth();
   const [activeTab, setActiveTab] = useState<"pipeline" | "entry" | "delivery" | "imaging" | "inventory" | "analytics">("pipeline");
@@ -132,7 +160,7 @@ export function LabOrdersPage() {
 
   useEffect(() => {
     getAllLabOrders()
-      .then((res) => setOrders(res.items))
+      .then((res) => setOrders(res.items.map(toUiOrder)))
       .catch((err) => console.error("Failed to load lab orders:", err))
       .finally(() => setOrdersLoading(false));
   }, []);
@@ -148,10 +176,10 @@ export function LabOrdersPage() {
     }) => {
       setOrders((prev) => {
         if (change.operationType === "insert" && change.document) {
-          return [change.document, ...prev];
+          return [toUiOrder(change.document), ...prev];
         }
         if (change.operationType === "update" && change.document) {
-          return prev.map((o) => (o.id === change.documentId ? change.document : o));
+          return prev.map((o) => (o.id === change.documentId ? toUiOrder({ ...o, ...change.document, patientId: o.patientId }) : o));
         }
         if (change.operationType === "delete") {
           return prev.filter((o) => o.id !== change.documentId);
@@ -370,9 +398,9 @@ export function LabOrdersPage() {
       .sort((a, b) => b.count - a.count);
 
     // Urgency composition
-    const routineCount = orders.filter((o) => o.priority === "Routine" || !o.priority).length;
-    const urgentCount = orders.filter((o) => o.priority === "Urgent").length;
-    const statCount = orders.filter((o) => o.priority === "STAT").length;
+    const routineCount = orders.filter((o) => o.priority === "routine" || !o.priority).length;
+    const urgentCount = orders.filter((o) => o.priority === "urgent").length;
+    const statCount = orders.filter((o) => o.priority === "home-sample").length;
 
     return {
       total,
@@ -480,15 +508,47 @@ export function LabOrdersPage() {
   };
 
   // Advance Order Workflow Stage
-  const handleAdvanceStage = (orderId: string, currentStatus: string) => {
-    const stages = WORKFLOW_STAGES.map((s) => s.key);
-    const currIndex = stages.indexOf(currentStatus);
-    if (currIndex >= 0 && currIndex < stages.length - 1) {
-      const nextStatus = stages[currIndex + 1];
-      setOrders((prev) =>
-        prev.map((o) => (o.id === orderId ? { ...o, status: nextStatus } : o))
-      );
-      showToast(`Order ${orderId} moved to ${nextStatus.toUpperCase()}`);
+  const replaceOrder = (saved: any) =>
+    setOrders((prev) => prev.map((o) => (o.id === saved.id ? toUiOrder({ ...saved, patientId: o.patientId }) : o)));
+
+  const errMsg = (err: any, fallback: string) => err?.response?.data?.message || fallback;
+
+  const handleAdvanceStage = async (orderId: string, currentStatus: string) => {
+    const nextStatus = NEXT_STAGE[currentStatus];
+    if (!nextStatus) return;
+    try {
+      const saved = await updateLabOrderStatus(orderId, nextStatus);
+      replaceOrder(saved);
+      showToast(`Order moved to ${nextStatus.toUpperCase()}`);
+    } catch (err: any) {
+      showToast(errMsg(err, "Could not update the order stage."));
+    }
+  };
+
+  const [rejectTarget, setRejectTarget] = useState<{ id: string; mode: "rejected" | "cancelled" } | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+
+  const handleConfirmReject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rejectTarget || !rejectReason.trim()) return;
+    try {
+      const saved = await updateLabOrderStatus(rejectTarget.id, rejectTarget.mode, rejectReason.trim());
+      replaceOrder(saved);
+      showToast(`Order ${rejectTarget.mode}`);
+      setRejectTarget(null);
+      setRejectReason("");
+    } catch (err: any) {
+      showToast(errMsg(err, "Could not update the order."));
+    }
+  };
+
+  const handleVerifyResult = async (orderId: string) => {
+    try {
+      const saved = await verifyLabOrderResult(orderId);
+      replaceOrder(saved);
+      showToast(saved.selfVerified ? "Result verified. You entered and verified it, and this is recorded." : "Result verified.");
+    } catch (err: any) {
+      showToast(errMsg(err, "Could not verify the result."));
     }
   };
 
@@ -506,31 +566,29 @@ export function LabOrdersPage() {
     setIsResultModalOpen(true);
   };
 
-  // Save Results & Critical Alert Trigger
+  // Save the result. Verification is a separate step.
   const handleSaveResult = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedOrder) return;
 
-    setOrders((prev) =>
-      prev.map((o) =>
-        o.id === selectedOrder.id
-          ? {
-              ...o,
-              measuredValue: resultForm.measuredValue,
-              normalRange: resultForm.normalRange,
-              interpretation: resultForm.interpretation,
-              isCritical: resultForm.isCritical,
-              status: "verified",
-              verifiedBy: `${user?.name || "MLS Specialist"} (${resultForm.verifierRole})`,
-            }
-          : o
-      )
-    );
+    let saved: any;
+    try {
+      saved = await enterLabOrderResult(selectedOrder.id, {
+        measuredValue: resultForm.measuredValue,
+        normalRange: resultForm.normalRange || undefined,
+        interpretation: resultForm.interpretation || undefined,
+        isCritical: resultForm.isCritical,
+      });
+    } catch (err: any) {
+      showToast(errMsg(err, "Could not save the result."));
+      return;
+    }
+    replaceOrder(saved);
 
     if (resultForm.isCritical) {
       const alertPhone = selectedOrder.doctorPhone;
       if (!alertPhone) {
-        showToast(`Result saved and flagged CRITICAL, but no doctor phone on file — notify Dr. ${selectedOrder.doctor} directly.`);
+        showToast(`Result saved and flagged CRITICAL, but no doctor phone on file. Notify Dr. ${selectedOrder.doctor} directly.`);
       } else {
         const alertMessage = `CRITICAL LAB VALUE: ${selectedOrder.patientName} — ${selectedOrder.testName}. Check WelliRecord immediately.`;
         const result = await sendCriticalAlertSms(alertPhone, alertMessage);
@@ -541,7 +599,7 @@ export function LabOrdersPage() {
         }
       }
     } else {
-      showToast(`Lab result saved & verified for ${selectedOrder.patientName}`);
+      showToast(`Result saved for ${selectedOrder.patientName}. It needs to be verified before release.`);
     }
 
     setIsResultModalOpen(false);
@@ -1171,10 +1229,28 @@ export function LabOrdersPage() {
                         onClick={() => openResultModal(ord)}
                         className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 transition-colors flex items-center gap-1"
                       >
-                        <FileSignature size={13} /> Enter / Verify
+                        <FileSignature size={13} /> Enter result
                       </button>
 
-                      {ord.status !== "delivered" && (
+                      {ord.status === "quality-control" && ord.measuredValue && (
+                        <button
+                          onClick={() => handleVerifyResult(ord.id)}
+                          className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 transition-colors flex items-center gap-1"
+                        >
+                          <ShieldCheck size={13} /> Verify
+                        </button>
+                      )}
+
+                      {["requested", "collected", "received", "processing", "quality-control"].includes(ord.status) && (
+                        <button
+                          onClick={() => setRejectTarget({ id: ord.id, mode: ord.status === "requested" || ord.status === "collected" ? "cancelled" : "rejected" })}
+                          className="px-3 py-1.5 rounded-xl text-xs font-semibold text-rose-300 hover:bg-rose-500/10 border border-rose-500/30 transition-colors"
+                        >
+                          {ord.status === "requested" || ord.status === "collected" ? "Cancel" : "Reject"}
+                        </button>
+                      )}
+
+                      {NEXT_STAGE[ord.status] && (
                         <button
                           onClick={() => handleAdvanceStage(ord.id, ord.status)}
                           className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors flex items-center gap-1"
@@ -1592,12 +1668,12 @@ export function LabOrdersPage() {
 
                       <div className="p-3.5 rounded-xl border border-slate-800 bg-[#081220]">
                         <div className="flex items-center justify-between text-xs mb-1.5">
-                          <span className="text-rose-300 font-medium">STAT Emergency</span>
+                          <span className="text-sky-300 font-medium">Home sample</span>
                           <span className="text-white font-bold">{analyticsData.statCount} ({analyticsData.total > 0 ? Math.round((analyticsData.statCount / analyticsData.total) * 100) : 0}%)</span>
                         </div>
                         <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
                           <div
-                            className="h-full rounded-full bg-rose-500"
+                            className="h-full rounded-full bg-sky-500"
                             style={{ width: `${analyticsData.total > 0 ? (analyticsData.statCount / analyticsData.total) * 100 : 0}%` }}
                           />
                         </div>
@@ -1621,7 +1697,7 @@ export function LabOrdersPage() {
           <div className="w-full max-w-xl p-6 rounded-2xl border border-slate-700 bg-[#0c192b] shadow-2xl space-y-5">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div>
-                <h3 className="text-lg font-bold text-white">Enter Laboratory Test Result</h3>
+                <h3 className="text-lg font-bold text-white">Enter laboratory test result</h3>
                 <p className="text-xs text-sky-400">{selectedOrder.testName} · {selectedOrder.patientName}</p>
               </div>
               <button onClick={() => setIsResultModalOpen(false)} className="text-slate-400 hover:text-white">
@@ -1673,7 +1749,7 @@ export function LabOrdersPage() {
                   className="w-4 h-4 rounded text-rose-500 focus:ring-rose-500"
                 />
                 <label htmlFor="criticalCheck" className="text-xs font-bold text-rose-300 cursor-pointer">
-                  🚨 Flag as CRITICAL PANIC VALUE (Triggers instant SMS / Push alert to Doctor & Hospital)
+                  🚨 Flag as critical value (sends an SMS to the requesting doctor if a phone number is on file)
                 </label>
               </div>
 
@@ -1689,11 +1765,40 @@ export function LabOrdersPage() {
                   type="submit"
                   className="px-5 py-2 rounded-xl text-xs font-bold bg-sky-500 hover:bg-sky-400 text-slate-950 transition-colors flex items-center gap-1.5"
                 >
-                  <ShieldCheck size={15} /> Verify & Release Result
+                  <ShieldCheck size={15} /> Save result
                 </button>
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {rejectTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <form onSubmit={handleConfirmReject} className="w-full max-w-md p-6 rounded-2xl border border-slate-700 bg-[#0c192b] shadow-2xl space-y-4">
+            <h3 className="text-lg font-bold text-white">
+              {rejectTarget.mode === "rejected" ? "Reject this sample" : "Cancel this request"}
+            </h3>
+            <p className="text-xs text-slate-400">A reason is required and is kept with the order. This cannot be undone.</p>
+            <textarea
+              rows={3}
+              required
+              maxLength={300}
+              autoFocus
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder={rejectTarget.mode === "rejected" ? "e.g. Haemolysed sample, insufficient volume" : "e.g. Patient did not attend"}
+              className="w-full bg-[#081220] border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"
+            />
+            <div className="flex justify-end gap-3">
+              <button type="button" onClick={() => { setRejectTarget(null); setRejectReason(""); }} className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white">
+                Back
+              </button>
+              <button type="submit" disabled={!rejectReason.trim()} className="px-5 py-2 rounded-xl text-xs font-bold bg-rose-500 hover:bg-rose-400 text-white disabled:opacity-50">
+                Confirm
+              </button>
+            </div>
+          </form>
         </div>
       )}
 
