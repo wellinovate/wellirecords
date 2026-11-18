@@ -34,8 +34,7 @@ import {
   wearable,
 } from "../../../assets";
 import { hero, welliIcon } from "@/assets";
-import { FaFacebook, FaInstagram, FaLinkedin, FaTiktok, FaYoutube } from "react-icons/fa";
-import { FaXTwitter } from "react-icons/fa6";
+import { SOCIAL_LINKS } from "../socialLinks";
 
 /* ─────────────────────────────────────────────
    NAV DATA
@@ -954,50 +953,7 @@ function ConversionBanner() {
    LANDING FOOTER
 ───────────────────────────────────────────── */
 function LandingFooter() {
-  const socialLinks = [
-    {
-      name: "Facebook",
-      handleName: "WelliRecord",
-      href: "https://www.facebook.com/profile.php?id=61596458829642",
-      icon: FaFacebook,
-      className: "text-[#1877F2]",
-    },
-    {
-      name: "Instagram",
-      handleName: "mywellirecord",
-      href: "https://www.instagram.com/mywellirecord",
-      icon: FaInstagram,
-      className: "text-pink-500",
-    },
-    {
-      name: "TikTok",
-      handleName: "wellirecord",
-      href: "https://www.tiktok.com/@wellirecord?_r=1&_t=ZS-98nHpNNlmWm",
-      icon: FaTiktok,
-      className: "text-black",
-    },
-    {
-      name: "LinkedIn",
-      handleName: "wellirecord",
-      href: "https://www.linkedin.com/company/wellirecord/",
-      icon: FaLinkedin,
-      className: "text-[#0A66C2]",
-    },
-    {
-      name: "X",
-      handleName: "wellirecord",
-      href: "https://x.com/wellinovate?s=11",
-      icon: FaXTwitter,
-      className: "text-black",
-    },
-    {
-      name: "YouTube",
-      handleName: "wellirecord",
-      href: "https://youtube.com/@wellirecord?si=Lvag_nw0sep4jBvi",
-      icon: FaYoutube,
-      className: "text-red-600",
-    },
-  ];
+  const socialLinks = SOCIAL_LINKS;
   return (
     <footer className="relative overflow-hidden bg-[#f9fbfd] text-slate-700">
       {/* Background pattern */}
@@ -1227,7 +1183,7 @@ function LandingFooter() {
                     aria-label={`Visit WelliRecord on ${social.name}`}
                     className={`transition-all duration-200 hover:-translate-y-0.5 hover:opacity-70 ${social.className}`}
                   >
-                    <Icon size={15} />
+                    <Icon size={22} />
                   </a>
 
                   <p className="text-center text-xs whitespace-nowrap">
