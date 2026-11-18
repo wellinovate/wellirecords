@@ -36,6 +36,11 @@ export interface RadiologyOrder {
   isCritical: boolean;
   images: RadiologyImage[];
   report: RadiologyReport | null;
+  review?: { state: "approved"; byName: string; at: string; comment?: string } | null;
+  reviewLog?: { decision: string; comment?: string; byName: string; at: string }[];
+  returnReason?: string | null;
+  patientNote?: { text: string; issueType: string; byName: string; at: string } | null;
+  releasedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -43,6 +48,7 @@ export interface RadiologyOrder {
 interface RadiologyOrdersResponse {
   items: RadiologyOrder[];
   pagination: { total: number; page: number; limit: number; totalPages: number };
+  viewer?: { userId: string; canApprove: boolean };
 }
 
 function authHeaders() {
@@ -115,5 +121,20 @@ export async function publishRadiologyReport(
   const { data } = await api.patch(`${apiUrl}/api/v1/radiology-orders/${id}/report`, payload, {
     headers: authHeaders(),
   });
+  return data.data;
+}
+
+export async function reviewRadiologyReport(id: string, decision: "approve" | "return", comment: string): Promise<RadiologyOrder> {
+  const { data } = await api.post(`${apiUrl}/api/v1/radiology-orders/${id}/review`, { decision, comment }, { headers: authHeaders() });
+  return data.data;
+}
+
+export async function setRadiologyNote(id: string, text: string, issueType: string): Promise<RadiologyOrder> {
+  const { data } = await api.put(`${apiUrl}/api/v1/radiology-orders/${id}/patient-note`, { text, issueType }, { headers: authHeaders() });
+  return data.data;
+}
+
+export async function releaseRadiologyReport(id: string): Promise<{ order: RadiologyOrder; dispatch: { inApp: string; email: string } }> {
+  const { data } = await api.post(`${apiUrl}/api/v1/radiology-orders/${id}/release`, {}, { headers: authHeaders() });
   return data.data;
 }
