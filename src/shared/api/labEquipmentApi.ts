@@ -23,6 +23,29 @@ export interface Analyzer {
   ingestEnabled?: boolean;
 }
 
+export interface QcRun {
+  _id: string;
+  controlName: string;
+  lotNumber?: string;
+  analyte: string;
+  unit?: string;
+  value: number;
+  mean: number;
+  sd: number;
+  z: number;
+  status: "pass" | "warn" | "fail";
+  violations: string[];
+  runAt: string;
+  note?: string;
+  byName?: string;
+}
+
+export interface QcGate {
+  blocked: boolean;
+  failing: { controlName: string; analyte: string }[];
+  checkedToday: boolean;
+}
+
 export interface CodeMapRow {
   instrumentCode: string;
   analyteCode: string;
@@ -88,6 +111,8 @@ export const equipmentApi = {
   createAnalyzer: (b: Partial<Analyzer>): Promise<Analyzer> => api.post(`${base()}/analyzers`, b, H()).then(unwrap),
   updateAnalyzer: (id: string, b: Partial<Analyzer>): Promise<Analyzer> => api.patch(`${base()}/analyzers/${id}`, b, H()).then(unwrap),
   removeAnalyzer: (id: string) => api.delete(`${base()}/analyzers/${id}`, H()).then(unwrap),
+  qcRuns: (id: string, days = 30): Promise<{ runs: QcRun[]; gate: QcGate }> => api.get(`${base()}/analyzers/${id}/qc?days=${days}`, H()).then(unwrap),
+  addQcRun: (id: string, b: Record<string, unknown>): Promise<{ run: QcRun; explanation: string[]; analyzer: Analyzer }> => api.post(`${base()}/analyzers/${id}/qc`, b, H()).then(unwrap),
   analyzerEvents: (id: string): Promise<AnalyzerEvent[]> => api.get(`${base()}/analyzers/${id}/events`, H()).then(unwrap),
   addEvent: (id: string, b: { type: string; result?: string; performedAt?: string; note?: string; lotNumber?: string }) =>
     api.post(`${base()}/analyzers/${id}/events`, b, H()).then(unwrap),

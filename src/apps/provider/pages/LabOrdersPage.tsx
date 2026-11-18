@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import { getAllLabOrders, createLabOrder, updateLabOrderStatus, enterLabOrderResult, verifyLabOrderResult, releaseLabOrder } from "@/shared/api/labOrdersApi";
 import { getLabTestCatalog, getLabCatalogTest, LabTestCatalogGroup, LabCatalogTest } from "@/shared/api/labTestCatalogApi";
 import { LabEquipmentTab } from "@/apps/provider/components/LabEquipmentTab";
+import { REJECT_REASONS, CANCEL_REASONS, composeReason, turnaroundByTest, stageWaits, rejectionBreakdown } from "@/apps/provider/utils/labTurnaround";
+import { equipmentApi, type Analyzer } from "@/shared/api/labEquipmentApi";
 import { ReviewModal, PatientNoteModal, OrderHistoryModal } from "@/apps/provider/components/LabReviewModals";
 import { CriticalAlertsPanel } from "@/apps/provider/components/CriticalAlertsPanel";
 import { LabRangeSettings } from "@/apps/provider/components/LabRangeSettings";
@@ -166,6 +168,8 @@ export function LabOrdersPage() {
   const [reviewTarget, setReviewTarget] = useState<any>(null);
   const [noteTarget, setNoteTarget] = useState<any>(null);
   const [historyTarget, setHistoryTarget] = useState<any>(null);
+  const [analyzerList, setAnalyzerList] = useState<Analyzer[]>([]);
+  const [resultAnalyzerId, setResultAnalyzerId] = useState("");
 
   useEffect(() => {
     getAllLabOrders()
@@ -556,16 +560,21 @@ export function LabOrdersPage() {
 
   const [rejectTarget, setRejectTarget] = useState<{ id: string; mode: "rejected" | "cancelled" } | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+  const [rejectLabel, setRejectLabel] = useState("");
+  const tatRows = useMemo(() => turnaroundByTest(orders), [orders]);
+  const waitRows = useMemo(() => stageWaits(orders), [orders]);
+  const rejectRows = useMemo(() => rejectionBreakdown(orders), [orders]);
 
   const handleConfirmReject = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!rejectTarget || !rejectReason.trim()) return;
+    if (!rejectTarget || !rejectLabel) return;
     try {
-      const saved = await updateLabOrderStatus(rejectTarget.id, rejectTarget.mode, rejectReason.trim());
+      const saved = await updateLabOrderStatus(rejectTarget.id, rejectTarget.mode, composeReason(rejectLabel, rejectReason));
       replaceOrder(saved);
       showToast(`Order ${rejectTarget.mode}`);
       setRejectTarget(null);
       setRejectReason("");
+      setRejectLabel("");
     } catch (err: any) {
       showToast(errMsg(err, "Could not update the order."));
     }
@@ -594,6 +603,8 @@ export function LabOrdersPage() {
     });
     setResultTest(null);
     setStructured({ entries: [], isCritical: false, errors: [], hasValues: false });
+    setResultAnalyzerId(String(order.analyzerId || order.instrumentResults?.analyzerId || ""));
+    equipmentApi.analyzers().then(setAnalyzerList).catch(() => setAnalyzerList([]));
     setIsResultModalOpen(true);
     if (order.testKey) {
       setResultTestLoading(true);
@@ -625,7 +636,7 @@ export function LabOrdersPage() {
       saved = await enterLabOrderResult(
         selectedOrder.id,
         resultTest
-          ? { results: structured.entries, interpretation: resultForm.interpretation || undefined }
+          ? { results: structured.entries, interpretation: resultForm.interpretation || undefined, analyzerId: resultAnalyzerId || undefined }
           : {
               measuredValue: resultForm.measuredValue,
               normalRange: resultForm.normalRange || undefined,
@@ -1680,6 +1691,45 @@ export function LabOrdersPage() {
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 p-6 rounded-3xl border border-slate-800 bg-[#0c192b] space-y-3">
+                  <h3 className="text-sm font-bold text-white">Turnaround by test</h3>
+                  <p className="text-xs text-slate-400">Minutes from request to verification. The target is 60 minutes.</p>
+                  {tatRows.length === 0 ? (
+                    <p className="text-xs text-slate-500 py-4">No verified orders yet.</p>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs text-left">
+                        <thead className="text-slate-400"><tr><th className="py-1 pr-3">Test</th><th className="pr-3">Orders</th><th className="pr-3">Median</th><th className="pr-3">Slowest 10%</th><th>Over target</th></tr></thead>
+                        <tbody className="divide-y divide-slate-800 text-slate-200">
+                          {tatRows.slice(0, 15).map((r) => (
+                            <tr key={r.testName}><td className="py-1 pr-3">{r.testName}</td><td className="pr-3">{r.count}</td><td className="pr-3">{r.median} min</td><td className="pr-3">{r.p90} min</td><td className={r.overTarget > 25 ? "text-amber-300" : ""}>{r.overTarget}%</td></tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+                <div className="p-6 rounded-3xl border border-slate-800 bg-[#0c192b] space-y-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Where the time goes</h3>
+                    {waitRows.length === 0 ? <p className="text-xs text-slate-500 py-2">No stage times yet.</p> : (
+                      <ul className="mt-2 space-y-1 text-xs text-slate-300">
+                        {waitRows.map((w) => <li key={w.stage} className="flex justify-between"><span>{w.stage}</span><span>{w.avg} min</span></li>)}
+                      </ul>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Why samples were rejected</h3>
+                    {rejectRows.length === 0 ? <p className="text-xs text-slate-500 py-2">No rejected samples.</p> : (
+                      <ul className="mt-2 space-y-1 text-xs text-slate-300">
+                        {rejectRows.map((w) => <li key={w.reason} className="flex justify-between"><span>{w.reason}</span><span>{w.count}</span></li>)}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               {/* Promised Test Distribution Breakdown & Urgency Breakdown */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Test Volume Distribution */}
@@ -1831,6 +1881,23 @@ export function LabOrdersPage() {
                     instrument={selectedOrder.instrumentResults}
                     onChange={setStructured}
                   />
+                  {analyzerList.length > 0 && (
+                    <div>
+                      <label htmlFor="result-analyzer" className="block text-xs font-medium text-slate-300 mb-1">Analyser used (optional)</label>
+                      <select
+                        id="result-analyzer"
+                        value={resultAnalyzerId}
+                        onChange={(e) => setResultAnalyzerId(e.target.value)}
+                        className="w-full bg-[#081220] border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"
+                      >
+                        <option value="">Not recorded</option>
+                        {analyzerList.map((a) => (
+                          <option key={a._id} value={a._id}>{a.name}{a.lastQcResult === "fail" ? " (quality control failing)" : ""}</option>
+                        ))}
+                      </select>
+                      <p className="mt-1 text-[11px] text-slate-500">If its control is failing, the result cannot be verified.</p>
+                    </div>
+                  )}
                   <div>
                     <label className="block text-xs font-medium text-slate-300 mb-1">Clinical interpretation</label>
                     <textarea
@@ -1921,21 +1988,30 @@ export function LabOrdersPage() {
               {rejectTarget.mode === "rejected" ? "Reject this sample" : "Cancel this request"}
             </h3>
             <p className="text-xs text-slate-400">A reason is required and is kept with the order. This cannot be undone.</p>
-            <textarea
-              rows={3}
+            <select
               required
-              maxLength={300}
               autoFocus
+              aria-label="Reason"
+              value={rejectLabel}
+              onChange={(e) => setRejectLabel(e.target.value)}
+              className="w-full bg-[#081220] border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"
+            >
+              <option value="">Choose a reason</option>
+              {(rejectTarget.mode === "rejected" ? REJECT_REASONS : CANCEL_REASONS).map((r) => <option key={r} value={r}>{r}</option>)}
+            </select>
+            <textarea
+              rows={2}
+              maxLength={250}
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
-              placeholder={rejectTarget.mode === "rejected" ? "e.g. Haemolysed sample, insufficient volume" : "e.g. Patient did not attend"}
+              placeholder="Details (optional)"
               className="w-full bg-[#081220] border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"
             />
             <div className="flex justify-end gap-3">
-              <button type="button" onClick={() => { setRejectTarget(null); setRejectReason(""); }} className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white">
+              <button type="button" onClick={() => { setRejectTarget(null); setRejectReason(""); setRejectLabel(""); }} className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white">
                 Back
               </button>
-              <button type="submit" disabled={!rejectReason.trim()} className="px-5 py-2 rounded-xl text-xs font-bold bg-rose-500 hover:bg-rose-400 text-white disabled:opacity-50">
+              <button type="submit" disabled={!rejectLabel} className="px-5 py-2 rounded-xl text-xs font-bold bg-rose-500 hover:bg-rose-400 text-white disabled:opacity-50">
                 Confirm
               </button>
             </div>

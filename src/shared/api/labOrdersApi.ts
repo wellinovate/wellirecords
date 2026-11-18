@@ -51,6 +51,7 @@ export interface LabOrder {
   testKey?: string;
   results?: LabResultRow[];
   deltaFlags?: DeltaFlag[];
+  analyzerId?: string;
   approval?: { status: "approved"; byName: string; at: string; comment?: string };
   reviewLog?: { decision: string; comment?: string; byName: string; at: string }[];
   returnReason?: string;
@@ -137,6 +138,7 @@ export async function enterLabOrderResult(
     interpretation?: string;
     isCritical?: boolean;
     results?: ResultEntry[];
+    analyzerId?: string;
   },
 ): Promise<LabOrder> {
   const { data } = await api.patch(`${apiUrl}/api/v1/lab-orders/${id}/result`, payload, {
