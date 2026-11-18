@@ -633,6 +633,9 @@ export function LabOrdersPage() {
       showToast(`Result saved for ${selectedOrder.patientName}. It needs to be verified before release.`);
     }
 
+    if (saved?.reagentShortfalls?.length) {
+      showToast(`Result saved. Reagent stock was short: ${saved.reagentShortfalls.map((s: any) => s.reagentName).join(", ")}. Check the Analyzers & Reagents tab.`);
+    }
     setIsResultModalOpen(false);
   };
 
@@ -1730,6 +1733,7 @@ export function LabOrdersPage() {
                     orderId={selectedOrder.id}
                     test={resultTest}
                     initial={selectedOrder.results}
+                    instrument={selectedOrder.instrumentResults}
                     onChange={setStructured}
                   />
                   <div>

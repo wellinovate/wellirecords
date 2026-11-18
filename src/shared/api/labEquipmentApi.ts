@@ -19,6 +19,22 @@ export interface Analyzer {
   notes?: string;
   calibrationStatus: "ok" | "due_soon" | "overdue" | "unknown";
   nextCalibrationDue?: string | null;
+  codeMap?: CodeMapRow[];
+  ingestEnabled?: boolean;
+}
+
+export interface CodeMapRow {
+  instrumentCode: string;
+  analyteCode: string;
+  unit?: string;
+}
+
+export interface ReagentUsage {
+  _id: string;
+  testKey: string;
+  reagentName: string;
+  quantityPerRun: number;
+  note?: string;
 }
 
 export interface AnalyzerEvent {
@@ -75,6 +91,11 @@ export const equipmentApi = {
   analyzerEvents: (id: string): Promise<AnalyzerEvent[]> => api.get(`${base()}/analyzers/${id}/events`, H()).then(unwrap),
   addEvent: (id: string, b: { type: string; result?: string; performedAt?: string; note?: string; lotNumber?: string }) =>
     api.post(`${base()}/analyzers/${id}/events`, b, H()).then(unwrap),
+  createIngestKey: (id: string): Promise<{ key: string }> => api.post(`${base()}/analyzers/${id}/ingest-key`, {}, H()).then(unwrap),
+  revokeIngestKey: (id: string) => api.delete(`${base()}/analyzers/${id}/ingest-key`, H()).then(unwrap),
+  usage: (): Promise<ReagentUsage[]> => api.get(`${base()}/usage`, H()).then(unwrap),
+  setUsage: (b: { testKey: string; reagentName: string; quantityPerRun: number; note?: string }): Promise<ReagentUsage> => api.put(`${base()}/usage`, b, H()).then(unwrap),
+  removeUsage: (id: string) => api.delete(`${base()}/usage/${id}`, H()).then(unwrap),
   reagents: (): Promise<Reagent[]> => api.get(`${base()}/reagents`, H()).then(unwrap),
   createReagent: (b: Partial<Reagent>): Promise<Reagent> => api.post(`${base()}/reagents`, b, H()).then(unwrap),
   updateReagent: (id: string, b: Partial<Reagent>): Promise<Reagent> => api.patch(`${base()}/reagents/${id}`, b, H()).then(unwrap),

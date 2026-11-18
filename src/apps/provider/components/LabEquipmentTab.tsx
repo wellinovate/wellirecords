@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   equipmentApi, equipmentError,
-  type Analyzer, type AnalyzerEvent, type Reagent, type ReagentMovement, type EquipmentSummary,
+  type Analyzer, type AnalyzerEvent, type Reagent, type ReagentMovement, type EquipmentSummary, type CodeMapRow, type ReagentUsage,
 } from "@/shared/api/labEquipmentApi";
+import { getLabTestCatalog } from "@/shared/api/labTestCatalogApi";
 
 const inputCls = "w-full bg-[#081220] border border-slate-800 rounded-lg px-2.5 py-1.5 text-sm text-white focus:outline-none focus:border-sky-500";
 const btn = "px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors";
@@ -57,11 +58,22 @@ function AnalyzerForm({ initial, onSaved, onClose }: { initial?: Analyzer; onSav
     calibrationIntervalDays: initial?.calibrationIntervalDays ? String(initial.calibrationIntervalDays) : "", notes: initial?.notes || "",
   });
   const [err, setErr] = useState("");
+  const [codeMap, setCodeMap] = useState<CodeMapRow[]>(initial?.codeMap || []);
+  const [newKey, setNewKey] = useState("");
   const set = (k: string, v: string) => setF((p) => ({ ...p, [k]: v }));
+  const makeKey = async () => {
+    if (!initial) return;
+    if (initial.ingestEnabled && !window.confirm("This replaces the current key. The instrument interface stops working until it is given the new one.")) return;
+    try { setNewKey((await equipmentApi.createIngestKey(initial._id)).key); } catch (e) { setErr(equipmentError(e, "Could not make a key.")); }
+  };
+  const revokeKey = async () => {
+    if (!initial || !window.confirm("Stop this analyzer sending results?")) return;
+    try { await equipmentApi.revokeIngestKey(initial._id); setNewKey(""); onSaved(); } catch (e) { setErr(equipmentError(e, "Could not revoke.")); }
+  };
   const save = async () => {
     setErr("");
     try {
-      const body: any = { ...f, calibrationIntervalDays: f.calibrationIntervalDays };
+      const body: any = { ...f, calibrationIntervalDays: f.calibrationIntervalDays, ...(initial ? { codeMap: codeMap.filter((m) => m.instrumentCode || m.analyteCode) } : {}) };
       initial ? await equipmentApi.updateAnalyzer(initial._id, body) : await equipmentApi.createAnalyzer(body);
       onSaved();
     } catch (e) { setErr(equipmentError(e, "Could not save.")); }
@@ -84,6 +96,40 @@ function AnalyzerForm({ initial, onSaved, onClose }: { initial?: Analyzer; onSav
         {!initial && <Field label="Last calibrated"><input type="date" className={inputCls} value={f.lastCalibrationAt} onChange={(e) => set("lastCalibrationAt", e.target.value)} /></Field>}
       </div>
       <Field label="Notes"><textarea rows={2} className={inputCls} value={f.notes} onChange={(e) => set("notes", e.target.value)} /></Field>
+
+      {initial && (
+        <div className="rounded-xl border border-slate-800 p-3 space-y-3">
+          <div>
+            <h4 className="text-sm font-semibold text-white">Results from this analyzer</h4>
+            <p className="text-[11px] text-slate-500">
+              The analyzer's software posts results to <code className="text-slate-300">/api/v1/lab-instruments/ingest</code> with the key below. Values wait on the order until someone loads and saves them. Nothing is verified automatically.
+            </p>
+          </div>
+          <div className="space-y-1.5">
+            <p className="text-[11px] text-slate-400">Match each code the analyzer sends to a result field (for example HGB to hb, WBC to wbc). Add the unit the analyzer reports if it differs from the field's unit, such as g/L.</p>
+            {codeMap.map((m, i) => (
+              <div key={i} className="grid grid-cols-7 gap-1.5 items-center">
+                <input className={`${inputCls} col-span-2`} placeholder="Analyzer code" value={m.instrumentCode} onChange={(e) => setCodeMap((p) => p.map((x, j) => (j === i ? { ...x, instrumentCode: e.target.value } : x)))} />
+                <input className={`${inputCls} col-span-2`} placeholder="Result field" value={m.analyteCode} onChange={(e) => setCodeMap((p) => p.map((x, j) => (j === i ? { ...x, analyteCode: e.target.value } : x)))} />
+                <input className={`${inputCls} col-span-2`} placeholder="Unit (optional)" value={m.unit || ""} onChange={(e) => setCodeMap((p) => p.map((x, j) => (j === i ? { ...x, unit: e.target.value } : x)))} />
+                <button type="button" className="text-xs text-slate-400 hover:text-white" onClick={() => setCodeMap((p) => p.filter((_, j) => j !== i))} aria-label="Remove mapping">✕</button>
+              </div>
+            ))}
+            <button type="button" className="text-xs text-sky-400 hover:text-sky-300" onClick={() => setCodeMap((p) => [...p, { instrumentCode: "", analyteCode: "", unit: "" }])}>Add a mapping</button>
+          </div>
+          <div className="flex flex-wrap gap-2 items-center">
+            <button type="button" className={quiet} onClick={makeKey}>{initial.ingestEnabled ? "Make a new key" : "Make a key"}</button>
+            {initial.ingestEnabled && <button type="button" className={quiet} onClick={revokeKey}>Stop receiving results</button>}
+            <span className="text-[11px] text-slate-500">{initial.ingestEnabled ? "A key is set." : "No key yet."}</span>
+          </div>
+          {newKey && (
+            <div role="status" className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-2 text-xs text-amber-100 break-all">
+              Copy this key now. It is shown once and cannot be read again.
+              <div className="mt-1 font-mono text-white select-all">{newKey}</div>
+            </div>
+          )}
+        </div>
+      )}
       {err && <p className="text-xs text-rose-300">{err}</p>}
       <div className="flex justify-end gap-2"><button className={quiet} onClick={onClose}>Cancel</button><button className={primary} onClick={save}>Save</button></div>
     </Modal>
@@ -218,6 +264,56 @@ function StockModal({ r, onClose, onChanged }: { r: Reagent; onClose: () => void
   );
 }
 
+// ---------- reagent use per test ----------
+function UsageSection({ reagents, canWrite }: { reagents: Reagent[]; canWrite: boolean }) {
+  const [usage, setUsage] = useState<ReagentUsage[]>([]);
+  const [tests, setTests] = useState<{ key: string; name: string }[]>([]);
+  const [f, setF] = useState({ testKey: "", reagentName: "", quantityPerRun: "" });
+  const [err, setErr] = useState("");
+  const load = () => equipmentApi.usage().then(setUsage).catch(() => setUsage([]));
+  useEffect(() => {
+    load();
+    getLabTestCatalog().then((g) => setTests(g.flatMap((x) => x.tests).filter((t) => t.structured && t.key).map((t) => ({ key: t.key!, name: t.name })))).catch(() => setTests([]));
+  }, []);
+  const names = Array.from(new Set(reagents.map((r) => r.name))).sort();
+  const testName = (k: string) => tests.find((t) => t.key === k)?.name || k;
+  const add = async () => {
+    setErr("");
+    try {
+      await equipmentApi.setUsage({ testKey: f.testKey, reagentName: f.reagentName, quantityPerRun: Number(f.quantityPerRun) });
+      setF({ ...f, quantityPerRun: "" });
+      load();
+    } catch (e) { setErr(equipmentError(e, "Could not save.")); }
+  };
+  return (
+    <section className="rounded-2xl border border-slate-800 bg-[#0c192b] p-5 space-y-3">
+      <div>
+        <h2 className="text-base font-bold text-white">Reagent use per test</h2>
+        <p className="text-xs text-slate-400">When the first result for an order is saved, these amounts come out of stock, earliest-expiring lot first. If stock runs short, the result still saves and the order is marked.</p>
+      </div>
+      {usage.length === 0 ? <p className="text-xs text-slate-500">No usage set. Stock is only reduced when you record it.</p> : (
+        <ul className="divide-y divide-slate-800 text-xs">
+          {usage.map((u) => (
+            <li key={u._id} className="py-2 flex justify-between gap-3 text-slate-200">
+              <span>{testName(u.testKey)}: {u.quantityPerRun} of {u.reagentName} per test</span>
+              {canWrite && <button className="text-slate-400 hover:text-white" onClick={async () => { await equipmentApi.removeUsage(u._id).catch(() => null); load(); }}>Remove</button>}
+            </li>
+          ))}
+        </ul>
+      )}
+      {canWrite && (
+        <div className="grid sm:grid-cols-4 gap-2 items-end">
+          <Field label="Test"><select className={inputCls} value={f.testKey} onChange={(e) => setF({ ...f, testKey: e.target.value })}><option value="">Select</option>{tests.map((t) => <option key={t.key} value={t.key}>{t.name}</option>)}</select></Field>
+          <Field label="Reagent"><select className={inputCls} value={f.reagentName} onChange={(e) => setF({ ...f, reagentName: e.target.value })}><option value="">Select</option>{names.map((n) => <option key={n} value={n}>{n}</option>)}</select></Field>
+          <Field label="Amount per test (in the reagent's unit)"><input className={inputCls} inputMode="decimal" value={f.quantityPerRun} onChange={(e) => setF({ ...f, quantityPerRun: e.target.value })} /></Field>
+          <button className={primary} onClick={add} disabled={!f.testKey || !f.reagentName || !f.quantityPerRun}>Save usage</button>
+        </div>
+      )}
+      {err && <p className="text-xs text-rose-300">{err}</p>}
+    </section>
+  );
+}
+
 // ---------- tab ----------
 export function LabEquipmentTab({ canWrite = true }: { canWrite?: boolean }) {
   const [analyzers, setAnalyzers] = useState<Analyzer[]>([]);
@@ -339,7 +435,9 @@ export function LabEquipmentTab({ canWrite = true }: { canWrite?: boolean }) {
         )}
       </section>
 
-      <p className="text-[11px] text-slate-500">This is a register the laboratory keeps by hand. Nothing is read from the analyzers. Due dates come from the last calibration and the interval you set.</p>
+      <UsageSection reagents={reagents} canWrite={canWrite} />
+
+      <p className="text-[11px] text-slate-500">Calibration and QC entries are kept by hand. Due dates come from the last calibration and the interval you set. An analyzer can send results only after you map its codes and make a key; those results wait for a person to check and save them.</p>
 
       {modal?.kind === "analyzer" && <AnalyzerForm initial={modal.item} onSaved={done} onClose={() => setModal(null)} />}
       {modal?.kind === "log" && <AnalyzerLog a={modal.item} onClose={() => setModal(null)} onChanged={load} />}
