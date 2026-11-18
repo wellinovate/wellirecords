@@ -34,7 +34,7 @@ import {
   wearable,
 } from "../../../assets";
 import { hero, welliIcon } from "@/assets";
-import { FaInstagram, FaLinkedin, FaTiktok, FaYoutube } from "react-icons/fa";
+import { FaFacebook, FaInstagram, FaLinkedin, FaTiktok, FaYoutube } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 
 /* ─────────────────────────────────────────────
@@ -956,9 +956,16 @@ function ConversionBanner() {
 function LandingFooter() {
   const socialLinks = [
     {
+      name: "Facebook",
+      handleName: "WelliRecord",
+      href: "https://www.facebook.com/profile.php?id=61596458829642",
+      icon: FaFacebook,
+      className: "text-[#1877F2]",
+    },
+    {
       name: "Instagram",
-      handleName: "careIdhq",
-      href: "https://www.instagram.com/careidhq?utm_source=qr&igsh=MXVpczV0b2NhM3F5cA==",
+      handleName: "mywellirecord",
+      href: "https://www.instagram.com/mywellirecord",
       icon: FaInstagram,
       className: "text-pink-500",
     },
