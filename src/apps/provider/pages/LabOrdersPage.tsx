@@ -150,6 +150,9 @@ const toUiOrder = (raw: any) => {
 
 // Stages the Advance button can move an order to. Verification and the end of the
 // workflow follow the same rules as the server (verified only through the verify step).
+// Same rule as the server: results are entered while an order is processing or in quality control.
+const canEnterNow = (status: string) => status === "processing" || status === "quality-control";
+
 const NEXT_STAGE: Record<string, string> = {
   requested: "collected",
   collected: "received",
@@ -1363,10 +1366,15 @@ export function LabOrdersPage() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => openResultModal(ord)}
-                        className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 transition-colors flex items-center gap-1"
+                        disabled={!canEnterNow(ord.status)}
+                        title={canEnterNow(ord.status) ? undefined : `Results can be entered once the order is processing. Advance it first (now: ${ord.status}).`}
+                        className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 transition-colors flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-sky-500/15"
                       >
                         <FileSignature size={13} /> Enter result
                       </button>
+                      {!canEnterNow(ord.status) && NEXT_STAGE[ord.status] && (
+                        <span className="text-[11px] text-amber-300">Advance to {NEXT_STAGE[ord.status]} first</span>
+                      )}
 
                       {ord.measuredValue && (
                         <button
