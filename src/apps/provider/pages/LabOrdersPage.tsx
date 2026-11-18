@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { getAllLabOrders, createLabOrder, updateLabOrderStatus, enterLabOrderResult, verifyLabOrderResult } from "@/shared/api/labOrdersApi";
-import { getLabTestCatalog, LabTestCatalogGroup } from "@/shared/api/labTestCatalogApi";
+import { getLabTestCatalog, getLabCatalogTest, LabTestCatalogGroup, LabCatalogTest } from "@/shared/api/labTestCatalogApi";
+import { StructuredResultForm, StructuredResultState } from "@/apps/provider/components/StructuredResultForm";
 import VerifiedResultDeliveryModal from "@/apps/provider/components/VerifiedResultDeliveryModal";
 import JsBarcode from "jsbarcode";
 import { io, Socket } from "socket.io-client";
@@ -221,6 +222,11 @@ export function LabOrdersPage() {
     verifierRole: "Medical Laboratory Scientist",
     comments: "",
   });
+
+  // Structured result entry: the test definition for the order being resulted, when it has one.
+  const [resultTest, setResultTest] = useState<LabCatalogTest | null>(null);
+  const [resultTestLoading, setResultTestLoading] = useState(false);
+  const [structured, setStructured] = useState<StructuredResultState>({ entries: [], isCritical: false, errors: [], hasValues: false });
 
   // New Order Creation Form State
   const [newOrder, setNewOrder] = useState({
@@ -563,7 +569,16 @@ export function LabOrdersPage() {
       verifierRole: "Medical Laboratory Scientist",
       comments: "",
     });
+    setResultTest(null);
+    setStructured({ entries: [], isCritical: false, errors: [], hasValues: false });
     setIsResultModalOpen(true);
+    if (order.testKey) {
+      setResultTestLoading(true);
+      getLabCatalogTest(order.testKey)
+        .then((t) => setResultTest(t && t.analytes?.length ? t : null))
+        .catch(() => setResultTest(null))
+        .finally(() => setResultTestLoading(false));
+    }
   };
 
   // Save the result. Verification is a separate step.
@@ -571,21 +586,39 @@ export function LabOrdersPage() {
     e.preventDefault();
     if (!selectedOrder) return;
 
+    if (resultTest) {
+      if (!structured.hasValues) {
+        showToast("Enter at least one result.");
+        return;
+      }
+      if (structured.errors.length) {
+        showToast(structured.errors[0]);
+        return;
+      }
+    }
+
     let saved: any;
     try {
-      saved = await enterLabOrderResult(selectedOrder.id, {
-        measuredValue: resultForm.measuredValue,
-        normalRange: resultForm.normalRange || undefined,
-        interpretation: resultForm.interpretation || undefined,
-        isCritical: resultForm.isCritical,
-      });
+      saved = await enterLabOrderResult(
+        selectedOrder.id,
+        resultTest
+          ? { results: structured.entries, interpretation: resultForm.interpretation || undefined }
+          : {
+              measuredValue: resultForm.measuredValue,
+              normalRange: resultForm.normalRange || undefined,
+              interpretation: resultForm.interpretation || undefined,
+              isCritical: resultForm.isCritical,
+            },
+      );
     } catch (err: any) {
       showToast(errMsg(err, "Could not save the result."));
       return;
     }
     replaceOrder(saved);
 
-    if (resultForm.isCritical) {
+    // The server decides critical status for structured results.
+    const isCriticalSaved = resultTest ? Boolean(saved?.isCritical) : resultForm.isCritical;
+    if (isCriticalSaved) {
       const alertPhone = selectedOrder.doctorPhone;
       if (!alertPhone) {
         showToast(`Result saved and flagged CRITICAL, but no doctor phone on file. Notify Dr. ${selectedOrder.doctor} directly.`);
@@ -624,6 +657,9 @@ export function LabOrdersPage() {
       const created = await createLabOrder({
         patientId: selectedPatient.id,
         testName: newOrder.testName,
+        testKey: useManualTestEntry
+          ? undefined
+          : testsInSelectedPanel.find((t) => t.name === newOrder.testName)?.key || undefined,
         category: CATEGORY_MAP[newOrder.category] || "other",
         priority: newOrder.priority,
         sampleType: newOrder.sampleType,
@@ -1694,7 +1730,7 @@ export function LabOrdersPage() {
       {/* ─── MODAL 1: RESULTS ENTRY & SIGN-OFF ────────────────────────────────── */}
       {isResultModalOpen && selectedOrder && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-xl p-6 rounded-2xl border border-slate-700 bg-[#0c192b] shadow-2xl space-y-5">
+          <div className="w-full max-w-3xl p-6 rounded-2xl border border-slate-700 bg-[#0c192b] shadow-2xl space-y-5">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div>
                 <h3 className="text-lg font-bold text-white">Enter laboratory test result</h3>
@@ -1706,6 +1742,29 @@ export function LabOrdersPage() {
             </div>
 
             <form onSubmit={handleSaveResult} className="space-y-4">
+              {resultTestLoading && <p className="text-xs text-slate-400">Loading the result form...</p>}
+              {resultTest ? (
+                <>
+                  <StructuredResultForm
+                    key={selectedOrder.id}
+                    orderId={selectedOrder.id}
+                    test={resultTest}
+                    initial={selectedOrder.results}
+                    onChange={setStructured}
+                  />
+                  <div>
+                    <label className="block text-xs font-medium text-slate-300 mb-1">Clinical interpretation</label>
+                    <textarea
+                      rows={2}
+                      placeholder="Clinical impression or comments..."
+                      value={resultForm.interpretation}
+                      onChange={(e) => setResultForm({ ...resultForm, interpretation: e.target.value })}
+                      className="w-full bg-[#081220] border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"
+                    />
+                  </div>
+                </>
+              ) : !resultTestLoading && (
+                <>
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">Measured Value / Readings</label>
                 <input
@@ -1752,6 +1811,9 @@ export function LabOrdersPage() {
                   🚨 Flag as critical value (sends an SMS to the requesting doctor if a phone number is on file)
                 </label>
               </div>
+
+                </>
+              )}
 
               <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
                 <button

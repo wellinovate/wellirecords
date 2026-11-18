@@ -2,11 +2,35 @@ import { api } from "@/shared/lib/api";
 import { apiUrl } from "@/shared/api/authApi";
 import Cookies from "js-cookie";
 
+export interface LabResultRow {
+  code: string;
+  name: string;
+  type: string;
+  unit: string;
+  value?: string | number;
+  dp?: number;
+  refText?: string;
+  flag?: string | null;
+  critical?: boolean;
+  abnormal?: boolean;
+  calculated?: boolean;
+  rows?: { antibiotic: string; result: string }[];
+}
+
+export interface ResultEntry {
+  code: string;
+  value?: string | number;
+  unit?: string;
+  rows?: { antibiotic: string; result: string }[];
+}
+
 export interface LabOrder {
   id: string;
   patientId: string;
   organizationId: string | null;
   testName: string;
+  testKey?: string;
+  results?: LabResultRow[];
   category: string;
   status: string;
   priority: string;
@@ -52,6 +76,7 @@ export async function getAllLabOrders(page = 1, limit = 20): Promise<LabOrdersRe
 export async function createLabOrder(payload: {
   patientId: string;
   testName: string;
+  testKey?: string;
   category?: string;
   priority?: string;
   sampleType?: string;
@@ -83,6 +108,7 @@ export async function enterLabOrderResult(
     normalRange?: string;
     interpretation?: string;
     isCritical?: boolean;
+    results?: ResultEntry[];
   },
 ): Promise<LabOrder> {
   const { data } = await api.patch(`${apiUrl}/api/v1/lab-orders/${id}/result`, payload, {
@@ -164,6 +190,18 @@ export async function inviteUnregisteredPatientApi(payload: {
   const { data } = await api.post(
     `${apiUrl}/api/v1/lab-delivery/invite-unregistered`,
     payload,
+    { headers: authHeaders() },
+  );
+  return data.data;
+}
+
+export async function previewLabOrderResult(
+  id: string,
+  results: ResultEntry[],
+): Promise<{ results: LabResultRow[]; isCritical: boolean; errors: string[] }> {
+  const { data } = await api.post(
+    `${apiUrl}/api/v1/lab-orders/${id}/result/preview`,
+    { results },
     { headers: authHeaders() },
   );
   return data.data;

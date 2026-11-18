@@ -4,7 +4,38 @@ export interface LabTestCatalogItem {
   id: string;
   name: string;
   labDepartment: string;
+  key?: string | null;
+  structured?: boolean;
+  specimen?: string;
+  fastingRequired?: boolean;
 }
+
+export interface LabAnalyte {
+  code: string;
+  name: string;
+  type: 'numeric' | 'choice' | 'text' | 'calculated' | 'sensitivity';
+  unit?: string;
+  dp?: number;
+  options?: string[];
+  altUnits?: { unit: string; factor: number }[];
+  refNote?: string;
+}
+
+export interface LabCatalogTest {
+  key: string;
+  name: string;
+  specimen?: string;
+  container?: string;
+  fastingRequired?: boolean;
+  notes?: string;
+  reviewStatus?: string;
+  analytes: LabAnalyte[];
+}
+
+export const getLabCatalogTest = async (keyOrId: string): Promise<LabCatalogTest | null> => {
+  const res: any = await apiClient.get(`/lab-tests-catalog/${encodeURIComponent(keyOrId)}`);
+  return res?.data ?? null;
+};
 
 export interface LabTestCatalogGroup {
   category: string;
