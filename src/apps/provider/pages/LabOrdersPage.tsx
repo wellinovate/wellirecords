@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { getAllLabOrders, createLabOrder, updateLabOrderStatus, enterLabOrderResult, verifyLabOrderResult } from "@/shared/api/labOrdersApi";
+import { getAllLabOrders, createLabOrder, updateLabOrderStatus, enterLabOrderResult, verifyLabOrderResult, releaseLabOrder } from "@/shared/api/labOrdersApi";
 import { getLabTestCatalog, getLabCatalogTest, LabTestCatalogGroup, LabCatalogTest } from "@/shared/api/labTestCatalogApi";
 import { LabEquipmentTab } from "@/apps/provider/components/LabEquipmentTab";
+import { ReviewModal, PatientNoteModal } from "@/apps/provider/components/LabReviewModals";
 import { CriticalAlertsPanel } from "@/apps/provider/components/CriticalAlertsPanel";
 import { LabRangeSettings } from "@/apps/provider/components/LabRangeSettings";
 import { printLabReport } from "@/apps/provider/utils/printLabReport";
@@ -151,7 +152,6 @@ const NEXT_STAGE: Record<string, string> = {
   collected: "received",
   received: "processing",
   processing: "quality-control",
-  verified: "released",
   released: "delivered",
 };
 
@@ -161,10 +161,13 @@ export function LabOrdersPage() {
   const [isDeliveryModalOpen, setIsDeliveryModalOpen] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
+  const [viewer, setViewer] = useState<{ userId: string; canApprove: boolean } | null>(null);
+  const [reviewTarget, setReviewTarget] = useState<any>(null);
+  const [noteTarget, setNoteTarget] = useState<any>(null);
 
   useEffect(() => {
     getAllLabOrders()
-      .then((res) => setOrders(res.items.map(toUiOrder)))
+      .then((res) => { setOrders(res.items.map(toUiOrder)); setViewer(res.viewer || null); })
       .catch((err) => console.error("Failed to load lab orders:", err))
       .finally(() => setOrdersLoading(false));
   }, []);
@@ -534,6 +537,17 @@ export function LabOrdersPage() {
       showToast(`Order moved to ${nextStatus.toUpperCase()}`);
     } catch (err: any) {
       showToast(errMsg(err, "Could not update the order stage."));
+    }
+  };
+
+  const handleRelease = async (orderId: string) => {
+    if (!window.confirm("Release this result to the patient? They will be notified and it cannot be taken back.")) return;
+    try {
+      const out = await releaseLabOrder(orderId);
+      replaceOrder(out.order);
+      showToast(`Released to the patient: ${out.recordsCreated} result${out.recordsCreated === 1 ? "" : "s"} added to their record.`);
+    } catch (err: any) {
+      showToast(errMsg(err, "Could not release the result."));
     }
   };
 
@@ -1229,6 +1243,24 @@ export function LabOrdersPage() {
                         </span>
                       </div>
 
+                      {ord.returnReason && ord.status === "quality-control" && (
+                        <div role="status" className="mt-3 p-2.5 rounded-xl border border-amber-500/40 bg-amber-500/10 text-xs text-amber-200">
+                          <b>Returned by the senior reviewer:</b> {ord.returnReason}
+                        </div>
+                      )}
+                      {ord.status === "verified" && (
+                        <div className="mt-3 text-xs">
+                          {ord.approval ? (
+                            <span className="text-emerald-300">Approved by {ord.approval.byName}{ord.approval.comment ? `: ${ord.approval.comment}` : ""}. Ready to release.</span>
+                          ) : (
+                            <span className="text-amber-300">Waiting for senior review before release.</span>
+                          )}
+                        </div>
+                      )}
+                      {ord.patientNote && (
+                        <div className="mt-2 text-xs text-slate-300"><b className="text-slate-400">Note for patient:</b> {ord.patientNote.text}</div>
+                      )}
+
                       {ord.measuredValue && (
                         <div className="mt-3 p-3 rounded-xl border border-slate-800 bg-[#081220] text-xs space-y-1">
                           <div className="text-slate-300">
@@ -1293,6 +1325,33 @@ export function LabOrdersPage() {
                           className="px-3 py-1.5 rounded-xl text-xs font-semibold text-rose-300 hover:bg-rose-500/10 border border-rose-500/30 transition-colors"
                         >
                           {ord.status === "requested" || ord.status === "collected" ? "Cancel" : "Reject"}
+                        </button>
+                      )}
+
+                      {["requested", "collected", "received", "processing", "quality-control", "verified"].includes(ord.status) && (
+                        <button
+                          onClick={() => setNoteTarget(ord)}
+                          className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"
+                        >
+                          {ord.patientNote ? "Edit patient note" : "Note for patient"}
+                        </button>
+                      )}
+
+                      {ord.status === "verified" && !ord.approval && viewer?.canApprove && (
+                        <button
+                          onClick={() => setReviewTarget(ord)}
+                          className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-500/15 hover:bg-amber-500/25 text-amber-200 border border-amber-500/30 transition-colors"
+                        >
+                          Review and approve
+                        </button>
+                      )}
+
+                      {ord.status === "verified" && ord.approval && (
+                        <button
+                          onClick={() => handleRelease(ord.id)}
+                          className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-colors"
+                        >
+                          Release to patient
                         </button>
                       )}
 
@@ -1709,6 +1768,24 @@ export function LabOrdersPage() {
       )}
 
       {/* ─── MODAL 1: RESULTS ENTRY & SIGN-OFF ────────────────────────────────── */}
+      {reviewTarget && (
+        <ReviewModal
+          order={reviewTarget}
+          onClose={() => setReviewTarget(null)}
+          onDone={(saved, decision) => {
+            replaceOrder(saved);
+            setReviewTarget(null);
+            showToast(decision === "approve" ? "Approved. It can now be released to the patient." : "Returned to the bench for correction.");
+          }}
+        />
+      )}
+      {noteTarget && (
+        <PatientNoteModal
+          order={noteTarget}
+          onClose={() => setNoteTarget(null)}
+          onSaved={(saved) => { replaceOrder(saved); setNoteTarget(null); showToast("Note saved."); }}
+        />
+      )}
       {showRanges && <LabRangeSettings canEdit={(user as any)?.accountType === "organization"} onClose={() => setShowRanges(false)} />}
 
       {isResultModalOpen && selectedOrder && (
