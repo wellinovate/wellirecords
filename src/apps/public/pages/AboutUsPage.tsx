@@ -1,3 +1,4 @@
+import { SOCIAL_LINKS } from "../socialLinks";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Heart, Shield } from "lucide-react";
@@ -141,6 +142,13 @@ export function AboutUsPage() {
               <a href="tel:08053355504" className="hover:text-white transition">08053355504</a>
               <span className="hidden sm:inline text-white/20">•</span>
               <a href="mailto:inquiry@wellirecord.com" className="hover:text-white transition">inquiry@wellirecord.com</a>
+            </div>
+            <div className="mt-6 flex items-center justify-center gap-5 text-slate-400">
+              {SOCIAL_LINKS.map(({ name, href, icon: Icon }) => (
+                <a key={name} href={href} target="_blank" rel="noopener noreferrer" aria-label={`WelliRecord on ${name}`} className="hover:text-white transition">
+                  <Icon size={20} />
+                </a>
+              ))}
             </div>
           </div>
         </div>

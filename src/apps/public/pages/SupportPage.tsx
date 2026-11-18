@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { welliIcon } from "@/assets";
+import { SOCIAL_LINKS } from "../socialLinks";
 
 export function SupportPage() {
   return (
@@ -38,6 +39,14 @@ export function SupportPage() {
             <p className="text-slate-600 leading-8 mt-4">
               We aim to respond to all support requests within 2 business days.
             </p>
+            <p className="text-slate-600 leading-8 mt-4">You can also message us on social media:</p>
+            <div className="mt-2 flex flex-wrap gap-x-5 gap-y-2">
+              {SOCIAL_LINKS.map(({ name, handleName, href, icon: Icon, className }) => (
+                <a key={name} href={href} target="_blank" rel="noopener noreferrer" aria-label={`WelliRecord on ${name}`} className="inline-flex items-center gap-2 text-sm text-slate-600 hover:underline">
+                  <Icon size={18} className={className} /> {name} <span className="text-slate-400">@{handleName}</span>
+                </a>
+              ))}
+            </div>
           </section>
 
           <section>
