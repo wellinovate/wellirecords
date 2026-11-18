@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { LabAnalyte, LabCatalogTest } from "@/shared/api/labTestCatalogApi";
-import { previewLabOrderResult, type LabResultRow, type ResultEntry } from "@/shared/api/labOrdersApi";
+import { previewLabOrderResult, type DeltaFlag, type LabResultRow, type ResultEntry } from "@/shared/api/labOrdersApi";
 
 type Entry = { value?: string; unit?: string; rows?: { antibiotic: string; result: string }[] };
 
@@ -59,6 +59,7 @@ export function StructuredResultForm({
   const [errors, setErrors] = useState<string[]>([]);
   const [critical, setCritical] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [deltas, setDeltas] = useState<DeltaFlag[]>([]);
   const seq = useRef(0);
 
   const payload = useMemo<ResultEntry[]>(() => {
@@ -87,6 +88,7 @@ export function StructuredResultForm({
       setPreview({});
       setErrors([]);
       setCritical(false);
+      setDeltas([]);
       return;
     }
     const mine = ++seq.current;
@@ -98,6 +100,7 @@ export function StructuredResultForm({
           setPreview(Object.fromEntries(res.results.map((r) => [r.code, r])));
           setErrors(res.errors);
           setCritical(res.isCritical);
+          setDeltas(res.deltaFlags || []);
         })
         .catch((err: any) => {
           if (mine !== seq.current) return;
@@ -227,12 +230,26 @@ export function StructuredResultForm({
           Critical value. The requesting doctor needs to be told as soon as this is saved.
         </div>
       )}
+      {deltas.length > 0 && (
+        <div role="status" className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+          <b>Large change from the previous result.</b> Check the sample and the entry before saving.
+          <ul className="mt-1 space-y-0.5">
+            {deltas.map((d) => (
+              <li key={d.code}>{d.name}: {d.previous} to {d.current} {d.unit} ({d.changePct}% change, {new Date(d.previousDate).toLocaleDateString()})</li>
+            ))}
+          </ul>
+        </div>
+      )}
       <div className="grid sm:grid-cols-2 gap-3 max-h-[46vh] overflow-y-auto pr-1">{test.analytes.map(renderAnalyte)}</div>
       {errors.length > 0 && (
         <ul className="text-xs text-rose-300 space-y-0.5">{errors.map((er) => <li key={er}>{er}</li>)}</ul>
       )}
       <p className="text-[10px] text-slate-500">
-        {loading ? "Checking values..." : "Flags use default adult reference ranges that have not been reviewed by a clinician. Confirm them against your analyser's ranges."}
+        {loading
+          ? "Checking values..."
+          : Object.values(preview).some((r) => r.rangeSource === "lab")
+          ? "Flags use this laboratory's own ranges where set, and system default ranges elsewhere."
+          : "Flags use default adult reference ranges that have not been reviewed by a clinician. Set your own under Reference ranges."}
       </p>
     </div>
   );

@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { getAllLabOrders, createLabOrder, updateLabOrderStatus, enterLabOrderResult, verifyLabOrderResult } from "@/shared/api/labOrdersApi";
 import { getLabTestCatalog, getLabCatalogTest, LabTestCatalogGroup, LabCatalogTest } from "@/shared/api/labTestCatalogApi";
+import { CriticalAlertsPanel } from "@/apps/provider/components/CriticalAlertsPanel";
+import { LabRangeSettings } from "@/apps/provider/components/LabRangeSettings";
+import { printLabReport } from "@/apps/provider/utils/printLabReport";
 import { StructuredResultForm, StructuredResultState } from "@/apps/provider/components/StructuredResultForm";
 import VerifiedResultDeliveryModal from "@/apps/provider/components/VerifiedResultDeliveryModal";
 import JsBarcode from "jsbarcode";
@@ -75,7 +78,6 @@ import { PatientSearchPicker } from "@/apps/components/shared/PatientSearchPicke
 import { consentApi, ProviderGrant } from "@/shared/api/consentApi";
 import { getAllPatientLabResults, LabResultItem } from "@/shared/utils/utilityFunction";
 import { createRecord } from "@/shared/api/clinicalApi";
-import { sendCriticalAlertSms } from "@/shared/api/notificationApi";
 
 // ─── Color & Design System Tokens ─────────────────────────────────────────────
 const T = {
@@ -222,6 +224,9 @@ export function LabOrdersPage() {
     verifierRole: "Medical Laboratory Scientist",
     comments: "",
   });
+
+  const [showRanges, setShowRanges] = useState(false);
+  const [alertsRefresh, setAlertsRefresh] = useState(0);
 
   // Structured result entry: the test definition for the order being resulted, when it has one.
   const [resultTest, setResultTest] = useState<LabCatalogTest | null>(null);
@@ -619,18 +624,10 @@ export function LabOrdersPage() {
     // The server decides critical status for structured results.
     const isCriticalSaved = resultTest ? Boolean(saved?.isCritical) : resultForm.isCritical;
     if (isCriticalSaved) {
-      const alertPhone = selectedOrder.doctorPhone;
-      if (!alertPhone) {
-        showToast(`Result saved and flagged CRITICAL, but no doctor phone on file. Notify Dr. ${selectedOrder.doctor} directly.`);
-      } else {
-        const alertMessage = `CRITICAL LAB VALUE: ${selectedOrder.patientName} — ${selectedOrder.testName}. Check WelliRecord immediately.`;
-        const result = await sendCriticalAlertSms(alertPhone, alertMessage);
-        if (result.success) {
-          showToast(`Critical result saved. Alert SMS sent to Dr. ${selectedOrder.doctor}.`);
-        } else {
-          showToast(`Result saved and flagged CRITICAL, but SMS alert failed: ${result.error}. Notify Dr. ${selectedOrder.doctor} directly.`);
-        }
-      }
+      // The server logs the critical value and texts the requesting doctor. Someone still has to
+      // record that the doctor was told, from the panel at the top of the list.
+      setAlertsRefresh((n) => n + 1);
+      showToast("Critical result saved. It is in the critical results list until someone records that the doctor was told.");
     } else {
       showToast(`Result saved for ${selectedOrder.patientName}. It needs to be verified before release.`);
     }
@@ -725,6 +722,12 @@ export function LabOrdersPage() {
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm bg-sky-500 hover:bg-sky-400 text-slate-950 transition-all shadow-lg shadow-sky-500/20"
           >
             <Plus size={18} /> New Test Request
+          </button>
+          <button
+            onClick={() => setShowRanges(true)}
+            className="px-3 py-2.5 rounded-xl border border-slate-700 bg-slate-800/60 text-slate-300 hover:text-white text-xs font-medium"
+          >
+            Reference ranges
           </button>
           <button
             onClick={handlePrintBarcodeLabels}
@@ -1072,6 +1075,7 @@ export function LabOrdersPage() {
       {/* TAB 1: WORKFLOW PIPELINE & ORDERS */}
       {activeTab === "pipeline" && (
         <div className="space-y-6">
+          <CriticalAlertsPanel refreshKey={alertsRefresh} />
           {/* Multi-Search & Filter Toolbar */}
           <div className="p-4 rounded-2xl border border-slate-800 bg-[#0c192b] flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
             <div className="flex flex-1 items-center gap-2 bg-[#081220] border border-slate-800 rounded-xl px-3 py-2">
@@ -1267,6 +1271,15 @@ export function LabOrdersPage() {
                       >
                         <FileSignature size={13} /> Enter result
                       </button>
+
+                      {ord.measuredValue && (
+                        <button
+                          onClick={() => { if (!printLabReport(ord, (user as any)?.organizationName || "")) showToast("Couldn't open the print window. Check the popup blocker."); }}
+                          className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors flex items-center gap-1"
+                        >
+                          <Printer size={13} /> Print report
+                        </button>
+                      )}
 
                       {ord.status === "quality-control" && ord.measuredValue && (
                         <button
@@ -1728,6 +1741,8 @@ export function LabOrdersPage() {
       )}
 
       {/* ─── MODAL 1: RESULTS ENTRY & SIGN-OFF ────────────────────────────────── */}
+      {showRanges && <LabRangeSettings canEdit={(user as any)?.accountType === "organization"} onClose={() => setShowRanges(false)} />}
+
       {isResultModalOpen && selectedOrder && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-3xl p-6 rounded-2xl border border-slate-700 bg-[#0c192b] shadow-2xl space-y-5">

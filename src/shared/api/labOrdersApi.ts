@@ -15,6 +15,17 @@ export interface LabResultRow {
   abnormal?: boolean;
   calculated?: boolean;
   rows?: { antibiotic: string; result: string }[];
+  rangeSource?: "lab" | "default";
+}
+
+export interface DeltaFlag {
+  code: string;
+  name: string;
+  unit: string;
+  previous: number;
+  current: number;
+  previousDate: string;
+  changePct: number;
 }
 
 export interface ResultEntry {
@@ -31,6 +42,7 @@ export interface LabOrder {
   testName: string;
   testKey?: string;
   results?: LabResultRow[];
+  deltaFlags?: DeltaFlag[];
   category: string;
   status: string;
   priority: string;
@@ -198,11 +210,47 @@ export async function inviteUnregisteredPatientApi(payload: {
 export async function previewLabOrderResult(
   id: string,
   results: ResultEntry[],
-): Promise<{ results: LabResultRow[]; isCritical: boolean; errors: string[] }> {
+): Promise<{ results: LabResultRow[]; isCritical: boolean; errors: string[]; deltaFlags: DeltaFlag[] }> {
   const { data } = await api.post(
     `${apiUrl}/api/v1/lab-orders/${id}/result/preview`,
     { results },
     { headers: authHeaders() },
   );
+  return data.data;
+}
+
+export interface CriticalAlert {
+  _id: string;
+  orderId: string;
+  patientName: string;
+  testName: string;
+  values: { name: string; value: string | number; unit?: string; flag?: string }[];
+  doctorName?: string;
+  sms: "not_attempted" | "no_phone" | "sent" | "failed";
+  smsError?: string;
+  status: "open" | "acknowledged";
+  notifiedTo?: string;
+  method?: string;
+  note?: string;
+  acknowledgedBy?: string;
+  acknowledgedAt?: string;
+  createdAt: string;
+}
+
+export async function listCriticalAlerts(status?: "open" | "acknowledged"): Promise<CriticalAlert[]> {
+  const { data } = await api.get(`${apiUrl}/api/v1/lab-orders/critical-alerts`, {
+    params: status ? { status } : {},
+    headers: authHeaders(),
+  });
+  return data.data;
+}
+
+export async function acknowledgeCriticalAlert(
+  id: string,
+  payload: { notifiedTo: string; method: string; note?: string },
+): Promise<CriticalAlert> {
+  const { data } = await api.patch(`${apiUrl}/api/v1/lab-orders/critical-alerts/${id}/acknowledge`, payload, {
+    headers: authHeaders(),
+  });
   return data.data;
 }
