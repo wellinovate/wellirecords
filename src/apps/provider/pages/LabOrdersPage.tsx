@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { getAllLabOrders, createLabOrder, updateLabOrderStatus, enterLabOrderResult, verifyLabOrderResult } from "@/shared/api/labOrdersApi";
 import { getLabTestCatalog, getLabCatalogTest, LabTestCatalogGroup, LabCatalogTest } from "@/shared/api/labTestCatalogApi";
+import { LabEquipmentTab } from "@/apps/provider/components/LabEquipmentTab";
 import { CriticalAlertsPanel } from "@/apps/provider/components/CriticalAlertsPanel";
 import { LabRangeSettings } from "@/apps/provider/components/LabRangeSettings";
 import { printLabReport } from "@/apps/provider/utils/printLabReport";
@@ -770,7 +771,7 @@ export function LabOrdersPage() {
             <div className="text-xs text-slate-400 font-medium">In Processing</div>
             <div className="text-xl font-black text-sky-400 mt-1">{stats.inProcessing}</div>
             <div className="text-[10px] text-sky-400/80 mt-1 flex items-center gap-1">
-              <Cpu size={10} /> Analyzers Running
+              <Cpu size={10} /> Being analysed
             </div>
           </div>
 
@@ -889,13 +890,6 @@ export function LabOrdersPage() {
         >
           <HardDrive size={14} />
           <span>Analyzers &amp; Reagents</span>
-          <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full border ${
-            activeTab === "inventory"
-              ? "bg-slate-950/20 text-slate-950 border-slate-950/30"
-              : "bg-slate-800 text-slate-400 border-slate-700"
-          }`}>
-            Soon
-          </span>
         </button>
 
         <button
@@ -1501,36 +1495,7 @@ export function LabOrdersPage() {
       )}
 
       {/* TAB 4: ANALYZERS & REAGENTS INVENTORY */}
-      {activeTab === "inventory" && (
-        <div className="py-12 flex items-center justify-center animate-fade-in">
-          <div className="max-w-md w-full p-8 rounded-3xl border border-slate-800 bg-[#0c192b] text-center shadow-xl flex flex-col items-center">
-            <div className="w-14 h-14 rounded-2xl bg-sky-500/10 border border-sky-400/20 flex items-center justify-center text-sky-400 mb-4">
-              <Cpu size={28} />
-            </div>
-
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700 text-[11px] font-semibold text-slate-300 mb-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-              <span>Module in Development</span>
-            </div>
-
-            <h2 className="text-base font-bold text-white mb-2">
-              Analyzer &amp; Reagent Tracking
-            </h2>
-
-            <p className="text-xs text-slate-400 leading-relaxed max-w-sm mb-6">
-              Equipment calibration tracking and reagent inventory aren't available yet.
-              No machines or stock levels are being tracked, so nothing here would be real.
-            </p>
-
-            <button
-              onClick={() => setActiveTab("pipeline")}
-              className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-sky-300 border border-slate-700 hover:border-sky-400/30 transition-all cursor-pointer"
-            >
-              ← Return to Orders &amp; Pipeline
-            </button>
-          </div>
-        </div>
-      )}
+      {activeTab === "inventory" && <LabEquipmentTab />}
 
       {/* TAB 5: ANALYTICS & OPERATIONAL BENCHMARKING */}
       {activeTab === "analytics" && (
