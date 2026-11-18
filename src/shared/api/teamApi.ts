@@ -6,6 +6,7 @@ export type MembershipRole =
   | 'clinician'
   | 'nurse'
   | 'lab_tech'
+  | 'lab_senior'
   | 'pharmacist'
   | 'frontdesk'
   | 'insurer_agent'

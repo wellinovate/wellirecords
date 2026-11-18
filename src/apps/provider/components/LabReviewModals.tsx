@@ -118,7 +118,10 @@ export function ReviewModal({ order, onClose, onDone }: { order: any; onClose: (
           </table>
         </div>
       ) : (
-        <p className="text-xs text-amber-300">This order has no structured result rows. Only the text: {order.measuredValue || "none"}. It cannot be released through this step.</p>
+        <div className="rounded-xl border border-slate-800 p-3 text-xs space-y-1">
+          <div><b className="text-slate-300">Result (free text):</b> <span className="text-white">{order.measuredValue || "none"}</span></div>
+          {order.normalRange && <div><b className="text-slate-300">Reference:</b> <span className="text-slate-300">{order.normalRange}</span></div>}
+        </div>
       )}
 
       {(order.deltaFlags || []).length > 0 && (
@@ -142,7 +145,7 @@ export function ReviewModal({ order, onClose, onDone }: { order: any; onClose: (
       <div className="flex justify-end gap-2">
         <button className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-200 border border-slate-700" onClick={onClose}>Cancel</button>
         <button disabled={busy} className="px-4 py-1.5 rounded-lg text-xs font-bold text-rose-200 border border-rose-500/50 hover:bg-rose-500/10 disabled:opacity-50" onClick={() => act("return")}>Return for correction</button>
-        <button disabled={busy || rows.length === 0} className="px-4 py-1.5 rounded-lg text-xs font-bold bg-emerald-500 text-slate-950 disabled:opacity-50" onClick={() => act("approve")}>Approve</button>
+        <button disabled={busy || (rows.length === 0 && !order.measuredValue)} className="px-4 py-1.5 rounded-lg text-xs font-bold bg-emerald-500 text-slate-950 disabled:opacity-50" onClick={() => act("approve")}>Approve</button>
       </div>
     </Shell>
   );
