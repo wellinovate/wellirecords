@@ -18,3 +18,11 @@ test("a verified report has no draft banner", () => {
   assert.ok(!html.includes("DRAFT"));
   assert.ok(html.includes("J. Doe"));
 });
+
+test("report footer shows approval, release and the patient note", () => {
+  const html = buildLabReportHtml({ patientName: "Ada", testName: "FBC", status: "released", verifiedBy: "J. Doe", measuredValue: "x", approval: { byName: "Dr Eze", at: "2026-11-18T11:00:00Z" }, transmittedAt: "2026-11-18T12:00:00Z", patientNote: { text: "Repeat in 2 weeks" } });
+  assert.match(html, /Approved by Dr Eze/);
+  assert.match(html, /Released to the patient/);
+  assert.match(html, /Note for the patient/);
+  assert.match(html, /Repeat in 2 weeks/);
+});

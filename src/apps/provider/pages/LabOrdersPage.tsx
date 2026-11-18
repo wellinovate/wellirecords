@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { getAllLabOrders, createLabOrder, updateLabOrderStatus, enterLabOrderResult, verifyLabOrderResult, releaseLabOrder } from "@/shared/api/labOrdersApi";
 import { getLabTestCatalog, getLabCatalogTest, LabTestCatalogGroup, LabCatalogTest } from "@/shared/api/labTestCatalogApi";
 import { LabEquipmentTab } from "@/apps/provider/components/LabEquipmentTab";
-import { ReviewModal, PatientNoteModal } from "@/apps/provider/components/LabReviewModals";
+import { ReviewModal, PatientNoteModal, OrderHistoryModal } from "@/apps/provider/components/LabReviewModals";
 import { CriticalAlertsPanel } from "@/apps/provider/components/CriticalAlertsPanel";
 import { LabRangeSettings } from "@/apps/provider/components/LabRangeSettings";
 import { printLabReport } from "@/apps/provider/utils/printLabReport";
@@ -164,6 +164,7 @@ export function LabOrdersPage() {
   const [viewer, setViewer] = useState<{ userId: string; canApprove: boolean } | null>(null);
   const [reviewTarget, setReviewTarget] = useState<any>(null);
   const [noteTarget, setNoteTarget] = useState<any>(null);
+  const [historyTarget, setHistoryTarget] = useState<any>(null);
 
   useEffect(() => {
     getAllLabOrders()
@@ -1328,6 +1329,13 @@ export function LabOrdersPage() {
                         </button>
                       )}
 
+                      <button
+                        onClick={() => setHistoryTarget(ord)}
+                        className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"
+                      >
+                        History
+                      </button>
+
                       {["requested", "collected", "received", "processing", "quality-control", "verified"].includes(ord.status) && (
                         <button
                           onClick={() => setNoteTarget(ord)}
@@ -1779,6 +1787,7 @@ export function LabOrdersPage() {
           }}
         />
       )}
+      {historyTarget && <OrderHistoryModal order={historyTarget} onClose={() => setHistoryTarget(null)} />}
       {noteTarget && (
         <PatientNoteModal
           order={noteTarget}
