@@ -16,6 +16,9 @@ export interface ReportOrder {
   enteredByName?: string;
   verifiedBy?: string;
   verifiedAt?: string;
+  approval?: { byName: string; at: string; comment?: string };
+  patientNote?: { text: string };
+  transmittedAt?: string;
   interpretation?: string;
   measuredValue?: string;
   normalRange?: string;
@@ -73,8 +76,9 @@ export function buildLabReportHtml(o: ReportOrder, orgName = ""): string {
     </div>
     ${table}${deltas}
     ${o.interpretation ? `<h2>Interpretation</h2><p>${esc(o.interpretation)}</p>` : ""}
+    ${o.patientNote?.text ? `<h2>Note for the patient</h2><p>${esc(o.patientNote.text)}</p>` : ""}
     <div class="foot">
-      Entered by ${esc(o.enteredByName || "-")}. Verified by ${esc(o.verifiedBy || "not yet verified")} ${esc(fmt(o.verifiedAt))}.<br>
+      Entered by ${esc(o.enteredByName || "-")}. Verified by ${esc(o.verifiedBy || "not yet verified")} ${esc(fmt(o.verifiedAt))}.${o.approval ? ` Approved by ${esc(o.approval.byName)} ${esc(fmt(o.approval.at))}.` : ""}${o.transmittedAt ? ` Released to the patient ${esc(fmt(o.transmittedAt))}.` : ""}<br>
       Reference ranges are those of the laboratory or the system defaults, which depend on the analyser and the population. A clinician interprets the result with the patient's history.
     </div>
   </body></html>`;

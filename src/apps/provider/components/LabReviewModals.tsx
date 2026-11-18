@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { buildAuditTrail } from "@/apps/provider/utils/labAuditTrail";
 import { reviewLabOrder, setLabPatientNote, type LabOrder } from "@/shared/api/labOrdersApi";
 
 const inputCls = "w-full bg-[#081220] border border-slate-800 rounded-lg px-2.5 py-1.5 text-sm text-white focus:outline-none focus:border-sky-500";
@@ -146,6 +147,33 @@ export function ReviewModal({ order, onClose, onDone }: { order: any; onClose: (
         <button className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-200 border border-slate-700" onClick={onClose}>Cancel</button>
         <button disabled={busy} className="px-4 py-1.5 rounded-lg text-xs font-bold text-rose-200 border border-rose-500/50 hover:bg-rose-500/10 disabled:opacity-50" onClick={() => act("return")}>Return for correction</button>
         <button disabled={busy || (rows.length === 0 && !order.measuredValue)} className="px-4 py-1.5 rounded-lg text-xs font-bold bg-emerald-500 text-slate-950 disabled:opacity-50" onClick={() => act("approve")}>Approve</button>
+      </div>
+    </Shell>
+  );
+}
+
+export function OrderHistoryModal({ order, onClose }: { order: any; onClose: () => void }) {
+  const events = buildAuditTrail(order);
+  return (
+    <Shell title="Order history" sub={`${order.testName} · ${order.patientName}`} onClose={onClose}>
+      {events.length === 0 ? (
+        <p className="text-xs text-slate-400">Nothing recorded yet.</p>
+      ) : (
+        <ol className="space-y-2">
+          {events.map((e, i) => (
+            <li key={i} className="rounded-lg border border-slate-800 p-2.5 text-xs">
+              <div className="flex justify-between gap-3">
+                <span className="font-semibold text-white">{e.what}</span>
+                <span className="text-slate-500 shrink-0">{new Date(e.at).toLocaleString("en-NG", { dateStyle: "medium", timeStyle: "short" })}</span>
+              </div>
+              <div className="text-slate-400">{e.who || "System"}</div>
+              {e.detail && <div className="mt-1 text-slate-300">{e.detail}</div>}
+            </li>
+          ))}
+        </ol>
+      )}
+      <div className="flex justify-end">
+        <button className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-200 border border-slate-700" onClick={onClose}>Close</button>
       </div>
     </Shell>
   );
