@@ -53,7 +53,7 @@ function getRadiologySocket() {
 }
 
 export function RadiologyPage() {
-  const { searchPatientRequest } = useAuth();
+  const { user, searchPatientRequest } = useAuth();
 
   const [orders, setOrders] = useState<RadiologyOrder[]>([]);
   const [canApprove, setCanApprove] = useState(false);
@@ -78,6 +78,9 @@ export function RadiologyPage() {
   const [createError, setCreateError] = useState("");
 
   const [providerGrants, setProviderGrants] = useState<ProviderGrant[]>([]);
+  const [grantsLoaded, setGrantsLoaded] = useState(false);
+  // The server lets the organisation owner through without a patient write grant.
+  const isOrgOwner = (user as any)?.accountType === "organization";
 
   const [uploading, setUploading] = useState(false);
   const [reportForm, setReportForm] = useState({
@@ -89,15 +92,23 @@ export function RadiologyPage() {
   const [publishing, setPublishing] = useState(false);
   const [reportError, setReportError] = useState("");
 
+  // Reloaded whenever the form opens or an order is selected, so a fresh grant is picked up.
   useEffect(() => {
-    consentApi.getMyGrantsAsProvider().then(setProviderGrants).catch(() => {});
-  }, []);
+    let cancelled = false;
+    consentApi
+      .getMyGrantsAsProvider()
+      .then((g) => { if (!cancelled) { setProviderGrants(g); setGrantsLoaded(true); } })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [isNewOrderModalOpen, selectedOrderId]);
 
   const hasWriteConsent = (
     patientId: string | undefined | null,
     category: string,
   ): boolean | null => {
     if (!patientId) return null;
+    if (isOrgOwner) return true;
+    if (!grantsLoaded) return null;
     const now = new Date();
     return providerGrants.some((g) => {
       const grantPatientId =

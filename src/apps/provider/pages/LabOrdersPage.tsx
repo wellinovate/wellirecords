@@ -189,6 +189,7 @@ export function LabOrdersPage() {
     }) => {
       setOrders((prev) => {
         if (change.operationType === "insert" && change.document) {
+          if (prev.some((o) => o.id === change.document.id)) return prev;
           return [toUiOrder(change.document), ...prev];
         }
         if (change.operationType === "update" && change.document) {
@@ -274,16 +275,25 @@ export function LabOrdersPage() {
   // a stale or incomplete list here can never grant access it
   // wouldn't otherwise have, only mislabel the status shown.
   const [providerGrants, setProviderGrants] = useState<ProviderGrant[]>([]);
+  const [grantsLoaded, setGrantsLoaded] = useState(false);
+  // The organisation owner does not need a patient's write grant: the server lets the owner through.
+  const isOrgOwner = (user as any)?.accountType === "organization";
 
+  // Reloaded every time the form opens, so a grant the patient has just given is picked up.
   useEffect(() => {
-    consentApi.getMyGrantsAsProvider().then(setProviderGrants);
-  }, []);
+    if (!isNewOrderModalOpen) return;
+    let cancelled = false;
+    consentApi.getMyGrantsAsProvider().then((g) => { if (!cancelled) { setProviderGrants(g); setGrantsLoaded(true); } });
+    return () => { cancelled = true; };
+  }, [isNewOrderModalOpen]);
 
   const hasWriteConsent = (
     patientId: string | undefined | null,
     category: string,
   ): boolean | null => {
     if (!patientId) return null;
+    if (isOrgOwner) return true;
+    if (!grantsLoaded) return null;
     const now = new Date();
     return providerGrants.some((g) => {
       const grantPatientId =
@@ -696,9 +706,35 @@ export function LabOrdersPage() {
         doctorPhone: newOrder.doctorPhone,
         price: Number(newOrder.price),
       });
+      // Show it in the list now instead of waiting for the live update.
+      const row = toUiOrder({
+        ...created,
+        patientId: {
+          _id: selectedPatient.id,
+          fullName: selectedPatient.name,
+          wrId: selectedPatient.raw?.wrId,
+          phone: selectedPatient.raw?.phone,
+        },
+      });
+      setOrders((prev) => (prev.some((o) => o.id === row.id) ? prev : [row, ...prev]));
       showToast(`New Lab Request generated with Barcode ${created.barcode}!`);
       setIsNewOrderModalOpen(false);
       setSelectedPatient(null);
+      setSelectedPanel("");
+      setUseManualTestEntry(false);
+      setNewOrder({
+        patientName: "",
+        patientWrId: "",
+        phone: "",
+        doctorPhone: "",
+        testName: "",
+        category: "Hematology",
+        source: "Hospital Referral",
+        doctor: "",
+        priority: "routine",
+        sampleType: "Blood (EDTA)",
+        price: 10000,
+      });
     } catch (err: any) {
       console.error(err);
       // This instance (shared/lib/api.ts) doesn't normalize errors the
