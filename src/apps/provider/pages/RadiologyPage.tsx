@@ -27,6 +27,7 @@ import {
   Loader2,
   Send,
 } from "lucide-react";
+import { RadiologyReviewPanel } from "@/apps/provider/components/RadiologyReviewPanel";
 
 const MODALITIES = ["x-ray", "ultrasound", "ct", "mri", "mammography", "fluoroscopy", "other"];
 
@@ -55,6 +56,8 @@ export function RadiologyPage() {
   const { searchPatientRequest } = useAuth();
 
   const [orders, setOrders] = useState<RadiologyOrder[]>([]);
+  const [canApprove, setCanApprove] = useState(false);
+  const [statusError, setStatusError] = useState("");
   const [loading, setLoading] = useState(true);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [viewingDicom, setViewingDicom] = useState<RadiologyImage | null>(null);
@@ -114,6 +117,7 @@ export function RadiologyPage() {
     getAllRadiologyOrders()
       .then((res) => {
         setOrders(res.items);
+        setCanApprove(Boolean(res.viewer?.canApprove));
         setLoading(false);
       })
       .catch((err) => {
@@ -218,8 +222,9 @@ export function RadiologyPage() {
     try {
       const updated = await updateRadiologyOrderStatus(id, status);
       setOrders((prev) => prev.map((o) => (o.id === id ? updated : o)));
-    } catch (err) {
-      console.warn("Failed to update status:", err);
+      setStatusError("");
+    } catch (err: any) {
+      setStatusError(err?.response?.data?.message || "Could not change the status.");
     }
   };
 
@@ -354,9 +359,10 @@ export function RadiologyPage() {
                     className="text-xs rounded-lg px-2 py-1.5 bg-black/30 border border-white/10 text-white"
                   >
                     {Object.keys(STATUS_META).map((s) => (
-                      <option key={s} value={s}>{STATUS_META[s].label}</option>
+                      <option key={s} value={s} disabled={(s === "reported" || s === "delivered") && s !== selectedOrder.status}>{STATUS_META[s].label}{(s === "reported" || s === "delivered") && s !== selectedOrder.status ? " (set by the report and release steps)" : ""}</option>
                     ))}
                   </select>
+                  {statusError && <p role="alert" className="mt-1 text-xs text-rose-300">{statusError}</p>}
                 </div>
 
                 {selectedOrder.clinicalIndication && (
@@ -438,7 +444,7 @@ export function RadiologyPage() {
               {/* Report */}
               <form onSubmit={handlePublishReport} className="rounded-2xl p-5 space-y-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(109,40,217,0.15)" }}>
                 <div className="text-xs font-black uppercase tracking-widest" style={{ color: "#64748b" }}>
-                  {selectedOrder.report ? "Report" : "Publish report"}
+                  {selectedOrder.report ? "Report" : "Write report"}
                 </div>
 
                 <textarea
@@ -481,7 +487,7 @@ export function RadiologyPage() {
 
                 {selectedOrder.report && (
                   <p className="text-[11px]" style={{ color: "#64748b" }}>
-                    Last published {new Date(selectedOrder.report.reportedAt).toLocaleString("en-NG")}. Publishing again notifies the patient again.
+                    Last saved {new Date(selectedOrder.report.reportedAt).toLocaleString("en-NG")}. {selectedOrder.releasedAt ? "It has been released and cannot be changed here." : "Saving again sends it back for senior review."}
                   </p>
                 )}
 
@@ -492,9 +498,15 @@ export function RadiologyPage() {
                   style={{ background: "#7c3aed" }}
                 >
                   {publishing ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-                  {selectedOrder.report ? "Republish report" : "Publish report & notify patient"}
+                  {selectedOrder.report ? "Save report again" : "Save report for review"}
                 </button>
               </form>
+
+              <RadiologyReviewPanel
+                order={selectedOrder}
+                canApprove={canApprove}
+                onChange={(updated) => setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)))}
+              />
             </>
           )}
         </div>
