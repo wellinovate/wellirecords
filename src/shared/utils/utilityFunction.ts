@@ -663,6 +663,7 @@ export type LabResultItem = {
   verificationStatus: string | null;
   attachments: { fileId: string; label?: string }[];
   notes: string | null;
+  labNote?: string | null;
   createdAt: string;
   updatedAt: string;
 };

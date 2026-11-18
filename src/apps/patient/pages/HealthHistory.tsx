@@ -494,7 +494,11 @@ const renderRecordCard = (item: any, recordType: string) => {
               <InfoRow label="Interpretation" value={item.interpretation} />
             </>
           }
-          footerLeft={item.notes || "Lab history entry"}
+          footerLeft={
+          item.labNote
+            ? `Note from the laboratory: ${item.labNote}`
+            : item.notes || "Lab history entry"
+        }
           actionLabel="View Result"
         />
       );
