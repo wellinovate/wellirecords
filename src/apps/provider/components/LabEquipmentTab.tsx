@@ -3,6 +3,7 @@ import {
   equipmentApi, equipmentError,
   type Analyzer, type AnalyzerEvent, type Reagent, type ReagentMovement, type EquipmentSummary, type CodeMapRow, type ReagentUsage,
 } from "@/shared/api/labEquipmentApi";
+import { LabQcModal } from "@/apps/provider/components/LabQcModal";
 import { getLabTestCatalog } from "@/shared/api/labTestCatalogApi";
 
 const inputCls = "w-full bg-[#081220] border border-slate-800 rounded-lg px-2.5 py-1.5 text-sm text-white focus:outline-none focus:border-sky-500";
@@ -321,7 +322,7 @@ export function LabEquipmentTab({ canWrite = true }: { canWrite?: boolean }) {
   const [summary, setSummary] = useState<EquipmentSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [modal, setModal] = useState<null | { kind: "analyzer"; item?: Analyzer } | { kind: "log"; item: Analyzer } | { kind: "reagent"; item?: Reagent } | { kind: "stock"; item: Reagent }>(null);
+  const [modal, setModal] = useState<null | { kind: "analyzer"; item?: Analyzer } | { kind: "log"; item: Analyzer } | { kind: "qc"; item: Analyzer } | { kind: "reagent"; item?: Reagent } | { kind: "stock"; item: Reagent }>(null);
 
   const load = useCallback(async () => {
     try {
@@ -388,6 +389,7 @@ export function LabEquipmentTab({ canWrite = true }: { canWrite?: boolean }) {
                     <td className="pr-3"><div>{day(a.nextCalibrationDue)}</div><Pill s={a.calibrationStatus} map={CAL} /></td>
                     <td className="pr-3">{a.lastQcAt ? `${day(a.lastQcAt)} (${a.lastQcResult === "fail" ? "fail" : "pass"})` : "-"}</td>
                     <td className="py-2 whitespace-nowrap space-x-1.5 text-right">
+                      <button className={quiet} onClick={() => setModal({ kind: "qc", item: a })}>Quality control</button>
                       <button className={quiet} onClick={() => setModal({ kind: "log", item: a })}>{canWrite ? "Log" : "View log"}</button>
                       {canWrite && <button className={quiet} onClick={() => setModal({ kind: "analyzer", item: a })}>Edit</button>}
                       {canWrite && <button className={quiet} onClick={() => remove("analyzer", a._id, a.name)}>Remove</button>}
@@ -440,6 +442,7 @@ export function LabEquipmentTab({ canWrite = true }: { canWrite?: boolean }) {
       <p className="text-[11px] text-slate-500">Calibration and QC entries are kept by hand. Due dates come from the last calibration and the interval you set. An analyzer can send results only after you map its codes and make a key; those results wait for a person to check and save them.</p>
 
       {modal?.kind === "analyzer" && <AnalyzerForm initial={modal.item} onSaved={done} onClose={() => setModal(null)} />}
+      {modal?.kind === "qc" && <LabQcModal analyzer={modal.item} canWrite={canWrite} onClose={() => setModal(null)} onChanged={load} />}
       {modal?.kind === "log" && <AnalyzerLog a={modal.item} onClose={() => setModal(null)} onChanged={load} />}
       {modal?.kind === "reagent" && <ReagentForm initial={modal.item} analyzers={analyzers} onSaved={done} onClose={() => setModal(null)} />}
       {modal?.kind === "stock" && <StockModal r={modal.item} onClose={() => setModal(null)} onChanged={load} />}

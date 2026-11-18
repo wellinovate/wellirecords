@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { getAllLabOrders, createLabOrder, updateLabOrderStatus, enterLabOrderResult, verifyLabOrderResult, releaseLabOrder } from "@/shared/api/labOrdersApi";
 import { getLabTestCatalog, getLabCatalogTest, LabTestCatalogGroup, LabCatalogTest } from "@/shared/api/labTestCatalogApi";
 import { LabEquipmentTab } from "@/apps/provider/components/LabEquipmentTab";
+import { equipmentApi, type Analyzer } from "@/shared/api/labEquipmentApi";
 import { ReviewModal, PatientNoteModal, OrderHistoryModal } from "@/apps/provider/components/LabReviewModals";
 import { CriticalAlertsPanel } from "@/apps/provider/components/CriticalAlertsPanel";
 import { LabRangeSettings } from "@/apps/provider/components/LabRangeSettings";
@@ -165,6 +166,8 @@ export function LabOrdersPage() {
   const [reviewTarget, setReviewTarget] = useState<any>(null);
   const [noteTarget, setNoteTarget] = useState<any>(null);
   const [historyTarget, setHistoryTarget] = useState<any>(null);
+  const [analyzerList, setAnalyzerList] = useState<Analyzer[]>([]);
+  const [resultAnalyzerId, setResultAnalyzerId] = useState("");
 
   useEffect(() => {
     getAllLabOrders()
@@ -592,6 +595,8 @@ export function LabOrdersPage() {
     });
     setResultTest(null);
     setStructured({ entries: [], isCritical: false, errors: [], hasValues: false });
+    setResultAnalyzerId(String(order.analyzerId || order.instrumentResults?.analyzerId || ""));
+    equipmentApi.analyzers().then(setAnalyzerList).catch(() => setAnalyzerList([]));
     setIsResultModalOpen(true);
     if (order.testKey) {
       setResultTestLoading(true);
@@ -623,7 +628,7 @@ export function LabOrdersPage() {
       saved = await enterLabOrderResult(
         selectedOrder.id,
         resultTest
-          ? { results: structured.entries, interpretation: resultForm.interpretation || undefined }
+          ? { results: structured.entries, interpretation: resultForm.interpretation || undefined, analyzerId: resultAnalyzerId || undefined }
           : {
               measuredValue: resultForm.measuredValue,
               normalRange: resultForm.normalRange || undefined,
@@ -1822,6 +1827,23 @@ export function LabOrdersPage() {
                     instrument={selectedOrder.instrumentResults}
                     onChange={setStructured}
                   />
+                  {analyzerList.length > 0 && (
+                    <div>
+                      <label htmlFor="result-analyzer" className="block text-xs font-medium text-slate-300 mb-1">Analyser used (optional)</label>
+                      <select
+                        id="result-analyzer"
+                        value={resultAnalyzerId}
+                        onChange={(e) => setResultAnalyzerId(e.target.value)}
+                        className="w-full bg-[#081220] border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"
+                      >
+                        <option value="">Not recorded</option>
+                        {analyzerList.map((a) => (
+                          <option key={a._id} value={a._id}>{a.name}{a.lastQcResult === "fail" ? " (quality control failing)" : ""}</option>
+                        ))}
+                      </select>
+                      <p className="mt-1 text-[11px] text-slate-500">If its control is failing, the result cannot be verified.</p>
+                    </div>
+                  )}
                   <div>
                     <label className="block text-xs font-medium text-slate-300 mb-1">Clinical interpretation</label>
                     <textarea
