@@ -45,6 +45,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { SubscriptionBanner } from "../components/SubscriptionBanner";
 import { referralsApi } from "@/shared/api/referralsApi";
 import { io, Socket } from "socket.io-client";
 import Cookies from "js-cookie";
@@ -681,6 +682,7 @@ export function ProviderLayout() {
             background: "transparent",
           }}
         >
+          <SubscriptionBanner />
           <Outlet />
 
           {!isVerified && (
