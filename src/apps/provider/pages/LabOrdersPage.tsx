@@ -1858,7 +1858,7 @@ export function LabOrdersPage() {
 
       {isResultModalOpen && selectedOrder && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-3xl p-6 rounded-2xl border border-slate-700 bg-[#0c192b] shadow-2xl space-y-5">
+          <div className="w-full max-w-3xl max-h-[90vh] overflow-y-auto overscroll-contain p-6 rounded-2xl border border-slate-700 bg-[#0c192b] shadow-2xl space-y-5">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div>
                 <h3 className="text-lg font-bold text-white">Enter laboratory test result</h3>
@@ -1983,7 +1983,7 @@ export function LabOrdersPage() {
 
       {rejectTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <form onSubmit={handleConfirmReject} className="w-full max-w-md p-6 rounded-2xl border border-slate-700 bg-[#0c192b] shadow-2xl space-y-4">
+          <form onSubmit={handleConfirmReject} className="w-full max-w-md max-h-[90vh] overflow-y-auto overscroll-contain p-6 rounded-2xl border border-slate-700 bg-[#0c192b] shadow-2xl space-y-4">
             <h3 className="text-lg font-bold text-white">
               {rejectTarget.mode === "rejected" ? "Reject this sample" : "Cancel this request"}
             </h3>
@@ -2022,7 +2022,7 @@ export function LabOrdersPage() {
       {/* ─── MODAL 2: NEW TEST REQUEST ────────────────────────────────────────── */}
       {isNewOrderModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-xl p-6 rounded-2xl border border-slate-700 bg-[#0c192b] shadow-2xl space-y-5">
+          <div className="w-full max-w-xl max-h-[90vh] overflow-y-auto overscroll-contain p-6 rounded-2xl border border-slate-700 bg-[#0c192b] shadow-2xl space-y-5">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div>
                 <h3 className="text-lg font-bold text-white">Create New Laboratory Request</h3>
