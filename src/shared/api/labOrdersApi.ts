@@ -51,6 +51,11 @@ export interface LabOrder {
   testKey?: string;
   results?: LabResultRow[];
   deltaFlags?: DeltaFlag[];
+  approval?: { status: "approved"; byName: string; at: string; comment?: string };
+  reviewLog?: { decision: string; comment?: string; byName: string; at: string }[];
+  returnReason?: string;
+  patientNote?: { text: string; issueType: string; byName: string; at: string };
+  transmittedAt?: string;
   reagentShortfalls?: { reagentName: string; needed: number; missing: number }[];
   instrumentResults?: InstrumentResults;
   category: string;
@@ -80,6 +85,7 @@ export interface LabOrder {
 interface LabOrdersResponse {
   items: LabOrder[];
   pagination: { total: number; page: number; limit: number; totalPages: number };
+  viewer?: { userId: string; canApprove: boolean };
 }
 
 function authHeaders() {
@@ -262,5 +268,20 @@ export async function acknowledgeCriticalAlert(
   const { data } = await api.patch(`${apiUrl}/api/v1/lab-orders/critical-alerts/${id}/acknowledge`, payload, {
     headers: authHeaders(),
   });
+  return data.data;
+}
+
+export async function reviewLabOrder(id: string, decision: "approve" | "return", comment: string): Promise<LabOrder> {
+  const { data } = await api.post(`${apiUrl}/api/v1/lab-orders/${id}/review`, { decision, comment }, { headers: authHeaders() });
+  return data.data;
+}
+
+export async function setLabPatientNote(id: string, text: string, issueType: string): Promise<LabOrder> {
+  const { data } = await api.put(`${apiUrl}/api/v1/lab-orders/${id}/patient-note`, { text, issueType }, { headers: authHeaders() });
+  return data.data;
+}
+
+export async function releaseLabOrder(id: string): Promise<{ order: LabOrder; recordsCreated: number; dispatch: { inApp: string; sms: string } }> {
+  const { data } = await api.post(`${apiUrl}/api/v1/lab-orders/${id}/release`, {}, { headers: authHeaders() });
   return data.data;
 }
