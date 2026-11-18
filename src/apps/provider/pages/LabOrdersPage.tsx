@@ -170,6 +170,8 @@ export function LabOrdersPage() {
   const [historyTarget, setHistoryTarget] = useState<any>(null);
   const [analyzerList, setAnalyzerList] = useState<Analyzer[]>([]);
   const [resultAnalyzerId, setResultAnalyzerId] = useState("");
+  const [resultError, setResultError] = useState("");
+  const [resultSaving, setResultSaving] = useState(false);
 
   useEffect(() => {
     getAllLabOrders()
@@ -615,6 +617,8 @@ export function LabOrdersPage() {
     setStructured({ entries: [], isCritical: false, errors: [], hasValues: false });
     setResultAnalyzerId(String(order.analyzerId || order.instrumentResults?.analyzerId || ""));
     equipmentApi.analyzers().then(setAnalyzerList).catch(() => setAnalyzerList([]));
+    setResultError("");
+    setResultSaving(false);
     setIsResultModalOpen(true);
     if (order.testKey) {
       setResultTestLoading(true);
@@ -628,20 +632,25 @@ export function LabOrdersPage() {
   // Save the result. Verification is a separate step.
   const handleSaveResult = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedOrder) return;
+    if (!selectedOrder || resultSaving) return;
+    setResultError("");
 
     if (resultTest) {
       if (!structured.hasValues) {
-        showToast("Enter at least one result.");
+        setResultError("Enter at least one result.");
         return;
       }
       if (structured.errors.length) {
-        showToast(structured.errors[0]);
+        setResultError(structured.errors[0]);
         return;
       }
+    } else if (!resultForm.measuredValue?.trim()) {
+      setResultError("Enter the measured value.");
+      return;
     }
 
     let saved: any;
+    setResultSaving(true);
     try {
       saved = await enterLabOrderResult(
         selectedOrder.id,
@@ -655,9 +664,11 @@ export function LabOrdersPage() {
             },
       );
     } catch (err: any) {
-      showToast(errMsg(err, "Could not save the result."));
+      setResultError(errMsg(err, "Could not save the result."));
+      setResultSaving(false);
       return;
     }
+    setResultSaving(false);
     replaceOrder(saved);
 
     // The server decides critical status for structured results.
@@ -753,7 +764,7 @@ export function LabOrdersPage() {
     <div className="min-h-screen p-4 sm:p-6 lg:p-8 font-sans" style={{ background: T.bg, color: T.text }}>
       {/* Toast Alert Banner */}
       {toastMessage && (
-        <div className="fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl border border-sky-400/30 bg-[#0d2342] text-sky-200 text-sm animate-bounce">
+        <div className="fixed top-5 right-5 z-[200] flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl border border-sky-400/30 bg-[#0d2342] text-sky-200 text-sm animate-bounce">
           <Sparkles className="w-5 h-5 text-sky-400" />
           <span>{toastMessage}</span>
           <button onClick={() => setToastMessage(null)} className="ml-2 text-slate-400 hover:text-white">
@@ -1997,6 +2008,12 @@ export function LabOrdersPage() {
                 </>
               )}
 
+              {resultError && (
+                <div role="alert" className="px-3 py-2 rounded-lg border border-rose-500/40 bg-rose-500/10 text-xs text-rose-300">
+                  {resultError}
+                </div>
+              )}
+
               <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
                 <button
                   type="button"
@@ -2007,9 +2024,10 @@ export function LabOrdersPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl text-xs font-bold bg-sky-500 hover:bg-sky-400 text-slate-950 transition-colors flex items-center gap-1.5"
+                  disabled={resultSaving}
+                  className="px-5 py-2 rounded-xl text-xs font-bold bg-sky-500 hover:bg-sky-400 disabled:opacity-60 text-slate-950 transition-colors flex items-center gap-1.5"
                 >
-                  <ShieldCheck size={15} /> Save result
+                  <ShieldCheck size={15} /> {resultSaving ? "Saving..." : "Save result"}
                 </button>
               </div>
             </form>
