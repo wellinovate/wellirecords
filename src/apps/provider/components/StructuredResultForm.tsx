@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { LabAnalyte, LabCatalogTest } from "@/shared/api/labTestCatalogApi";
-import { previewLabOrderResult, type DeltaFlag, type LabResultRow, type ResultEntry } from "@/shared/api/labOrdersApi";
+import { previewLabOrderResult, type InstrumentResults, type DeltaFlag, type LabResultRow, type ResultEntry } from "@/shared/api/labOrdersApi";
 
 type Entry = { value?: string; unit?: string; rows?: { antibiotic: string; result: string }[] };
 
@@ -47,11 +47,13 @@ export function StructuredResultForm({
   orderId,
   test,
   initial,
+  instrument,
   onChange,
 }: {
   orderId: string;
   test: LabCatalogTest;
   initial?: LabResultRow[];
+  instrument?: InstrumentResults;
   onChange: (s: StructuredResultState) => void;
 }) {
   const [entries, setEntries] = useState<Record<string, Entry>>(() => initialEntries(test, initial));
@@ -110,6 +112,17 @@ export function StructuredResultForm({
     }, 400);
     return () => clearTimeout(t);
   }, [payload, orderId]);
+
+  const [loaded, setLoaded] = useState(false);
+  const loadInstrument = () => {
+    if (!instrument) return;
+    setEntries((p) => {
+      const next = { ...p };
+      for (const e of instrument.entries) next[e.code] = { value: e.value, unit: e.unit };
+      return next;
+    });
+    setLoaded(true);
+  };
 
   const set = (code: string, patch: Entry) => setEntries((p) => ({ ...p, [code]: { ...p[code], ...patch } }));
 
@@ -224,6 +237,17 @@ export function StructuredResultForm({
         <p className="text-[11px] text-slate-400">
           {[test.specimen && `Specimen: ${test.specimen}`, test.fastingRequired && "Fasting sample", test.notes].filter(Boolean).join(" · ")}
         </p>
+      )}
+      {instrument && instrument.status === "pending" && instrument.entries.length > 0 && (
+        <div role="status" className="rounded-lg border border-sky-500/40 bg-sky-500/10 px-3 py-2 text-xs text-sky-200 flex flex-wrap items-center justify-between gap-2">
+          <span>
+            <b>{instrument.analyzerName}</b> sent {instrument.entries.length} value{instrument.entries.length === 1 ? "" : "s"} on {new Date(instrument.receivedAt).toLocaleString()}.
+            {instrument.unmapped.length > 0 && ` Not matched to a result field: ${instrument.unmapped.join(", ")}.`}
+          </span>
+          <button type="button" onClick={loadInstrument} disabled={loaded} className="px-3 py-1 rounded-lg bg-sky-500 text-slate-950 font-bold disabled:opacity-50">
+            {loaded ? "Loaded. Check, then save" : "Load instrument values"}
+          </button>
+        </div>
       )}
       {critical && (
         <div role="alert" className="rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-xs font-semibold text-rose-300">

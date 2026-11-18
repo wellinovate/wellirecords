@@ -35,6 +35,14 @@ export interface ResultEntry {
   rows?: { antibiotic: string; result: string }[];
 }
 
+export interface InstrumentResults {
+  analyzerName: string;
+  receivedAt: string;
+  entries: { code: string; value: string; unit?: string }[];
+  unmapped: string[];
+  status: "pending" | "used";
+}
+
 export interface LabOrder {
   id: string;
   patientId: string;
@@ -43,6 +51,8 @@ export interface LabOrder {
   testKey?: string;
   results?: LabResultRow[];
   deltaFlags?: DeltaFlag[];
+  reagentShortfalls?: { reagentName: string; needed: number; missing: number }[];
+  instrumentResults?: InstrumentResults;
   category: string;
   status: string;
   priority: string;
