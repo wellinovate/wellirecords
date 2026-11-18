@@ -5,6 +5,7 @@ import { LabEquipmentTab } from "@/apps/provider/components/LabEquipmentTab";
 import { ReviewModal, PatientNoteModal, OrderHistoryModal } from "@/apps/provider/components/LabReviewModals";
 import { CriticalAlertsPanel } from "@/apps/provider/components/CriticalAlertsPanel";
 import { LabRangeSettings } from "@/apps/provider/components/LabRangeSettings";
+import { LabPriceSettings } from "@/apps/provider/components/LabPriceSettings";
 import { printLabReport } from "@/apps/provider/utils/printLabReport";
 import { StructuredResultForm, StructuredResultState } from "@/apps/provider/components/StructuredResultForm";
 import VerifiedResultDeliveryModal from "@/apps/provider/components/VerifiedResultDeliveryModal";
@@ -231,6 +232,7 @@ export function LabOrdersPage() {
   });
 
   const [showRanges, setShowRanges] = useState(false);
+  const [showPrices, setShowPrices] = useState(false);
   const [alertsRefresh, setAlertsRefresh] = useState(0);
 
   // Structured result entry: the test definition for the order being resulted, when it has one.
@@ -747,6 +749,12 @@ export function LabOrdersPage() {
             className="px-3 py-2.5 rounded-xl border border-slate-700 bg-slate-800/60 text-slate-300 hover:text-white text-xs font-medium"
           >
             Reference ranges
+          </button>
+          <button
+            onClick={() => setShowPrices(true)}
+            className="px-3 py-2.5 rounded-xl border border-slate-700 bg-slate-800/60 text-slate-300 hover:text-white text-xs font-medium"
+          >
+            Test prices
           </button>
           <button
             onClick={handlePrintBarcodeLabels}
@@ -1795,6 +1803,7 @@ export function LabOrdersPage() {
           onSaved={(saved) => { replaceOrder(saved); setNoteTarget(null); showToast("Note saved."); }}
         />
       )}
+      {showPrices && <LabPriceSettings canEdit={(user as any)?.accountType === "organization"} onClose={() => setShowPrices(false)} />}
       {showRanges && <LabRangeSettings canEdit={(user as any)?.accountType === "organization"} onClose={() => setShowRanges(false)} />}
 
       {isResultModalOpen && selectedOrder && (
@@ -2131,9 +2140,10 @@ export function LabOrdersPage() {
                       const raw = e.target.value;
                       setNewOrder({ ...newOrder, price: raw === "" ? 0 : Number(raw) });
                     }}
-                    placeholder="0"
+                    placeholder="Leave blank to use your price list"
                     className="w-full bg-[#081220] border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"
                   />
+                  <p className="mt-1 text-[11px] text-slate-500">Prices are set under Test prices.</p>
                 </div>
               </div>
 
