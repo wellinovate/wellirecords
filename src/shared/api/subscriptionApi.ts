@@ -16,3 +16,15 @@ export async function getMySubscription(): Promise<SubscriptionStatus> {
   });
   return data.data;
 }
+
+const authHeaders = () => ({ headers: { Authorization: `Bearer ${Cookies.get("accessToken")}` } });
+
+export async function startSubscriptionCheckout(): Promise<{ authorizationUrl: string; amountKobo: number }> {
+  const { data } = await api.post(`${apiUrl}/api/v1/subscriptions/me/checkout`, {}, authHeaders());
+  return data.data;
+}
+
+export async function verifySubscriptionPayment(reference: string): Promise<{ success: boolean; reason?: string }> {
+  const { data } = await api.post(`${apiUrl}/api/v1/subscriptions/me/verify`, { reference }, authHeaders());
+  return data;
+}
